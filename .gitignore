@@ -10,3 +10,4 @@ coverage/
 .env.*
 *.tsbuildinfo
 *.local
+.claude/settings.local.json
