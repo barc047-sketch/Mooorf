@@ -1,0 +1,76 @@
+.app-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.brand {
+  position: absolute;
+  top: var(--sp-24);
+  left: var(--sp-24);
+  font-size: var(--text-body);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  z-index: 10;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.stage-empty {
+  text-align: center;
+  color: var(--ink);
+}
+
+.stage-hint {
+  pointer-events: none; /* canvas underneath owns gestures */
+}
+
+.hint-sub {
+  margin: var(--sp-12) 0 0;
+  font-size: var(--text-caption);
+  letter-spacing: 0.12em;
+  color: var(--fog);
+}
+
+.eyebrow {
+  margin: 0 0 var(--sp-12);
+  font-size: var(--text-caption);
+  letter-spacing: 0.24em;
+  color: var(--fog);
+}
+
+.display {
+  margin: 0;
+  font-weight: 300;
+  font-size: clamp(48px, 9vw, var(--text-display));
+  line-height: 0.9;
+  letter-spacing: var(--track-display);
+}
+
+.theme-toggle {
+  position: absolute;
+  top: var(--sp-24);
+  right: var(--sp-24);
+  z-index: 10;
+  padding: var(--sp-6) var(--sp-18);
+  font: inherit;
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-pill);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  cursor: pointer;
+  transition: color 240ms ease, background 240ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--accent);
+}

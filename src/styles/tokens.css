@@ -1,0 +1,88 @@
+/* ZONUERT design tokens — Palmer-inspired editorial system.
+   Day = gallery cream museum. Night = graph-noir red. */
+
+:root {
+  /* Type */
+  --font-ui: "Inter Tight", "Neue Haas Grotesk Display Pro", "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+
+  --text-caption: 11px;
+  --text-body: 14px;
+  --text-body-lg: 18px;
+  --text-display: 120px;
+
+  --track-tight: -0.02em;
+  --track-tighter: -0.03em;
+  --track-display: -0.04em;
+
+  /* Spacing (6px base) */
+  --sp-6: 6px;
+  --sp-12: 12px;
+  --sp-18: 18px;
+  --sp-24: 24px;
+  --sp-66: 66px;
+  --sp-96: 96px;
+
+  /* Radii */
+  --r-input: 3px;
+  --r-card: 9px;
+  --r-pill: 100px;
+
+  /* Accent (constant across themes) */
+  --zonuert-red: #c31616;
+  --zonuert-red-deep: #8f1111;
+
+  /* Glass */
+  --glass-blur: 14px;
+}
+
+/* Day mode (default) */
+:root,
+[data-theme="day"] {
+  --bg: #f5f6ee; /* gallery cream */
+  --surface: #ffffff; /* bone */
+  --ink: #222222;
+  --fog: #a1a19c;
+  --hairline: rgba(34, 34, 34, 0.16);
+  --accent: var(--zonuert-red);
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(34, 34, 34, 0.14);
+  color-scheme: light;
+}
+
+/* Night mode */
+[data-theme="night"] {
+  --bg: #070707;
+  --surface: #161616;
+  --ink: #ededea;
+  --fog: #9a9a94;
+  --hairline: rgba(237, 237, 234, 0.14);
+  --accent: var(--zonuert-red);
+  --glass-bg: rgba(22, 22, 22, 0.55);
+  --glass-border: rgba(237, 237, 234, 0.12);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  letter-spacing: var(--track-tight);
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden; /* no page scroll — canvas owns the viewport */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background 480ms ease, color 480ms ease;
+}

@@ -1,0 +1,401 @@
+/* Edge shell — glass/ink controls at viewport edges. Center stays calm. */
+
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+/* Top-center canvas/table pill */
+.view-toggle {
+  position: absolute;
+  top: var(--sp-24);
+  left: 50%;
+  /* centering via Motion x:-50% (inline transform owns this element) */
+  z-index: 20;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--r-pill);
+}
+
+.view-toggle button {
+  position: relative;
+  padding: var(--sp-6) var(--sp-18);
+  font: inherit;
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  color: var(--fog);
+  background: none;
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.view-toggle button[data-active="true"] {
+  color: var(--ink);
+}
+
+.view-toggle .thumb {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-pill);
+  z-index: -1;
+}
+
+/* Bottom-center dock */
+.dock {
+  position: absolute;
+  bottom: var(--sp-24);
+  left: 50%;
+  /* centering via Motion x:-50% (inline transform owns this element) */
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+}
+
+.dock-btn,
+.rail-btn,
+.zoom-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease, transform 120ms ease;
+}
+
+.dock-btn:hover,
+.rail-btn:hover,
+.zoom-btn:hover {
+  color: var(--accent);
+  background: var(--surface);
+}
+
+.dock-btn:active,
+.rail-btn:active,
+.zoom-btn:active {
+  transform: scale(0.94);
+}
+
+.morph-color-btn {
+  position: relative;
+}
+
+.dock-mode-btn {
+  width: 40px;
+}
+
+.dock-mode-code {
+  position: absolute;
+  left: 4px;
+  bottom: 2px;
+  max-width: 27px;
+  overflow: hidden;
+  font-size: 7px;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--fog);
+  pointer-events: none;
+}
+
+.morph-color-swatch {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--surface);
+  border-radius: 50%;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.morph-color-swatch[data-mode="cellular-reverse"] {
+  background: linear-gradient(135deg, var(--ink) 50%, var(--bg) 50%);
+}
+
+.morph-color-swatch[data-mode="plain-black"] {
+  background: #050505;
+}
+
+.morph-color-swatch[data-mode="plain-white"] {
+  background: #f4f2e9;
+}
+
+.morph-color-swatch[data-mode="graphite"] {
+  background: #292a2e;
+}
+
+.morph-color-swatch[data-mode="wine"] {
+  background: #460a16;
+}
+
+.morph-color-swatch[data-mode="auto"] {
+  background: linear-gradient(135deg, #050505 50%, #f4f2e9 50%);
+}
+
+.attach-mode-btn {
+  position: relative;
+}
+
+.dock-btn[data-open="true"] {
+  color: var(--accent);
+  background: var(--surface);
+}
+
+/* Anchored micro-panels above the dock mode buttons */
+.dock-pop-anchor {
+  position: relative;
+  display: flex;
+}
+
+.dock-pop {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  /* centering via Motion x:-50% (inline transform owns this element) */
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 16px;
+  min-width: 150px;
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.35);
+}
+
+.pop-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 9px;
+  font: inherit;
+  font-size: var(--text-caption);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: var(--fog);
+  background: none;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease;
+}
+
+.pop-row:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.pop-row[data-active="true"] {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.pop-row[data-active="true"]::after {
+  content: "";
+  width: 4px;
+  height: 4px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--zonuert-red);
+}
+
+.pop-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+}
+
+.pop-swatch[data-mode="cellular-reverse"] {
+  background: linear-gradient(135deg, var(--ink) 50%, var(--bg) 50%);
+}
+
+.pop-swatch[data-mode="plain-black"] {
+  background: #050505;
+}
+
+.pop-swatch[data-mode="plain-white"] {
+  background: #f4f2e9;
+}
+
+.pop-swatch[data-mode="graphite"] {
+  background: #292a2e;
+}
+
+.pop-swatch[data-mode="wine"] {
+  background: #460a16;
+}
+
+.pop-swatch[data-mode="auto"] {
+  background: linear-gradient(135deg, #050505 50%, #f4f2e9 50%);
+}
+
+.pop-divider {
+  height: 1px;
+  margin: 3px 6px;
+  background: var(--hairline);
+}
+
+.dock-pop-attach {
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.pop-chips {
+  display: flex;
+  gap: 2px;
+}
+
+.pop-chip {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--fog);
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease;
+}
+
+.pop-chip:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.pop-chip[data-active="true"] {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.dock-pop-caption {
+  padding: 0 8px 3px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--fog);
+}
+
+.dock-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--hairline);
+  margin: 0 4px;
+}
+
+.dock-merge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.dock-merge-label {
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  color: var(--fog);
+  white-space: nowrap;
+}
+
+.dock-merge input[type="range"] {
+  width: 88px;
+  accent-color: var(--zonuert-red);
+}
+
+/* Left vertical rail */
+.rail {
+  position: absolute;
+  left: var(--sp-24);
+  top: 50%;
+  /* centering via Motion y:-50% (inline transform owns this element) */
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+}
+
+.rail-btn[data-on="true"] {
+  color: var(--accent);
+}
+
+/* Bottom-right zoom cluster */
+.zoom-controls {
+  position: absolute;
+  right: var(--sp-24);
+  bottom: var(--sp-24);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-hint {
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  color: var(--fog);
+}
+
+.zoom-cluster {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--r-pill);
+}
+
+/* Bottom-left HUD caption */
+.hud {
+  position: absolute;
+  left: var(--sp-24);
+  bottom: var(--sp-24);
+  z-index: 20;
+  font-size: var(--text-caption);
+  letter-spacing: 0.08em;
+  color: var(--fog);
+  pointer-events: none;
+}
+
+/* Narrow viewports: keep edges calm, never collide with the dock. */
+@media (max-width: 1100px) {
+  .zoom-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .zoom-controls {
+    bottom: calc(var(--sp-24) + 54px);
+  }
+}
+
+@media (max-width: 960px) {
+  .dock-merge input[type="range"] {
+    width: 64px;
+  }
+
+  .dock-merge-label {
+    display: none;
+  }
+}

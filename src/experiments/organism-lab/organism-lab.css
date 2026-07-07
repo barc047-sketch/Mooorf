@@ -1,0 +1,438 @@
+/* V6E Organism Lab — self-contained styling.
+   Monochrome, hairline, compact — echoes the ZONUERT glass dock without
+   importing shell.css. Panel tone flips via data-olab-theme so controls stay
+   legible on style-forced grounds (e.g. Plain White's dark field). */
+
+.olab-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-ui, "Inter Tight", "Helvetica Neue", Arial, sans-serif);
+  letter-spacing: var(--track-tight, -0.02em);
+  transition: background-color 480ms ease;
+
+  --olab-ink: #1c1c1c;
+  --olab-ink-soft: rgba(28, 28, 28, 0.56);
+  --olab-hairline: rgba(28, 28, 28, 0.16);
+  --olab-glass: rgba(255, 255, 255, 0.58);
+  --olab-glass-border: rgba(28, 28, 28, 0.14);
+  --olab-accent: var(--zonuert-red, #c31616);
+}
+
+.olab-root[data-olab-theme="night"] {
+  --olab-ink: #ececea;
+  --olab-ink-soft: rgba(236, 236, 234, 0.55);
+  --olab-hairline: rgba(236, 236, 234, 0.15);
+  --olab-glass: rgba(16, 16, 16, 0.55);
+  --olab-glass-border: rgba(236, 236, 234, 0.13);
+}
+
+.olab-canvas-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+.olab-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* ---------- top: brand + presets ---------- */
+
+.olab-top {
+  position: absolute;
+  top: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.olab-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.olab-back {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--olab-ink-soft);
+  text-decoration: none;
+  padding: 3px 8px;
+  border: 1px solid var(--olab-hairline);
+  border-radius: var(--r-pill, 100px);
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.olab-back:hover {
+  color: var(--olab-ink);
+  border-color: var(--olab-ink-soft);
+}
+
+.olab-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--olab-ink);
+}
+
+.olab-tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--olab-accent);
+}
+
+.olab-presets {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 92vw;
+}
+
+/* ---------- shared control atoms ---------- */
+
+.olab-chip {
+  appearance: none;
+  font: inherit;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--olab-ink-soft);
+  background: transparent;
+  border: 1px solid var(--olab-hairline);
+  border-radius: var(--r-pill, 100px);
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.olab-chip:hover {
+  color: var(--olab-ink);
+  border-color: var(--olab-ink-soft);
+}
+
+.olab-chip-active {
+  color: var(--olab-glass);
+  background: var(--olab-ink);
+  border-color: var(--olab-ink);
+}
+
+.olab-root[data-olab-theme="day"] .olab-chip-active {
+  color: #f5f6ee;
+}
+
+.olab-root[data-olab-theme="night"] .olab-chip-active {
+  color: #131313;
+}
+
+.olab-sq {
+  appearance: none;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--olab-ink-soft);
+  background: transparent;
+  border: 1px solid var(--olab-hairline);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.olab-sq:hover {
+  color: var(--olab-ink);
+  border-color: var(--olab-ink-soft);
+}
+
+.olab-sq-active {
+  color: var(--olab-accent);
+  border-color: var(--olab-accent);
+}
+
+.olab-icon {
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--olab-ink-soft);
+  background: transparent;
+  border: 1px solid var(--olab-hairline);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.olab-icon:hover {
+  color: var(--olab-ink);
+  border-color: var(--olab-ink-soft);
+}
+
+.olab-theme {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--olab-ink);
+  background: var(--olab-glass);
+  border: 1px solid var(--olab-glass-border);
+  border-radius: 50%;
+  backdrop-filter: blur(var(--glass-blur, 14px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 14px));
+  cursor: pointer;
+}
+
+/* ---------- right inspector ---------- */
+
+.olab-inspector {
+  position: absolute;
+  top: 88px;
+  right: 18px;
+  bottom: 96px;
+  width: 212px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--olab-glass);
+  border: 1px solid var(--olab-glass-border);
+  border-radius: var(--r-card, 9px);
+  backdrop-filter: blur(var(--glass-blur, 14px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 14px));
+  padding: 4px 0;
+  scrollbar-width: thin;
+}
+
+.olab-group + .olab-group {
+  border-top: 1px solid var(--olab-hairline);
+}
+
+.olab-group-head {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: inherit;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--olab-ink);
+  background: transparent;
+  border: 0;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.olab-chev {
+  color: var(--olab-ink-soft);
+  transition: transform 200ms ease;
+}
+
+.olab-chev-open {
+  transform: rotate(180deg);
+}
+
+.olab-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 12px 12px;
+}
+
+.olab-slider {
+  display: block;
+}
+
+.olab-slider-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--olab-ink-soft);
+  margin-bottom: 2px;
+}
+
+.olab-slider-val {
+  color: var(--olab-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.olab-toggle {
+  appearance: none;
+  font: inherit;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: left;
+  color: var(--olab-ink-soft);
+  background: transparent;
+  border: 1px solid var(--olab-hairline);
+  border-radius: 6px;
+  padding: 6px 9px;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.olab-toggle:hover {
+  color: var(--olab-ink);
+}
+
+.olab-toggle-on {
+  color: var(--olab-accent);
+  border-color: var(--olab-accent);
+}
+
+/* ---------- range inputs (monochrome hairline) ---------- */
+
+.olab-root input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+  margin: 0;
+}
+
+.olab-root input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--olab-hairline);
+  border-radius: 1px;
+}
+
+.olab-root input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--olab-ink);
+  border: 0;
+}
+
+.olab-root input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--olab-hairline);
+  border-radius: 1px;
+}
+
+.olab-root input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--olab-ink);
+  border: 0;
+}
+
+/* ---------- bottom dock ---------- */
+
+.olab-dock {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--olab-glass);
+  border: 1px solid var(--olab-glass-border);
+  border-radius: 12px;
+  backdrop-filter: blur(var(--glass-blur, 14px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 14px));
+  max-width: 94vw;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.olab-dock-seg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.olab-div {
+  width: 1px;
+  height: 18px;
+  background: var(--olab-hairline);
+}
+
+.olab-dock-offset {
+  gap: 8px;
+}
+
+.olab-dock-offset input[type="range"] {
+  width: 92px;
+}
+
+.olab-mini-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--olab-ink-soft);
+}
+
+/* ---------- fallback ---------- */
+
+.olab-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 380px;
+  padding: 18px 20px;
+  background: var(--olab-glass);
+  border: 1px solid var(--olab-glass-border);
+  border-radius: var(--r-card, 9px);
+  backdrop-filter: blur(var(--glass-blur, 14px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 14px));
+  color: var(--olab-ink-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.olab-fallback-title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--olab-ink);
+}
+
+.olab-fallback p {
+  margin: 0;
+}
+
+/* ---------- narrow viewports ---------- */
+
+@media (max-width: 900px) {
+  .olab-inspector {
+    width: 188px;
+    top: 116px;
+    bottom: 110px;
+  }
+}
+
+@media (max-width: 640px) {
+  .olab-inspector {
+    display: none; /* prototype lab is desktop-first; dock keeps core controls */
+  }
+}
