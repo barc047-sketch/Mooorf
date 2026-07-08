@@ -10,6 +10,14 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - Keep table sync
 - Run build and local preview after implementation
 
+## Workflow Complete
+
+- V6F.0F.3 GitHub Push / Doc Sync
+- Remote: `origin`
+- Repo: https://github.com/barc047-sketch/Mooorf
+- Branch: `main`
+- GitHub is source of truth
+
 ## Urgent Bugs
 
 - Recheck table sync after V6F.1

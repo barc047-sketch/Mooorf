@@ -42,7 +42,16 @@ NEXT:
 ```
 
 ## Current state
-Prompt 03 execution: **Phases 1–4 COMPLETE**. **V4.5A COMPLETE** (docs, incl. reference patch). **V4.5B COMPLETE** (master graph domain layer). **V5 Readiness Audit COMPLETE**. **Phase 5 Table Sync COMPLETE**. **Phase 5.1 Table/Shell Polish COMPLETE**. **Phase 6A Organism Blob Foundation COMPLETE**. **Codex Workspace Setup COMPLETE**. **Phase 6B Visual Polish COMPLETE**. **Phase 6B.1 Blob Geometry Correction COMPLETE** (verified live). **Phase 6B.2 Morph Modes + Attachment Control COMPLETE**. **Phase 6C QA / Bugfix COMPLETE**. **Phase 6D Organism System Redesign + Morph Style Panel COMPLETE** (implementation only). **Phase 6E Organism Lab Shader Prototype COMPLETE** (implementation only). **V6F.0 Organism Production Integration Audit COMPLETE** (docs only). **V6F.0B Production Canvas UI / Control Architecture COMPLETE** (docs only). **V6F.0C Reference Folder Patch COMPLETE** (docs only). **V6F.0D GitHub-only Coding Workflow Setup COMPLETE**. Next: **V6F.1 Production Organism Canvas Integration**. Old canvas remains fallback. V6G, Phase 6.5 Selection Arc, and V7 remain not started.
+Prompt 03 execution: **Phases 1–4 COMPLETE**. **V4.5A COMPLETE** (docs, incl. reference patch). **V4.5B COMPLETE** (master graph domain layer). **V5 Readiness Audit COMPLETE**. **Phase 5 Table Sync COMPLETE**. **Phase 5.1 Table/Shell Polish COMPLETE**. **Phase 6A Organism Blob Foundation COMPLETE**. **Codex Workspace Setup COMPLETE**. **Phase 6B Visual Polish COMPLETE**. **Phase 6B.1 Blob Geometry Correction COMPLETE** (verified live). **Phase 6B.2 Morph Modes + Attachment Control COMPLETE**. **Phase 6C QA / Bugfix COMPLETE**. **Phase 6D Organism System Redesign + Morph Style Panel COMPLETE** (implementation only). **Phase 6E Organism Lab Shader Prototype COMPLETE** (implementation only). **V6F.0 Organism Production Integration Audit COMPLETE** (docs only). **V6F.0B Production Canvas UI / Control Architecture COMPLETE** (docs only). **V6F.0C Reference Folder Patch COMPLETE** (docs only). **V6F.0D GitHub-only Coding Workflow Setup COMPLETE**. **V6F.0F.3 GitHub Push / Doc Sync COMPLETE**. Next: **V6F.1 Production Organism Canvas Integration**. Old canvas remains fallback. V6G, Phase 6.5 Selection Arc, and V7 remain not started.
+
+## V6F.0F.3 — GitHub Push / Doc Sync
+- **Remote:** `origin`
+- **Repo URL:** https://github.com/barc047-sketch/Mooorf
+- **Branch:** `main`
+- **Decision:** GitHub is now the source of truth for code. Google Drive is not used for the code workflow.
+- **Docs synced:** `docs/GITHUB_WORKFLOW.md`, `docs/HANDOFF.md`, `docs/TASK_QUEUE.md`, root `HANDOFF.md`, root `TASK_QUEUE.md`.
+- **Runtime code:** untouched. V6F.1 was not started.
+- **Next:** V6F.1 Production Organism Canvas Integration remains next.
 
 ## V6F.0D — GitHub-only Coding Workflow Setup
 - **Decision:** GitHub is now documented as the source of truth for code. Google Drive should not be used as the code workflow source of truth.

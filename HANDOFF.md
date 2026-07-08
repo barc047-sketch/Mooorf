@@ -9,6 +9,7 @@ Complete:
 - V6F.0B Production Canvas UI / Control Architecture
 - V6F.0C Reference Folder Patch
 - V6F.0D GitHub-only Coding Workflow Setup
+- V6F.0F.3 GitHub Push / Doc Sync
 
 Next:
 - V6F.1 Production Organism Canvas Integration
@@ -25,3 +26,7 @@ Organism Lab is the preferred production canvas direction. Spaces become nuclei 
 ## Workflow
 
 GitHub is the source of truth for code. Do not use Google Drive as the code workflow source of truth right now.
+
+- Remote: `origin`
+- Repo: https://github.com/barc047-sketch/Mooorf
+- Branch: `main`

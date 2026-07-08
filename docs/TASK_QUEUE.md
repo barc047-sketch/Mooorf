@@ -274,6 +274,16 @@
 - [x] runtime UI not implemented
 - [x] V6F.1 not started
 
+## V6F.0F.3 — GitHub Push / Doc Sync  ✅ COMPLETE
+- [x] remote documented as `origin`
+- [x] GitHub repo documented: https://github.com/barc047-sketch/Mooorf
+- [x] branch documented as `main`
+- [x] GitHub documented as source of truth
+- [x] Google Drive documented as not used for code workflow
+- [x] `docs/GITHUB_WORKFLOW.md` created
+- [x] handoff and task queue docs synced
+- [x] V6F.1 not started
+
 ## V6F.1 — Production Organism Canvas Integration  ⏳ NEXT (not started)
 - [ ] add production organism canvas component using SpaceCell nuclei
 - [ ] add SpaceCell → nucleus adapter
