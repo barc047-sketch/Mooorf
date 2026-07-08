@@ -52,14 +52,6 @@ const expK = (response: number, dt: number) => 1 - Math.exp(-Math.max(response, 
 const readTheme = (): LabTheme =>
   document.documentElement.getAttribute("data-theme") === "night" ? "night" : "day";
 
-const shortCode = (value: string) =>
-  value
-    .split(/\s+/)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 3)
-    .toUpperCase() || "SP";
-
 export default function OrganismCanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -465,14 +457,13 @@ export default function OrganismCanvasView() {
                 <>
                   <span className="organism-label-main">{space.name}</span>
                   <span className="organism-label-meta">
-                    {Math.round(space.area)} m2 / {space.category} / {space.privacy} /{" "}
-                    {shortCode(space.category)}
+                    {Math.round(space.area)} m² · {space.category}
                   </span>
                 </>
               ) : annotationMode === "editorial" ? (
                 <>
                   <span className="organism-label-main">{space.name}</span>
-                  <span className="organism-label-meta">{Math.round(space.area)} m2</span>
+                  <span className="organism-label-meta">{Math.round(space.area)} m²</span>
                 </>
               ) : (
                 space.name

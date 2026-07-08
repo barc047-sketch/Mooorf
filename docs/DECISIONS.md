@@ -95,3 +95,10 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - The large red selection circle is preserved as `selectionDisplay: "influence"` for future measurement/influence mode, not normal selection.
 - Palette prep is metadata-only in `src/design/palettes.ts`; no category color mapping or organism shader palette mapping is active yet.
 - Saved views are prepared as a typed snapshot concept only; no runtime save/load feature was started.
+
+## V6H.3 premium UI implementation
+- Dock side-group expand/collapse uses a CSS mount animation instead of a nested Motion `AnimatePresence` wrapper: nesting added risk around the popovers' own presence animations and the preview harness's hidden-tab rAF freeze; conditional render + CSS keeps collapse instant and popover lifecycles independent.
+- The Motion section master switch is stateless sugar over existing settings: on applies a gentle preset (drift 0.28 / breathing 0.30 / wobble 0.12, timeScale ≥ 1), off zeroes the three amounts only. No new store fields.
+- A pockets master toggle is deferred: pockets have no non-destructive off state in the field model (threshold/softness always contribute); a future phase can add an explicit amount override if needed.
+- Palette UI renders `src/design/palettes.ts` metadata visually (shade ramps, field strips, gradient previews) but stays presentation-only; renderer/category mapping remains V6I.
+- Editorial annotation stays boxless even when selected — selection is communicated by red type + the tight ring, keeping the Palmer editorial read.

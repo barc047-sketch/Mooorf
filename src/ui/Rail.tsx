@@ -105,7 +105,7 @@ export default function Rail() {
         </button>
       </RailSection>
 
-      <RailSection caption="note">
+      <RailSection caption="annotate">
         <button
           type="button"
           className="rail-btn"

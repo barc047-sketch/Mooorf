@@ -57,9 +57,12 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 5px;
-  border-radius: 18px;
+  padding: 4px;
+  border-radius: 17px;
   max-width: calc(100vw - 18px);
+  box-shadow:
+    0 22px 48px -26px rgba(0, 0, 0, 0.42),
+    0 2px 10px -6px rgba(0, 0, 0, 0.16);
 }
 
 .dock-group {
@@ -68,9 +71,45 @@
   gap: 3px;
   min-width: 0;
   padding: 2px;
-  border-radius: 14px;
+  border-radius: 13px;
   background: color-mix(in srgb, var(--surface) 56%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 72%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 62%, transparent);
+}
+
+/* expand animation on mount — CSS-only so popover AnimatePresence stays
+   un-nested (nesting froze popover enter/exit in preview QA) */
+.dock-group-items {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  animation: dock-items-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes dock-items-in {
+  from {
+    opacity: 0;
+    translate: -5px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.dock-group-items[data-side="right"] {
+  animation-name: dock-items-in-right;
+}
+
+@keyframes dock-items-in-right {
+  from {
+    opacity: 0;
+    translate: 5px 0;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 .dock-group[data-collapsed="true"] {
@@ -90,28 +129,42 @@
 .zoom-btn {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   color: var(--ink);
   background: none;
   border: none;
-  border-radius: 12px;
+  border-radius: 11px;
   cursor: pointer;
-  transition: color 180ms ease, background 180ms ease, transform 120ms ease;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms ease;
 }
 
+/* Mac-dock-like lift — soft rise, no bounce */
 .dock-btn:hover,
-.rail-btn:hover,
 .zoom-btn:hover {
   color: var(--accent);
   background: var(--surface);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 14px -9px rgba(0, 0, 0, 0.35);
+}
+
+.rail-btn:hover {
+  color: var(--accent);
+  background: var(--surface);
+  transform: translateX(1.5px);
+  box-shadow: 0 6px 14px -9px rgba(0, 0, 0, 0.35);
 }
 
 .dock-btn:active,
 .rail-btn:active,
 .zoom-btn:active {
   transform: scale(0.94);
+  box-shadow: none;
 }
 
 .dock-btn[data-active="true"],
@@ -138,12 +191,17 @@
 }
 
 .dock-collapse-btn {
-  width: 24px;
+  width: 22px;
   color: var(--fog);
 }
 
+.dock-collapse-btn:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .dock-mode-btn {
-  width: 40px;
+  width: 38px;
   position: relative;
 }
 
@@ -164,7 +222,7 @@
 }
 
 .renderer-mode-btn {
-  width: 44px;
+  width: 42px;
   color: var(--ink);
   background: color-mix(in srgb, var(--surface) 80%, transparent);
 }
@@ -207,8 +265,8 @@
 }
 
 .nucleus-orb {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   color: var(--surface);
   background:
     radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--zonuert-red) 34%, transparent), transparent 44%),
@@ -218,26 +276,52 @@
     0 18px 38px -18px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 color-mix(in srgb, var(--surface) 18%, transparent);
   cursor: pointer;
-  transition: transform 130ms ease, box-shadow 180ms ease, filter 180ms ease;
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease,
+    filter 220ms ease;
 }
 
+/* unstable/liquid hover — the membrane wobbles while the orb rises slightly */
 .nucleus-orb:hover {
-  filter: contrast(1.08) brightness(1.03);
+  transform: scale(1.07);
+  filter: contrast(1.08) brightness(1.04);
+  animation: orb-liquid 2.8s ease-in-out infinite;
   box-shadow:
-    0 20px 44px -18px rgba(0, 0, 0, 0.78),
+    0 22px 48px -18px rgba(0, 0, 0, 0.78),
+    0 0 0 5px color-mix(in srgb, var(--zonuert-red) 8%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--surface) 24%, transparent);
 }
 
 .nucleus-orb:active {
   transform: scale(0.96);
+  animation: none;
+}
+
+@keyframes orb-liquid {
+  0%,
+  100% {
+    border-radius: 50%;
+  }
+  30% {
+    border-radius: 46% 54% 51% 49% / 53% 46% 54% 47%;
+  }
+  62% {
+    border-radius: 54% 46% 45% 55% / 46% 55% 45% 54%;
+  }
 }
 
 .void-btn {
   width: 36px;
   height: 36px;
   color: var(--fog);
-  background: color-mix(in srgb, var(--surface) 62%, transparent);
-  border: 1px solid color-mix(in srgb, var(--hairline) 76%, transparent);
+  /* hollow center hints at the future subtractive/void nucleus */
+  background: radial-gradient(
+    circle at 50% 44%,
+    color-mix(in srgb, var(--bg) 90%, transparent) 0 30%,
+    color-mix(in srgb, var(--surface) 60%, transparent) 62%
+  );
+  border: 1px dashed color-mix(in srgb, var(--hairline) 88%, transparent);
 }
 
 .morph-color-swatch {
@@ -568,9 +652,12 @@
   z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 7px 5px;
-  border-radius: 17px;
+  gap: 6px;
+  padding: 6px 4px;
+  border-radius: 15px;
+  box-shadow:
+    0 20px 44px -28px rgba(0, 0, 0, 0.4),
+    0 2px 8px -6px rgba(0, 0, 0, 0.14);
 }
 
 .rail-sec {
@@ -581,24 +668,24 @@
 }
 
 .rail-sec + .rail-sec {
-  padding-top: 6px;
+  padding-top: 5px;
   border-top: 1px solid color-mix(in srgb, var(--hairline) 55%, transparent);
 }
 
 .rail-cap {
   margin-bottom: 1px;
-  font-size: 7px;
+  font-size: 6.5px;
   line-height: 1;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--fog);
   pointer-events: none;
 }
 
 .rail .rail-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
 }
 
 .rail-btn[data-on="true"] {
@@ -675,11 +762,34 @@
   overflow: hidden;
 }
 
+/* minimized: header-only chip, visually ready for future docking */
+.org-panel[data-min="true"] {
+  width: 236px;
+}
+
+.org-panel[data-min="true"] .org-scroll,
+.org-panel[data-min="true"] .org-foot,
+.org-panel[data-min="true"] .org-note {
+  display: none;
+}
+
 .org-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 11px 12px 8px 14px;
+  padding: 11px 12px 8px 10px;
+}
+
+.org-panel[data-min="true"] .org-head {
+  padding-bottom: 10px;
+}
+
+.org-grip {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  color: color-mix(in srgb, var(--fog) 72%, transparent);
+  cursor: grab;
 }
 
 .org-head-titles {
@@ -750,6 +860,45 @@
 
 .org-sec + .org-sec {
   border-top: 1px solid color-mix(in srgb, var(--hairline) 55%, transparent);
+}
+
+/* header row hosts the toggle button + optional master switch as siblings */
+.org-sec-headwrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.org-sec-headwrap .org-sec-head {
+  flex: 1;
+  min-width: 0;
+}
+
+.org-sec-head[data-has-extra="true"] {
+  padding-right: 62px;
+}
+
+.org-sec-head[data-has-extra="true"] .org-sec-hint {
+  display: none;
+}
+
+.org-sec-extra {
+  position: absolute;
+  right: 26px;
+  top: 50%;
+  translate: 0 -50%;
+  display: flex;
+  align-items: center;
+}
+
+.org-mini-switch {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  background: none;
+  border: none;
+  border-radius: var(--r-pill);
+  cursor: pointer;
 }
 
 .org-sec-head {
@@ -1007,6 +1156,120 @@
   background: var(--surface);
 }
 
+/* tucked advanced/debug disclosure */
+.org-adv-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  padding: 0 8px;
+  font: inherit;
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fog);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.org-adv-toggle:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.org-adv-toggle[data-live="true"] > span::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 6px;
+  vertical-align: 1px;
+  border-radius: 50%;
+  background: var(--zonuert-red);
+}
+
+/* ——— palette library (reference-style swatch blocks) ——— */
+.pal-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 3px 8px 5px;
+  border-radius: 10px;
+  transition: background 160ms ease;
+}
+
+.pal-row:hover {
+  background: var(--surface);
+}
+
+.pal-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.pal-count {
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fog);
+}
+
+.pal-ramp {
+  display: flex;
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
+  border-radius: 5px;
+}
+
+.pal-ramp i {
+  flex: 1;
+}
+
+.pal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pal-field i {
+  height: 7px;
+  border: 1px solid color-mix(in srgb, var(--hairline) 55%, transparent);
+  border-radius: 4px;
+}
+
+.pal-grads {
+  display: flex;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.pal-grad {
+  flex: 1;
+  height: 18px;
+  border: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
+  border-radius: 6px;
+}
+
+.pal-custom {
+  margin: 4px 8px 2px;
+  height: 24px;
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--fog);
+  background: none;
+  border: 1px dashed color-mix(in srgb, var(--hairline) 85%, transparent);
+  border-radius: 8px;
+  cursor: default;
+}
+
 .org-foot {
   display: flex;
   gap: 4px;
@@ -1098,8 +1361,8 @@
   }
 
   .nucleus-orb {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
   }
 
   .void-btn {
@@ -1169,7 +1432,26 @@
   }
 
   .rail .rail-btn {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* Respect reduced-motion: keep state changes, drop lifts and liquid wobble. */
+@media (prefers-reduced-motion: reduce) {
+  .nucleus-orb:hover {
+    transform: none;
+    animation: none;
+  }
+
+  .dock-btn:hover,
+  .rail-btn:hover,
+  .zoom-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .dock-group-items {
+    animation: none;
   }
 }

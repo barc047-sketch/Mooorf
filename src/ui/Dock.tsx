@@ -239,7 +239,7 @@ export default function Dock() {
         </DockButton>
 
         {leftOpen && (
-          <>
+          <div className="dock-group-items" data-side="left">
             <DockButton
               className="dock-mode-btn renderer-mode-btn"
               active={rendererMode === "organism"}
@@ -332,7 +332,7 @@ export default function Dock() {
                 aria-label="Reach density fine-tune"
               />
             </div>
-          </>
+          </div>
         )}
       </DockGroup>
 
@@ -359,16 +359,7 @@ export default function Dock() {
 
       <DockGroup side="right" collapsed={!rightOpen}>
         {rightOpen && (
-          <>
-            <DockButton
-              className="dock-placeholder"
-              title="Saved views placeholder"
-              aria-label="Saved views placeholder"
-              data-placeholder="true"
-            >
-              <Bookmark size={16} strokeWidth={1.5} />
-            </DockButton>
-
+          <div className="dock-group-items" data-side="right">
             <div className="dock-pop-anchor">
               <DockPopover
                 open={panel === "palette"}
@@ -411,6 +402,14 @@ export default function Dock() {
 
             <DockButton
               className="dock-placeholder"
+              title="Saved views placeholder"
+              aria-label="Saved views placeholder"
+              data-placeholder="true"
+            >
+              <Bookmark size={16} strokeWidth={1.5} />
+            </DockButton>
+            <DockButton
+              className="dock-placeholder"
               title="Import placeholder"
               aria-label="Import placeholder"
               data-placeholder="true"
@@ -436,7 +435,7 @@ export default function Dock() {
             >
               <SlidersHorizontal size={16} strokeWidth={1.5} />
             </DockButton>
-          </>
+          </div>
         )}
         <DockButton
           className="dock-collapse-btn"

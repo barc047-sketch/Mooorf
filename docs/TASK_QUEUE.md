@@ -368,10 +368,23 @@
 - [x] no category color mapping, final selection arc, floating widgets, export, floors, or graph migration started
 - [x] build passed with known chunk warning (~640.56 kB)
 
-## V6H.3 — Claude Premium UI Implementation  ⏳ NEXT
-- [ ] design-heavy pass should use V6H.2 command architecture
-- [ ] do not duplicate rail/dock settings
-- [ ] keep classic fallback and organism lab route
+## V6H.3 — Claude Premium UI Implementation  ✅ COMPLETE
+- [x] design-heavy pass used V6H.2 command architecture (rail launches, dock quick controls, panel details)
+- [x] no rail/dock setting duplication introduced
+- [x] classic fallback and organism lab route preserved
+- [x] dock: tighter premium scale, shadow, hover lift, animated group expand, palette-first right group
+- [x] `+` orb: liquid/unstable hover, 50 px, still wired to `addSpace()`
+- [x] void placeholder styled as future subtractive nucleus; still disabled, breaks nothing
+- [x] rail: slimmer pro-tool scale, hover motion, annotate caption
+- [x] panel: grip + minimize/close affordances, internal scroll kept
+- [x] motion section master toggle (safe preset on / zeros off); pockets toggle deferred, documented
+- [x] debug switches tucked behind Advanced debug disclosure with live dot
+- [x] palette widget: nucleus shade ramps, organism field strips, gradient row, custom placeholder
+- [x] annotation modes cleaned: editorial boxless (selected = red type), technical = name · area · category
+- [x] selection ring stays tight (1.08×); halo/influence preserved
+- [x] reduced-motion guards for lifts and liquid wobble
+- [x] table sync, night mode, 390 px, lab route re-verified
+- [x] build passed with known chunk warning (~645 kB)
 
 ## V6I — Palette / Category Color Mapping  ⏳ NEXT CANDIDATE
 - [ ] wire palette semantics into organism/category color behavior only if explicitly requested

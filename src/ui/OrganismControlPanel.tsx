@@ -7,8 +7,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, GripVertical, Minus, X } from "lucide-react";
 import { useLab } from "../state/store";
+import { NUCLEUS_PALETTES, ORGANISM_PALETTES } from "../design/palettes";
 import type {
   AnnotationMode,
   AttachMode,
@@ -75,7 +76,7 @@ const ATTACHES: { id: AttachMode; label: string }[] = [
 const ANNOTATIONS: { id: AnnotationMode; label: string; desc: string }[] = [
   { id: "editorial", label: "Editorial", desc: "Name + area, no label box" },
   { id: "pill", label: "Pill", desc: "Compact rounded label" },
-  { id: "technical", label: "Technical", desc: "Name, area, category, code" },
+  { id: "technical", label: "Technical", desc: "Name, area, category" },
   { id: "hidden", label: "Hidden", desc: "No canvas labels" },
 ];
 
@@ -146,6 +147,7 @@ function Section({
   onToggle,
   children,
   sectionRef,
+  extra,
 }: {
   id: string;
   title: string;
@@ -154,21 +156,53 @@ function Section({
   onToggle: (id: string) => void;
   children: React.ReactNode;
   sectionRef?: (el: HTMLElement | null) => void;
+  /** header-level control (e.g. a master switch) — sibling of the toggle, never nested */
+  extra?: React.ReactNode;
 }) {
   return (
     <section className="org-sec" ref={sectionRef}>
-      <button
-        type="button"
-        className="org-sec-head"
-        aria-expanded={open}
-        onClick={() => onToggle(id)}
-      >
-        <span className="org-sec-title">{title}</span>
-        {hint && <span className="org-sec-hint">{hint}</span>}
-        <ChevronDown size={11} className="org-chev" data-open={open ? "true" : "false"} />
-      </button>
+      <div className="org-sec-headwrap">
+        <button
+          type="button"
+          className="org-sec-head"
+          data-has-extra={extra ? "true" : undefined}
+          aria-expanded={open}
+          onClick={() => onToggle(id)}
+        >
+          <span className="org-sec-title">{title}</span>
+          {hint && <span className="org-sec-hint">{hint}</span>}
+          <ChevronDown size={11} className="org-chev" data-open={open ? "true" : "false"} />
+        </button>
+        {extra && <span className="org-sec-extra">{extra}</span>}
+      </div>
       {open && <div className="org-sec-body">{children}</div>}
     </section>
+  );
+}
+
+function MiniSwitch({
+  on,
+  label,
+  onToggle,
+}: {
+  on: boolean;
+  label: string;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="org-mini-switch"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      title={label}
+      onClick={onToggle}
+    >
+      <span className="org-switch" data-on={on ? "true" : "false"}>
+        <span className="org-switch-thumb" />
+      </span>
+    </button>
   );
 }
 
@@ -191,10 +225,13 @@ export default function OrganismControlPanel() {
   const panelRef = useRef<HTMLElement>(null);
   const sectionEls = useRef<Record<string, HTMLElement | null>>({});
   const [openSecs, setOpenSecs] = useState<Record<string, boolean>>({ organism: true });
+  const [minimized, setMinimized] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   /* focus requests from rail launchers expand + reveal the target section */
   useEffect(() => {
     if (!open || !focus) return;
+    setMinimized(false);
     setOpenSecs((prev) => ({ ...prev, [focus]: true }));
     const t = window.setTimeout(
       () => sectionEls.current[focus]?.scrollIntoView({ block: "nearest", behavior: "smooth" }),
@@ -230,12 +267,30 @@ export default function OrganismControlPanel() {
 
   const metaSections = Object.fromEntries(ORG_CONTROL_SECTIONS.map((s) => [s.id, s]));
 
+  /* motion master toggle — off zeroes idle-life amounts (safe: sliders keep
+     working), on applies a gentle preset without touching response/phase */
+  const motionOn =
+    organism.timeScale > 0 &&
+    (organism.drift > 0.001 || organism.breathing > 0.001 || organism.wobble > 0.001);
+  const toggleMotion = () =>
+    motionOn
+      ? setOrganism({ drift: 0, breathing: 0, wobble: 0 })
+      : setOrganism({
+          drift: 0.28,
+          breathing: 0.3,
+          wobble: 0.12,
+          timeScale: Math.max(organism.timeScale, 1),
+        });
+
+  const debugLive = organism.showFieldDebug || organism.showNucleiDebug;
+
   return (
     <AnimatePresence>
       {open && (
         <motion.aside
           ref={panelRef}
           className="org-panel glass"
+          data-min={minimized ? "true" : undefined}
           role="dialog"
           aria-label="Organism controls"
           initial={{ opacity: 0, x: 16, scale: 0.985 }}
@@ -244,6 +299,9 @@ export default function OrganismControlPanel() {
           transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
         >
           <header className="org-head">
+            <span className="org-grip" title="Panel docking — coming later" aria-hidden="true">
+              <GripVertical size={12} strokeWidth={1.5} />
+            </span>
             <div className="org-head-titles">
               <span className="org-head-eyebrow">ORGANISM</span>
               <span className="org-head-title">Control Surface</span>
@@ -252,6 +310,15 @@ export default function OrganismControlPanel() {
               {spaceCount}
               <i>/{MAX_NUCLEI}</i>
             </span>
+            <button
+              type="button"
+              className="org-close"
+              aria-label={minimized ? "Expand panel" : "Minimize panel"}
+              aria-expanded={!minimized}
+              onClick={() => setMinimized((m) => !m)}
+            >
+              <Minus size={13} strokeWidth={1.6} />
+            </button>
             <button
               type="button"
               className="org-close"
@@ -356,6 +423,54 @@ export default function OrganismControlPanel() {
                   </span>
                 </button>
               ))}
+
+              <span className="pop-divider" role="separator" />
+              <span className="org-subcap">nucleus palettes</span>
+              {NUCLEUS_PALETTES.map((p) => (
+                <div key={p.id} className="pal-row" title={p.use}>
+                  <span className="pal-meta">
+                    <span className="pal-name">{p.label}</span>
+                    <span className="pal-count">{p.shades.length}</span>
+                  </span>
+                  <span className="pal-ramp">
+                    {p.shades.map((shade) => (
+                      <i key={shade} style={{ background: shade }} />
+                    ))}
+                  </span>
+                </div>
+              ))}
+
+              <span className="org-subcap">organism palettes</span>
+              {ORGANISM_PALETTES.map((p) => (
+                <div key={p.id} className="pal-row" title={p.use}>
+                  <span className="pal-meta">
+                    <span className="pal-name">{p.label}</span>
+                  </span>
+                  <span className="pal-field">
+                    <i style={{ background: `linear-gradient(90deg, ${p.ground.join(", ")})` }} />
+                    <i style={{ background: `linear-gradient(90deg, ${p.body.join(", ")})` }} />
+                    <i style={{ background: `linear-gradient(90deg, ${p.accent.join(", ")})` }} />
+                  </span>
+                </div>
+              ))}
+
+              <span className="org-subcap">gradients</span>
+              <div className="pal-grads">
+                {ORGANISM_PALETTES.map((p) => (
+                  <span
+                    key={p.id}
+                    className="pal-grad"
+                    title={`${p.label} blend`}
+                    style={{
+                      background: `linear-gradient(135deg, ${[...p.body, ...p.accent].join(", ")})`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              <button type="button" className="pal-custom" disabled>
+                Custom palette — coming later
+              </button>
             </Section>
 
             <Section
@@ -455,6 +570,7 @@ export default function OrganismControlPanel() {
               open={!!openSecs.motion}
               onToggle={toggleSec}
               sectionRef={bindSec("motion")}
+              extra={<MiniSwitch on={motionOn} label="Idle motion" onToggle={toggleMotion} />}
             >
               {metaSections.motion.sliders.map((def) => (
                 <SliderRow
@@ -503,17 +619,34 @@ export default function OrganismControlPanel() {
                 onToggle={() => setOrganism({ showNuclei: !organism.showNuclei })}
               />
               <span className="pop-divider" role="separator" />
-              <span className="org-subcap">debug</span>
-              <SwitchRow
-                label="Field debug"
-                on={organism.showFieldDebug}
-                onToggle={() => setOrganism({ showFieldDebug: !organism.showFieldDebug })}
-              />
-              <SwitchRow
-                label="Nuclei debug"
-                on={organism.showNucleiDebug}
-                onToggle={() => setOrganism({ showNucleiDebug: !organism.showNucleiDebug })}
-              />
+              <button
+                type="button"
+                className="org-adv-toggle"
+                aria-expanded={debugOpen}
+                data-live={debugLive ? "true" : undefined}
+                onClick={() => setDebugOpen((o) => !o)}
+              >
+                <span>Advanced debug</span>
+                <ChevronDown
+                  size={10}
+                  className="org-chev"
+                  data-open={debugOpen ? "true" : "false"}
+                />
+              </button>
+              {debugOpen && (
+                <>
+                  <SwitchRow
+                    label="Field debug"
+                    on={organism.showFieldDebug}
+                    onToggle={() => setOrganism({ showFieldDebug: !organism.showFieldDebug })}
+                  />
+                  <SwitchRow
+                    label="Nuclei debug"
+                    on={organism.showNucleiDebug}
+                    onToggle={() => setOrganism({ showNucleiDebug: !organism.showNucleiDebug })}
+                  />
+                </>
+              )}
             </Section>
           </div>
 

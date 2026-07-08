@@ -4,13 +4,18 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6H.3 Claude Premium UI Implementation
-- Use V6H.2 command architecture: rail launches, dock quick-controls, widget panel details
+- Codex QA of V6H.3, then V6H.4 layout presets or V6I palette mapping
 - Keep `paletteMode` UI-ready until color mapping is intentionally started
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6H.3 Claude Premium UI Implementation
+- Premium dock/rail scale + hover motion; liquid `+` orb; void placeholder styled
+- Panel grip/minimize, motion master toggle, advanced-debug disclosure
+- Palette widget: shade ramps, organism field strips, gradient previews, custom placeholder
+- Editorial/technical label cleanup; tight ring kept; 390 px, table sync, fallback, lab route re-verified
+- Build passed with known chunk warning
 - V6H.2 UI Command Architecture Cleanup + Resource Prep
 - Left rail launcher/nav split; dock quick control split; widget panel detail split
 - Annotation modes and tight/halo/influence selection display added

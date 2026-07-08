@@ -76,9 +76,24 @@
   box-shadow: none;
 }
 
+/* dense halo keeps ink type readable over the black organism body */
 .organism-label-layer[data-mode="editorial"] .organism-label-main {
   color: var(--ink);
-  text-shadow: 0 1px 10px color-mix(in srgb, var(--bg) 80%, transparent);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-shadow:
+    0 0 3px var(--bg),
+    0 0 8px var(--bg),
+    0 1px 14px color-mix(in srgb, var(--bg) 85%, transparent);
+}
+
+.organism-label-layer[data-mode="editorial"] .organism-label-meta {
+  letter-spacing: 0.06em;
+  text-shadow:
+    0 0 3px var(--bg),
+    0 0 7px var(--bg),
+    0 1px 10px color-mix(in srgb, var(--bg) 80%, transparent);
 }
 
 .organism-label-layer[data-mode="technical"] .organism-label {
@@ -110,6 +125,18 @@
 
 .organism-label-anchor[data-selected="true"] .organism-label {
   border-color: var(--zonuert-red);
+  color: var(--accent);
+}
+
+/* editorial stays boxless when selected — red type accent only */
+.organism-label-layer[data-mode="editorial"] .organism-label-anchor[data-selected="true"] .organism-label {
+  border-color: transparent;
+  background: transparent;
+}
+
+.organism-label-layer[data-mode="editorial"]
+  .organism-label-anchor[data-selected="true"]
+  .organism-label-main {
   color: var(--accent);
 }
 
