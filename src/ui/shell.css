@@ -420,3 +420,39 @@
     display: none;
   }
 }
+
+@media (max-width: 480px) {
+  .dock {
+    gap: 2px;
+    padding: 3px;
+    max-width: calc(100vw - 12px);
+  }
+
+  .dock-btn,
+  .rail-btn,
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dock-mode-btn {
+    width: 36px;
+  }
+
+  .renderer-mode-btn {
+    width: 40px;
+  }
+
+  .dock-sep {
+    margin: 0 2px;
+  }
+
+  .dock-merge {
+    gap: 4px;
+    padding: 0 4px;
+  }
+
+  .dock-merge input[type="range"] {
+    width: 48px;
+  }
+}

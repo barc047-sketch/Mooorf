@@ -298,13 +298,21 @@
 - [x] build passed with known chunk warning
 - [x] local preview smoke checked
 
-## V6G — QA / Stabilization  ⏳ NEXT (not started)
-- [ ] full organism/classic regression pass
-- [ ] WebGL context-loss/fallback verification
-- [ ] 30-60 nuclei performance sampling
-- [ ] mobile/narrow viewport dock and label pass
-- [ ] table sync regression pass
-- [ ] decide whether chunk split is needed before later phases
+## V6G — QA / Stabilization  ✅ COMPLETE
+- [x] full organism/classic regression pass
+- [x] label overlay camera sync fixed for drag/pan/zoom without per-frame React state
+- [x] WebGL fallback/lifecycle inspected; organism/classic unmount/remount verified
+- [x] 31/61-space production organism stress pass
+- [x] mobile/narrow viewport dock pass at 390 px; dock overflow fixed
+- [x] table sync regression pass: name, area, category, privacy, add, delete, canvas return
+- [x] `/experiments/organism-lab` route rechecked
+- [x] build passed with known chunk warning
+- [x] chunk split remains deferred unless a later performance phase prioritizes it
+
+## V6H — Production Dock UI  ⏳ NEXT (not started)
+- [ ] build the new production dock UI only after V6G stabilization
+- [ ] do not start Phase 6.5 selection arc
+- [ ] do not start V7 floating widgets
 
 ## Phase 6.5 — Selection Arc
 - [ ] implement only from approved visual/system docs

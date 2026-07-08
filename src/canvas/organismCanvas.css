@@ -22,6 +22,9 @@
   position: absolute;
   left: 0;
   top: 0;
+  opacity: 0;
+  transform: translate(-9999px, -9999px);
+  will-change: transform;
 }
 
 .organism-label {

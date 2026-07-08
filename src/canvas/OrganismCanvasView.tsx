@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLab } from "../state/store";
 import { clamp } from "../lib/geometry";
 import {
@@ -52,18 +52,10 @@ const readTheme = (): LabTheme =>
 export default function OrganismCanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const labelLayerRef = useRef<HTMLDivElement>(null);
   const [glOk, setGlOk] = useState(true);
   const spaces = useLab((s) => s.spaces);
-  const camera = useLab((s) => s.camera);
   const selectedId = useLab((s) => s.selectedId);
-
-  const overlayNuclei = useMemo(() => {
-    if (typeof window === "undefined") return [];
-    const host = hostRef.current;
-    const w = host?.clientWidth ?? window.innerWidth;
-    const h = host?.clientHeight ?? window.innerHeight;
-    return spacesToNuclei(spaces, camera, w, h, selectedId);
-  }, [camera, selectedId, spaces]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -155,6 +147,29 @@ export default function OrganismCanvasView() {
     };
 
     const currentNuclei = () => spacesToNuclei(spaces, cam, w, h, selectedId, drag);
+    const syncLabels = (nuclei: ProductionNucleus[]) => {
+      const layer = labelLayerRef.current;
+      if (!layer) return;
+      const byId = new Map(nuclei.map((n) => [n.id, n]));
+      layer.querySelectorAll<HTMLElement>(".organism-label-anchor").forEach((anchor) => {
+        const id = anchor.dataset.nucleusId;
+        const nucleus = id ? byId.get(id) : null;
+        if (!nucleus) {
+          anchor.style.opacity = "0";
+          anchor.style.transform = "translate(-9999px, -9999px)";
+          return;
+        }
+        anchor.style.opacity = "1";
+        anchor.style.transform = `translate(${nucleus.sx}px, ${nucleus.sy}px)`;
+        anchor.dataset.selected = nucleus.id === selectedId ? "true" : "false";
+        const ring = anchor.querySelector<HTMLElement>(".organism-label-ring");
+        if (ring) {
+          const size = `${Math.max(0, nucleus.screenR * 2)}px`;
+          ring.style.width = size;
+          ring.style.height = size;
+        }
+      });
+    };
 
     let mode: "none" | "drag" | "pan" = "none";
     let grabDX = 0;
@@ -329,8 +344,10 @@ export default function OrganismCanvasView() {
         Math.abs(eff.bias - smooth.bias) > 0.002 ||
         Math.abs(params.edgeSoftness - smooth.softness) > 0.002;
 
-      if (!dirty && !drag && !settling && !camTarget) return;
+      const shouldRender = dirty || !!drag || settling || !!camTarget;
+      if (!shouldRender) return;
       dirty = false;
+      syncLabels(nuclei);
 
       nucleiBuf.fill(0);
       const count = Math.min(nuclei.length, MAX_NUCLEI);
@@ -390,16 +407,16 @@ export default function OrganismCanvasView() {
           </button>
         </div>
       )}
-      <div className="organism-label-layer" aria-hidden="true">
-        {overlayNuclei.map((n: ProductionNucleus) => (
+      <div ref={labelLayerRef} className="organism-label-layer" aria-hidden="true">
+        {spaces.slice(0, MAX_NUCLEI).map((space) => (
           <div
-            key={n.id}
+            key={space.id}
             className="organism-label-anchor"
-            data-selected={n.id === selectedId}
-            style={{ transform: `translate(${n.sx}px, ${n.sy}px)` }}
+            data-nucleus-id={space.id}
+            data-selected={space.id === selectedId}
           >
-            <span className="organism-label-ring" style={{ width: n.screenR * 2, height: n.screenR * 2 }} />
-            <span className="organism-label">{n.label}</span>
+            <span className="organism-label-ring" />
+            <span className="organism-label">{space.name}</span>
           </div>
         ))}
       </div>

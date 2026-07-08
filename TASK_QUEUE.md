@@ -4,15 +4,16 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6G QA / stabilization
-- Full organism/classic regression pass
-- WebGL fallback/context lifecycle check
-- 30-60 nuclei performance sampling
-- Mobile/narrow viewport dock and label pass
-- Table sync regression pass
+- V6H Production Dock UI
+- Build the new production dock UI only after V6G stabilization
+- Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6G QA / stabilization
+- Production organism label/camera sync stabilized
+- Mobile 390 px dock overflow fixed
+- Table sync, fallback toggle, lab route, and 31/61-space stress checked
 - V6F.0F.3 GitHub Push / Doc Sync
 - Remote: `origin`
 - Repo: https://github.com/barc047-sketch/Mooorf
@@ -21,9 +22,9 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent Bugs
 
-- Recheck table sync after V6F.1
-- Recheck WebGL lifecycle and fallback behavior after V6F.1
-- Recheck mobile layout after production dock changes
+- Known Vite chunk warning remains deferred
+- High-density labels are crowded at 60+ spaces; defer label-density design to production UI work
+- Forced WebGL context-loss simulation not run; renderer handlers inspected
 
 ## UI Polish
 
