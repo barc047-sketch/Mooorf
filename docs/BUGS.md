@@ -16,7 +16,8 @@ Fixed:
 - V6H: wider production dock crowded the bottom-left HUD at 390 px; narrow-viewport CSS now lifts the HUD above the dock while keeping zoom controls separate
 
 Open (minor, deferred):
-- main js chunk warning remains deferred; latest V6H build reported 616.09 kB (>500 kB) after production dock UI — code-split later, not urgent
+- main js chunk warning remains deferred; latest V6H.1 build reported 636.98 kB (>500 kB) after the organism control surface — code-split later, not urgent
+- preview harness artifacts (stale re-dispatched clicks, rAF throttling in hidden tabs) can move sliders/close panels during automated QA; not an app bug — use eval-driven, idempotent assertions as documented since Phase 5
 - favicon 404 has been observed as non-breaking
 - high-density labels are crowded at 60+ spaces; label-density/inspector design is deferred to the production UI phase, not a stabilization blocker
 - forced WebGL context-loss simulation was not run in V6G; shared renderer context lost/restored handlers were inspected and organism/classic unmount/remount was verified

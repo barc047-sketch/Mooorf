@@ -10,6 +10,11 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Workflow Complete
 
+- V6H.1 Full Organism Control Surface
+- Typed `settings.organism` + production resolver; defaults match the stable canvas
+- Floating control surface panel: style/organism/nuclei/attachment-offset/motion/pockets/display + resets
+- Captioned left rail (view/render/build/panels/system); attach Extreme; premium popovers
+- Sliders/toggles verified live against the renderer; table sync, fallback, lab route, 390 px, night mode re-checked
 - V6H Production Dock UI
 - Grouped dock controls: renderer/style/attachment/reach, `+ NUCLEUS`, palette/demo/import/export
 - Style, attachment, palette, reach, add nucleus, demo, ORG/CLS, table sync, fallback, lab route checked

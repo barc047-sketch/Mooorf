@@ -78,3 +78,12 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 ## V6H production dock UI
 - Production dock controls are grouped left/center/right: renderer/style/attachment/reach, high-emphasis `+ NUCLEUS`, and palette/demo/import/export.
 - `settings.paletteMode` is a UI-ready setting only; category color mapping and renderer palette behavior remain deferred to V6I or a later explicit palette phase.
+
+## V6H.1 full organism control surface
+- Organism Lab parameters enter production as one typed `settings.organism` object plus a resolver (`organismProductionSettings.ts`); the renderer never reads raw lab defaults directly.
+- Reach (`settings.mergeDistance`) stays the simplified control and acts as a bounded trim around the advanced `connectionBias`/`edgeSoftness` values — the two control layers never stomp each other.
+- Production nucleus count is data-owned (`spaces.length`, display-only). Lab count/radius generation semantics were deliberately not imported; radius min/max act as field-unit clamps and size variation is a deterministic per-id multiplier.
+- Offsets (global/X/Y/radial/angular) are a visual layout transform about the space centroid; they never write space x/y. Drag inverts the transform delta-wise (same contract as the lab's `dragNucleusBy`).
+- Motion defaults ship off so first load matches the stable V6G/V6H canvas; enabling motion switches the render loop from dirty-gated to continuous only while active.
+- One floating control surface serves rail and dock launchers (store-held `orgPanelOpen`/`orgPanelFocus` with section focus); style/palette quick-switchers stay in the dock popovers.
+- `AttachMode` gained `extreme`; classic blob fallback carries safe extreme entries under its existing 0.32 gap cap.

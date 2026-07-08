@@ -12,11 +12,17 @@ import {
   Paintbrush,
   Palette,
   Plus,
+  SlidersHorizontal,
   Sparkles,
   Upload,
 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { AttachMode, MorphMode, PaletteMode, RendererMode } from "../types";
+import {
+  ATTACH_HINTS,
+  MORPH_DESCRIPTIONS,
+  PALETTE_DESCRIPTIONS,
+} from "./OrganismControlPanel";
 import "./shell.css";
 
 const MAIN_MORPHS = [
@@ -29,7 +35,12 @@ const EXTRA_MORPHS = [
   "wine",
   "auto",
 ] as const satisfies readonly MorphMode[];
-const ATTACH_MODES = ["tight", "soft", "long"] as const satisfies readonly AttachMode[];
+const ATTACH_MODES = [
+  "tight",
+  "soft",
+  "long",
+  "extreme",
+] as const satisfies readonly AttachMode[];
 const PALETTE_MODES = [
   "core",
   "surreal",
@@ -60,6 +71,7 @@ const ATTACH_LABELS: Record<AttachMode, string> = {
   tight: "Tight",
   soft: "Soft",
   long: "Long",
+  extreme: "Extreme",
 };
 
 const PALETTE_LABELS: Record<PaletteMode, string> = {
@@ -147,6 +159,8 @@ export default function Dock() {
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const rendererMode = useLab((s) => s.settings.rendererMode);
   const setSettings = useLab((s) => s.setSettings);
+  const orgPanelOpen = useLab((s) => s.orgPanelOpen);
+  const setOrgPanel = useLab((s) => s.setOrgPanel);
   const [panel, setPanel] = useState<PanelId>(null);
   const dockRef = useRef<HTMLDivElement>(null);
 
@@ -177,14 +191,17 @@ export default function Dock() {
     <button
       key={m}
       type="button"
-      className="pop-row"
+      className="pop-row pop-row--rich"
       role="menuitemradio"
       aria-checked={morphMode === m}
       data-active={morphMode === m}
       onClick={() => setMorph(m)}
     >
       <span className="pop-swatch" data-mode={m} />
-      <span>{MORPH_LABELS[m]}</span>
+      <span className="pop-row-text">
+        <span>{MORPH_LABELS[m]}</span>
+        <span className="pop-row-desc">{MORPH_DESCRIPTIONS[m]}</span>
+      </span>
     </button>
   );
 
@@ -253,13 +270,15 @@ export default function Dock() {
                   role="menuitemradio"
                   aria-checked={attachMode === m}
                   data-active={attachMode === m}
-                  title={ATTACH_LABELS[m]}
+                  data-extreme={m === "extreme" ? "true" : undefined}
+                  title={`${ATTACH_LABELS[m]} — ${ATTACH_HINTS[m]}`}
                   onClick={() => setAttach(m)}
                 >
                   {ATTACH_LABELS[m]}
                 </button>
               ))}
             </div>
+            <p className="pop-caption">{ATTACH_HINTS[attachMode]}</p>
           </DockPopover>
           <DockButton
             className="dock-mode-btn attach-mode-btn"
@@ -314,14 +333,17 @@ export default function Dock() {
               <button
                 key={mode}
                 type="button"
-                className="pop-row"
+                className="pop-row pop-row--rich"
                 role="menuitemradio"
                 aria-checked={paletteMode === mode}
                 data-active={paletteMode === mode}
                 onClick={() => setPalette(mode)}
               >
                 <span className="palette-swatch" data-palette={mode} />
-                <span>{PALETTE_LABELS[mode]}</span>
+                <span className="pop-row-text">
+                  <span>{PALETTE_LABELS[mode]}</span>
+                  <span className="pop-row-desc">{PALETTE_DESCRIPTIONS[mode]}</span>
+                </span>
               </button>
             ))}
           </DockPopover>
@@ -343,11 +365,32 @@ export default function Dock() {
         <DockButton title="Add 10 demo cells" aria-label="Add 10 demo cells" onClick={() => addDemo(10)}>
           <Sparkles size={16} strokeWidth={1.5} />
         </DockButton>
-        <DockButton title="Import placeholder" aria-label="Import placeholder" data-placeholder="true">
+        <DockButton
+          className="dock-placeholder"
+          title="Import placeholder"
+          aria-label="Import placeholder"
+          data-placeholder="true"
+        >
           <Upload size={16} strokeWidth={1.5} />
         </DockButton>
-        <DockButton title="Export placeholder" aria-label="Export placeholder" data-placeholder="true">
+        <DockButton
+          className="dock-placeholder"
+          title="Export placeholder"
+          aria-label="Export placeholder"
+          data-placeholder="true"
+        >
           <Download size={16} strokeWidth={1.5} />
+        </DockButton>
+        <DockButton
+          active={orgPanelOpen}
+          title="Organism control surface"
+          aria-label="Organism control surface"
+          aria-haspopup="dialog"
+          aria-expanded={orgPanelOpen}
+          data-orgpanel-keep="true"
+          onClick={() => setOrgPanel(!orgPanelOpen)}
+        >
+          <SlidersHorizontal size={16} strokeWidth={1.5} />
         </DockButton>
       </DockGroup>
     </motion.div>

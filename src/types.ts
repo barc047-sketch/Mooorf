@@ -16,7 +16,52 @@ export type MorphMode =
   | "wine"
   | "auto";
 
-export type AttachMode = "tight" | "soft" | "long";
+export type AttachMode = "tight" | "soft" | "long" | "extreme";
+
+/* Production organism control surface (V6H.1). Persisted in the store so the
+   advanced panel survives canvas/table switches. Defaults live in
+   src/canvas/organismProductionSettings.ts and reproduce the pre-V6H.1 look. */
+export interface OrganismSettings {
+  // organism field
+  mass: number;
+  isoLevel: number;
+  surfaceTension: number;
+  edgeSoftness: number;
+  connectionBias: number;
+
+  // nuclei (count is data-owned: spaces.length — never a slider)
+  nucleusStrength: number;
+  radiusMin: number;
+  radiusMax: number;
+  sizeVariation: number;
+
+  // attachment / offset (visual layout transform, never writes space x/y)
+  globalOffset: number;
+  offsetX: number;
+  offsetY: number;
+  radialOffset: number;
+  angularOffset: number;
+
+  // motion
+  timeScale: number;
+  response: number;
+  drift: number;
+  breathing: number;
+  wobble: number;
+  phaseVariation: number;
+
+  // pockets
+  pocketThreshold: number;
+  pocketSoftness: number;
+
+  // display / debug
+  showLabels: boolean;
+  showNuclei: boolean;
+  showFieldDebug: boolean;
+  showNucleiDebug: boolean;
+}
+
+export type OrgPanelFocus = "style" | "organism" | "display" | null;
 
 export interface SpaceCell {
   id: string;

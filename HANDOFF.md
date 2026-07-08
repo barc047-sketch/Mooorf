@@ -13,6 +13,7 @@ Complete:
 - V6F.1 Production Organism Canvas Integration
 - V6G QA / stabilization
 - V6H Production Dock UI
+- V6H.1 Full Organism Control Surface
 
 Next:
 - V6I palette/category color mapping or the next explicitly requested UI phase
@@ -28,6 +29,8 @@ Organism Lab is the preferred production canvas direction. Spaces become nuclei 
 V6F.1 integrated the production organism canvas and kept Classic canvas fallback through the dock renderer toggle. V6G stabilized label/camera sync, mobile dock fit, table sync, fallback switching, dense-canvas behavior, and the isolated organism lab route.
 
 V6H rebuilt the bottom dock into grouped production controls: renderer/style/attachment/reach on the left, high-emphasis `+ NUCLEUS` in the center, and palette/demo/import/export on the right. Style, attachment, palette, reach, demo, table sync, fallback, mobile 390 px fit, and lab route were checked. `paletteMode` exists as UI-ready state only; category color mapping is deferred.
+
+V6H.1 imported the full Organism Lab parameter model into production: typed `settings.organism` + resolver, a floating Organism Control Surface panel (Style / Organism / Nuclei / Attachment & Offset / Motion / Pockets / Display / resets), a captioned left rail (view / render / build / panels / system), attach Extreme, and premium style/palette/attach popovers. Defaults match the previous stable canvas; nucleus count stays data-owned; motion ships off. Table sync, classic fallback, lab route, 390 px, and night mode re-verified; build green with the known chunk warning.
 
 ## Workflow
 

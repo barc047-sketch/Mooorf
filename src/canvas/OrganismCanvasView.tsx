@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useLab } from "../state/store";
 import { clamp } from "../lib/geometry";
 import {
-  DEFAULT_PARAMS,
   type LabTheme,
   MAX_NUCLEI,
   type RGB,
@@ -17,12 +16,16 @@ import {
   type OrganismRenderer,
 } from "../experiments/organism-lab/organism-shader";
 import {
+  advanceMotion,
+  createMotionState,
+  dragDeltaWorldToStore,
   hitTestNuclei,
   screenToWorld,
   spacesToNuclei,
   type DragPosition,
   type ProductionNucleus,
 } from "./organismAdapter";
+import { resolveOrganism } from "./organismProductionSettings";
 import "./organismCanvas.css";
 
 const DPR_MAX = 2;
@@ -56,6 +59,7 @@ export default function OrganismCanvasView() {
   const [glOk, setGlOk] = useState(true);
   const spaces = useLab((s) => s.spaces);
   const selectedId = useLab((s) => s.selectedId);
+  const showLabels = useLab((s) => s.settings.organism.showLabels);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -78,6 +82,8 @@ export default function OrganismCanvasView() {
     let spaces = useLab.getState().spaces;
     let selectedId = useLab.getState().selectedId;
     let settings = useLab.getState().settings;
+    let resolved = resolveOrganism(settings);
+    const motionState = createMotionState();
     let theme = readTheme();
     let drag: DragPosition | null = null;
     let dirty = true;
@@ -110,7 +116,10 @@ export default function OrganismCanvasView() {
     const unsub = useLab.subscribe((s) => {
       spaces = s.spaces;
       selectedId = s.selectedId;
-      settings = s.settings;
+      if (s.settings !== settings) {
+        settings = s.settings;
+        resolved = resolveOrganism(settings);
+      }
       if (s.camera !== lastCommitted) {
         lastCommitted = s.camera;
         camTarget = s.camera;
@@ -146,7 +155,8 @@ export default function OrganismCanvasView() {
       useLab.getState().setCamera(snapshot);
     };
 
-    const currentNuclei = () => spacesToNuclei(spaces, cam, w, h, selectedId, drag);
+    const currentNuclei = () =>
+      spacesToNuclei(spaces, cam, w, h, selectedId, drag, resolved.adapter, motionState);
     const syncLabels = (nuclei: ProductionNucleus[]) => {
       const layer = labelLayerRef.current;
       if (!layer) return;
@@ -172,8 +182,8 @@ export default function OrganismCanvasView() {
     };
 
     let mode: "none" | "drag" | "pan" = "none";
-    let grabDX = 0;
-    let grabDY = 0;
+    let dragLastWX = 0;
+    let dragLastWY = 0;
     let panSX = 0;
     let panSY = 0;
     let panCX = 0;
@@ -196,8 +206,8 @@ export default function OrganismCanvasView() {
         if (!source) return;
         mode = "drag";
         drag = { id: hit.id, x: source.x, y: source.y };
-        grabDX = source.x - world.x;
-        grabDY = source.y - world.y;
+        dragLastWX = world.x;
+        dragLastWY = world.y;
         useLab.getState().select(hit.id);
         canvas.style.cursor = "grabbing";
       } else {
@@ -220,8 +230,17 @@ export default function OrganismCanvasView() {
       }
       if (mode === "drag" && drag) {
         const world = screenToWorld(sx, sy, cam, w, h);
-        drag.x = world.x + grabDX;
-        drag.y = world.y + grabDY;
+        /* delta-based with layout-transform inverse — pointer tracks 1:1 even
+           while global/angular offsets are active */
+        const d = dragDeltaWorldToStore(
+          world.x - dragLastWX,
+          world.y - dragLastWY,
+          resolved.adapter
+        );
+        drag.x += d.x;
+        drag.y += d.y;
+        dragLastWX = world.x;
+        dragLastWY = world.y;
         const now = performance.now();
         if (now - lastDragCommit > DRAG_COMMIT_MS) {
           lastDragCommit = now;
@@ -289,24 +308,15 @@ export default function OrganismCanvasView() {
         dirty = true;
       }
 
+      advanceMotion(motionState, dt, resolved.adapter.timeScale);
       const nuclei = currentNuclei();
       const sc = styleColors(settings.morphMode, theme);
-      const reach = clamp(settings.mergeDistance / 300, 0, 1);
-      const params = {
-        ...DEFAULT_PARAMS,
-        style: settings.morphMode,
-        attachment: settings.attachMode,
-        connectionBias: 0.12 + reach * 0.62,
-        edgeSoftness: 0.012 + reach * 0.02,
-        pocketThreshold: settings.morphMode === "cellular-reverse" ? 7.8 : 12,
-        pocketSoftness: 0.48,
-        showNuclei: true,
-      };
+      const params = resolved.params;
       const eff = effectiveField(params);
 
       if (!smooth) {
         smooth = {
-          mass: 1.04,
+          mass: params.mass,
           iso: params.isoLevel,
           softness: params.edgeSoftness,
           tension: eff.tension,
@@ -322,7 +332,8 @@ export default function OrganismCanvasView() {
 
       const kNum = expK(10, dt);
       const kCol = expK(3.4, dt);
-      smooth.mass += (1.04 - smooth.mass) * kNum;
+      const dotsTarget = params.showNuclei ? 1 : 0;
+      smooth.mass += (params.mass - smooth.mass) * kNum;
       smooth.iso += (params.isoLevel - smooth.iso) * kNum;
       smooth.softness += (params.edgeSoftness - smooth.softness) * kNum;
       smooth.tension += (eff.tension - smooth.tension) * kNum;
@@ -330,7 +341,7 @@ export default function OrganismCanvasView() {
       smooth.pocketIso += (params.pocketThreshold - smooth.pocketIso) * kNum;
       smooth.pocketSoft += (params.pocketSoftness - smooth.pocketSoft) * kNum;
       smooth.pocketAmount += (sc.pocketAmount - smooth.pocketAmount) * kCol;
-      smooth.dots += (1 - smooth.dots) * kCol;
+      smooth.dots += (dotsTarget - smooth.dots) * kCol;
       let settling = false;
       for (let i = 0; i < 3; i++) {
         smooth.body[i] += (sc.body[i] - smooth.body[i]) * kCol;
@@ -342,9 +353,20 @@ export default function OrganismCanvasView() {
         settling ||
         Math.abs(eff.tension - smooth.tension) > 0.002 ||
         Math.abs(eff.bias - smooth.bias) > 0.002 ||
-        Math.abs(params.edgeSoftness - smooth.softness) > 0.002;
+        Math.abs(params.edgeSoftness - smooth.softness) > 0.002 ||
+        Math.abs(params.mass - smooth.mass) > 0.002 ||
+        Math.abs(params.isoLevel - smooth.iso) > 0.002 ||
+        Math.abs(params.pocketThreshold - smooth.pocketIso) > 0.01 ||
+        Math.abs(params.pocketSoftness - smooth.pocketSoft) > 0.002 ||
+        Math.abs(dotsTarget - smooth.dots) > 0.002;
 
-      const shouldRender = dirty || !!drag || settling || !!camTarget;
+      const shouldRender =
+        dirty ||
+        !!drag ||
+        settling ||
+        !!camTarget ||
+        resolved.motionActive ||
+        motionState.settling;
       if (!shouldRender) return;
       dirty = false;
       syncLabels(nuclei);
@@ -371,8 +393,8 @@ export default function OrganismCanvasView() {
       frame.bodyColor = smooth.body;
       frame.bgColor = smooth.bg;
       frame.nucleusDots = smooth.dots;
-      frame.fieldDebug = false;
-      frame.nucleiDebug = false;
+      frame.fieldDebug = params.showFieldDebug;
+      frame.nucleiDebug = params.showNucleiDebug;
       renderer?.render(frame);
     };
     raf = requestAnimationFrame(render);
@@ -407,7 +429,12 @@ export default function OrganismCanvasView() {
           </button>
         </div>
       )}
-      <div ref={labelLayerRef} className="organism-label-layer" aria-hidden="true">
+      <div
+        ref={labelLayerRef}
+        className="organism-label-layer"
+        aria-hidden="true"
+        data-hidden={showLabels ? undefined : "true"}
+      >
         {spaces.slice(0, MAX_NUCLEI).map((space) => (
           <div
             key={space.id}

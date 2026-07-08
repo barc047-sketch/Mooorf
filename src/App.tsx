@@ -6,6 +6,7 @@ import Dock from "./ui/Dock";
 import Rail from "./ui/Rail";
 import ZoomControls from "./ui/ZoomControls";
 import Hud from "./ui/Hud";
+import OrganismControlPanel from "./ui/OrganismControlPanel";
 import CanvasView from "./canvas/CanvasView";
 import OrganismCanvasView from "./canvas/OrganismCanvasView";
 import TableView from "./views/TableView";
@@ -74,6 +75,7 @@ function MainApp() {
               <Dock />
               <ZoomControls />
               <Hud />
+              <OrganismControlPanel />
             </>
           )}
         </>

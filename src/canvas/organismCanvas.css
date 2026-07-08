@@ -18,6 +18,10 @@
   pointer-events: none;
 }
 
+.organism-label-layer[data-hidden="true"] {
+  display: none;
+}
+
 .organism-label-anchor {
   position: absolute;
   left: 0;

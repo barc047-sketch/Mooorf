@@ -54,6 +54,7 @@ const GAP_BASE: Record<AttachMode, number> = {
   tight: 0.06,
   soft: 0.14,
   long: 0.26,
+  extreme: 0.32, // experimental far reach — still bounded by the 0.32 hard cap
 };
 
 // Kernel reach over the padded radius. Cellular stays tight so interstitial
@@ -62,11 +63,13 @@ const REACH_CELLULAR: Record<AttachMode, number> = {
   tight: 1.15,
   soft: 1.19,
   long: 1.28,
+  extreme: 1.34,
 };
 const REACH_PLAIN: Record<AttachMode, number> = {
   tight: 1.26,
   soft: 1.33,
   long: 1.42,
+  extreme: 1.5,
 };
 
 const FILLS: Record<MorphMode, { day: string; night: string }> = {

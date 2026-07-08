@@ -328,6 +328,26 @@
 - [x] do not start Phase 6.5 selection arc
 - [x] do not start V7 floating widgets
 
+## V6H.1 — Full Organism Control Surface  ✅ COMPLETE
+- [x] typed `OrganismSettings` added to store (`settings.organism`) with `setOrganism` merge action
+- [x] production resolver `src/canvas/organismProductionSettings.ts` merges DEFAULT_PARAMS + settings + reach trim with safe clamps
+- [x] production defaults visually match the pre-V6H.1 stable canvas on first load
+- [x] advanced floating panel `src/ui/OrganismControlPanel.tsx` with collapsible Style / Organism / Nuclei / Attachment & Offset / Motion / Pockets / Display sections
+- [x] nucleus count display-only (from spaces) — no count slider creates/deletes spaces
+- [x] attach modes Tight / Soft / Long / Extreme (types + dock + panel + classic blob records)
+- [x] offsets (global/X/Y/radial/angular) as visual layout transform; drag delta-inverse verified numerically
+- [x] motion group (timeScale/response/drift/breathing/wobble/phaseVariation) wired with idle life + world smoothing, defaults off
+- [x] pockets group wired (threshold/softness)
+- [x] display toggles: labels, nuclei dots; debug toggles tucked under Display: field, nuclei
+- [x] resets: organism defaults / motion only / debug off — user spaces untouched
+- [x] left rail rebuilt into captioned VIEW / RENDER / BUILD / PANELS / SYSTEM sections
+- [x] dock: premium style/palette rows with descriptions, attach hint caption, advanced launcher; placeholders hide ≤480 px
+- [x] panel closes on Escape/outside click, scrolls internally, never covers the whole canvas
+- [x] no per-frame React state; canvas reads via existing subscribe/ref pattern
+- [x] table sync, classic fallback, `/experiments/organism-lab`, + NUCLEUS, night mode all re-verified
+- [x] 390 px and 1280 px layouts checked
+- [x] build passed with known chunk warning (~637 kB)
+
 ## V6I — Palette / Category Color Mapping  ⏳ NEXT CANDIDATE
 - [ ] wire palette semantics into organism/category color behavior only if explicitly requested
 - [ ] keep `paletteMode` as UI setting, not product data

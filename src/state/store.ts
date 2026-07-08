@@ -3,6 +3,8 @@ import type {
   AttachMode,
   Camera,
   MorphMode,
+  OrganismSettings,
+  OrgPanelFocus,
   PaletteMode,
   RendererMode,
   SpaceCell,
@@ -12,6 +14,7 @@ import type {
 import { clamp, scatterPoint } from "../lib/geometry";
 import { CELL_PALETTE, DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
+import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -23,6 +26,7 @@ export interface LabSettings {
   attachMode: AttachMode;
   paletteMode: PaletteMode;
   rendererMode: RendererMode;
+  organism: OrganismSettings;
 }
 
 interface LabState {
@@ -33,11 +37,15 @@ interface LabState {
   settings: LabSettings;
   selectedId: string | null;
   camera: Camera;
+  orgPanelOpen: boolean;
+  orgPanelFocus: OrgPanelFocus;
 
   toggleTheme: () => void;
   setView: (view: ViewMode) => void;
   setLoaderDone: () => void;
   setSettings: (patch: Partial<LabSettings>) => void;
+  setOrganism: (patch: Partial<OrganismSettings>) => void;
+  setOrgPanel: (open: boolean, focus?: OrgPanelFocus) => void;
   select: (id: string | null) => void;
   setCamera: (camera: Camera) => void;
   zoomBy: (factor: number) => void;
@@ -79,9 +87,12 @@ export const useLab = create<LabState>((set) => ({
     attachMode: "soft",
     paletteMode: "core",
     rendererMode: "organism",
+    organism: { ...DEFAULT_ORGANISM_SETTINGS },
   },
   selectedId: null,
   camera: { x: 0, y: 0, zoom: 1 },
+  orgPanelOpen: false,
+  orgPanelFocus: null,
 
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "day" ? "night" : "day" })),
@@ -92,6 +103,17 @@ export const useLab = create<LabState>((set) => ({
 
   setSettings: (patch) =>
     set((s) => ({ settings: { ...s.settings, ...patch } })),
+
+  setOrganism: (patch) =>
+    set((s) => ({
+      settings: { ...s.settings, organism: { ...s.settings.organism, ...patch } },
+    })),
+
+  setOrgPanel: (open, focus) =>
+    set((s) => ({
+      orgPanelOpen: open,
+      orgPanelFocus: open ? focus ?? s.orgPanelFocus : null,
+    })),
 
   select: (id) => set({ selectedId: id }),
 
