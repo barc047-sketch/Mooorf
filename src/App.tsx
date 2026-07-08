@@ -7,6 +7,7 @@ import Rail from "./ui/Rail";
 import ZoomControls from "./ui/ZoomControls";
 import Hud from "./ui/Hud";
 import CanvasView from "./canvas/CanvasView";
+import OrganismCanvasView from "./canvas/OrganismCanvasView";
 import TableView from "./views/TableView";
 import "./App.css";
 
@@ -34,6 +35,7 @@ function MainApp() {
   const loaderDone = useLab((s) => s.loaderDone);
   const view = useLab((s) => s.view);
   const empty = useLab((s) => s.spaces.length === 0);
+  const rendererMode = useLab((s) => s.settings.rendererMode);
 
   // Apply theme tokens at the document root so the whole app + canvas react.
   useEffect(() => {
@@ -49,7 +51,7 @@ function MainApp() {
       <main className="stage">
         {view === "canvas" ? (
           <>
-            <CanvasView />
+            {rendererMode === "organism" ? <OrganismCanvasView /> : <CanvasView />}
             {empty && (
               <div className="stage-empty stage-hint">
                 <p className="eyebrow">CANVAS LAB</p>

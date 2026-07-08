@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Download, Magnet, Palette, Plus, Sparkles, Upload } from "lucide-react";
 import { useLab } from "../state/store";
-import type { AttachMode, MorphMode } from "../types";
+import type { AttachMode, MorphMode, RendererMode } from "../types";
 import "./shell.css";
 
 const MAIN_MORPHS = [
@@ -16,6 +16,7 @@ const EXTRA_MORPHS = [
   "auto",
 ] as const satisfies readonly MorphMode[];
 const ATTACH_MODES = ["tight", "soft", "long"] as const satisfies readonly AttachMode[];
+const RENDERER_MODES = ["organism", "classic"] as const satisfies readonly RendererMode[];
 
 const MORPH_LABELS: Record<MorphMode, string> = {
   "cellular-reverse": "Cellular Reverse",
@@ -57,6 +58,7 @@ export default function Dock() {
   const mergeDistance = useLab((s) => s.settings.mergeDistance);
   const morphMode = useLab((s) => s.settings.morphMode);
   const attachMode = useLab((s) => s.settings.attachMode);
+  const rendererMode = useLab((s) => s.settings.rendererMode);
   const setSettings = useLab((s) => s.setSettings);
   const [panel, setPanel] = useState<PanelId>(null);
   const dockRef = useRef<HTMLDivElement>(null);
@@ -113,6 +115,21 @@ export default function Dock() {
       </button>
 
       <span className="dock-sep" />
+
+      <button
+        type="button"
+        className="dock-btn dock-mode-btn renderer-mode-btn"
+        title={`Renderer: ${rendererMode === "organism" ? "Organism" : "Classic"}`}
+        aria-label={`Renderer: ${rendererMode === "organism" ? "Organism" : "Classic"}`}
+        onClick={() => {
+          const next = RENDERER_MODES[(RENDERER_MODES.indexOf(rendererMode) + 1) % RENDERER_MODES.length];
+          setSettings({ rendererMode: next });
+        }}
+      >
+        <span className="dock-renderer-code">
+          {rendererMode === "organism" ? "ORG" : "CLS"}
+        </span>
+      </button>
 
       <div
         className="dock-merge"

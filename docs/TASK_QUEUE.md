@@ -284,17 +284,27 @@
 - [x] handoff and task queue docs synced
 - [x] V6F.1 not started
 
-## V6F.1 — Production Organism Canvas Integration  ⏳ NEXT (not started)
-- [ ] add production organism canvas component using SpaceCell nuclei
-- [ ] add SpaceCell → nucleus adapter
-- [ ] preserve Organism Lab route
-- [ ] preserve old canvas as fallback
-- [ ] keep table view unchanged and synced
-- [ ] drag nucleus → update SpaceCell x/y
-- [ ] table area/name edits update organism radius/label
-- [ ] add/delete row support organism add/remove
-- [ ] expose reduced controls following PRODUCTION_CANVAS_UI_SYSTEM
-- [ ] build + local preview
+## V6F.1 — Production Organism Canvas Integration  ✅ COMPLETE
+- [x] add production organism canvas component using SpaceCell nuclei
+- [x] add SpaceCell → nucleus adapter
+- [x] preserve Organism Lab route
+- [x] preserve old canvas as fallback
+- [x] keep table view unchanged and synced
+- [x] drag nucleus → update SpaceCell x/y
+- [x] table area/name edits update organism radius/label
+- [x] add/delete row support organism add/remove
+- [x] expose reduced controls following PRODUCTION_CANVAS_UI_SYSTEM
+- [x] renderer toggle added: Organism / Classic
+- [x] build passed with known chunk warning
+- [x] local preview smoke checked
+
+## V6G — QA / Stabilization  ⏳ NEXT (not started)
+- [ ] full organism/classic regression pass
+- [ ] WebGL context-loss/fallback verification
+- [ ] 30-60 nuclei performance sampling
+- [ ] mobile/narrow viewport dock and label pass
+- [ ] table sync regression pass
+- [ ] decide whether chunk split is needed before later phases
 
 ## Phase 6.5 — Selection Arc
 - [ ] implement only from approved visual/system docs

@@ -10,9 +10,10 @@ Complete:
 - V6F.0C Reference Folder Patch
 - V6F.0D GitHub-only Coding Workflow Setup
 - V6F.0F.3 GitHub Push / Doc Sync
+- V6F.1 Production Organism Canvas Integration
 
 Next:
-- V6F.1 Production Organism Canvas Integration
+- V6G QA / stabilization
 
 Not started:
 - V6G QA / stabilization
@@ -22,6 +23,8 @@ Not started:
 ## Current Decision
 
 Organism Lab is the preferred production canvas direction. Spaces become nuclei in an organism field. The old canvas remains a fallback until the production organism canvas is fully stable.
+
+V6F.1 integrated the production organism canvas and kept Classic canvas fallback through the dock renderer toggle.
 
 ## Workflow
 

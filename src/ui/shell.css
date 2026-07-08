@@ -111,6 +111,27 @@
   pointer-events: none;
 }
 
+.renderer-mode-btn {
+  position: relative;
+  width: 44px;
+  color: var(--surface);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ink) 92%, var(--zonuert-red) 8%), var(--ink));
+}
+
+.renderer-mode-btn:hover {
+  color: var(--surface);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ink) 82%, var(--zonuert-red) 18%), var(--ink));
+}
+
+.dock-renderer-code {
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
 .morph-color-swatch {
   position: absolute;
   right: 3px;

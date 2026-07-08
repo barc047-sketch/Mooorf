@@ -13,10 +13,8 @@ Fixed:
 - over-inflated blob/global black island — inverse-square field replaced by tight 8–12% circle envelopes and pairwise 0–20% edge-gap metaball necks
 
 Open (minor, deferred):
-- main js chunk warning remains deferred; latest V6F.0D build reported 596.32 kB (>500 kB) after Base UI select/table joined the bundle — code-split later, not urgent
+- main js chunk warning remains deferred; latest V6F.1 build reported 614.15 kB (>500 kB) after production organism integration — code-split later, not urgent
 - favicon 404 has been observed as non-breaking
-- V6F.1 production organism canvas is not implemented yet
-- old/new canvas integration can affect camera, labels, and fallback behavior
-- WebGL lifecycle risks: context loss, DPR, resize, cleanup, and fallback
-- table sync must be rechecked after V6F.1
+- V6G should further stress old/new canvas fallback switching, camera, labels, and table sync
+- WebGL lifecycle risks: context loss, DPR, resize, cleanup, and fallback need a deeper V6G pass
 - mobile dock/label/right-panel layout remains a risk

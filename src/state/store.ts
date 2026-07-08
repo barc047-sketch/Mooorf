@@ -3,6 +3,7 @@ import type {
   AttachMode,
   Camera,
   MorphMode,
+  RendererMode,
   SpaceCell,
   Theme,
   ViewMode,
@@ -19,6 +20,7 @@ export interface LabSettings {
   blobOn: boolean;
   morphMode: MorphMode;
   attachMode: AttachMode;
+  rendererMode: RendererMode;
 }
 
 interface LabState {
@@ -73,6 +75,7 @@ export const useLab = create<LabState>((set) => ({
     blobOn: true,
     morphMode: "cellular-reverse",
     attachMode: "soft",
+    rendererMode: "organism",
   },
   selectedId: null,
   camera: { x: 0, y: 0, zoom: 1 },
@@ -107,9 +110,13 @@ export const useLab = create<LabState>((set) => ({
   resetView: () => set({ camera: { ...DEFAULT_CAMERA } }),
 
   addSpace: (partial) =>
-    set((s) => ({
-      spaces: [...s.spaces, makeCell(s.spaces.length, partial)],
-    })),
+    set((s) => {
+      const cell = makeCell(s.spaces.length, partial);
+      return {
+        spaces: [...s.spaces, cell],
+        selectedId: cell.id,
+      };
+    }),
 
   addDemo: (n = 10) =>
     set((s) => {

@@ -67,3 +67,10 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - ChatGPT is responsible for planning, prompts, audits, and product decisions.
 - Claude is reserved for design-heavy coding when needed.
 - No remote, commit, or push should happen without explicit instruction.
+
+## V6F.1 production organism canvas
+- Production canvas now defaults to the WebGL organism renderer.
+- Classic `CanvasView` remains as a first-class fallback via the dock renderer toggle.
+- The V6E Organism Lab route remains preserved for advanced/debug exploration.
+- Zustand `SpaceCell` remains the runtime product-data source of truth; the organism renderer receives adapted nuclei only.
+- TableView remains unchanged and continues to sync through the same store.

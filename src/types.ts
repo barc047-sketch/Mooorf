@@ -2,6 +2,8 @@ export type Theme = "day" | "night";
 
 export type ViewMode = "canvas" | "table";
 
+export type RendererMode = "organism" | "classic";
+
 export type Privacy = "public" | "shared" | "private";
 
 export type MorphMode =

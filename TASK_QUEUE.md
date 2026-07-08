@@ -4,11 +4,12 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6F.1 Production Organism Canvas Integration
-- Preserve old canvas fallback
-- Preserve Organism Lab route
-- Keep table sync
-- Run build and local preview after implementation
+- V6G QA / stabilization
+- Full organism/classic regression pass
+- WebGL fallback/context lifecycle check
+- 30-60 nuclei performance sampling
+- Mobile/narrow viewport dock and label pass
+- Table sync regression pass
 
 ## Workflow Complete
 
@@ -26,9 +27,9 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## UI Polish
 
-- Production bottom dock
-- Central `+ NUCLEUS` button
-- Style / attachment / palette panels
+- Production bottom dock refinement
+- Central `+ NUCLEUS` button polish
+- Style / attachment / palette panel polish
 - Right inspector later
 - Floating widgets later
 
