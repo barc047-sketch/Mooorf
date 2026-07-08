@@ -103,6 +103,33 @@ Recommended layering:
 
 Do not add exact hex values until implementation, except where existing tokens already define the color.
 
+## V6H.2 Runtime Prep
+
+`src/design/palettes.ts` now exists as typed metadata only. It does not drive renderer colors yet.
+
+Two palette layers are prepared:
+
+- **Nucleus palettes:** 10-20 shade ramps for spaces/categories. These will eventually support category hue families, area-based shade depth, privacy-based opacity/depth, and selected-state accents.
+- **Organism palettes:** 2-5 color sets for ground, membrane/body, and accent colors. These will eventually feed organism field uniforms and gradient/material choices.
+
+Prepared groups:
+- Core
+- Architecture
+- Surreal
+- Monochrome
+- Warm
+- Cool
+- Custom future
+
+Color logic remains future work:
+- Category controls hue family.
+- Privacy controls opacity, brightness, and depth.
+- Area controls shade depth and scale.
+- Selected state controls accent ring.
+- Relationship data can control glow/bridge behavior later.
+
+No package was added. The installed color libraries (`chroma-js`, `culori`, `colorjs.io`, `tinycolor2`) are enough for the next palette phase.
+
 ## Gradient Rules
 
 Allowed:

@@ -35,6 +35,9 @@
   position: absolute;
   left: 12px;
   top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   max-width: 140px;
   padding: 3px 7px;
   border: 1px solid var(--glass-border);
@@ -50,6 +53,51 @@
   box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.45);
 }
 
+.organism-label-main,
+.organism-label-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.organism-label-meta {
+  color: var(--fog);
+  font-size: 8.5px;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+}
+
+.organism-label-layer[data-mode="editorial"] .organism-label {
+  left: 10px;
+  top: 9px;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.organism-label-layer[data-mode="editorial"] .organism-label-main {
+  color: var(--ink);
+  text-shadow: 0 1px 10px color-mix(in srgb, var(--bg) 80%, transparent);
+}
+
+.organism-label-layer[data-mode="technical"] .organism-label {
+  max-width: 168px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  font-size: 9px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+}
+
+.organism-label-layer[data-mode="technical"] .organism-label-meta {
+  font-size: 7.5px;
+  text-transform: uppercase;
+}
+
+.organism-label-layer[data-mode="pill"] .organism-label {
+  display: block;
+}
+
 .organism-label-ring {
   position: absolute;
   left: 0;
@@ -57,6 +105,7 @@
   border: 1px solid transparent;
   border-radius: 50%;
   transform: translate(-50%, -50%);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
 .organism-label-anchor[data-selected="true"] .organism-label {
@@ -66,6 +115,18 @@
 
 .organism-label-anchor[data-selected="true"] .organism-label-ring {
   border-color: color-mix(in srgb, var(--zonuert-red) 70%, transparent);
+}
+
+.organism-label-anchor[data-selected="true"][data-selection-display="halo"] .organism-label-ring {
+  border-color: color-mix(in srgb, var(--zonuert-red) 34%, transparent);
+  background: color-mix(in srgb, var(--zonuert-red) 5%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--zonuert-red) 22%, transparent);
+}
+
+.organism-label-anchor[data-selected="true"][data-selection-display="influence"] .organism-label-ring {
+  border-color: color-mix(in srgb, var(--zonuert-red) 58%, transparent);
+  background: color-mix(in srgb, var(--zonuert-red) 3%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--zonuert-red) 12%, transparent);
 }
 
 .organism-fallback {

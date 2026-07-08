@@ -14,9 +14,10 @@ Complete:
 - V6G QA / stabilization
 - V6H Production Dock UI
 - V6H.1 Full Organism Control Surface
+- V6H.2 UI Command Architecture Cleanup + Resource Prep
 
 Next:
-- V6I palette/category color mapping or the next explicitly requested UI phase
+- V6H.3 Claude Premium UI Implementation
 
 Not started:
 - Phase 6.5 Selection Arc
@@ -31,6 +32,8 @@ V6F.1 integrated the production organism canvas and kept Classic canvas fallback
 V6H rebuilt the bottom dock into grouped production controls: renderer/style/attachment/reach on the left, high-emphasis `+ NUCLEUS` in the center, and palette/demo/import/export on the right. Style, attachment, palette, reach, demo, table sync, fallback, mobile 390 px fit, and lab route were checked. `paletteMode` exists as UI-ready state only; category color mapping is deferred.
 
 V6H.1 imported the full Organism Lab parameter model into production: typed `settings.organism` + resolver, a floating Organism Control Surface panel (Style / Organism / Nuclei / Attachment & Offset / Motion / Pockets / Display / resets), a captioned left rail (view / render / build / panels / system), attach Extreme, and premium style/palette/attach popovers. Defaults match the previous stable canvas; nucleus count stays data-owned; motion ships off. Table sync, classic fallback, lab route, 390 px, and night mode re-verified; build green with the known chunk warning.
+
+V6H.2 cleaned command ownership: left rail is now navigation/widget launchers, bottom dock is quick creation/mode control, the right-side surface is the detailed widget panel, and the canvas remains direct editing. Annotation modes and selection display modes were added; default labels are editorial and default selection is tight. Palette and widget metadata plus `docs/UI_RESOURCE_AUDIT.md` prepare the Claude premium UI pass without adding packages or starting final widgets/color mapping.
 
 ## Workflow
 

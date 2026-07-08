@@ -52,6 +52,14 @@ const expK = (response: number, dt: number) => 1 - Math.exp(-Math.max(response, 
 const readTheme = (): LabTheme =>
   document.documentElement.getAttribute("data-theme") === "night" ? "night" : "day";
 
+const shortCode = (value: string) =>
+  value
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 3)
+    .toUpperCase() || "SP";
+
 export default function OrganismCanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -60,6 +68,7 @@ export default function OrganismCanvasView() {
   const spaces = useLab((s) => s.spaces);
   const selectedId = useLab((s) => s.selectedId);
   const showLabels = useLab((s) => s.settings.organism.showLabels);
+  const annotationMode = useLab((s) => s.settings.annotationMode);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -172,9 +181,16 @@ export default function OrganismCanvasView() {
         anchor.style.opacity = "1";
         anchor.style.transform = `translate(${nucleus.sx}px, ${nucleus.sy}px)`;
         anchor.dataset.selected = nucleus.id === selectedId ? "true" : "false";
+        anchor.dataset.selectionDisplay = settings.selectionDisplay;
         const ring = anchor.querySelector<HTMLElement>(".organism-label-ring");
         if (ring) {
-          const size = `${Math.max(0, nucleus.screenR * 2)}px`;
+          const ringFactor =
+            settings.selectionDisplay === "influence"
+              ? 3.4
+              : settings.selectionDisplay === "halo"
+                ? 2.2
+                : 1.08;
+          const size = `${Math.max(18, nucleus.screenR * ringFactor)}px`;
           ring.style.width = size;
           ring.style.height = size;
         }
@@ -433,7 +449,8 @@ export default function OrganismCanvasView() {
         ref={labelLayerRef}
         className="organism-label-layer"
         aria-hidden="true"
-        data-hidden={showLabels ? undefined : "true"}
+        data-hidden={!showLabels || annotationMode === "hidden" ? "true" : undefined}
+        data-mode={annotationMode}
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => (
           <div
@@ -443,7 +460,24 @@ export default function OrganismCanvasView() {
             data-selected={space.id === selectedId}
           >
             <span className="organism-label-ring" />
-            <span className="organism-label">{space.name}</span>
+            <span className="organism-label">
+              {annotationMode === "technical" ? (
+                <>
+                  <span className="organism-label-main">{space.name}</span>
+                  <span className="organism-label-meta">
+                    {Math.round(space.area)} m2 / {space.category} / {space.privacy} /{" "}
+                    {shortCode(space.category)}
+                  </span>
+                </>
+              ) : annotationMode === "editorial" ? (
+                <>
+                  <span className="organism-label-main">{space.name}</span>
+                  <span className="organism-label-meta">{Math.round(space.area)} m2</span>
+                </>
+              ) : (
+                space.name
+              )}
+            </span>
           </div>
         ))}
       </div>

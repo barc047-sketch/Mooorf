@@ -348,6 +348,31 @@
 - [x] 390 px and 1280 px layouts checked
 - [x] build passed with known chunk warning (~637 kB)
 
+## V6H.2 — UI Command Architecture Cleanup + Resource Prep  ✅ COMPLETE
+- [x] left rail clarified as navigation/widget launcher surface
+- [x] bottom dock clarified as quick creation and quick mode controls
+- [x] widget panel clarified as detailed settings surface
+- [x] rail renderer/demo duplication removed
+- [x] dock side quick-control groups made collapsible
+- [x] circular add nucleus button added as strongest center command
+- [x] disabled void placeholder added without changing the space data model
+- [x] saved views placeholder added without implementing snapshots
+- [x] `annotationMode` added: editorial / pill / technical / hidden
+- [x] editorial annotation set as default
+- [x] `selectionDisplay` added: tight / halo / influence
+- [x] tight selection set as default; large influence ring preserved as future mode
+- [x] typed palette metadata prepared in `src/design/palettes.ts`
+- [x] widget panel metadata prepared in `src/ui/panels/widgetRegistry.ts`
+- [x] UI resource audit documented in `docs/UI_RESOURCE_AUDIT.md`
+- [x] no packages installed
+- [x] no category color mapping, final selection arc, floating widgets, export, floors, or graph migration started
+- [x] build passed with known chunk warning (~640.56 kB)
+
+## V6H.3 — Claude Premium UI Implementation  ⏳ NEXT
+- [ ] design-heavy pass should use V6H.2 command architecture
+- [ ] do not duplicate rail/dock settings
+- [ ] keep classic fallback and organism lab route
+
 ## V6I — Palette / Category Color Mapping  ⏳ NEXT CANDIDATE
 - [ ] wire palette semantics into organism/category color behavior only if explicitly requested
 - [ ] keep `paletteMode` as UI setting, not product data

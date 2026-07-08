@@ -73,7 +73,13 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 72%, transparent);
 }
 
+.dock-group[data-collapsed="true"] {
+  gap: 0;
+  background: color-mix(in srgb, var(--surface) 44%, transparent);
+}
+
 .dock-group-center {
+  gap: 4px;
   padding: 0;
   background: transparent;
   box-shadow: none;
@@ -112,6 +118,28 @@
 .dock-btn[data-placeholder="true"]:hover {
   color: var(--accent);
   background: var(--surface);
+}
+
+.dock-btn:disabled,
+.rail-btn:disabled,
+.void-btn:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.dock-btn:disabled:hover,
+.rail-btn:disabled:hover {
+  color: var(--ink);
+  background: none;
+}
+
+.rail-btn-disabled {
+  color: color-mix(in srgb, var(--fog) 72%, transparent);
+}
+
+.dock-collapse-btn {
+  width: 24px;
+  color: var(--fog);
 }
 
 .dock-mode-btn {
@@ -170,42 +198,46 @@
   pointer-events: none;
 }
 
-.nucleus-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 116px;
-  height: 42px;
-  padding: 0 16px;
+.nucleus-orb,
+.void-btn {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.nucleus-orb {
+  width: 48px;
+  height: 48px;
   color: var(--surface);
   background:
     radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--zonuert-red) 34%, transparent), transparent 44%),
     linear-gradient(135deg, color-mix(in srgb, var(--ink) 82%, var(--zonuert-red) 18%), var(--ink));
   border: 1px solid color-mix(in srgb, var(--surface) 26%, transparent);
-  border-radius: 14px;
   box-shadow:
-    0 16px 34px -18px rgba(0, 0, 0, 0.65),
+    0 18px 38px -18px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 color-mix(in srgb, var(--surface) 18%, transparent);
   cursor: pointer;
   transition: transform 130ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
-.nucleus-btn span {
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0;
-}
-
-.nucleus-btn:hover {
+.nucleus-orb:hover {
   filter: contrast(1.08) brightness(1.03);
   box-shadow:
-    0 18px 40px -18px rgba(0, 0, 0, 0.72),
+    0 20px 44px -18px rgba(0, 0, 0, 0.78),
     inset 0 1px 0 color-mix(in srgb, var(--surface) 24%, transparent);
 }
 
-.nucleus-btn:active {
+.nucleus-orb:active {
   transform: scale(0.96);
+}
+
+.void-btn {
+  width: 36px;
+  height: 36px;
+  color: var(--fog);
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hairline) 76%, transparent);
 }
 
 .morph-color-swatch {
@@ -769,30 +801,38 @@
 }
 
 .org-slider {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: minmax(82px, 1fr) 44px minmax(94px, 1.25fr);
+  align-items: center;
+  gap: 6px;
 }
 
 .org-slider-meta {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  display: contents;
   font-size: 10px;
   letter-spacing: 0.01em;
   color: var(--ink);
+}
+
+.org-slider-meta > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .org-slider-val {
   font-size: 9.5px;
   font-variant-numeric: tabular-nums;
   color: var(--fog);
+  text-align: right;
 }
 
 .org-slider input[type="range"] {
   width: 100%;
   height: 12px;
   margin: 0;
+  grid-column: 3;
   accent-color: var(--zonuert-red);
 }
 
@@ -1053,21 +1093,18 @@
     display: none;
   }
 
-  .nucleus-btn {
-    min-width: 78px;
-    height: 34px;
-    gap: 4px;
-    padding: 0 9px;
-    border-radius: 12px;
+  .dock-collapse-btn {
+    width: 22px;
   }
 
-  .nucleus-btn svg {
-    width: 14px;
-    height: 14px;
+  .nucleus-orb {
+    width: 40px;
+    height: 40px;
   }
 
-  .nucleus-btn span {
-    font-size: 8px;
+  .void-btn {
+    width: 32px;
+    height: 32px;
   }
 
   .dock-sep {
@@ -1108,6 +1145,11 @@
     left: 10px;
     width: auto;
     max-height: calc(100dvh - 64px - 118px);
+  }
+
+  .org-slider {
+    grid-template-columns: minmax(64px, 1fr) 34px minmax(72px, 1.15fr);
+    gap: 5px;
   }
 }
 

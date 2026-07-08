@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type {
+  AnnotationMode,
   AttachMode,
   Camera,
   MorphMode,
@@ -7,6 +8,7 @@ import type {
   OrgPanelFocus,
   PaletteMode,
   RendererMode,
+  SelectionDisplay,
   SpaceCell,
   Theme,
   ViewMode,
@@ -25,6 +27,8 @@ export interface LabSettings {
   morphMode: MorphMode;
   attachMode: AttachMode;
   paletteMode: PaletteMode;
+  annotationMode: AnnotationMode;
+  selectionDisplay: SelectionDisplay;
   rendererMode: RendererMode;
   organism: OrganismSettings;
 }
@@ -86,6 +90,8 @@ export const useLab = create<LabState>((set) => ({
     morphMode: "cellular-reverse",
     attachMode: "soft",
     paletteMode: "core",
+    annotationMode: "editorial",
+    selectionDisplay: "tight",
     rendererMode: "organism",
     organism: { ...DEFAULT_ORGANISM_SETTINGS },
   },

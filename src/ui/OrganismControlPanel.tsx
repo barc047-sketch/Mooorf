@@ -9,7 +9,13 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, X } from "lucide-react";
 import { useLab } from "../state/store";
-import type { AttachMode, MorphMode, PaletteMode } from "../types";
+import type {
+  AnnotationMode,
+  AttachMode,
+  MorphMode,
+  PaletteMode,
+  SelectionDisplay,
+} from "../types";
 import { MAX_NUCLEI } from "../experiments/organism-lab/organism-types";
 import {
   DEFAULT_ORGANISM_SETTINGS,
@@ -64,6 +70,19 @@ const ATTACHES: { id: AttachMode; label: string }[] = [
   { id: "soft", label: "Soft" },
   { id: "long", label: "Long" },
   { id: "extreme", label: "Extreme" },
+];
+
+const ANNOTATIONS: { id: AnnotationMode; label: string; desc: string }[] = [
+  { id: "editorial", label: "Editorial", desc: "Name + area, no label box" },
+  { id: "pill", label: "Pill", desc: "Compact rounded label" },
+  { id: "technical", label: "Technical", desc: "Name, area, category, code" },
+  { id: "hidden", label: "Hidden", desc: "No canvas labels" },
+];
+
+const SELECTIONS: { id: SelectionDisplay; label: string; desc: string }[] = [
+  { id: "tight", label: "Tight", desc: "Small normal selection ring" },
+  { id: "halo", label: "Halo", desc: "Soft medium focus halo" },
+  { id: "influence", label: "Influence", desc: "Large future measurement circle" },
 ];
 
 function SliderRow({
@@ -161,6 +180,8 @@ export default function OrganismControlPanel() {
   const morphMode = useLab((s) => s.settings.morphMode);
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const attachMode = useLab((s) => s.settings.attachMode);
+  const annotationMode = useLab((s) => s.settings.annotationMode);
+  const selectionDisplay = useLab((s) => s.settings.selectionDisplay);
   const mergeDistance = useLab((s) => s.settings.mergeDistance);
   const rendererMode = useLab((s) => s.settings.rendererMode);
   const spaceCount = useLab((s) => s.spaces.length);
@@ -246,6 +267,51 @@ export default function OrganismControlPanel() {
           )}
 
           <div className="org-scroll">
+            <Section
+              id="annotation"
+              title="Annotation"
+              hint="labels + selection"
+              open={!!openSecs.annotation}
+              onToggle={toggleSec}
+              sectionRef={bindSec("annotation")}
+            >
+              <span className="org-subcap">label mode</span>
+              {ANNOTATIONS.map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  className="org-choice"
+                  role="menuitemradio"
+                  aria-checked={annotationMode === mode.id}
+                  data-active={annotationMode === mode.id}
+                  onClick={() => setSettings({ annotationMode: mode.id })}
+                >
+                  <span className="org-choice-text">
+                    <span className="org-choice-name">{mode.label}</span>
+                    <span className="org-choice-desc">{mode.desc}</span>
+                  </span>
+                </button>
+              ))}
+              <span className="pop-divider" role="separator" />
+              <span className="org-subcap">selection display</span>
+              {SELECTIONS.map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  className="org-choice"
+                  role="menuitemradio"
+                  aria-checked={selectionDisplay === mode.id}
+                  data-active={selectionDisplay === mode.id}
+                  onClick={() => setSettings({ selectionDisplay: mode.id })}
+                >
+                  <span className="org-choice-text">
+                    <span className="org-choice-name">{mode.label}</span>
+                    <span className="org-choice-desc">{mode.desc}</span>
+                  </span>
+                </button>
+              ))}
+            </Section>
+
             <Section
               id="style"
               title="Style"

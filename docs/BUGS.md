@@ -14,9 +14,10 @@ Fixed:
 - V6G: production organism labels lagged/snapped during live pan/zoom because the shader used a live camera ref while the overlay used committed store camera; labels now sync from the render-loop camera without per-frame React state
 - V6G: 390 px mobile dock overflowed slightly; narrow-viewport dock spacing and control widths now keep `ORG`/`CLS` reachable
 - V6H: wider production dock crowded the bottom-left HUD at 390 px; narrow-viewport CSS now lifts the HUD above the dock while keeping zoom controls separate
+- V6H.2: normal organism selection ring was visually too large for everyday selection; default selection display is now tight, with the large red circle preserved as future influence/measurement mode
 
 Open (minor, deferred):
-- main js chunk warning remains deferred; latest V6H.1 build reported 636.98 kB (>500 kB) after the organism control surface — code-split later, not urgent
+- main js chunk warning remains deferred; latest V6H.2 build reported 640.56 kB (>500 kB) after command architecture prep — code-split later, not urgent
 - preview harness artifacts (stale re-dispatched clicks, rAF throttling in hidden tabs) can move sliders/close panels during automated QA; not an app bug — use eval-driven, idempotent assertions as documented since Phase 5
 - favicon 404 has been observed as non-breaking
 - high-density labels are crowded at 60+ spaces; label-density/inspector design is deferred to the production UI phase, not a stabilization blocker

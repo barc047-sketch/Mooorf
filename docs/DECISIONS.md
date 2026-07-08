@@ -87,3 +87,11 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Motion defaults ship off so first load matches the stable V6G/V6H canvas; enabling motion switches the render loop from dirty-gated to continuous only while active.
 - One floating control surface serves rail and dock launchers (store-held `orgPanelOpen`/`orgPanelFocus` with section focus); style/palette quick-switchers stay in the dock popovers.
 - `AttachMode` gained `extreme`; classic blob fallback carries safe extreme entries under its existing 0.32 gap cap.
+
+## V6H.2 command architecture cleanup
+- Command ownership is split as: left rail = navigation/widget launchers, bottom dock = quick creation/mode controls, widget panel = detailed settings, canvas = direct editing.
+- Full duplicate setting ownership is avoided. Renderer switching is dock-owned; rail opens panels. Palette/style quick changes can remain in the dock while detail controls live in the widget panel.
+- Annotation and selection display are UI settings, not product data: `annotationMode` defaults to `editorial`, and `selectionDisplay` defaults to `tight`.
+- The large red selection circle is preserved as `selectionDisplay: "influence"` for future measurement/influence mode, not normal selection.
+- Palette prep is metadata-only in `src/design/palettes.ts`; no category color mapping or organism shader palette mapping is active yet.
+- Saved views are prepared as a typed snapshot concept only; no runtime save/load feature was started.

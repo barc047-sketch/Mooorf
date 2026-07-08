@@ -133,8 +133,31 @@ Conceptual components:
 - `AttachmentPanel`
 - `AdvancedOrganismPanel`
 - `NucleusActionButton`
+- `WidgetPanel`
+- `WidgetPanelDefinition`
 
 Replacement rule: any panel can be replaced without touching the organism renderer, table sync, master graph, or export pipeline.
+
+## V6H.2 Command Ownership
+
+The production command split is now:
+
+- **Left rail:** navigation and widget launchers only. It can expose secondary build shortcuts, but it does not own renderer/style/palette parameters.
+- **Bottom dock:** fast creation and quick mode controls only: renderer toggle, style, attachment, reach, central add nucleus, void placeholder, saved views placeholder, palette, import/export placeholders, and widget settings launcher.
+- **Widget panel:** detailed settings. The existing right-side organism control surface is the first widget panel and now also owns annotation and selection display controls.
+- **Canvas:** direct editing of nuclei through drag/select. Future label/name edits and selected-space popovers should remain canvas interactions backed by the same store.
+
+Removed duplicate ownership:
+- Renderer switching is dock-owned; the rail no longer has separate ORG/Classic buttons.
+- Palette/style quick choices remain in the dock, while detailed style/palette controls remain in the widget panel.
+- Reach is a quick dock slider and a detail-panel mirror; the dock is the shortcut, not a separate source of truth.
+- Demo/add duplication was reduced; central add remains the strongest create command.
+
+Prepared architecture:
+- `settings.annotationMode`: `editorial`, `pill`, `technical`, `hidden`.
+- `settings.selectionDisplay`: `tight`, `halo`, `influence`.
+- `SavedCanvasSnapshot`: future saved-view shape for spaces, camera, renderer, palette, annotation, organism settings, and theme.
+- `src/ui/panels/widgetRegistry.ts`: live/prepared/future widget panel metadata.
 
 ## Reference-Driven Notes
 

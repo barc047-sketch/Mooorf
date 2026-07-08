@@ -6,6 +6,10 @@ export type RendererMode = "organism" | "classic";
 
 export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
+export type AnnotationMode = "editorial" | "pill" | "technical" | "hidden";
+
+export type SelectionDisplay = "tight" | "halo" | "influence";
+
 export type Privacy = "public" | "shared" | "private";
 
 export type MorphMode =
@@ -61,7 +65,7 @@ export interface OrganismSettings {
   showNucleiDebug: boolean;
 }
 
-export type OrgPanelFocus = "style" | "organism" | "display" | null;
+export type OrgPanelFocus = "annotation" | "style" | "organism" | "display" | null;
 
 export interface SpaceCell {
   id: string;
@@ -79,4 +83,17 @@ export interface Camera {
   x: number;
   y: number;
   zoom: number;
+}
+
+export interface SavedCanvasSnapshot {
+  id: string;
+  name: string;
+  createdAt: number;
+  spaces: SpaceCell[];
+  camera: Camera;
+  rendererMode: RendererMode;
+  paletteMode: PaletteMode;
+  annotationMode: AnnotationMode;
+  organism: OrganismSettings;
+  theme: Theme;
 }

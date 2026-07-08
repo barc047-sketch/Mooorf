@@ -57,7 +57,7 @@ function MainApp() {
               <div className="stage-empty stage-hint">
                 <p className="eyebrow">CANVAS LAB</p>
                 <h1 className="display">Add a space.</h1>
-                <p className="hint-sub">use + or the demo cells in the dock</p>
+                <p className="hint-sub">use the + button in the dock</p>
               </div>
             )}
           </>

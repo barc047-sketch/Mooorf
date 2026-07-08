@@ -1,26 +1,25 @@
 import { motion } from "motion/react";
 import {
-  Circle,
-  Dna,
   Eye,
   Frame,
+  Layers,
+  Minus,
   Moon,
-  Paintbrush,
+  Palette,
   Plus,
   Shapes,
   SlidersHorizontal,
-  Sparkles,
+  Settings,
   Sun,
   Table2,
-  Waves,
+  Type,
 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { OrgPanelFocus } from "../types";
 import "./shell.css";
 
-/* V6H.1 left rail — compact pro-tool navigation grouped into captioned
-   sections: view / render / build / panels / system. Navigation and panel
-   launching only; parameter editing lives in the dock + control surface. */
+/* V6H.2 left rail — navigation + widget launchers only. Fast creation and
+   renderer switching live in the dock; detailed settings live in the panel. */
 
 function RailSection({
   caption,
@@ -42,11 +41,7 @@ export default function Rail() {
   const toggleTheme = useLab((s) => s.toggleTheme);
   const view = useLab((s) => s.view);
   const setView = useLab((s) => s.setView);
-  const rendererMode = useLab((s) => s.settings.rendererMode);
-  const blobOn = useLab((s) => s.settings.blobOn);
-  const setSettings = useLab((s) => s.setSettings);
   const addSpace = useLab((s) => s.addSpace);
-  const addDemo = useLab((s) => s.addDemo);
   const resetView = useLab((s) => s.resetView);
   const orgPanelOpen = useLab((s) => s.orgPanelOpen);
   const orgPanelFocus = useLab((s) => s.orgPanelFocus);
@@ -88,53 +83,42 @@ export default function Rail() {
         </button>
       </RailSection>
 
-      <RailSection caption="render">
-        <button
-          type="button"
-          className="rail-btn"
-          data-active={rendererMode === "organism"}
-          title="Organism renderer"
-          onClick={() => setSettings({ rendererMode: "organism" })}
-        >
-          <Dna size={15} strokeWidth={1.5} />
-        </button>
-        <button
-          type="button"
-          className="rail-btn"
-          data-active={rendererMode === "classic"}
-          title="Classic renderer"
-          onClick={() => setSettings({ rendererMode: "classic" })}
-        >
-          <Circle size={15} strokeWidth={1.5} />
-        </button>
-        {rendererMode === "classic" && (
-          <button
-            type="button"
-            className="rail-btn"
-            data-on={blobOn}
-            title="Classic blob layer"
-            onClick={() => setSettings({ blobOn: !blobOn })}
-          >
-            <Waves size={15} strokeWidth={1.5} />
-          </button>
-        )}
-      </RailSection>
-
       <RailSection caption="build">
-        <button type="button" className="rail-btn" title="Add nucleus" onClick={() => addSpace()}>
+        <button type="button" className="rail-btn" title="Add nucleus shortcut" onClick={() => addSpace()}>
           <Plus size={15} strokeWidth={1.6} />
         </button>
         <button
           type="button"
-          className="rail-btn"
-          title="Add 10 demo spaces"
-          onClick={() => addDemo(10)}
+          className="rail-btn rail-btn-disabled"
+          title="Void nucleus placeholder"
+          disabled
         >
-          <Sparkles size={15} strokeWidth={1.5} />
+          <Minus size={15} strokeWidth={1.5} />
+        </button>
+        <button
+          type="button"
+          className="rail-btn rail-btn-disabled"
+          title="Group placeholder"
+          disabled
+        >
+          <Layers size={15} strokeWidth={1.5} />
         </button>
       </RailSection>
 
-      <RailSection caption="panels">
+      <RailSection caption="note">
+        <button
+          type="button"
+          className="rail-btn"
+          data-active={orgPanelOpen && orgPanelFocus === "annotation"}
+          data-orgpanel-keep="true"
+          title="Annotation widget"
+          onClick={() => launchPanel("annotation")}
+        >
+          <Type size={15} strokeWidth={1.5} />
+        </button>
+      </RailSection>
+
+      <RailSection caption="organism">
         <button
           type="button"
           className="rail-btn"
@@ -145,16 +129,22 @@ export default function Rail() {
         >
           <SlidersHorizontal size={15} strokeWidth={1.5} />
         </button>
+      </RailSection>
+
+      <RailSection caption="color">
         <button
           type="button"
           className="rail-btn"
           data-active={orgPanelOpen && orgPanelFocus === "style"}
           data-orgpanel-keep="true"
-          title="Style & palette"
+          title="Color and palette widget"
           onClick={() => launchPanel("style")}
         >
-          <Paintbrush size={15} strokeWidth={1.5} />
+          <Palette size={15} strokeWidth={1.5} />
         </button>
+      </RailSection>
+
+      <RailSection caption="display">
         <button
           type="button"
           className="rail-btn"
@@ -182,6 +172,14 @@ export default function Rail() {
         </button>
         <button type="button" className="rail-btn" title="Reset view" onClick={resetView}>
           <Frame size={15} strokeWidth={1.5} />
+        </button>
+        <button
+          type="button"
+          className="rail-btn rail-btn-disabled"
+          title="Settings placeholder"
+          disabled
+        >
+          <Settings size={15} strokeWidth={1.5} />
         </button>
       </RailSection>
     </motion.div>

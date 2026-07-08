@@ -4,12 +4,18 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6I palette/category color mapping or the next explicitly requested UI phase
+- V6H.3 Claude Premium UI Implementation
+- Use V6H.2 command architecture: rail launches, dock quick-controls, widget panel details
 - Keep `paletteMode` UI-ready until color mapping is intentionally started
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6H.2 UI Command Architecture Cleanup + Resource Prep
+- Left rail launcher/nav split; dock quick control split; widget panel detail split
+- Annotation modes and tight/halo/influence selection display added
+- Palette metadata, widget registry, saved-view snapshot type, and UI resource audit prepared
+- Build passed with known chunk warning
 - V6H.1 Full Organism Control Surface
 - Typed `settings.organism` + production resolver; defaults match the stable canvas
 - Floating control surface panel: style/organism/nuclei/attachment-offset/motion/pockets/display + resets
