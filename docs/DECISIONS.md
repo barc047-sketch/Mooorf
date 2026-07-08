@@ -74,3 +74,7 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - The V6E Organism Lab route remains preserved for advanced/debug exploration.
 - Zustand `SpaceCell` remains the runtime product-data source of truth; the organism renderer receives adapted nuclei only.
 - TableView remains unchanged and continues to sync through the same store.
+
+## V6H production dock UI
+- Production dock controls are grouped left/center/right: renderer/style/attachment/reach, high-emphasis `+ NUCLEUS`, and palette/demo/import/export.
+- `settings.paletteMode` is a UI-ready setting only; category color mapping and renderer palette behavior remain deferred to V6I or a later explicit palette phase.

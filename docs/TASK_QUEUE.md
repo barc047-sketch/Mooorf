@@ -309,10 +309,29 @@
 - [x] build passed with known chunk warning
 - [x] chunk split remains deferred unless a later performance phase prioritizes it
 
-## V6H — Production Dock UI  ⏳ NEXT (not started)
-- [ ] build the new production dock UI only after V6G stabilization
-- [ ] do not start Phase 6.5 selection arc
-- [ ] do not start V7 floating widgets
+## V6H — Production Dock UI  ✅ COMPLETE
+- [x] build the new production dock UI only after V6G stabilization
+- [x] add grouped left/center/right dock structure
+- [x] make `+ NUCLEUS` the high-emphasis center action wired to `addSpace()`
+- [x] keep `ORG`/`CLS` renderer toggle working
+- [x] keep demo add action working
+- [x] add compact organism style panel with all six modes preserved
+- [x] add compact attachment panel with Tight / Soft / Long
+- [x] keep reach/density slider wired
+- [x] add compact palette panel with Core / Surreal / Architecture / Auto
+- [x] add tiny `settings.paletteMode` for UI readiness only
+- [x] do not build category color mapping yet
+- [x] preserve table sync and classic fallback
+- [x] preserve `/experiments/organism-lab`
+- [x] 390 px dock and mobile popovers fit
+- [x] build passed with known chunk warning
+- [x] do not start Phase 6.5 selection arc
+- [x] do not start V7 floating widgets
+
+## V6I — Palette / Category Color Mapping  ⏳ NEXT CANDIDATE
+- [ ] wire palette semantics into organism/category color behavior only if explicitly requested
+- [ ] keep `paletteMode` as UI setting, not product data
+- [ ] avoid random color usage
 
 ## Phase 6.5 — Selection Arc
 - [ ] implement only from approved visual/system docs

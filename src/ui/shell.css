@@ -56,9 +56,27 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border-radius: var(--r-pill);
+  gap: 5px;
+  padding: 5px;
+  border-radius: 18px;
+  max-width: calc(100vw - 18px);
+}
+
+.dock-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 2px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 56%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 72%, transparent);
+}
+
+.dock-group-center {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .dock-btn,
@@ -72,7 +90,7 @@
   color: var(--ink);
   background: none;
   border: none;
-  border-radius: var(--r-pill);
+  border-radius: 12px;
   cursor: pointer;
   transition: color 180ms ease, background 180ms ease, transform 120ms ease;
 }
@@ -90,12 +108,15 @@
   transform: scale(0.94);
 }
 
-.morph-color-btn {
-  position: relative;
+.dock-btn[data-active="true"],
+.dock-btn[data-placeholder="true"]:hover {
+  color: var(--accent);
+  background: var(--surface);
 }
 
 .dock-mode-btn {
   width: 40px;
+  position: relative;
 }
 
 .dock-mode-code {
@@ -106,30 +127,85 @@
   overflow: hidden;
   font-size: 7px;
   line-height: 1;
-  letter-spacing: 0;
   color: var(--fog);
   pointer-events: none;
 }
 
+.dock-style-code {
+  display: none;
+}
+
 .renderer-mode-btn {
-  position: relative;
   width: 44px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+}
+
+.renderer-mode-btn[data-active="true"] {
   color: var(--surface);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--ink) 92%, var(--zonuert-red) 8%), var(--ink));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    var(--ink)
+  );
 }
 
 .renderer-mode-btn:hover {
+  color: var(--accent);
+  background: var(--surface);
+}
+
+.renderer-mode-btn[data-active="true"]:hover {
   color: var(--surface);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--ink) 82%, var(--zonuert-red) 18%), var(--ink));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 80%, var(--zonuert-red) 20%),
+    var(--ink)
+  );
 }
 
 .dock-renderer-code {
   font-size: 9px;
   line-height: 1;
-  letter-spacing: 0.02em;
   pointer-events: none;
+}
+
+.nucleus-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 116px;
+  height: 42px;
+  padding: 0 16px;
+  color: var(--surface);
+  background:
+    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--zonuert-red) 34%, transparent), transparent 44%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ink) 82%, var(--zonuert-red) 18%), var(--ink));
+  border: 1px solid color-mix(in srgb, var(--surface) 26%, transparent);
+  border-radius: 14px;
+  box-shadow:
+    0 16px 34px -18px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 18%, transparent);
+  cursor: pointer;
+  transition: transform 130ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.nucleus-btn span {
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.nucleus-btn:hover {
+  filter: contrast(1.08) brightness(1.03);
+  box-shadow:
+    0 18px 40px -18px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 24%, transparent);
+}
+
+.nucleus-btn:active {
+  transform: scale(0.96);
 }
 
 .morph-color-swatch {
@@ -168,15 +244,6 @@
   background: linear-gradient(135deg, #050505 50%, #f4f2e9 50%);
 }
 
-.attach-mode-btn {
-  position: relative;
-}
-
-.dock-btn[data-open="true"] {
-  color: var(--accent);
-  background: var(--surface);
-}
-
 /* Anchored micro-panels above the dock mode buttons */
 .dock-pop-anchor {
   position: relative;
@@ -187,7 +254,7 @@
   position: absolute;
   bottom: calc(100% + 14px);
   left: 50%;
-  /* centering via Motion x:-50% (inline transform owns this element) */
+  translate: -50% 0;
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -198,6 +265,17 @@
   box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.35);
 }
 
+.dock-pop--left {
+  left: 0;
+  translate: 0 0;
+}
+
+.dock-pop--right {
+  right: 0;
+  left: auto;
+  translate: 0 0;
+}
+
 .pop-row {
   display: flex;
   align-items: center;
@@ -206,7 +284,7 @@
   padding: 0 9px;
   font: inherit;
   font-size: var(--text-caption);
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   white-space: nowrap;
   color: var(--fog);
   background: none;
@@ -222,8 +300,12 @@
 }
 
 .pop-row[data-active="true"] {
-  color: var(--ink);
-  background: var(--surface);
+  color: var(--surface);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    var(--ink)
+  );
 }
 
 .pop-row[data-active="true"]::after {
@@ -277,21 +359,23 @@
   min-width: 0;
   align-items: center;
   gap: 4px;
+  padding: 5px;
 }
 
 .pop-chips {
   display: flex;
-  gap: 2px;
+  gap: 3px;
 }
 
 .pop-chip {
   display: grid;
   place-items: center;
-  width: 26px;
+  min-width: 48px;
   height: 26px;
+  padding: 0 8px;
   font: inherit;
   font-size: 10px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   color: var(--fog);
   background: none;
   border: none;
@@ -306,16 +390,54 @@
 }
 
 .pop-chip[data-active="true"] {
-  color: var(--ink);
-  background: var(--surface);
+  color: var(--surface);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    var(--ink)
+  );
 }
 
-.dock-pop-caption {
-  padding: 0 8px 3px;
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-  color: var(--fog);
+.palette-mini-swatch,
+.palette-swatch {
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.palette-mini-swatch {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  pointer-events: none;
+}
+
+.palette-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+}
+
+.palette-mini-swatch[data-palette="core"],
+.palette-swatch[data-palette="core"] {
+  background: linear-gradient(135deg, #050505 52%, #f4f2e9 52%);
+}
+
+.palette-mini-swatch[data-palette="surreal"],
+.palette-swatch[data-palette="surreal"] {
+  background: linear-gradient(135deg, #4338ca, #b5175d 55%, #d9c36b);
+}
+
+.palette-mini-swatch[data-palette="architecture"],
+.palette-swatch[data-palette="architecture"] {
+  background: linear-gradient(135deg, #737373, #305f4b 52%, #af3f3f);
+}
+
+.palette-mini-swatch[data-palette="auto"],
+.palette-swatch[data-palette="auto"] {
+  background: conic-gradient(from 120deg, #050505, #737373, #f4f2e9, #460a16, #050505);
 }
 
 .dock-sep {
@@ -426,21 +548,50 @@
     gap: 2px;
     padding: 3px;
     max-width: calc(100vw - 12px);
+    border-radius: 15px;
+  }
+
+  .dock-group {
+    gap: 2px;
+    padding: 1px;
+    border-radius: 12px;
   }
 
   .dock-btn,
   .rail-btn,
   .zoom-btn {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
   }
 
   .dock-mode-btn {
-    width: 36px;
+    width: 31px;
   }
 
   .renderer-mode-btn {
-    width: 40px;
+    width: 34px;
+  }
+
+  .dock-mode-code {
+    display: none;
+  }
+
+  .nucleus-btn {
+    min-width: 78px;
+    height: 34px;
+    gap: 4px;
+    padding: 0 9px;
+    border-radius: 12px;
+  }
+
+  .nucleus-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .nucleus-btn span {
+    font-size: 8px;
   }
 
   .dock-sep {
@@ -453,6 +604,20 @@
   }
 
   .dock-merge input[type="range"] {
-    width: 48px;
+    width: 38px;
+  }
+
+  .dock-pop {
+    max-width: calc(100vw - 28px);
+  }
+
+  .pop-chip {
+    min-width: 42px;
+    padding: 0 6px;
+  }
+
+  .hud {
+    left: 12px;
+    bottom: calc(var(--sp-24) + 56px);
   }
 }

@@ -4,6 +4,8 @@ export type ViewMode = "canvas" | "table";
 
 export type RendererMode = "organism" | "classic";
 
+export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
+
 export type Privacy = "public" | "shared" | "private";
 
 export type MorphMode =

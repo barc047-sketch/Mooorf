@@ -3,6 +3,7 @@ import type {
   AttachMode,
   Camera,
   MorphMode,
+  PaletteMode,
   RendererMode,
   SpaceCell,
   Theme,
@@ -20,6 +21,7 @@ export interface LabSettings {
   blobOn: boolean;
   morphMode: MorphMode;
   attachMode: AttachMode;
+  paletteMode: PaletteMode;
   rendererMode: RendererMode;
 }
 
@@ -75,6 +77,7 @@ export const useLab = create<LabState>((set) => ({
     blobOn: true,
     morphMode: "cellular-reverse",
     attachMode: "soft",
+    paletteMode: "core",
     rendererMode: "organism",
   },
   selectedId: null,

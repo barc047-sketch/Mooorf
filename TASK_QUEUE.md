@@ -4,12 +4,16 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6H Production Dock UI
-- Build the new production dock UI only after V6G stabilization
+- V6I palette/category color mapping or the next explicitly requested UI phase
+- Keep `paletteMode` UI-ready until color mapping is intentionally started
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6H Production Dock UI
+- Grouped dock controls: renderer/style/attachment/reach, `+ NUCLEUS`, palette/demo/import/export
+- Style, attachment, palette, reach, add nucleus, demo, ORG/CLS, table sync, fallback, lab route checked
+- Mobile 390 px dock and popovers fit; HUD lifted above dock
 - V6G QA / stabilization
 - Production organism label/camera sync stabilized
 - Mobile 390 px dock overflow fixed
@@ -28,9 +32,9 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## UI Polish
 
-- Production bottom dock refinement
-- Central `+ NUCLEUS` button polish
-- Style / attachment / palette panel polish
+- Production bottom dock refinement complete
+- Central `+ NUCLEUS` button polish complete
+- Style / attachment / palette panel polish complete
 - Right inspector later
 - Floating widgets later
 
