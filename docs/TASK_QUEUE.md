@@ -8,7 +8,20 @@
 - [x] V6LQ Shader / Void QA
 - [x] V6.5 Selection Arc + Canvas Rename
 - [x] V6N Interface Density / Editorial Glass Refinement
+- [x] V6N.1 Reference-Locked Premium Design System
 - [ ] V7 Stats / Floating Widgets / later widget expansion
+
+## V6N.1 — Reference-Locked Premium Design System  ✅ COMPLETE
+- [x] `docs/V6N_REFERENCE_STYLE_LOCK.md` added as the canonical reference grammar
+- [x] docs clarify references are mood/structure/style grammar only, not layouts to copy
+- [x] reference standard covers dark scientific HUD, light frosted dashboard, spatial glass, cinematic overlay, architecture translation, selection arcs, typography, density, color/chrome, data cards, and future widgets
+- [x] `docs/DESIGN_SYSTEM_MEMORY.md` strengthened with the Reference-Locked Visual Standard
+- [x] `docs/COMPONENT_INVENTORY.md` strengthened with the Premium Primitive Rule
+- [x] `docs/DESIGN_UI_UPGRADE_V6K.md` and `docs/V6N_GLASS_EDITORIAL_DIRECTION.md` now point to the style lock
+- [x] shared tokens refined for glass dark/light, border, inner highlight, blur, shadow, card/pill radius, HUD/muted text, dot grid, selection arc neutral, and warning-data color
+- [x] widget, dock, rail, micro-card, saved-view, palette, and selection/edit overlay CSS now reuse more shared tokens
+- [x] no product feature, state, renderer, shader, table, saved-view, or package changes
+- [x] build passes with known chunk warning
 
 ## V6N — Interface Density / Editorial Glass Refinement  ✅ COMPLETE
 - [x] neutral smoke/ink/stone chrome replaces red rail/dock/widget/slider/chip/selection accents

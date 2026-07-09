@@ -10,6 +10,21 @@ Purpose: stable aesthetic memory for future UI work.
 - Calm, precise, and spatial.
 - More studio instrument than SaaS dashboard.
 
+## Reference-Locked Visual Standard
+
+V6N.1 locks the visual system to the premium reference grammar in
+`docs/V6N_REFERENCE_STYLE_LOCK.md`.
+
+- No red UI chrome. Red/wine is product or palette material only.
+- UI chrome is neutral graphite / pearl / smoke / bone / black / warm stone.
+- Color belongs to spatial data, category mapping, palette material, organism material, selected content, and true warnings.
+- All future widgets must use `WidgetFrame`, `WidgetHost`, shared widget controls, and the shared glass tokens before custom styling.
+- All future controls must use premium primitives: slim sliders, switches, segmented chips, metadata pills, micro cards, and glass popovers.
+- Do not ship raw default HTML controls in production UI.
+- Do not create cheap rectangular panels or uncontrolled card styles.
+- Do not duplicate dock, rail, widget, table, or canvas responsibilities.
+- New UI files must be justified by clearer ownership or reduced duplication.
+
 ## Visual Language
 
 - Soft glass over the canvas.
@@ -52,6 +67,7 @@ Purpose: stable aesthetic memory for future UI work.
 
 - `docs/DESIGN_UI_UPGRADE_V6K.md` for premium widget system.
 - `docs/V6N_GLASS_EDITORIAL_DIRECTION.md` for neutral glass chrome and density rules.
+- `docs/V6N_REFERENCE_STYLE_LOCK.md` for the reference-locked dark HUD / frosted dashboard / spatial glass standard.
 - `docs/PALETTE_SYSTEM_SPEC.md` for palette intent.
 - `docs/PRODUCTION_CANVAS_UI_SYSTEM.md` for shell/control architecture.
 - `assets/references/01` for mood/structure references only.

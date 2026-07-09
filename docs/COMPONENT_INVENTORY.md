@@ -13,6 +13,16 @@ This is the first place to check before creating UI or control logic.
 - Avoid parallel state systems; product data stays in the store.
 - If adding a new component, document why existing components were insufficient.
 
+## Premium Primitive Rule
+
+V6N.1 makes the shared visual primitives mandatory for production UI.
+
+- Use `src/styles/tokens.css` for glass, chrome, radius, HUD text, muted text, dot grid, selection arc, and warning colors.
+- Use `.glass`, `.wframe`, `.dock-*`, `.rail-*`, `.org-*`, `.pop-*`, `.saved-*`, `.pal-*`, and `.selection-*` classes before inventing new chrome.
+- Sliders, switches, segmented chips, choice rows, metadata pills, micro cards, saved-view rows, palette rows, and canvas edit popovers should inherit the shared premium language.
+- New widget/card/control CSS is acceptable only when it extends these primitives or covers a genuinely new interaction.
+- Future stats/data widgets should use compact micro-card patterns, tabular numerals, and glass surfaces from the existing widget system.
+
 ## Widget System
 
 ### `WidgetHost`

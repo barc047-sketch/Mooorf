@@ -1,6 +1,6 @@
 # V6K — Premium Visual System + Full Control Migration
 
-Status: implemented and preview-verified. V6N later refined this system toward neutral editorial glass; see `docs/V6N_GLASS_EDITORIAL_DIRECTION.md`. References: `assets/references/01` (mood/quality benchmarks only — nothing copied).
+Status: implemented and preview-verified. V6N later refined this system toward neutral editorial glass; V6N.1 locks the stronger reference grammar. See `docs/V6N_GLASS_EDITORIAL_DIRECTION.md` and `docs/V6N_REFERENCE_STYLE_LOCK.md`. References are mood/quality benchmarks only — nothing copied.
 
 ## Architecture
 
@@ -51,6 +51,7 @@ Store: `settings.nucleusPaletteId` ("auto") + `settings.organismPaletteId` ("mod
 - Dock/rail slightly tighter (30 px dock buttons, 26 px rail buttons, 47 px orb) with inset top sheen.
 - Custom range inputs everywhere (hairline track, ink/thumb, neutral hover halo, Firefox progress fill after V6N).
 - Active states use ink/stone chrome after V6N; gradients stay reserved for high-emphasis actions and organism material.
+- V6N.1 reference-lock tokens add reusable glass dark/light, border, inner highlight, shadow, card/pill radius, HUD/muted text, dot-grid, selection-arc neutral, and warning-data colors. Future widgets/data cards should reuse those primitives rather than adding new card styles.
 
 ## Verified (live preview)
 

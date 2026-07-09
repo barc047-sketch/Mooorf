@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   max-height: calc(100dvh - 72px - 96px);
-  border-radius: 16px;
+  border-radius: var(--glass-card-radius);
   /* premium glass — translucent at the edge, readable in stacked control use */
   background:
     linear-gradient(
@@ -19,17 +19,17 @@
     var(--glass-panel-strong);
   border-color: color-mix(in srgb, var(--glass-border) 72%, transparent);
   box-shadow:
-    0 34px 78px -40px rgba(0, 0, 0, 0.68),
+    var(--glass-shadow),
     0 7px 22px -16px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 44%, transparent);
+    inset 0 1px 0 var(--glass-inner-highlight);
   overflow: hidden;
 }
 
 .wframe[data-dragging="true"] {
   box-shadow:
-    0 44px 92px -38px rgba(0, 0, 0, 0.68),
+    0 44px 92px -38px rgba(0, 0, 0, 0.64),
     0 10px 28px -16px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 44%, transparent);
+    inset 0 1px 0 var(--glass-inner-highlight);
   cursor: grabbing;
   user-select: none;
 }
@@ -83,7 +83,7 @@
   font-size: 7.5px;
   line-height: 1;
   letter-spacing: 0.22em;
-  color: color-mix(in srgb, var(--chrome-accent) 78%, var(--fog));
+  color: var(--hud-text);
 }
 
 .wframe-title {
@@ -130,7 +130,7 @@
 
 .wframe-btn:hover {
   color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  background: color-mix(in srgb, var(--glass-light) 68%, transparent);
   transform: translateY(-1px);
 }
 
@@ -164,9 +164,9 @@
   font: inherit;
   text-align: left;
   color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 34%, transparent);
+  background: color-mix(in srgb, var(--glass-panel) 74%, transparent);
   border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent);
-  border-radius: 12px;
+  border-radius: var(--r-micro-card);
   cursor: pointer;
   transition:
     background 160ms ease,
@@ -176,7 +176,7 @@
 }
 
 .pal-family:hover {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--glass-light) 72%, var(--surface));
   border-color: var(--hairline);
   transform: translateY(-1px);
   box-shadow: 0 10px 22px -16px rgba(0, 0, 0, 0.38);
@@ -184,7 +184,7 @@
 
 .pal-family[data-active="true"] {
   border-color: color-mix(in srgb, var(--chrome-accent) 55%, var(--hairline));
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  background: color-mix(in srgb, var(--glass-light) 76%, var(--glass-panel-strong));
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--chrome-accent) 30%, transparent),
     0 12px 26px -18px rgba(0, 0, 0, 0.4);
@@ -239,9 +239,9 @@
   gap: 4px;
   padding: 5px;
   font: inherit;
-  background: color-mix(in srgb, var(--surface) 34%, transparent);
+  background: color-mix(in srgb, var(--glass-panel) 74%, transparent);
   border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent);
-  border-radius: 10px;
+  border-radius: var(--r-micro-card);
   cursor: pointer;
   transition:
     background 160ms ease,
@@ -251,7 +251,7 @@
 }
 
 .pal-chip:hover:not(:disabled) {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--glass-light) 72%, var(--surface));
   border-color: var(--hairline);
   transform: translateY(-1px);
   box-shadow: 0 10px 20px -16px rgba(0, 0, 0, 0.36);

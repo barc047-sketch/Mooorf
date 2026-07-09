@@ -22,7 +22,7 @@ Dock, rail, widgets, popovers, saved views, palette panels, and canvas edit popo
 - no hard white boxes;
 - no noisy overlapping cards.
 
-Shared CSS tokens live in `src/styles/tokens.css`: `--chrome-accent`, `--glass-panel`, `--glass-panel-strong`, `--glass-highlight`, `--glass-blur`, and `--glass-saturate`.
+Shared CSS tokens live in `src/styles/tokens.css`: `--chrome-accent`, `--glass-dark`, `--glass-light`, `--glass-panel`, `--glass-panel-strong`, `--glass-border`, `--glass-inner-highlight`, `--glass-shadow`, `--glass-blur`, `--glass-saturate`, `--glass-card-radius`, and `--glass-pill-radius`.
 
 ## Density Rule
 
@@ -49,6 +49,8 @@ Selection uses the existing organism label overlay.
 - Void selection uses hollow/subtractive styling within the same arc family.
 - No aggressive red rings, dashed chaos, or large normal-selection circles.
 
+The canonical reference-locked rule lives in `docs/V6N_REFERENCE_STYLE_LOCK.md`: partial arc, endpoint dots, neutral stroke, small metadata chip, void as subtractive/hollow.
+
 ## Label Shadow Toggle
 
 `annotationDetail.textShadow` controls label shadow readability. Default is on for continuity; users can turn it off from Annotation.
@@ -65,3 +67,7 @@ Future visual phases should reuse:
 - `src/ui/shell.css` plus `src/ui/widgets/widgets.css`;
 - the existing organism label overlay in `OrganismCanvasView`;
 - existing store settings before adding new state.
+
+## V6N.1 Reference Lock
+
+`docs/V6N_REFERENCE_STYLE_LOCK.md` is now the stronger visual standard. Treat the attached dark HUD, light bento, spatial glass, and cinematic dashboard references as visual grammar only. Future features should inherit the shared tokens and primitives rather than creating new panel/card/control styles.

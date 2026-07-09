@@ -155,3 +155,8 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Label text shadow is an annotation detail setting (`annotationDetail.textShadow`) so it persists through saved views without adding a parallel label system.
 - Camera-aware morph is an organism setting (`organism.cameraAwareMorph`) so the renderer can preserve or decouple radius response from camera zoom through the existing adapter path.
 - Selection arc/edit polish stays inside the existing organism label overlay; no duplicate inspector, overlay framework, or second state system was added.
+
+## V6N.1 reference-locked premium design system
+- Attached premium UI references are visual grammar only. They set standards for dark scientific HUDs, frosted dashboard cards, spatial glass, cinematic overlays, and precise measurement arcs; no layouts, brands, medical content, or proprietary assets are copied.
+- The canonical visual lock is `docs/V6N_REFERENCE_STYLE_LOCK.md`. Future UI must reuse `WidgetFrame`, `WidgetHost`, shared widget controls, existing dock/rail/canvas ownership, and shared glass/chrome tokens before adding new primitives.
+- Shared tokens now include glass dark/light, border, inner highlight, blur, shadow, floating-card radius, pill radius, HUD text, muted text, dot-grid, selection-arc neutral, and warning-data colors. Warning yellow/acid is semantic data warning only, never brand chrome.

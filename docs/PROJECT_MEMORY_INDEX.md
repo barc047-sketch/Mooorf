@@ -66,6 +66,8 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - `docs/DECISIONS.md` — architecture decisions.
 - `docs/BUGS.md` — known risks and fixed bugs.
 - `docs/DESIGN_UI_UPGRADE_V6K.md` — premium widget system.
+- `docs/V6N_GLASS_EDITORIAL_DIRECTION.md` — neutral editorial glass, text-shadow toggle, camera-aware morph, selection polish.
+- `docs/V6N_REFERENCE_STYLE_LOCK.md` — reference-locked dark HUD / frosted dashboard / spatial glass visual grammar.
 - `docs/ORGANISM_ENGINE_LIMITS.md` — shader cap and future scaling path.
 - `docs/CODEX_PHASE_PROTOCOL.md` — Codex operating protocol.
 - `docs/FEATURE_MAP.md` — feature-to-file map.
@@ -81,6 +83,7 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - V6L: multi-color shader and void nuclei.
 - V6M: Codex workflow OS.
 - V6N: interface density and neutral editorial glass refinement.
+- V6N.1: reference-locked premium design system and shared primitive hardening.
 
 ## Current Limits
 

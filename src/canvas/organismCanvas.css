@@ -18,8 +18,9 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px);
+    linear-gradient(var(--dot-grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dot-grid-color) 1px, transparent 1px);
+  opacity: var(--dot-grid-opacity);
   mix-blend-mode: normal;
 }
 
@@ -62,7 +63,7 @@
   max-width: 140px;
   padding: 3px 7px;
   border: 1px solid color-mix(in srgb, var(--nucleus-color) 22%, var(--glass-border));
-  border-radius: var(--r-pill);
+  border-radius: var(--glass-pill-radius);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 20%, transparent), transparent 56%),
     color-mix(in srgb, var(--bg) 72%, transparent);
@@ -262,7 +263,7 @@
 
 .selection-arc-path {
   fill: none;
-  stroke: color-mix(in srgb, var(--nucleus-ring) 58%, var(--chrome-accent));
+  stroke: color-mix(in srgb, var(--nucleus-ring) 50%, var(--selection-arc-neutral));
   stroke-linecap: round;
   stroke-width: 1.25;
   vector-effect: non-scaling-stroke;
@@ -270,18 +271,18 @@
 
 .selection-arc-path--ghost {
   opacity: 0.24;
-  stroke: color-mix(in srgb, var(--chrome-accent) 42%, var(--ink));
+  stroke: color-mix(in srgb, var(--selection-arc-neutral) 42%, var(--ink));
 }
 
 .selection-arc-dot {
   fill: var(--bg);
-  stroke: color-mix(in srgb, var(--nucleus-ring) 54%, var(--chrome-accent));
+  stroke: color-mix(in srgb, var(--nucleus-ring) 46%, var(--selection-arc-neutral));
   stroke-width: 1.2;
   vector-effect: non-scaling-stroke;
 }
 
 .selection-arc-dot--end {
-  fill: color-mix(in srgb, var(--chrome-accent) 72%, var(--bg));
+  fill: color-mix(in srgb, var(--selection-arc-neutral) 72%, var(--bg));
 }
 
 .organism-label-anchor[data-selection-display="halo"] .selection-arc-path--primary {
@@ -322,13 +323,13 @@
   max-width: 164px;
   padding: 7px 8px;
   border: 1px solid color-mix(in srgb, var(--nucleus-ring) 22%, var(--glass-border));
-  border-radius: 12px;
+  border-radius: var(--r-micro-card);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 54%),
     color-mix(in srgb, var(--glass-panel) 82%, transparent);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent),
-    0 16px 36px -28px rgba(0, 0, 0, 0.6);
+    var(--glass-shadow);
   backdrop-filter: blur(12px) saturate(136%);
   -webkit-backdrop-filter: blur(12px) saturate(136%);
   color: var(--ink);
@@ -336,7 +337,7 @@
 }
 
 .selection-type {
-  color: color-mix(in srgb, var(--chrome-accent) 72%, var(--ink));
+  color: var(--hud-text);
   font-size: 7.5px;
   font-weight: 650;
   letter-spacing: 0.12em;
@@ -361,7 +362,7 @@
 }
 
 .selection-detail {
-  color: var(--muted);
+  color: var(--muted-text);
   font-size: 8.5px;
   line-height: 1.1;
 }
@@ -373,8 +374,8 @@
   margin-top: 2px;
   padding: 0 7px;
   border: 1px solid color-mix(in srgb, var(--chrome-accent) 30%, var(--hairline));
-  border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--surface) 68%, transparent);
+  border-radius: var(--glass-pill-radius);
+  background: color-mix(in srgb, var(--glass-light) 62%, transparent);
   color: var(--ink);
   font: inherit;
   font-size: 8px;
@@ -402,14 +403,14 @@
   width: min(178px, calc(100vw - 32px));
   gap: 7px;
   padding: 9px;
-  border-radius: 14px;
+  border-radius: var(--glass-card-radius);
   pointer-events: auto;
 }
 
 .selection-edit-popover label {
   display: grid;
   gap: 3px;
-  color: var(--muted);
+  color: var(--muted-text);
   font-size: 7.5px;
   font-weight: 650;
   letter-spacing: 0.11em;
@@ -447,8 +448,8 @@
   height: 22px;
   padding: 0 8px;
   border: 1px solid var(--hairline);
-  border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  border-radius: var(--glass-pill-radius);
+  background: color-mix(in srgb, var(--glass-light) 66%, transparent);
   color: var(--ink);
   font: inherit;
   font-size: 8px;

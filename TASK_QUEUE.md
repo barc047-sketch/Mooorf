@@ -5,6 +5,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 ## Urgent / Next
 
 - V7 stats/widgets or another explicit phase
+- V6N.2 can apply the locked premium style more aggressively if explicitly requested
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Keep V7 floating widgets parked
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
@@ -12,6 +13,12 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V6N.1 Reference-Locked Premium Design System
+- Canonical style lock added at `docs/V6N_REFERENCE_STYLE_LOCK.md`
+- References are visual grammar only: dark scientific HUD, light frosted dashboard, spatial glass, cinematic overlay, architecture translation, selection arcs, typography, density, chrome, data cards, and future widget rules
+- Shared tokens/primitives strengthened for glass surfaces, HUD text, muted text, dot grid, neutral selection arc, warning-data color, card radius, and pill radius
+- Future UI must reuse `WidgetFrame`, `WidgetHost`, shared controls, dock/rail/widget ownership, and premium primitives before custom styles
+- Build passed with known chunk warning
 - V6N Interface Density / Editorial Glass Refinement
 - Neutral smoke/ink/stone chrome replaces red rail/dock/widget/slider/chip/selection accents
 - Shared glass tokens added; widgets, popovers, saved/palette surfaces, canvas edit popovers refined
