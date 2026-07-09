@@ -16,9 +16,11 @@ LIBRARIES USED:
 CUSTOM CODE WRITTEN:
 COMPONENTS REUSED:
 PONYTAIL CHECK:
-- reused existing?
-- used library first?
-- avoided unnecessary custom code?
+- reused:
+- adapted:
+- installed package/library used:
+- new files justified:
+- duplication avoided:
 
 VISUAL STATUS:
 - Palmer style:
@@ -54,6 +56,13 @@ Prompt 03 execution: **Phases 1-4 COMPLETE**. **V4.5A COMPLETE** (docs, incl. re
 - **Runtime code:** not changed.
 - **Build status:** `npm run build` passed. Known chunk warning remains.
 - **Next:** V6LQ shader/void QA or V6.5 selection arc by explicit choice.
+
+## V6M.1 — Ponytail Enforcement Patch
+- **What changed:** Ponytail is now a hard workflow rule: reuse existing components/utilities/packages first, add adapters before rewrites, avoid duplicate controls/state systems, and justify new files.
+- **Prompt rule:** every phase prompt must include a Ponytail checklist.
+- **Report rule:** handoff/final reports include reused, adapted, new files justified, and duplication avoided.
+- **Runtime code:** untouched.
+- **Build status:** not run; docs-only patch.
 
 ## V6L — Multi-Color Organism Shader + Negative Nuclei
 - **What changed:** added production void nuclei and a restrained multi-color organism shader path without changing the canvas architecture, table ownership, saved views, classic fallback, or lab route.

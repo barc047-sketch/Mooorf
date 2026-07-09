@@ -2,6 +2,8 @@
 
 Purpose: compact map of where project truth lives so future Codex phases read less.
 
+Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` to satisfy the Ponytail reuse rule.
+
 ## Core State Files
 
 - `src/types.ts` — shared app/domain UI types: spaces, renderer mode, palettes, annotation, saved snapshots, organism settings.

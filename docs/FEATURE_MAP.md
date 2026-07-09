@@ -2,6 +2,8 @@
 
 Purpose: map features to files, docs, and risk level for faster future phases.
 
+Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implementation reuses existing ownership instead of creating duplicate controls or state.
+
 ## Dock / Rail / Widgets
 
 - Purpose: command surfaces for quick actions and detailed controls.

@@ -2,6 +2,17 @@
 
 Purpose: identify reusable UI/runtime pieces so future phases do not duplicate controls.
 
+## Ponytail First
+
+This is the first place to check before creating UI or control logic.
+
+- Widgets must reuse `WidgetFrame`, `WidgetHost`, and shared controls from `src/ui/widgets/controls.tsx`.
+- Dock, rail, widget, table, and canvas responsibilities must not be duplicated.
+- New UI files are allowed only when existing components cannot own the behavior cleanly.
+- Prefer adapters/extensions over rewrites.
+- Avoid parallel state systems; product data stays in the store.
+- If adding a new component, document why existing components were insufficient.
+
 ## Widget System
 
 ### `WidgetHost`

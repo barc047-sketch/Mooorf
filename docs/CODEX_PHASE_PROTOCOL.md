@@ -60,6 +60,20 @@ Then edit.
 - Do not install packages unless explicitly required.
 - Do not touch secrets, `.env*`, generated outputs, or local machine junk.
 
+## Ponytail Reuse Check
+
+Ponytail is mandatory reuse-first discipline. Codex must run this check mentally before implementation and report it when relevant.
+
+- Reuse an existing component first.
+- Reuse an existing utility/module first.
+- Reuse an installed package/library first.
+- Add a small adapter before rewriting behavior.
+- Avoid duplicate controls.
+- Avoid parallel state systems.
+- Avoid new files unless they increase modularity or reduce future duplication.
+- If a new file is added, explain why existing files were insufficient.
+- Confirm the change reduces duplicate UI/control logic instead of increasing it.
+
 ## Docs
 
 For meaningful work, update:

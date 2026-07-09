@@ -8,9 +8,14 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
+- Future prompts must include the Ponytail checklist
 
 ## Workflow Complete
 
+- V6M.1 Ponytail Enforcement Patch
+- Ponytail is now mandatory: reuse first, installed package/library first, adapter before rewrite, avoid duplicate UI/state, justify new files
+- Handoff/final reports include reused, adapted, new files justified, and duplication avoided
+- Docs-only; runtime/product code untouched
 - V6M Codex Workflow OS
 - Added Codex phase protocol, project memory index, feature map, prompt rules, next phases, component inventory, and design system memory
 - Added read-only `npm run repo:health`

@@ -24,6 +24,7 @@ Complete:
 - V6K Premium Visual Widget System
 - V6L Multi-Color Organism Shader + Negative Nuclei
 - V6M Codex Workflow OS
+- V6M.1 Ponytail Enforcement Patch
 
 Next:
 - V6LQ shader/void QA or V6.5 selection arc by explicit choice
@@ -59,6 +60,8 @@ V6K upgraded the production shell to a premium floating-widget system. All detai
 V6L added the multi-color organism shader path and production void nuclei. `SpaceCell.kind` is optional/backward-compatible; void nuclei are store-owned rows that can be dragged, table-edited, saved/loaded, and preserved through layouts/random. The dock void button is enabled. WebGL now uses negative signed strength for voids, clamped field contribution, and body A/body B/accent/ground/blend uniforms for restrained category/privacy/area-informed palette mixing. `MAX_NUCLEI` is now 96 as a renderer cap only; store/table data remains unlimited. Classic fallback draws voids as hollow dashed circles. Build passed with the known chunk warning (~677.09 kB). Engine notes: `docs/ORGANISM_ENGINE_LIMITS.md`.
 
 V6M added the Codex workflow OS. Future Codex prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md` instead of repeating full history, and should follow `docs/CODEX_PHASE_PROTOCOL.md`. New docs also capture prompt rules, roadmap, component inventory, and design system memory. `npm run repo:health` is available as a read-only repo status helper. Runtime/product code was not changed.
+
+V6M.1 made Ponytail mandatory in the workflow. Future prompts and reports must check reused existing components/utilities/packages, adapter-over-rewrite discipline, justified new files, and duplicate UI/state avoidance. Component inventory is the first UI/control reuse reference. Runtime/product code was not changed.
 
 ## Workflow
 

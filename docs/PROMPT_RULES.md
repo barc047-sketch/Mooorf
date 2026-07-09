@@ -16,6 +16,7 @@ DO NOT:
 CHECKS:
 COMMIT MESSAGE:
 FINAL REPORT FIELDS:
+PONYTAIL CHECK:
 ```
 
 Prefer references to `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md` instead of repeating all project context.
@@ -33,6 +34,12 @@ Prefer references to `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md` in
 - Do not run full QA unless the phase is QA. Use focused smoke checks.
 - Always run `npm run build`.
 - Keep final report under 220 words unless a phase explicitly needs more.
+- Every phase prompt must include a Ponytail check:
+  - reused existing?
+  - used installed package/library?
+  - avoided duplicate UI?
+  - adapter over rewrite?
+  - new files justified?
 
 ## Commit Message Convention
 
@@ -58,6 +65,7 @@ src/canvas/organismAdapter.ts, src/experiments/organism-lab/organism-shader.ts,
 src/state/store.ts, src/views/TableView.tsx.
 
 Checks: npm run build, focused preview QA for void add/edit/save/load/fallback/lab.
+PONYTAIL CHECK: reuse existing shader/store/table/fallback paths; no duplicate UI/state.
 Commit: fix: stabilize void nuclei shader behavior
 Final report under 220 words.
 ```

@@ -7,6 +7,7 @@ Use these rules for future Codex work in this project.
 - Preserve current store/table sync unless the phase explicitly says otherwise.
 - Make small, safe changes.
 - Prefer adapter layers over rewrites.
+- Ponytail is mandatory: prefer reuse/adapters over rewrites. Do not create duplicate components or parallel state systems.
 - Run available lint/typecheck/build checks before the final answer. If scripts are missing, say so.
 - Explain changed files clearly.
 - Never touch secrets, `.env` files, API keys, tokens, credentials, or private config.

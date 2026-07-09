@@ -4,6 +4,7 @@
 - [x] V6K Premium Visual System + Full Control Migration
 - [x] V6L Multi-Color Organism Shader + Negative Nuclei
 - [x] V6M Codex Workflow OS
+- [x] V6M.1 Ponytail Enforcement Patch
 - [ ] V6LQ Shader / Void QA
 - [ ] V6.5 Selection Arc + Canvas Rename
 - [ ] V6N Interface Density / Design Refinement
@@ -20,6 +21,14 @@
 - [x] `scripts/repo-health.mjs` added with `npm run repo:health`
 - [x] Future prompts should reference `PROJECT_MEMORY_INDEX` and `FEATURE_MAP`
 - [x] Runtime/product code untouched
+
+## V6M.1 — Ponytail Enforcement Patch  ✅ COMPLETE
+- [x] Ponytail Reuse Check added as mandatory workflow protocol
+- [x] Future prompts must include Ponytail checklist
+- [x] Component inventory marked as first UI/control reuse reference
+- [x] CODEX_RULES compact Ponytail rule added
+- [x] Handoff/final report fields updated: reused, adapted, new files justified, duplication avoided
+- [x] Docs-only; runtime/product code untouched
 
 ## V6L — Multi-Color Organism Shader + Negative Nuclei  ✅ COMPLETE
 - [x] optional `SpaceCell.kind` added for normal/void nuclei with old snapshot compatibility
