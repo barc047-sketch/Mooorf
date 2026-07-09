@@ -10,6 +10,11 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Workflow Complete
 
+- V6H.4B Quick Add Cluster + Random Arrangement
+- Random layout added to the Layout panel; fresh organic spread, position-only
+- Five-dot dock button added beside `+ NUCLEUS`; creates 5 neutral spaces around the current camera center
+- Table sync, ORG/CLS fallback, lab route, and 390 px dock fit checked
+- Build passed with known chunk warning
 - V6H.4 Layout Presets / Colony Arrangement
 - Production layout presets: Organic, Core, Colony, Division, Tendril, Orbit, Asymmetry
 - Presets rearrange existing spaces only by `x/y`; table data, ids, names, areas, categories, privacy, colors, and camera are preserved

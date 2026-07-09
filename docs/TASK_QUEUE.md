@@ -399,6 +399,21 @@
 - [x] 390 px dock/panel fit checked
 - [x] build passed with known chunk warning (~648.63 kB)
 
+## V6H.4B — Quick Add Cluster + Random Arrangement  ✅ COMPLETE
+- [x] Random layout added to the Layout panel
+- [x] Random uses fresh non-deterministic organic placement each click
+- [x] Random rearranges existing spaces by `x/y` only
+- [x] ids, names, areas, categories, privacy, colors, table data, and camera preserved
+- [x] store action added: `addSpaces(count)`
+- [x] five-dot circular dock button added near `+ NUCLEUS`
+- [x] five-dot button adds 5 neutral `New Space` nuclei around current camera center
+- [x] main `+` button still adds 1 nucleus
+- [x] bottom dock remains centered and compact; no rail duplication
+- [x] table row count and table edit -> canvas label sync checked
+- [x] ORG/CLS fallback and lab route checked
+- [x] 390 px dock fit checked
+- [x] build passed with known chunk warning (~650.36 kB)
+
 ## V6I — Palette / Category Color Mapping  ⏳ NEXT CANDIDATE
 - [ ] wire palette semantics into organism/category color behavior only if explicitly requested
 - [ ] keep `paletteMode` as UI setting, not product data

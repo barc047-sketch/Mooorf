@@ -9,6 +9,7 @@ export interface LayoutPreset {
 
 export const LAYOUT_PRESETS: LayoutPreset[] = [
   { id: "organic", label: "Organic", hint: "soft golden-angle scatter" },
+  { id: "random", label: "Random", hint: "fresh organic spread" },
   { id: "core", label: "Core", hint: "anchor with close satellites" },
   { id: "colony", label: "Colony", hint: "loose medium tissue" },
   { id: "division", label: "Division", hint: "two bodies pulling apart" },
@@ -39,6 +40,11 @@ interface LayoutContext {
   spread: number;
 }
 
+interface LayoutOptions {
+  centerX?: number;
+  centerY?: number;
+}
+
 const mean = (values: number[]) =>
   values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
 
@@ -52,6 +58,15 @@ function layoutContext(spaces: SpaceCell[]): LayoutContext {
   const spacing = clamp(maxRadius * 1.95, 82, 190);
   const spread = spacing * clamp(Math.sqrt(n) * 0.82, 1.1, 5.4);
   return { centerX, centerY, spacing, spread };
+}
+
+function contextWithOptions(spaces: SpaceCell[], options?: LayoutOptions): LayoutContext {
+  const ctx = layoutContext(spaces);
+  return {
+    ...ctx,
+    centerX: options?.centerX ?? ctx.centerX,
+    centerY: options?.centerY ?? ctx.centerY,
+  };
 }
 
 function rankSpaces(spaces: SpaceCell[]): RankedSpace[] {
@@ -132,9 +147,45 @@ function pointFor(presetId: LayoutPresetId, ranked: RankedSpace, count: number, 
   return { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius };
 }
 
-export function applyLayoutPreset(spaces: SpaceCell[], presetId: LayoutPresetId): SpaceCell[] {
+function applyRandomLayout(spaces: SpaceCell[], ctx: LayoutContext): SpaceCell[] {
+  const ranked = rankSpaces(spaces);
+  const seed = Math.floor(Date.now() ^ Math.floor(Math.random() * 0xffffffff));
+  let state = seed >>> 0;
+  const rnd = () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const positioned = new Map<string, { x: number; y: number }>();
+
+  for (const item of ranked) {
+    const angle = item.rank * GOLDEN_ANGLE + rnd() * TAU;
+    const ring = item.rank === 0 ? 0.18 : Math.sqrt(item.rank) * 0.66;
+    const radius = ctx.spacing * (0.24 + ring) * (0.84 + rnd() * 0.34);
+    const lateral = (rnd() - 0.5) * ctx.spacing * 0.34;
+    positioned.set(item.space.id, {
+      x: ctx.centerX + Math.cos(angle) * radius + Math.cos(angle + Math.PI / 2) * lateral,
+      y: ctx.centerY + Math.sin(angle) * radius * (0.82 + rnd() * 0.2),
+    });
+  }
+
+  return spaces.map((space) => {
+    const p = positioned.get(space.id);
+    return p ? { ...space, x: p.x, y: p.y } : space;
+  });
+}
+
+export function applyLayoutPreset(
+  spaces: SpaceCell[],
+  presetId: LayoutPresetId,
+  options?: LayoutOptions
+): SpaceCell[] {
   if (spaces.length === 0) return spaces;
-  const ctx = layoutContext(spaces);
+  const ctx = contextWithOptions(spaces, presetId === "random" ? options : undefined);
+  if (presetId === "random") return applyRandomLayout(spaces, ctx);
+
   const positioned = new Map<string, { x: number; y: number }>();
   const ranked = rankSpaces(spaces);
 

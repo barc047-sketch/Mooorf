@@ -8,6 +8,7 @@ export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
 export type LayoutPresetId =
   | "organic"
+  | "random"
   | "core"
   | "colony"
   | "division"

@@ -90,6 +90,7 @@ const SELECTIONS: { id: SelectionDisplay; label: string; desc: string }[] = [
 
 const LAYOUT_CODES: Record<LayoutPresetId, string> = {
   organic: "OG",
+  random: "RA",
   core: "CO",
   colony: "CL",
   division: "DV",

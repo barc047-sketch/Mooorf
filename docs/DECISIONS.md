@@ -106,3 +106,7 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 ## V6H.4 layout presets
 - Production layout presets are position-only transforms over existing `SpaceCell` records. They update `x/y` and store the active `settings.layoutPreset`, but they never generate a new program, delete spaces, rewrite table-owned fields, reset the camera, or alter classic fallback/lab route behavior.
 - Void remains disabled/future until production negative/subtractive nuclei are intentionally added.
+
+## V6H.4B quick creation and random layout
+- Random layout is the only intentionally non-deterministic layout option. It remains a position-only transform: `x/y` changes, while ids, names, areas, categories, privacy, colors, table data, and camera are preserved.
+- The five-dot cluster button creates normal store-owned `SpaceCell` records via `addSpaces(5)` near the current camera center. It does not use demo data and does not create renderer-only nuclei.

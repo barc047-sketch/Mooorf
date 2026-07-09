@@ -18,6 +18,7 @@ Complete:
 - V6H.3 Claude Premium UI Implementation
 - V6H.3Q Codex QA for Premium UI
 - V6H.4 Layout Presets / Colony Arrangement
+- V6H.4B Quick Add Cluster + Random Arrangement
 
 Next:
 - V6I palette/category color mapping or V6J saved views by explicit choice
@@ -41,6 +42,8 @@ V6H.2 cleaned command ownership: left rail is now navigation/widget launchers, b
 V6H.3 made that architecture visually premium: tighter dock/rail scale with Mac-like hover motion, a liquid-hover `+` orb, a dashed void placeholder, palette-first dock utilities, a panel with grip/minimize affordances, a Motion master switch, an Advanced-debug disclosure, and a palette widget rendering shade ramps / field strips / gradient previews from `src/design/palettes.ts`. Editorial labels stay boxless when selected (red type accent) and technical labels read name · area · category. No store/renderer/table changes and no packages; build green with the known chunk warning.
 
 V6H.4 added production layout presets in the Organism Control Surface panel: Organic, Core, Colony, Division, Tendril, Orbit, and Asymmetry. Presets update existing space `x/y` positions only; ids, names, areas, categories, privacy, colors, camera, table data, classic fallback, and the lab route remain intact. Void is visible as a disabled/future preset until production negative nuclei are explicitly built. Build and preview QA passed with the known chunk warning.
+
+V6H.4B added a Random arrangement chip to the Layout panel and a five-dot circular dock button beside `+ NUCLEUS`. Random is a fresh non-deterministic organic spread that updates positions only. The cluster button creates 5 neutral store-owned spaces around the current camera center without demo data or camera reset. Table sync, fallback, mobile dock fit, and lab route were checked; build green with the known chunk warning.
 
 ## Workflow
 

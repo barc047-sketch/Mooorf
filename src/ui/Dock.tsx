@@ -161,6 +161,7 @@ function DockPopover({
 
 export default function Dock() {
   const addSpace = useLab((s) => s.addSpace);
+  const addSpaces = useLab((s) => s.addSpaces);
   const mergeDistance = useLab((s) => s.settings.mergeDistance);
   const morphMode = useLab((s) => s.settings.morphMode);
   const attachMode = useLab((s) => s.settings.attachMode);
@@ -345,6 +346,19 @@ export default function Dock() {
           onClick={() => addSpace()}
         >
           <Plus size={22} strokeWidth={1.75} />
+        </button>
+        <button
+          type="button"
+          className="cluster-orb"
+          title="Add 5 nuclei"
+          aria-label="Add 5 nuclei"
+          onClick={() => addSpaces(5)}
+        >
+          <span className="cluster-dot cluster-dot-center" />
+          <span className="cluster-dot cluster-dot-n" />
+          <span className="cluster-dot cluster-dot-e" />
+          <span className="cluster-dot cluster-dot-s" />
+          <span className="cluster-dot cluster-dot-w" />
         </button>
         <button
           type="button"

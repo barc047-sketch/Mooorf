@@ -22,6 +22,7 @@ import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPreset
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
+const TAU = Math.PI * 2;
 
 export interface LabSettings {
   mergeDistance: number; // 0–300 — fine-tunes membrane reach within the attachment preset
@@ -60,6 +61,7 @@ interface LabState {
   resetView: () => void;
 
   addSpace: (partial?: Partial<SpaceCell>) => void;
+  addSpaces: (count: number) => void;
   addDemo: (n?: number) => void;
   updateSpace: (id: string, patch: Partial<SpaceCell>) => void;
   moveSpace: (id: string, x: number, y: number) => void;
@@ -154,6 +156,28 @@ export const useLab = create<LabState>((set) => ({
       };
     }),
 
+  addSpaces: (count) =>
+    set((s) => {
+      const total = Math.max(0, Math.floor(count));
+      if (total === 0) return {};
+      const now = Date.now();
+      const ringR = 58;
+      const added = Array.from({ length: total }, (_, k) => {
+        const center = k === 0;
+        const angle = -Math.PI / 2 + ((Math.max(k - 1, 0) / Math.max(total - 1, 1)) * TAU);
+        const radius = center ? 0 : ringR * (k % 2 === 0 ? 1 : 0.82);
+        return makeCell(s.spaces.length + k, {
+          x: s.camera.x + Math.cos(angle) * radius,
+          y: s.camera.y + Math.sin(angle) * radius,
+          born: now + k * 45,
+        });
+      });
+      return {
+        spaces: [...s.spaces, ...added],
+        selectedId: added[added.length - 1]?.id ?? s.selectedId,
+      };
+    }),
+
   addDemo: (n = 10) =>
     set((s) => {
       const now = Date.now();
@@ -182,7 +206,10 @@ export const useLab = create<LabState>((set) => ({
 
   applyLayoutPreset: (presetId) =>
     set((s) => ({
-      spaces: arrangeLayoutPreset(s.spaces, presetId),
+      spaces: arrangeLayoutPreset(s.spaces, presetId, {
+        centerX: s.camera.x,
+        centerY: s.camera.y,
+      }),
       settings: { ...s.settings, layoutPreset: presetId },
       selectedId: s.selectedId && s.spaces.some((space) => space.id === s.selectedId)
         ? s.selectedId
