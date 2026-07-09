@@ -3,8 +3,23 @@
 ## Current Roadmap
 - [x] V6K Premium Visual System + Full Control Migration
 - [x] V6L Multi-Color Organism Shader + Negative Nuclei
-- [ ] V6.5 Selection Arc or next explicit post-shader phase
+- [x] V6M Codex Workflow OS
+- [ ] V6LQ Shader / Void QA
+- [ ] V6.5 Selection Arc + Canvas Rename
+- [ ] V6N Interface Density / Design Refinement
 - [ ] V7 Floating Widgets / later widget expansion
+
+## V6M — Codex Workflow OS  ✅ COMPLETE
+- [x] `docs/CODEX_PHASE_PROTOCOL.md` added as the standard Codex phase loop
+- [x] `docs/PROJECT_MEMORY_INDEX.md` added as compact project-state index
+- [x] `docs/FEATURE_MAP.md` added as feature-to-file/doc/risk map
+- [x] `docs/PROMPT_RULES.md` added for concise future phase prompts
+- [x] `docs/NEXT_PHASES.md` added as living roadmap
+- [x] `docs/COMPONENT_INVENTORY.md` added for reusable UI/component ownership
+- [x] `docs/DESIGN_SYSTEM_MEMORY.md` added for aesthetic constraints
+- [x] `scripts/repo-health.mjs` added with `npm run repo:health`
+- [x] Future prompts should reference `PROJECT_MEMORY_INDEX` and `FEATURE_MAP`
+- [x] Runtime/product code untouched
 
 ## V6L — Multi-Color Organism Shader + Negative Nuclei  ✅ COMPLETE
 - [x] optional `SpaceCell.kind` added for normal/void nuclei with old snapshot compatibility

@@ -23,9 +23,10 @@ Complete:
 - V6J Saved Views / Design Iterations
 - V6K Premium Visual Widget System
 - V6L Multi-Color Organism Shader + Negative Nuclei
+- V6M Codex Workflow OS
 
 Next:
-- V6.5 selection arc or another explicit post-shader phase
+- V6LQ shader/void QA or V6.5 selection arc by explicit choice
 
 Not started:
 - Phase 6.5 Selection Arc
@@ -56,6 +57,8 @@ V6J added Saved Views / Design Iterations. The dock Saved Views utility now open
 V6K upgraded the production shell to a premium floating-widget system. All detailed controls migrated out of the single Organism Control Surface into seven movable/minimizable widgets (Annotation, Organism, Layout, Palette, Saved Views, Display, Advanced) rendered by `WidgetHost`/`WidgetFrame` from `openWidgets` store state. The rail became launchers only; the dock tightened and gained Random arrangement; the palette system grew 12 curated nucleus families (functional ramp tinting) and 12 organism palettes (9 solid functional via shader uniforms, 3 gradient blends enabled later in V6L). Annotation gained text scale / field toggles / position modes / bounding box; a camera-synced technical grid was added; the default selection ring tightened with influence behind an advanced disclosure. Table sync, saved views, classic fallback, organism mode, and the lab route were preserved and preview-verified; build green with the known chunk warning (~673.75 kB). Spec: `docs/DESIGN_UI_UPGRADE_V6K.md`.
 
 V6L added the multi-color organism shader path and production void nuclei. `SpaceCell.kind` is optional/backward-compatible; void nuclei are store-owned rows that can be dragged, table-edited, saved/loaded, and preserved through layouts/random. The dock void button is enabled. WebGL now uses negative signed strength for voids, clamped field contribution, and body A/body B/accent/ground/blend uniforms for restrained category/privacy/area-informed palette mixing. `MAX_NUCLEI` is now 96 as a renderer cap only; store/table data remains unlimited. Classic fallback draws voids as hollow dashed circles. Build passed with the known chunk warning (~677.09 kB). Engine notes: `docs/ORGANISM_ENGINE_LIMITS.md`.
+
+V6M added the Codex workflow OS. Future Codex prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md` instead of repeating full history, and should follow `docs/CODEX_PHASE_PROTOCOL.md`. New docs also capture prompt rules, roadmap, component inventory, and design system memory. `npm run repo:health` is available as a read-only repo status helper. Runtime/product code was not changed.
 
 ## Workflow
 

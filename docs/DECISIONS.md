@@ -136,3 +136,10 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Production void behavior uses negative signed strength in the existing uniform-packed field, with shader contribution clamps for stability.
 - The current render cap is 96 nuclei because the shader still uses uniform arrays. Store/project data is not capped; a future high-density path should use texture/data-buffer nuclei input.
 - V6L prepares layer naming (`outer-membrane`, `nucleus-body`, `inner-core`, `void`, `influence-ring`) but does not add dual-layer editing controls.
+
+## V6M Codex workflow OS
+- GitHub remains the source of truth; every phase starts with `git status --short`, `git pull --ff-only`, recent log, and diff stat.
+- Future Codex prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md` instead of restating full project history.
+- `docs/CODEX_PHASE_PROTOCOL.md` is the active Codex operating protocol for sync/read/edit/build/commit/final-report flow.
+- `.claude/launch.json` remains local/unrelated and must not be staged unless explicitly requested.
+- `npm run repo:health` is a local read-only helper for branch, latest commit, dirty files, scripts, and warning notes; it is not a substitute for build or QA.

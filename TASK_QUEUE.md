@@ -4,12 +4,18 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6.5 selection arc or another explicit post-shader phase
+- V6LQ shader/void QA or V6.5 selection arc by explicit choice
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
+- Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
 
 ## Workflow Complete
 
+- V6M Codex Workflow OS
+- Added Codex phase protocol, project memory index, feature map, prompt rules, next phases, component inventory, and design system memory
+- Added read-only `npm run repo:health`
+- GitHub remains source of truth; `.claude/launch.json` remains unstaged/local unless explicitly requested
+- Runtime/product code untouched
 - V6L Multi-Color Organism Shader + Negative Nuclei
 - Void nuclei are store-owned rows via optional `SpaceCell.kind`
 - Dock void button creates subtractive nuclei; table/edit/save/load/layout/random preserve them
@@ -104,6 +110,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Done recently
 
+- V6M Codex workflow OS (see docs/CODEX_PHASE_PROTOCOL.md, docs/PROJECT_MEMORY_INDEX.md, docs/FEATURE_MAP.md)
 - V6L multi-color organism shader + negative nuclei (see docs/ORGANISM_ENGINE_LIMITS.md)
 - V6K premium widget system + control migration (see docs/DESIGN_UI_UPGRADE_V6K.md)
 

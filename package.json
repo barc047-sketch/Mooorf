@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "repo:health": "node scripts/repo-health.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
