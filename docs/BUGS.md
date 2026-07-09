@@ -17,10 +17,11 @@ Fixed:
 - V6H.2: normal organism selection ring was visually too large for everyday selection; default selection display is now tight, with the large red circle preserved as future influence/measurement mode
 
 Open (minor, deferred):
-- main js chunk warning remains deferred; latest V6H.2 build reported 640.56 kB (>500 kB) after command architecture prep — code-split later, not urgent
+- main js chunk warning remains deferred; latest V6I build reported 655.19 kB (>500 kB) after palette mapping — code-split later, not urgent
 - preview harness artifacts (stale re-dispatched clicks, rAF throttling in hidden tabs) can move sliders/close panels during automated QA; not an app bug — use eval-driven, idempotent assertions as documented since Phase 5. V6H.3 measured the harness tab at `visibilityState: hidden` with 0 rAF ticks/s, which freezes every Motion enter/exit until a screenshot forces frames — verify Motion-animated mount/unmount by interleaving screenshots, never by DOM-count timeouts alone
 - favicon 404 has been observed as non-breaking
 - high-density labels are crowded at 60+ spaces; label-density/inspector design is deferred to the production UI phase, not a stabilization blocker
 - forced WebGL context-loss simulation was not run in V6G; shared renderer context lost/restored handlers were inspected and organism/classic unmount/remount was verified
 - V6H.4 Void layout preset is intentionally disabled/future until production negative/subtractive nuclei are explicitly built; current layout presets are position-only
 - V6H.4B temporary headless Chrome QA displayed the existing WebGL2 fallback; normal in-app/local preview remains the preferred surface for visual organism rendering checks
+- V6I per-nucleus WebGL shader colors are deferred; current color mapping is visible through labels/rings/table swatches/classic fallback plus global organism palette uniforms

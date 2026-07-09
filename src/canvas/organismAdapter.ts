@@ -1,5 +1,6 @@
-import type { Camera, Privacy, SpaceCell } from "../types";
+import type { Camera, PaletteMode, Privacy, SpaceCell } from "../types";
 import { areaToRadius, clamp } from "../lib/geometry";
+import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { MAX_NUCLEI } from "../experiments/organism-lab/organism-types";
 import {
   DEFAULT_ORGANISM_SETTINGS,
@@ -173,10 +174,12 @@ export function spacesToNuclei(
   selectedId: string | null,
   drag?: DragPosition | null,
   opts: OrganismAdapterOptions = DEFAULT_ADAPTER_OPTIONS,
-  motion?: OrganismMotionState
+  motion?: OrganismMotionState,
+  paletteMode: PaletteMode = "core"
 ): ProductionNucleus[] {
   const halfMin = Math.max(1, Math.min(width, height) / 2);
   const visible = spaces.slice(0, MAX_NUCLEI);
+  const areaRange = getAreaRange(visible);
 
   /* — 1. world targets + response smoothing (consume pendingDt at most once) — */
   const dt = motion ? motion.pendingDt : 0;
@@ -252,6 +255,7 @@ export function spacesToNuclei(
 
   /* — 3. camera map + idle motion + field offsets — */
   return eff.map(({ space, x, y, r }) => {
+    const mappedColor = getNucleusColor(space, paletteMode, areaRange);
     let wx = x;
     let wy = y;
     if (hasTransform) {
@@ -310,7 +314,7 @@ export function spacesToNuclei(
       sx: screen.sx,
       sy: screen.sy,
       screenR: rf * halfMin,
-      color: space.color,
+      color: mappedColor.fill,
       category: space.category,
       privacy: space.privacy,
     };

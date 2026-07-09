@@ -19,9 +19,10 @@ Complete:
 - V6H.3Q Codex QA for Premium UI
 - V6H.4 Layout Presets / Colony Arrangement
 - V6H.4B Quick Add Cluster + Random Arrangement
+- V6I Palette + Category / Privacy Mapping
 
 Next:
-- V6I palette/category color mapping or V6J saved views by explicit choice
+- V6J saved views or the next explicit phase
 
 Not started:
 - Phase 6.5 Selection Arc
@@ -44,6 +45,8 @@ V6H.3 made that architecture visually premium: tighter dock/rail scale with Mac-
 V6H.4 added production layout presets in the Organism Control Surface panel: Organic, Core, Colony, Division, Tendril, Orbit, and Asymmetry. Presets update existing space `x/y` positions only; ids, names, areas, categories, privacy, colors, camera, table data, classic fallback, and the lab route remain intact. Void is visible as a disabled/future preset until production negative nuclei are explicitly built. Build and preview QA passed with the known chunk warning.
 
 V6H.4B added a Random arrangement chip to the Layout panel and a five-dot circular dock button beside `+ NUCLEUS`. Random is a fresh non-deterministic organic spread that updates positions only. The cluster button creates 5 neutral store-owned spaces around the current camera center without demo data or camera reset. Table sync, fallback, mobile dock fit, and lab route were checked; build green with the known chunk warning.
+
+V6I added production palette/category mapping. `src/design/colorMapping.ts` derives restrained architectural colors from category, privacy, area, and palette mode. Palette mode now affects the WebGL organism's global body/ground colors; labels/rings, classic fallback cells, and table swatches use mapped per-space colors. The shader still has global body/ground uniforms only, so per-nucleus WebGL gradients are deferred. Add-5, Random, table sync, fallback, 390 px fit, and lab route were checked; build green with the known chunk warning.
 
 ## Workflow
 

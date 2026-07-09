@@ -121,14 +121,49 @@ Prepared groups:
 - Cool
 - Custom future
 
-Color logic remains future work:
+V6I now wires the first production color logic:
 - Category controls hue family.
-- Privacy controls opacity, brightness, and depth.
-- Area controls shade depth and scale.
-- Selected state controls accent ring.
-- Relationship data can control glow/bridge behavior later.
+- Privacy controls brightness/depth.
+- Area controls shade depth.
+- Selected state controls label/ring accent.
+
+Relationship data controlling glow/bridge behavior remains future work.
 
 No package was added. The installed color libraries (`chroma-js`, `culori`, `colorjs.io`, `tinycolor2`) are enough for the next palette phase.
+
+## V6I Runtime Mapping
+
+`src/design/colorMapping.ts` is the production semantic color resolver.
+
+Mapped now:
+- Program category -> restrained hue family.
+- Privacy -> tone/depth (`public` clearer, `shared` medium, `private` deeper).
+- Area -> shade intensity within the current canvas area range.
+- Palette mode -> organism global body/ground palette.
+- Selection -> category-aware ring/accent without returning to giant red halo behavior.
+
+Runtime consumers:
+- `OrganismCanvasView` maps palette mode to WebGL body/ground uniforms and maps labels/rings to nucleus colors.
+- `organismAdapter` carries the mapped nucleus fill in each `ProductionNucleus`.
+- Classic `renderer.ts` uses mapped fills/rings for fallback cells.
+- `TableView` shows a tiny category swatch using the same resolver.
+- `OrganismControlPanel` shows live program-mapping token previews in the palette section.
+
+Current taxonomy:
+- Public -> warm wine / terracotta.
+- Shared / semi-public -> muted amber.
+- Private / quiet -> graphite-violet.
+- Service -> blue-grey.
+- Utility -> steel neutral.
+- Circulation -> ochre.
+- Outdoor -> sage.
+- Retail -> muted coral.
+- Admin / work -> slate.
+- Uncategorized / unknown -> neutral grey.
+
+Deferred:
+- Per-nucleus WebGL shader colors and multi-color organism gradients are deferred to V6K or a later explicit shader phase. The current shader exposes global body/ground uniforms only.
+- Category color does not rewrite `SpaceCell.color`; colors are derived from category/privacy/area/palette at render time.
 
 ## Gradient Rules
 

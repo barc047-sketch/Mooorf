@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useLab } from "../state/store";
-import type { Privacy, SpaceCell } from "../types";
+import type { AreaRange } from "../design/colorMapping";
+import type { PaletteMode, Privacy, SpaceCell } from "../types";
 import { areaToRadius } from "../lib/geometry";
+import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -65,9 +67,20 @@ function AreaCell({ cell }: { cell: SpaceCell }) {
   );
 }
 
-function Row({ cell, index }: { cell: SpaceCell; index: number }) {
+function Row({
+  cell,
+  index,
+  paletteMode,
+  areaRange,
+}: {
+  cell: SpaceCell;
+  index: number;
+  paletteMode: PaletteMode;
+  areaRange: AreaRange;
+}) {
   const updateSpace = useLab((s) => s.updateSpace);
   const removeSpace = useLab((s) => s.removeSpace);
+  const mappedColor = getNucleusColor(cell, paletteMode, areaRange);
 
   return (
     <TableRow>
@@ -86,26 +99,34 @@ function Row({ cell, index }: { cell: SpaceCell; index: number }) {
         <AreaCell cell={cell} />
       </TableCell>
       <TableCell>
-        <Select
-          value={cell.category}
-          onValueChange={(v) =>
-            v && updateSpace(cell.id, { category: String(v) })
-          }
-        >
-          <SelectTrigger size="sm" className="w-36">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(CATEGORY_OPTIONS.includes(cell.category)
-              ? CATEGORY_OPTIONS
-              : [cell.category, ...CATEGORY_OPTIONS]
-            ).map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="table-category-cell">
+          <span
+            className="table-category-swatch"
+            style={{ background: mappedColor.fill, borderColor: mappedColor.ring }}
+            title={`${mappedColor.token.label} color`}
+            aria-hidden="true"
+          />
+          <Select
+            value={cell.category}
+            onValueChange={(v) =>
+              v && updateSpace(cell.id, { category: String(v) })
+            }
+          >
+            <SelectTrigger size="sm" className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(CATEGORY_OPTIONS.includes(cell.category)
+                ? CATEGORY_OPTIONS
+                : [cell.category, ...CATEGORY_OPTIONS]
+              ).map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </TableCell>
       <TableCell>
         <Select
@@ -155,6 +176,8 @@ function Row({ cell, index }: { cell: SpaceCell; index: number }) {
 export default function TableView() {
   const spaces = useLab((s) => s.spaces);
   const addSpace = useLab((s) => s.addSpace);
+  const paletteMode = useLab((s) => s.settings.paletteMode);
+  const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
 
   return (
     <div className="table-view h-full w-full overflow-y-auto px-6 pt-24 pb-40">
@@ -188,7 +211,13 @@ export default function TableView() {
             </TableHeader>
             <TableBody>
               {spaces.map((cell, i) => (
-                <Row key={cell.id} cell={cell} index={i} />
+                <Row
+                  key={cell.id}
+                  cell={cell}
+                  index={i}
+                  paletteMode={paletteMode}
+                  areaRange={areaRange}
+                />
               ))}
               {spaces.length === 0 && (
                 <TableRow>

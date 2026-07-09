@@ -1,6 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useLab } from "../state/store";
 import { clamp } from "../lib/geometry";
+import {
+  getAreaRange,
+  getNucleusColor,
+  getOrganismPalette,
+} from "../design/colorMapping";
 import {
   type LabTheme,
   MAX_NUCLEI,
@@ -61,6 +66,8 @@ export default function OrganismCanvasView() {
   const selectedId = useLab((s) => s.selectedId);
   const showLabels = useLab((s) => s.settings.organism.showLabels);
   const annotationMode = useLab((s) => s.settings.annotationMode);
+  const paletteMode = useLab((s) => s.settings.paletteMode);
+  const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -157,7 +164,17 @@ export default function OrganismCanvasView() {
     };
 
     const currentNuclei = () =>
-      spacesToNuclei(spaces, cam, w, h, selectedId, drag, resolved.adapter, motionState);
+      spacesToNuclei(
+        spaces,
+        cam,
+        w,
+        h,
+        selectedId,
+        drag,
+        resolved.adapter,
+        motionState,
+        settings.paletteMode
+      );
     const syncLabels = (nuclei: ProductionNucleus[]) => {
       const layer = labelLayerRef.current;
       if (!layer) return;
@@ -319,6 +336,10 @@ export default function OrganismCanvasView() {
       advanceMotion(motionState, dt, resolved.adapter.timeScale);
       const nuclei = currentNuclei();
       const sc = styleColors(settings.morphMode, theme);
+      const palette = getOrganismPalette(settings.paletteMode, theme, {
+        bodyHex: sc.bodyHex,
+        bgHex: sc.bgHex,
+      });
       const params = resolved.params;
       const eff = effectiveField(params);
 
@@ -333,8 +354,8 @@ export default function OrganismCanvasView() {
           pocketSoft: params.pocketSoftness,
           pocketAmount: sc.pocketAmount,
           dots: 1,
-          body: [sc.body[0], sc.body[1], sc.body[2]],
-          bg: [sc.bg[0], sc.bg[1], sc.bg[2]],
+          body: [palette.body[0], palette.body[1], palette.body[2]],
+          bg: [palette.ground[0], palette.ground[1], palette.ground[2]],
         };
       }
 
@@ -352,10 +373,10 @@ export default function OrganismCanvasView() {
       smooth.dots += (dotsTarget - smooth.dots) * kCol;
       let settling = false;
       for (let i = 0; i < 3; i++) {
-        smooth.body[i] += (sc.body[i] - smooth.body[i]) * kCol;
-        smooth.bg[i] += (sc.bg[i] - smooth.bg[i]) * kCol;
-        settling = settling || Math.abs(sc.body[i] - smooth.body[i]) > 0.002;
-        settling = settling || Math.abs(sc.bg[i] - smooth.bg[i]) > 0.002;
+        smooth.body[i] += (palette.body[i] - smooth.body[i]) * kCol;
+        smooth.bg[i] += (palette.ground[i] - smooth.bg[i]) * kCol;
+        settling = settling || Math.abs(palette.body[i] - smooth.body[i]) > 0.002;
+        settling = settling || Math.abs(palette.ground[i] - smooth.bg[i]) > 0.002;
       }
       settling =
         settling ||
@@ -444,33 +465,43 @@ export default function OrganismCanvasView() {
         data-hidden={!showLabels || annotationMode === "hidden" ? "true" : undefined}
         data-mode={annotationMode}
       >
-        {spaces.slice(0, MAX_NUCLEI).map((space) => (
-          <div
-            key={space.id}
-            className="organism-label-anchor"
-            data-nucleus-id={space.id}
-            data-selected={space.id === selectedId}
-          >
-            <span className="organism-label-ring" />
-            <span className="organism-label">
-              {annotationMode === "technical" ? (
-                <>
-                  <span className="organism-label-main">{space.name}</span>
-                  <span className="organism-label-meta">
-                    {Math.round(space.area)} m² · {space.category}
-                  </span>
-                </>
-              ) : annotationMode === "editorial" ? (
-                <>
-                  <span className="organism-label-main">{space.name}</span>
-                  <span className="organism-label-meta">{Math.round(space.area)} m²</span>
-                </>
-              ) : (
-                space.name
-              )}
-            </span>
-          </div>
-        ))}
+        {spaces.slice(0, MAX_NUCLEI).map((space) => {
+          const mappedColor = getNucleusColor(space, paletteMode, areaRange);
+          const labelStyle = {
+            "--nucleus-color": mappedColor.fill,
+            "--nucleus-ring": mappedColor.ring,
+            "--nucleus-muted": mappedColor.muted,
+          } as CSSProperties;
+          return (
+            <div
+              key={space.id}
+              className="organism-label-anchor"
+              data-nucleus-id={space.id}
+              data-category-token={mappedColor.token.id}
+              data-selected={space.id === selectedId}
+              style={labelStyle}
+            >
+              <span className="organism-label-ring" />
+              <span className="organism-label">
+                {annotationMode === "technical" ? (
+                  <>
+                    <span className="organism-label-main">{space.name}</span>
+                    <span className="organism-label-meta">
+                      {Math.round(space.area)} m² · {space.category}
+                    </span>
+                  </>
+                ) : annotationMode === "editorial" ? (
+                  <>
+                    <span className="organism-label-main">{space.name}</span>
+                    <span className="organism-label-meta">{Math.round(space.area)} m²</span>
+                  </>
+                ) : (
+                  space.name
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

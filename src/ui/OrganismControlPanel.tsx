@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, GripVertical, Minus, X } from "lucide-react";
 import { useLab } from "../state/store";
 import { NUCLEUS_PALETTES, ORGANISM_PALETTES } from "../design/palettes";
+import { CATEGORY_TOKENS, getCategoryColor } from "../design/colorMapping";
 import type {
   AnnotationMode,
   AttachMode,
@@ -473,6 +474,31 @@ export default function OrganismControlPanel() {
                   </span>
                 </button>
               ))}
+
+              <span className="pop-divider" role="separator" />
+              <span className="org-subcap">program mapping</span>
+              <div className="category-map-grid">
+                {CATEGORY_TOKENS.map((token) => {
+                  const mappedColor = getCategoryColor(
+                    token.label,
+                    "shared",
+                    140,
+                    paletteMode,
+                    { min: 20, max: 300 }
+                  );
+                  return (
+                    <span key={token.id} className="category-token" title={token.aliases.join(", ")}>
+                      <i
+                        style={{
+                          background: mappedColor.fill,
+                          borderColor: mappedColor.ring,
+                        }}
+                      />
+                      <span>{token.label}</span>
+                    </span>
+                  );
+                })}
+              </div>
 
               <span className="pop-divider" role="separator" />
               <span className="org-subcap">nucleus palettes</span>

@@ -1,5 +1,6 @@
-import type { Camera, SpaceCell } from "../types";
+import type { Camera, PaletteMode, SpaceCell } from "../types";
 import { areaToRadius } from "../lib/geometry";
+import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { drawBlobLayer, type BlobBody } from "./blob";
 import type { AttachMode, MorphMode } from "../types";
 
@@ -10,6 +11,7 @@ export interface BlobSettings {
   mergeDistance: number;
   morphMode: MorphMode;
   attachMode: AttachMode;
+  paletteMode: PaletteMode;
 }
 
 export interface Tokens {
@@ -79,6 +81,7 @@ export function drawScene(
   const z = cam.zoom;
   const toX = (x: number) => (x - cam.x) * z + w / 2;
   const toY = (y: number) => (y - cam.y) * z + h / 2;
+  const areaRange = getAreaRange(spaces);
 
   // Organism tissue underneath the cells. Bodies are world-space (no viewport
   // cull — the layer caches world geometry; the canvas clips it for free).
@@ -127,6 +130,7 @@ export function drawScene(
 
     const r = areaToRadius(c.area) * z * spawn * (lifted ? 1.03 : 1);
     if (r <= 0 || sx < -r - 60 || sx > w + r + 60 || sy < -r - 60 || sy > h + r + 60) continue;
+    const mappedColor = getNucleusColor(c, blob.paletteMode, areaRange);
 
     ctx.globalAlpha = Math.min(1, Math.max(0, spawn));
 
@@ -135,7 +139,7 @@ export function drawScene(
     ctx.shadowColor = lifted ? "rgba(0,0,0,0.26)" : "rgba(0,0,0,0.16)";
     ctx.shadowBlur = (lifted ? 34 : 22) * z;
     ctx.shadowOffsetY = (lifted ? 14 : 9) * z;
-    ctx.fillStyle = c.color;
+    ctx.fillStyle = mappedColor.fill;
     ctx.beginPath();
     ctx.arc(sx, sy, r, 0, Math.PI * 2);
     ctx.fill();
@@ -160,7 +164,7 @@ export function drawScene(
 
     // Label — only when legible.
     if (r > 26) {
-      const dark = isDark(c.color);
+      const dark = isDark(mappedColor.fill);
       const nameSize = Math.min(15, Math.max(10, r * 0.22));
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -174,7 +178,7 @@ export function drawScene(
 
     // Selection — refined hairline ring + red tick.
     if (c.id === selectedId) {
-      ctx.strokeStyle = tokens.ink;
+      ctx.strokeStyle = mappedColor.ring;
       ctx.globalAlpha = 0.55;
       ctx.lineWidth = 1;
       ctx.beginPath();

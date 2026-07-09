@@ -414,10 +414,20 @@
 - [x] 390 px dock fit checked
 - [x] build passed with known chunk warning (~650.36 kB)
 
-## V6I — Palette / Category Color Mapping  ⏳ NEXT CANDIDATE
-- [ ] wire palette semantics into organism/category color behavior only if explicitly requested
-- [ ] keep `paletteMode` as UI setting, not product data
-- [ ] avoid random color usage
+## V6I — Palette + Category / Privacy Mapping  ✅ COMPLETE
+- [x] semantic color resolver added at `src/design/colorMapping.ts`
+- [x] category controls restrained architectural hue family
+- [x] unknown category strings normalize safely to Uncategorized
+- [x] privacy controls tone/depth; area controls shade intensity
+- [x] `paletteMode` now affects production organism global body/ground colors
+- [x] organism label accents/rings use mapped nucleus colors
+- [x] classic fallback canvas uses mapped fill/selection ring colors
+- [x] table category cell shows a live mapped swatch
+- [x] palette panel includes live program-mapping token previews
+- [x] add-5, Random layout, table sync, ORG/CLS fallback, 390 px layout, and lab route checked
+- [x] build passed with known chunk warning (~655.19 kB)
+- [x] per-nucleus WebGL shader gradients deferred to V6K or later explicit shader phase
+- [x] next is V6J saved views or the next explicit phase
 
 ## V6J — Saved Views  ⏳ LATER CANDIDATE
 - [ ] use existing saved-view snapshot type only when explicitly requested

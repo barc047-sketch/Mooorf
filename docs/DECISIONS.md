@@ -110,3 +110,8 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 ## V6H.4B quick creation and random layout
 - Random layout is the only intentionally non-deterministic layout option. It remains a position-only transform: `x/y` changes, while ids, names, areas, categories, privacy, colors, table data, and camera are preserved.
 - The five-dot cluster button creates normal store-owned `SpaceCell` records via `addSpaces(5)` near the current camera center. It does not use demo data and does not create renderer-only nuclei.
+
+## V6I palette and program color mapping
+- Category/privacy/area colors are derived at render time by `src/design/colorMapping.ts`; they do not mutate `SpaceCell.color` or product data.
+- V6I maps per-space colors into labels, rings, table swatches, and the classic fallback, while the WebGL organism shader remains global body/ground color only.
+- Per-nucleus shader gradients and multi-color organism fields are deferred to V6K or a later explicit shader phase.

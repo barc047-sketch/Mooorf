@@ -4,12 +4,19 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6I palette/category color mapping or V6J saved views by explicit choice
-- Keep `paletteMode` UI-ready until color mapping is intentionally started
+- V6J saved views or the next explicit phase
+- Keep V6I palette mapping stable; do not start per-nucleus shader gradients unless explicitly requested
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6I Palette + Category / Privacy Mapping
+- Semantic color resolver added for category/privacy/area/palette mode
+- Palette mode now affects organism global body/ground colors
+- Organism labels/rings, classic fallback, and table swatches use mapped colors
+- Palette panel shows live program-mapping token previews
+- Add-5, Random, table sync, ORG/CLS fallback, lab route, and 390 px fit checked
+- Build passed with known chunk warning
 - V6H.4B Quick Add Cluster + Random Arrangement
 - Random layout added to the Layout panel; fresh organic spread, position-only
 - Five-dot dock button added beside `+ NUCLEUS`; creates 5 neutral spaces around the current camera center
