@@ -4,11 +4,24 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6LQ shader/void QA or V6.5 selection arc by explicit choice
+- V6N Interface Density / Design Refinement by explicit choice
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
-- Keep Phase 6.5 selection arc and V7 floating widgets parked
+- Keep V7 floating widgets parked
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
 - Future prompts must include the Ponytail checklist
+
+## Current Feature Complete
+
+- V6.5 Selection Arc + Canvas Rename
+- Selected nuclei show a compact premium arc, handle dots, and metadata
+- Canvas rename and area edit commit through existing `updateSpace`
+- Void nuclei use dashed/subtractive selection styling and share the same edit flow
+- Hidden annotation mode keeps the selected edit affordance available
+- Table sync, saved views, ORG/CLS fallback, lab route, and 390 px fit checked
+- Build passed with known chunk warning
+- V6LQ Shader / Void QA
+- No code fixes needed
+- Build passed; void/shader/palette/table/saved/fallback/mobile/lab paths verified
 
 ## Workflow Complete
 

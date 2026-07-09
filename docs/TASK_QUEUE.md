@@ -5,10 +5,37 @@
 - [x] V6L Multi-Color Organism Shader + Negative Nuclei
 - [x] V6M Codex Workflow OS
 - [x] V6M.1 Ponytail Enforcement Patch
-- [ ] V6LQ Shader / Void QA
-- [ ] V6.5 Selection Arc + Canvas Rename
+- [x] V6LQ Shader / Void QA
+- [x] V6.5 Selection Arc + Canvas Rename
 - [ ] V6N Interface Density / Design Refinement
 - [ ] V7 Floating Widgets / later widget expansion
+
+## V6.5 — Selection Arc + Canvas Rename  ✅ COMPLETE
+- [x] selected organism nuclei show compact editorial selection arc
+- [x] tight selection remains default; halo and influence modes scale the ring/arc
+- [x] selected metadata shows name, area m², and category/type
+- [x] direct canvas rename implemented from selected arc Edit chip
+- [x] safe canvas area edit implemented in the same popover
+- [x] edits write through existing `updateSpace` store action
+- [x] empty names fall back to `Untitled Space`
+- [x] area edits clamp to at least 1 m²
+- [x] void nuclei use hollow/dashed/subtractive selection styling
+- [x] void rename and area edit work
+- [x] hidden annotation mode hides ordinary labels but keeps selected edit arc reachable
+- [x] table reflects canvas rename/area edits
+- [x] saved views preserve loaded renamed/area-edited spaces
+- [x] ORG/CLS fallback round-trip preserved
+- [x] `/experiments/organism-lab` route opens
+- [x] 390 px mobile dock/arc fit checked with no horizontal overflow
+- [x] build passes with known chunk warning
+
+## V6LQ — Shader / Void QA  ✅ COMPLETE
+- [x] build passed with known chunk warning
+- [x] V6L void add/edit/table/saved-view/layout preservation paths inspected
+- [x] shader signed-strength contribution and multi-color uniforms inspected
+- [x] classic hollow/dashed void fallback inspected
+- [x] 96-nucleus cap documentation verified
+- [x] no code fixes needed
 
 ## V6M — Codex Workflow OS  ✅ COMPLETE
 - [x] `docs/CODEX_PHASE_PROTOCOL.md` added as the standard Codex phase loop

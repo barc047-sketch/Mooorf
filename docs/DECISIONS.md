@@ -143,3 +143,9 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - `docs/CODEX_PHASE_PROTOCOL.md` is the active Codex operating protocol for sync/read/edit/build/commit/final-report flow.
 - `.claude/launch.json` remains local/unrelated and must not be staged unless explicitly requested.
 - `npm run repo:health` is a local read-only helper for branch, latest commit, dirty files, scripts, and warning notes; it is not a substitute for build or QA.
+
+## V6.5 selection arc and canvas editing
+- Direct canvas editing extends the existing organism label overlay instead of adding a parallel inspector or second overlay system.
+- Product data writes still go through the central Zustand store via `updateSpace`; inline rename/area drafts are temporary UI state only.
+- Hidden annotation mode suppresses ordinary labels but keeps the selected arc/edit affordance reachable, because canvas editing belongs to the selected object.
+- Classic canvas remains a fallback surface; the premium arc is organism-overlay behavior and does not require rewriting the 2D fallback renderer.

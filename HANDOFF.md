@@ -25,12 +25,13 @@ Complete:
 - V6L Multi-Color Organism Shader + Negative Nuclei
 - V6M Codex Workflow OS
 - V6M.1 Ponytail Enforcement Patch
+- V6LQ Shader / Void QA
+- V6.5 Selection Arc + Canvas Rename
 
 Next:
-- V6LQ shader/void QA or V6.5 selection arc by explicit choice
+- V6N Interface Density / Design Refinement by explicit choice
 
 Not started:
-- Phase 6.5 Selection Arc
 - V7 Floating Widgets
 
 ## Current Decision
@@ -62,6 +63,10 @@ V6L added the multi-color organism shader path and production void nuclei. `Spac
 V6M added the Codex workflow OS. Future Codex prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md` instead of repeating full history, and should follow `docs/CODEX_PHASE_PROTOCOL.md`. New docs also capture prompt rules, roadmap, component inventory, and design system memory. `npm run repo:health` is available as a read-only repo status helper. Runtime/product code was not changed.
 
 V6M.1 made Ponytail mandatory in the workflow. Future prompts and reports must check reused existing components/utilities/packages, adapter-over-rewrite discipline, justified new files, and duplicate UI/state avoidance. Component inventory is the first UI/control reuse reference. Runtime/product code was not changed.
+
+V6LQ QA passed with no code fixes needed. Build passed with the known chunk warning; void nuclei, shader signed strength, multi-color uniforms, saved-view preservation, table sync, classic fallback, mobile fit, and the lab route were verified.
+
+V6.5 added the production selection arc and direct canvas editing. Selected organism nuclei now show a compact partial arc, handle dots, metadata, and an Edit chip in the existing label overlay. Rename and area edits commit through `updateSpace`, so table sync and saved views stay intact. Void nuclei use dashed/subtractive styling and support the same rename/area flow. Hidden annotation mode hides ordinary labels while preserving selected edit affordances. ORG/CLS fallback and the lab route remain intact; 390 px fit was checked.
 
 ## Workflow
 

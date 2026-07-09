@@ -1,4 +1,14 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FocusEvent,
+  type FormEvent,
+  type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { useLab } from "../state/store";
 import { clamp } from "../lib/geometry";
 import {
@@ -37,6 +47,13 @@ const DPR_MAX = 2;
 const Z_MIN = 0.25;
 const Z_MAX = 4;
 const DRAG_COMMIT_MS = 90;
+const MIN_AREA = 1;
+
+interface EditDraft {
+  id: string;
+  name: string;
+  area: string;
+}
 
 interface SmoothFrame {
   mass: number;
@@ -74,7 +91,64 @@ export default function OrganismCanvasView() {
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const showGrid = useLab((s) => s.settings.showGrid);
+  const updateSpace = useLab((s) => s.updateSpace);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
+  const selectedSpace = useMemo(
+    () => spaces.find((space) => space.id === selectedId) ?? null,
+    [spaces, selectedId]
+  );
+
+  useEffect(() => {
+    if (editDraft && editDraft.id !== selectedId) setEditDraft(null);
+  }, [editDraft, selectedId]);
+
+  const stopEditPointer = (event: ReactPointerEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
+
+  const beginEdit = (space: typeof selectedSpace) => {
+    if (!space) return;
+    setEditDraft({
+      id: space.id,
+      name: space.name,
+      area: String(space.area),
+    });
+  };
+
+  const cancelEdit = () => setEditDraft(null);
+
+  const commitEdit = () => {
+    if (!editDraft) return;
+    const current = spaces.find((space) => space.id === editDraft.id);
+    const parsedArea = Number.parseFloat(editDraft.area);
+    const patch = {
+      name: editDraft.name.trim() || "Untitled Space",
+      area: Number.isFinite(parsedArea)
+        ? Math.max(MIN_AREA, parsedArea)
+        : current?.area ?? MIN_AREA,
+    };
+    updateSpace(editDraft.id, patch);
+    setEditDraft(null);
+  };
+
+  const onEditSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    commitEdit();
+  };
+
+  const onEditKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    cancelEdit();
+  };
+
+  const onEditBlur = (event: FocusEvent<HTMLFormElement>) => {
+    const nextFocus = event.relatedTarget;
+    if (nextFocus instanceof Node && event.currentTarget.contains(nextFocus)) return;
+    commitEdit();
+  };
 
   useEffect(() => {
     const host = hostRef.current;
@@ -224,6 +298,18 @@ export default function OrganismCanvasView() {
           const size = `${Math.max(14, nucleus.screenR * ringFactor)}px`;
           ring.style.width = size;
           ring.style.height = size;
+        }
+        const selection = anchor.querySelector<HTMLElement>(".organism-selection-system");
+        if (selection) {
+          const arcFactor =
+            settings.selectionDisplay === "influence"
+              ? 3.8
+              : settings.selectionDisplay === "halo"
+                ? 2.5
+                : 1.45;
+          const arcSize = Math.max(58, Math.min(220, nucleus.screenR * arcFactor + 22));
+          selection.style.width = `${arcSize}px`;
+          selection.style.height = `${arcSize}px`;
         }
       });
     };
@@ -504,7 +590,6 @@ export default function OrganismCanvasView() {
       <div
         ref={labelLayerRef}
         className="organism-label-layer"
-        aria-hidden="true"
         data-hidden={!showLabels || annotationMode === "hidden" ? "true" : undefined}
         data-mode={annotationMode}
         data-position={annotationDetail.position}
@@ -513,6 +598,9 @@ export default function OrganismCanvasView() {
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
           const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId);
+          const kind = space.kind === "void" ? "void" : "space";
+          const selected = space.id === selectedId;
+          const editing = editDraft?.id === space.id;
           const labelStyle = {
             "--nucleus-color": mappedColor.fill,
             "--nucleus-ring": mappedColor.ring,
@@ -532,11 +620,93 @@ export default function OrganismCanvasView() {
               className="organism-label-anchor"
               data-nucleus-id={space.id}
               data-category-token={mappedColor.token.id}
-              data-kind={space.kind === "void" ? "void" : "space"}
-              data-selected={space.id === selectedId}
+              data-kind={kind}
+              data-selected={selected}
               style={labelStyle}
             >
               <span className="organism-label-ring" />
+              {selected && (
+                <span
+                  className="organism-selection-system"
+                  data-editing={editing ? "true" : undefined}
+                >
+                  <svg className="organism-selection-arc" viewBox="0 0 100 100" aria-hidden="true">
+                    <path
+                      className="selection-arc-path selection-arc-path--primary"
+                      d="M 18 64 A 37 37 0 0 1 82 32"
+                    />
+                    <path
+                      className="selection-arc-path selection-arc-path--ghost"
+                      d="M 78 72 A 40 40 0 0 1 36 86"
+                    />
+                    <circle className="selection-arc-dot" cx="18" cy="64" r="2.6" />
+                    <circle className="selection-arc-dot selection-arc-dot--end" cx="82" cy="32" r="2.2" />
+                  </svg>
+                  <span className="selection-metadata">
+                    <span className="selection-type">
+                      {kind === "void" ? "Void" : mappedColor.token.label}
+                    </span>
+                    <span className="selection-title">{space.name}</span>
+                    <span className="selection-detail">
+                      {Math.round(space.area)} m² · {kind === "void" ? "subtractive" : space.category}
+                    </span>
+                    <button
+                      type="button"
+                      className="selection-edit-chip"
+                      onPointerDown={stopEditPointer}
+                      onClick={() => beginEdit(space)}
+                    >
+                      Edit
+                    </button>
+                  </span>
+                  {editing && (
+                    <form
+                      className="selection-edit-popover glass"
+                      onSubmit={onEditSubmit}
+                      onKeyDown={onEditKeyDown}
+                      onBlur={onEditBlur}
+                      onPointerDown={stopEditPointer}
+                    >
+                      <label>
+                        <span>Name</span>
+                        <input
+                          value={editDraft.name}
+                          onChange={(event) =>
+                            setEditDraft((draft) =>
+                              draft ? { ...draft, name: event.target.value } : draft
+                            )
+                          }
+                          autoFocus
+                          aria-label="Canvas nucleus name"
+                        />
+                      </label>
+                      <label>
+                        <span>Area</span>
+                        <input
+                          type="number"
+                          min={MIN_AREA}
+                          inputMode="decimal"
+                          value={editDraft.area}
+                          onChange={(event) =>
+                            setEditDraft((draft) =>
+                              draft ? { ...draft, area: event.target.value } : draft
+                            )
+                          }
+                          aria-label="Canvas nucleus area"
+                        />
+                      </label>
+                      <div className="selection-edit-actions">
+                        <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={cancelEdit}>
+                          Cancel
+                        </button>
+                        <button type="submit" onMouseDown={(event) => event.preventDefault()}>
+                          Save
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </span>
+              )}
               <span className="organism-label">
                 {annotationMode === "pill" ? (
                   annotationDetail.showName ? space.name : meta || space.name
