@@ -1,4 +1,10 @@
 import type { PaletteMode, Privacy, SpaceCell, Theme } from "../types";
+import {
+  getNucleusPalette,
+  getOrganismPaletteChoice,
+  NUCLEUS_PALETTE_AUTO_ID,
+  ORGANISM_PALETTE_MODE_ID,
+} from "./palettes";
 
 export interface AreaRange {
   min: number;
@@ -203,12 +209,21 @@ function areaDepth(area: number, range?: AreaRange): number {
   return clamp01((area - range.min) / (range.max - range.min));
 }
 
+/** Sample a curated ramp (authored dark → light) at a 0..1 depth. */
+const rampShadeAt = (shades: readonly string[], depth: number): string => {
+  const pos = clamp01(1 - depth) * (shades.length - 1);
+  const lo = Math.floor(pos);
+  const hi = Math.min(lo + 1, shades.length - 1);
+  return mixHex(shades[lo], shades[hi], pos - lo);
+};
+
 export function getCategoryColor(
   category: string,
   privacy: Privacy,
   area: number,
   paletteMode: PaletteMode,
-  range?: AreaRange
+  range?: AreaRange,
+  nucleusPaletteId?: string
 ): NucleusColor {
   const token = getCategoryToken(category);
   const areaT = areaDepth(area, range);
@@ -224,6 +239,13 @@ export function getCategoryColor(
     fill = mixHex(fill, privacy === "private" ? GRAPHITE : "#e4ded0", privacy === "private" ? 0.18 : 0.08);
   }
 
+  /* V6K — a concrete nucleus palette pulls every space toward one curated
+     family; category still separates hue, the ramp unifies the mood */
+  if (nucleusPaletteId && nucleusPaletteId !== NUCLEUS_PALETTE_AUTO_ID) {
+    const ramp = getNucleusPalette(nucleusPaletteId);
+    if (ramp) fill = mixHex(fill, rampShadeAt(ramp.shades, depth), 0.58);
+  }
+
   const ring = mixHex(fill, paletteMode === "surreal" ? "#d8c985" : WINE, paletteMode === "core" ? 0.2 : 0.28);
   const muted = mixHex(fill, luminance(fill) > 0.35 ? "#4f4f4d" : "#d8d3c2", 0.46);
   const text = luminance(fill) > 0.36 ? "#171719" : "#f4f2e9";
@@ -234,17 +256,36 @@ export function getCategoryColor(
 export function getNucleusColor(
   space: Pick<SpaceCell, "category" | "privacy" | "area">,
   paletteMode: PaletteMode,
-  range?: AreaRange
+  range?: AreaRange,
+  nucleusPaletteId?: string
 ): NucleusColor {
-  return getCategoryColor(space.category, space.privacy, space.area, paletteMode, range);
+  return getCategoryColor(space.category, space.privacy, space.area, paletteMode, range, nucleusPaletteId);
 }
 
 export function getOrganismPalette(
   paletteMode: PaletteMode,
   theme: Theme,
-  base?: { bodyHex: string; bgHex: string }
+  base?: { bodyHex: string; bgHex: string },
+  organismPaletteId?: string
 ): OrganismPaletteResult {
   const night = theme === "night";
+
+  /* V6K — a concrete organism palette overrides the mode-derived colors.
+     Only "ready" (solid) palettes resolve; gradient placeholders fall through. */
+  if (organismPaletteId && organismPaletteId !== ORGANISM_PALETTE_MODE_ID) {
+    const choice = getOrganismPaletteChoice(organismPaletteId);
+    if (choice?.ready) {
+      const c = night ? choice.night : choice.day;
+      return {
+        bodyHex: c.body,
+        groundHex: c.ground,
+        accentHex: choice.accent,
+        body: hexToRgb01(c.body),
+        ground: hexToRgb01(c.ground),
+      };
+    }
+  }
+
   const fallback = {
     bodyHex: night ? BONE : GRAPHITE,
     groundHex: night ? NIGHT : "#f5f6ee",

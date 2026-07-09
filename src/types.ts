@@ -20,6 +20,28 @@ export type AnnotationMode = "editorial" | "pill" | "technical" | "hidden";
 
 export type SelectionDisplay = "tight" | "halo" | "influence";
 
+export type LabelPosition = "auto" | "center" | "above" | "below";
+
+/* V6K — fine annotation controls. All label-layer only; never product data. */
+export interface AnnotationDetail {
+  textScale: number; // 0.75–1.6, multiplies label typography
+  showName: boolean;
+  showArea: boolean;
+  showCategory: boolean; // technical mode only
+  position: LabelPosition;
+  boundingBox: boolean; // hairline box even in boxless modes
+}
+
+/* V6K — floating widget system. Order in the open list = stacking order. */
+export type WidgetId =
+  | "annotation"
+  | "organism"
+  | "layout"
+  | "palette"
+  | "saved"
+  | "display"
+  | "advanced";
+
 export type Privacy = "public" | "shared" | "private";
 
 export type MorphMode =
@@ -75,6 +97,7 @@ export interface OrganismSettings {
   showNucleiDebug: boolean;
 }
 
+/** @deprecated V6K — the single control surface became per-widget state (WidgetId). */
 export type OrgPanelFocus = "annotation" | "style" | "organism" | "display" | null;
 
 export interface SpaceCell {
@@ -112,4 +135,9 @@ export interface SavedCanvasSnapshot {
   selectionDisplay: SelectionDisplay;
   organism: OrganismSettings;
   theme: Theme;
+  /* V6K additions — optional so pre-V6K snapshots keep loading */
+  annotationDetail?: AnnotationDetail;
+  showGrid?: boolean;
+  nucleusPaletteId?: string;
+  organismPaletteId?: string;
 }

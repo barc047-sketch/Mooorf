@@ -1,16 +1,13 @@
-export type WidgetPanelId =
-  | "organism"
-  | "annotation"
-  | "palette"
-  | "saved-views"
-  | "selected-space"
-  | "stats"
-  | "export";
+/* V6K widget registry — metadata for the live floating widget system.
+   Runtime rendering lives in src/ui/widgets/WidgetHost.tsx; this file stays
+   the architecture map for docs/phases. */
+
+import type { WidgetId } from "../../types";
 
 export type WidgetPanelStatus = "live" | "prepared" | "future";
 
 export interface WidgetPanelDefinition {
-  id: WidgetPanelId;
+  id: WidgetId | "selected-space" | "stats" | "export";
   label: string;
   responsibility: string;
   launcher: "rail" | "dock" | "both";
@@ -19,32 +16,53 @@ export interface WidgetPanelDefinition {
 
 export const WIDGET_PANEL_DEFINITIONS: readonly WidgetPanelDefinition[] = [
   {
+    id: "annotation",
+    label: "Annotation",
+    responsibility: "Label modes, text scale, visible fields, position, bounding box.",
+    launcher: "rail",
+    status: "live",
+  },
+  {
     id: "organism",
     label: "Organism",
-    responsibility: "Detailed organism field, nuclei, attachment, motion, pockets, and debug settings.",
+    responsibility: "Style, attachment/reach, field, nuclei, motion, pockets, selection.",
     launcher: "both",
     status: "live",
   },
   {
-    id: "annotation",
-    label: "Annotation",
-    responsibility: "Canvas label mode and selection display behavior.",
+    id: "layout",
+    label: "Layout",
+    responsibility: "Arrangement presets (x/y-only) and visual spread.",
     launcher: "rail",
     status: "live",
   },
   {
     id: "palette",
     label: "Palette",
-    responsibility: "Nucleus and organism palette choices; category mapping remains future work.",
+    responsibility: "Palette mode, nucleus family ramps, organism membrane palettes, program mapping.",
     launcher: "both",
-    status: "prepared",
+    status: "live",
   },
   {
-    id: "saved-views",
+    id: "saved",
     label: "Saved Views",
-    responsibility: "Future snapshots of spaces, camera, renderer, palette, annotation, and organism settings.",
-    launcher: "dock",
-    status: "prepared",
+    responsibility: "Snapshot save/load/rename/duplicate/delete with timestamps.",
+    launcher: "both",
+    status: "live",
+  },
+  {
+    id: "display",
+    label: "Display",
+    responsibility: "Theme, technical grid, label/nuclei visibility, density placeholder.",
+    launcher: "rail",
+    status: "live",
+  },
+  {
+    id: "advanced",
+    label: "Advanced",
+    responsibility: "Debug toggles, renderer diagnostics, staged experimental features.",
+    launcher: "rail",
+    status: "live",
   },
   {
     id: "selected-space",
@@ -68,4 +86,3 @@ export const WIDGET_PANEL_DEFINITIONS: readonly WidgetPanelDefinition[] = [
     status: "future",
   },
 ];
-

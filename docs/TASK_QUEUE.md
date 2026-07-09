@@ -443,6 +443,23 @@
 - [x] build passed with known chunk warning (~663.07 kB)
 - [x] next is V6K multi-layer nucleus / void shader or V6.5 selection arc by explicit choice
 
+## V6K — Premium Visual System + Full Control Migration  ✅ COMPLETE
+- [x] floating widget system: `WidgetHost`/`WidgetFrame` + `openWidgets` store state (order = z-order)
+- [x] seven widgets: Annotation, Organism, Layout, Palette, Saved Views, Display, Advanced
+- [x] widgets draggable / minimizable / closable / scrollable / magnetic snap / Escape close / mobile sheet fallback
+- [x] rail rebuilt as launchers only (view/build/note/organism/color/layout/saved/display/system)
+- [x] dock tightened; Random arrangement added; saved-views popover → widget launcher; "All palettes →" hand-off
+- [x] `OrganismControlPanel.tsx` deleted; shared metadata in `src/ui/controlMeta.ts`
+- [x] 12 nucleus palette families (functional ramp tint of category mapping) + 12 organism palettes (9 solid functional, 3 gradient staged)
+- [x] `nucleusPaletteId` / `organismPaletteId` settings, snapshot-persisted as optional fields
+- [x] annotation detail: text scale, show name/area/category, position modes, bounding box
+- [x] selection ring default tightened; influence behind advanced disclosure
+- [x] `showGrid` camera-synced technical grid
+- [x] premium tokens + custom range inputs + tighter dock/rail
+- [x] preserved: table sync, saved views, classic fallback, organism mode, lab route
+- [x] build passed with known chunk warning (~673.75 kB); preview QA zero console errors
+- [x] next: multi-color organism shader phase or V6.5 selection arc by explicit choice
+
 ## Phase 6.5 — Selection Arc
 - [ ] implement only from approved visual/system docs
 

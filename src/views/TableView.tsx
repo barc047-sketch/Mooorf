@@ -72,15 +72,17 @@ function Row({
   index,
   paletteMode,
   areaRange,
+  nucleusPaletteId,
 }: {
   cell: SpaceCell;
   index: number;
   paletteMode: PaletteMode;
   areaRange: AreaRange;
+  nucleusPaletteId: string;
 }) {
   const updateSpace = useLab((s) => s.updateSpace);
   const removeSpace = useLab((s) => s.removeSpace);
-  const mappedColor = getNucleusColor(cell, paletteMode, areaRange);
+  const mappedColor = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId);
 
   return (
     <TableRow>
@@ -177,6 +179,7 @@ export default function TableView() {
   const spaces = useLab((s) => s.spaces);
   const addSpace = useLab((s) => s.addSpace);
   const paletteMode = useLab((s) => s.settings.paletteMode);
+  const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
 
   return (
@@ -217,6 +220,7 @@ export default function TableView() {
                   index={i}
                   paletteMode={paletteMode}
                   areaRange={areaRange}
+                  nucleusPaletteId={nucleusPaletteId}
                 />
               ))}
               {spaces.length === 0 && (

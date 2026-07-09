@@ -91,11 +91,15 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - Renderer modularization
 - Share production/lab shader utilities only where safe
 
+## Done recently
+
+- V6K premium widget system + control migration (see docs/DESIGN_UI_UPGRADE_V6K.md)
+
 ## Future Features
 
 - Selection arc
 - Cmd/Ctrl-scroll resize
-- Floating widgets
+- Floating stat widgets (metrics/warnings)
 - Floors
 - Export
 - Gallery/templates later

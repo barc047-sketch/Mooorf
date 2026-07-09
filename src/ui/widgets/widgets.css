@@ -1,0 +1,337 @@
+/* V6K widget system chrome — premium editorial glass frames.
+   Body controls reuse the org-* / pop-* / pal-* language from shell.css. */
+
+.wframe {
+  position: absolute;
+  right: var(--sp-24);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 72px - 96px);
+  border-radius: 18px;
+  /* near-opaque premium glass — stacked widgets must never ghost through */
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface) 30%, transparent),
+      transparent 42%
+    ),
+    color-mix(in srgb, var(--bg) 86%, var(--surface));
+  box-shadow:
+    0 32px 72px -36px rgba(0, 0, 0, 0.6),
+    0 6px 20px -14px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 40%, transparent);
+  overflow: hidden;
+}
+
+.wframe[data-dragging="true"] {
+  box-shadow:
+    0 44px 92px -38px rgba(0, 0, 0, 0.68),
+    0 10px 28px -16px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 44%, transparent);
+  cursor: grabbing;
+  user-select: none;
+}
+
+.wframe[data-min="true"] {
+  width: 232px !important;
+}
+
+/* title strip — drag handle + identity + window controls */
+.wframe-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 10px 8px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline) 45%, transparent);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.wframe[data-dragging="true"] .wframe-head {
+  cursor: grabbing;
+}
+
+.wframe[data-min="true"] .wframe-head {
+  border-bottom: none;
+}
+
+.wframe-grip {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5px;
+  padding: 2px 0;
+}
+
+.wframe-grip i {
+  width: 11px;
+  height: 1px;
+  background: color-mix(in srgb, var(--fog) 78%, transparent);
+  border-radius: 1px;
+}
+
+.wframe-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wframe-eyebrow {
+  font-size: 7.5px;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  color: var(--zonuert-red);
+}
+
+.wframe-title {
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: var(--track-tight);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wframe-extra {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.wframe-extra + .wframe-btn {
+  margin-left: 2px;
+}
+
+.wframe-btn {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--fog);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.wframe-btn:first-of-type {
+  margin-left: auto;
+}
+
+.wframe-extra ~ .wframe-btn:first-of-type {
+  margin-left: 2px;
+}
+
+.wframe-btn:hover {
+  color: var(--ink);
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+
+.wframe-body {
+  overflow-y: auto;
+  padding: 2px 7px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
+}
+
+.wframe-foot {
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px 10px;
+  border-top: 1px solid color-mix(in srgb, var(--hairline) 50%, transparent);
+}
+
+/* footer variant rendered inside the scroll body (organism widget) */
+.org-foot--widget {
+  border-top: 1px solid color-mix(in srgb, var(--hairline) 50%, transparent);
+  padding: 8px 3px 2px;
+}
+
+/* ——— premium palette family rows ——— */
+.pal-family {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 7px 8px 8px;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--surface) 34%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent);
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms ease;
+}
+
+.pal-family:hover {
+  background: var(--surface);
+  border-color: var(--hairline);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -16px rgba(0, 0, 0, 0.38);
+}
+
+.pal-family[data-active="true"] {
+  border-color: color-mix(in srgb, var(--zonuert-red) 55%, var(--hairline));
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--zonuert-red) 30%, transparent),
+    0 12px 26px -18px rgba(0, 0, 0, 0.4);
+}
+
+.pal-family-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pal-family .pal-name {
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.pal-family[data-active="true"] .pal-name::after {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-left: 6px;
+  vertical-align: 1.5px;
+  border-radius: 50%;
+  background: var(--zonuert-red);
+}
+
+.pal-use {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 8px;
+  line-height: 1.2;
+  color: var(--fog);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ——— organism palette chip grid ——— */
+.pal-organism-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  padding: 1px 0;
+}
+
+.pal-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px;
+  font: inherit;
+  background: color-mix(in srgb, var(--surface) 34%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms ease;
+}
+
+.pal-chip:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--hairline);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px -16px rgba(0, 0, 0, 0.36);
+}
+
+.pal-chip:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.pal-chip[data-active="true"] {
+  border-color: color-mix(in srgb, var(--zonuert-red) 55%, var(--hairline));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--zonuert-red) 30%, transparent);
+}
+
+.pal-chip-preview {
+  height: 22px;
+  border: 1px solid color-mix(in srgb, var(--hairline) 62%, transparent);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 24%, transparent);
+}
+
+.pal-chip-name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 8.5px;
+  line-height: 1.1;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pal-chip-name i {
+  font-style: normal;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+
+.org-choice-badge {
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+
+.saved-count--embedded {
+  padding: 2px 4px 0;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* phones: widgets become full-width sheets pinned above the dock */
+@media (max-width: 640px) {
+  .wframe {
+    left: 10px;
+    right: 10px;
+    width: auto !important;
+    top: 64px !important;
+    max-height: calc(100dvh - 64px - 118px);
+    translate: 0 0 !important;
+  }
+
+  .wframe-head {
+    cursor: default;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pal-family:hover,
+  .pal-chip:hover:not(:disabled),
+  .wframe-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}

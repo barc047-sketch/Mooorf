@@ -47,7 +47,7 @@
   z-index: -1;
 }
 
-/* Bottom-center dock */
+/* Bottom-center dock — V6K: tighter scale, layered premium depth */
 .dock {
   position: absolute;
   bottom: var(--sp-24);
@@ -56,13 +56,13 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px;
-  border-radius: 17px;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 16px;
   max-width: calc(100vw - 18px);
   box-shadow:
-    0 22px 48px -26px rgba(0, 0, 0, 0.42),
-    0 2px 10px -6px rgba(0, 0, 0, 0.16);
+    var(--shadow-float),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 42%, transparent);
 }
 
 .dock-group {
@@ -129,18 +129,18 @@
 .zoom-btn {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   padding: 0;
   color: var(--ink);
   background: none;
   border: none;
-  border-radius: 11px;
+  border-radius: 10px;
   cursor: pointer;
   transition:
     color 180ms ease,
     background 180ms ease,
-    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 160ms var(--ease-out),
     box-shadow 180ms ease;
 }
 
@@ -201,7 +201,7 @@
 }
 
 .dock-mode-btn {
-  width: 38px;
+  width: 36px;
   position: relative;
 }
 
@@ -266,8 +266,8 @@
 }
 
 .nucleus-orb {
-  width: 50px;
-  height: 50px;
+  width: 47px;
+  height: 47px;
   color: var(--surface);
   background:
     radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--zonuert-red) 34%, transparent), transparent 44%),
@@ -301,8 +301,8 @@
 
 .cluster-orb {
   position: relative;
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   color: var(--surface);
   background:
     radial-gradient(circle at 28% 12%, color-mix(in srgb, var(--surface) 13%, transparent), transparent 40%),
@@ -403,8 +403,8 @@
 }
 
 .void-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   color: var(--fog);
   /* hollow center hints at the future subtractive/void nucleus */
   background: radial-gradient(
@@ -469,7 +469,9 @@
   padding: 4px;
   border-radius: 16px;
   min-width: 150px;
-  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 18px 40px -18px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 42%, transparent);
 }
 
 .dock-pop--left {
@@ -954,7 +956,84 @@
 
 .dock-merge input[type="range"] {
   width: 88px;
-  accent-color: var(--zonuert-red);
+}
+
+/* ——— V6K premium range inputs — hairline track, ink thumb, red hover halo ——— */
+.dock-merge input[type="range"],
+.org-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 20px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dock-merge input[type="range"]::-webkit-slider-runnable-track,
+.org-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+}
+
+.dock-merge input[type="range"]::-webkit-slider-thumb,
+.org-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px;
+  height: 11px;
+  margin-top: -4.5px;
+  border: 1px solid color-mix(in srgb, var(--surface) 65%, transparent);
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 160ms ease, transform 160ms var(--ease-out);
+}
+
+.dock-merge input[type="range"]:hover::-webkit-slider-thumb,
+.org-slider input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.18);
+  box-shadow:
+    0 3px 10px -3px rgba(0, 0, 0, 0.5),
+    0 0 0 4px color-mix(in srgb, var(--zonuert-red) 12%, transparent);
+}
+
+.dock-merge input[type="range"]:active::-webkit-slider-thumb,
+.org-slider input[type="range"]:active::-webkit-slider-thumb {
+  background: color-mix(in srgb, var(--ink) 78%, var(--zonuert-red) 22%);
+}
+
+.dock-merge input[type="range"]::-moz-range-track,
+.org-slider input[type="range"]::-moz-range-track {
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+}
+
+.dock-merge input[type="range"]::-moz-range-progress,
+.org-slider input[type="range"]::-moz-range-progress {
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 62%, var(--zonuert-red) 38%);
+}
+
+.dock-merge input[type="range"]::-moz-range-thumb,
+.org-slider input[type="range"]::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 1px solid color-mix(in srgb, var(--surface) 65%, transparent);
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.45);
+}
+
+.dock-merge input[type="range"]:focus-visible,
+.org-slider input[type="range"]:focus-visible {
+  outline: none;
+}
+
+.dock-merge input[type="range"]:focus-visible::-webkit-slider-thumb,
+.org-slider input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--zonuert-red) 20%, transparent);
 }
 
 /* Left vertical rail — V6H.1 captioned pro-tool sections */
@@ -966,12 +1045,13 @@
   z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 6px 4px;
-  border-radius: 15px;
+  gap: 5px;
+  padding: 5px 4px;
+  border-radius: 14px;
   box-shadow:
     0 20px 44px -28px rgba(0, 0, 0, 0.4),
-    0 2px 8px -6px rgba(0, 0, 0, 0.14);
+    0 2px 8px -6px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 38%, transparent);
 }
 
 .rail-sec {
@@ -997,8 +1077,8 @@
 }
 
 .rail .rail-btn {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 9px;
 }
 
@@ -1293,10 +1373,7 @@
 
 .org-slider input[type="range"] {
   width: 100%;
-  height: 12px;
-  margin: 0;
   grid-column: 3;
-  accent-color: var(--zonuert-red);
 }
 
 .org-readout {

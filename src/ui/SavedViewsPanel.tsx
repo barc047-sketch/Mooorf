@@ -29,7 +29,7 @@ function metaLabel(view: SavedCanvasSnapshot): string {
   return `${view.rendererMode === "organism" ? "ORG" : "CLS"} · ${view.paletteMode} · ${view.spaces.length}`;
 }
 
-export default function SavedViewsPanel() {
+export default function SavedViewsPanel({ embedded = false }: { embedded?: boolean }) {
   const savedViews = useLab((s) => s.savedViews);
   const saveCurrentView = useLab((s) => s.saveCurrentView);
   const loadSavedView = useLab((s) => s.loadSavedView);
@@ -58,15 +58,21 @@ export default function SavedViewsPanel() {
 
   return (
     <div className="saved-panel" data-testid="saved-views-panel">
-      <header className="saved-head">
-        <span>
-          <span className="saved-eyebrow">ITERATIONS</span>
-          <span className="saved-title">Saved Views</span>
+      {embedded ? (
+        <span className="saved-count saved-count--embedded">
+          {savedViews.length}/{SAVED_VIEWS_LIMIT} iterations
         </span>
-        <span className="saved-count">
-          {savedViews.length}/{SAVED_VIEWS_LIMIT}
-        </span>
-      </header>
+      ) : (
+        <header className="saved-head">
+          <span>
+            <span className="saved-eyebrow">ITERATIONS</span>
+            <span className="saved-title">Saved Views</span>
+          </span>
+          <span className="saved-count">
+            {savedViews.length}/{SAVED_VIEWS_LIMIT}
+          </span>
+        </header>
+      )}
 
       <button type="button" className="saved-save" onClick={() => saveCurrentView()}>
         <Save size={13} strokeWidth={1.6} />

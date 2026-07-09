@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import type {
+  AnnotationDetail,
   AnnotationMode,
   AttachMode,
   Camera,
   LayoutPresetId,
   MorphMode,
   OrganismSettings,
-  OrgPanelFocus,
   PaletteMode,
   RendererMode,
   SavedCanvasSnapshot,
@@ -14,6 +14,7 @@ import type {
   SpaceCell,
   Theme,
   ViewMode,
+  WidgetId,
 } from "../types";
 import { clamp, scatterPoint } from "../lib/geometry";
 import { CELL_PALETTE, DEMO_PROGRAM } from "../lib/demo";
@@ -35,10 +36,25 @@ export interface LabSettings {
   paletteMode: PaletteMode;
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
+  annotationDetail: AnnotationDetail;
   selectionDisplay: SelectionDisplay;
   rendererMode: RendererMode;
+  showGrid: boolean;
+  /** "auto" = category mapping owns nucleus colors (pre-V6K behavior) */
+  nucleusPaletteId: string;
+  /** "mode" = style + palette mode derive body/ground (pre-V6K behavior) */
+  organismPaletteId: string;
   organism: OrganismSettings;
 }
+
+export const DEFAULT_ANNOTATION_DETAIL: AnnotationDetail = {
+  textScale: 1,
+  showName: true,
+  showArea: true,
+  showCategory: true,
+  position: "auto",
+  boundingBox: false,
+};
 
 interface LabState {
   theme: Theme;
@@ -49,15 +65,19 @@ interface LabState {
   selectedId: string | null;
   camera: Camera;
   savedViews: SavedCanvasSnapshot[];
-  orgPanelOpen: boolean;
-  orgPanelFocus: OrgPanelFocus;
+  /** V6K widget system — array order is stacking order (last = front) */
+  openWidgets: WidgetId[];
 
   toggleTheme: () => void;
   setView: (view: ViewMode) => void;
   setLoaderDone: () => void;
   setSettings: (patch: Partial<LabSettings>) => void;
   setOrganism: (patch: Partial<OrganismSettings>) => void;
-  setOrgPanel: (open: boolean, focus?: OrgPanelFocus) => void;
+  setAnnotationDetail: (patch: Partial<AnnotationDetail>) => void;
+  openWidget: (id: WidgetId) => void;
+  closeWidget: (id: WidgetId) => void;
+  toggleWidget: (id: WidgetId) => void;
+  focusWidget: (id: WidgetId) => void;
   select: (id: string | null) => void;
   setCamera: (camera: Camera) => void;
   zoomBy: (factor: number) => void;
@@ -177,6 +197,10 @@ const makeSnapshot = (
   selectionDisplay: state.settings.selectionDisplay,
   organism: cloneOrganism(state.settings.organism),
   theme: state.theme,
+  annotationDetail: { ...state.settings.annotationDetail },
+  showGrid: state.settings.showGrid,
+  nucleusPaletteId: state.settings.nucleusPaletteId,
+  organismPaletteId: state.settings.organismPaletteId,
 });
 
 const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
@@ -208,15 +232,18 @@ export const useLab = create<LabState>((set) => ({
     paletteMode: "core",
     layoutPreset: "organic",
     annotationMode: "editorial",
+    annotationDetail: { ...DEFAULT_ANNOTATION_DETAIL },
     selectionDisplay: "tight",
     rendererMode: "organism",
+    showGrid: false,
+    nucleusPaletteId: "auto",
+    organismPaletteId: "mode",
     organism: { ...DEFAULT_ORGANISM_SETTINGS },
   },
   selectedId: null,
   camera: { x: 0, y: 0, zoom: 1 },
   savedViews: loadSavedViews(),
-  orgPanelOpen: false,
-  orgPanelFocus: null,
+  openWidgets: [],
 
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "day" ? "night" : "day" })),
@@ -233,11 +260,37 @@ export const useLab = create<LabState>((set) => ({
       settings: { ...s.settings, organism: { ...s.settings.organism, ...patch } },
     })),
 
-  setOrgPanel: (open, focus) =>
+  setAnnotationDetail: (patch) =>
     set((s) => ({
-      orgPanelOpen: open,
-      orgPanelFocus: open ? focus ?? s.orgPanelFocus : null,
+      settings: {
+        ...s.settings,
+        annotationDetail: { ...s.settings.annotationDetail, ...patch },
+      },
     })),
+
+  openWidget: (id) =>
+    set((s) => ({
+      openWidgets: s.openWidgets.includes(id)
+        ? [...s.openWidgets.filter((w) => w !== id), id]
+        : [...s.openWidgets, id],
+    })),
+
+  closeWidget: (id) =>
+    set((s) => ({ openWidgets: s.openWidgets.filter((w) => w !== id) })),
+
+  toggleWidget: (id) =>
+    set((s) => ({
+      openWidgets: s.openWidgets.includes(id)
+        ? s.openWidgets.filter((w) => w !== id)
+        : [...s.openWidgets, id],
+    })),
+
+  focusWidget: (id) =>
+    set((s) =>
+      s.openWidgets[s.openWidgets.length - 1] === id || !s.openWidgets.includes(id)
+        ? {}
+        : { openWidgets: [...s.openWidgets.filter((w) => w !== id), id] }
+    ),
 
   select: (id) => set({ selectedId: id }),
 
@@ -362,8 +415,15 @@ export const useLab = create<LabState>((set) => ({
           paletteMode: snapshot.paletteMode,
           layoutPreset: snapshot.layoutPreset,
           annotationMode: snapshot.annotationMode,
+          annotationDetail: {
+            ...DEFAULT_ANNOTATION_DETAIL,
+            ...(snapshot.annotationDetail ?? {}),
+          },
           selectionDisplay: snapshot.selectionDisplay ?? s.settings.selectionDisplay,
           rendererMode: snapshot.rendererMode,
+          showGrid: snapshot.showGrid ?? s.settings.showGrid,
+          nucleusPaletteId: snapshot.nucleusPaletteId ?? s.settings.nucleusPaletteId,
+          organismPaletteId: snapshot.organismPaletteId ?? s.settings.organismPaletteId,
           organism: { ...DEFAULT_ORGANISM_SETTINGS, ...cloneOrganism(snapshot.organism) },
         },
       };

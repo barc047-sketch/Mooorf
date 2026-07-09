@@ -61,12 +61,16 @@ export default function OrganismCanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelLayerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const [glOk, setGlOk] = useState(true);
   const spaces = useLab((s) => s.spaces);
   const selectedId = useLab((s) => s.selectedId);
   const showLabels = useLab((s) => s.settings.organism.showLabels);
   const annotationMode = useLab((s) => s.settings.annotationMode);
+  const annotationDetail = useLab((s) => s.settings.annotationDetail);
   const paletteMode = useLab((s) => s.settings.paletteMode);
+  const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
+  const showGrid = useLab((s) => s.settings.showGrid);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
 
   useEffect(() => {
@@ -173,8 +177,20 @@ export default function OrganismCanvasView() {
         drag,
         resolved.adapter,
         motionState,
-        settings.paletteMode
+        settings.paletteMode,
+        settings.nucleusPaletteId
       );
+
+    /* camera-synced technical grid — cheap CSS background, render-loop offsets */
+    const syncGrid = () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      const step = 64 * cam.zoom;
+      const ox = w / 2 - cam.x * cam.zoom;
+      const oy = h / 2 - cam.y * cam.zoom;
+      grid.style.backgroundSize = `${step}px ${step}px`;
+      grid.style.backgroundPosition = `${ox}px ${oy}px`;
+    };
     const syncLabels = (nuclei: ProductionNucleus[]) => {
       const layer = labelLayerRef.current;
       if (!layer) return;
@@ -198,8 +214,8 @@ export default function OrganismCanvasView() {
               ? 3.4
               : settings.selectionDisplay === "halo"
                 ? 2.2
-                : 1.08;
-          const size = `${Math.max(18, nucleus.screenR * ringFactor)}px`;
+                : 1.05; // tight default — a crisp ring hugging the nucleus
+          const size = `${Math.max(14, nucleus.screenR * ringFactor)}px`;
           ring.style.width = size;
           ring.style.height = size;
         }
@@ -336,10 +352,12 @@ export default function OrganismCanvasView() {
       advanceMotion(motionState, dt, resolved.adapter.timeScale);
       const nuclei = currentNuclei();
       const sc = styleColors(settings.morphMode, theme);
-      const palette = getOrganismPalette(settings.paletteMode, theme, {
-        bodyHex: sc.bodyHex,
-        bgHex: sc.bgHex,
-      });
+      const palette = getOrganismPalette(
+        settings.paletteMode,
+        theme,
+        { bodyHex: sc.bodyHex, bgHex: sc.bgHex },
+        settings.organismPaletteId
+      );
       const params = resolved.params;
       const eff = effectiveField(params);
 
@@ -399,6 +417,7 @@ export default function OrganismCanvasView() {
       if (!shouldRender) return;
       dirty = false;
       syncLabels(nuclei);
+      syncGrid();
 
       nucleiBuf.fill(0);
       const count = Math.min(nuclei.length, MAX_NUCLEI);
@@ -446,6 +465,7 @@ export default function OrganismCanvasView() {
   return (
     <div ref={hostRef} className="organism-canvas-host">
       <canvas ref={canvasRef} className="organism-canvas" data-testid="organism-canvas" />
+      {showGrid && <div ref={gridRef} className="organism-grid" aria-hidden="true" />}
       {!glOk && (
         <div className="organism-fallback glass">
           <p className="eyebrow">WEBGL2 UNAVAILABLE</p>
@@ -464,14 +484,25 @@ export default function OrganismCanvasView() {
         aria-hidden="true"
         data-hidden={!showLabels || annotationMode === "hidden" ? "true" : undefined}
         data-mode={annotationMode}
+        data-position={annotationDetail.position}
+        data-bbox={annotationDetail.boundingBox ? "true" : undefined}
+        style={{ "--label-scale": annotationDetail.textScale } as CSSProperties}
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
-          const mappedColor = getNucleusColor(space, paletteMode, areaRange);
+          const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId);
           const labelStyle = {
             "--nucleus-color": mappedColor.fill,
             "--nucleus-ring": mappedColor.ring,
             "--nucleus-muted": mappedColor.muted,
           } as CSSProperties;
+          const meta = [
+            annotationDetail.showArea ? `${Math.round(space.area)} m²` : null,
+            annotationMode === "technical" && annotationDetail.showCategory
+              ? space.category
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ");
           return (
             <div
               key={space.id}
@@ -483,20 +514,15 @@ export default function OrganismCanvasView() {
             >
               <span className="organism-label-ring" />
               <span className="organism-label">
-                {annotationMode === "technical" ? (
-                  <>
-                    <span className="organism-label-main">{space.name}</span>
-                    <span className="organism-label-meta">
-                      {Math.round(space.area)} m² · {space.category}
-                    </span>
-                  </>
-                ) : annotationMode === "editorial" ? (
-                  <>
-                    <span className="organism-label-main">{space.name}</span>
-                    <span className="organism-label-meta">{Math.round(space.area)} m²</span>
-                  </>
+                {annotationMode === "pill" ? (
+                  annotationDetail.showName ? space.name : meta || space.name
                 ) : (
-                  space.name
+                  <>
+                    {annotationDetail.showName && (
+                      <span className="organism-label-main">{space.name}</span>
+                    )}
+                    {meta && <span className="organism-label-meta">{meta}</span>}
+                  </>
                 )}
               </span>
             </div>

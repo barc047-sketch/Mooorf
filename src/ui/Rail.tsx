@@ -1,25 +1,26 @@
 import { motion } from "motion/react";
 import {
+  Bookmark,
   Eye,
   Frame,
-  Layers,
+  LayoutGrid,
   Minus,
   Moon,
   Palette,
   Plus,
+  Settings2,
   Shapes,
   SlidersHorizontal,
-  Settings,
   Sun,
   Table2,
   Type,
 } from "lucide-react";
 import { useLab } from "../state/store";
-import type { OrgPanelFocus } from "../types";
+import type { WidgetId } from "../types";
 import "./shell.css";
 
-/* V6H.2 left rail — navigation + widget launchers only. Fast creation and
-   renderer switching live in the dock; detailed settings live in the panel. */
+/* V6K left rail — launchers only. Every detailed control opens a floating
+   widget; fast creation and quick mode switches stay in the dock. */
 
 function RailSection({
   caption,
@@ -43,15 +44,24 @@ export default function Rail() {
   const setView = useLab((s) => s.setView);
   const addSpace = useLab((s) => s.addSpace);
   const resetView = useLab((s) => s.resetView);
-  const orgPanelOpen = useLab((s) => s.orgPanelOpen);
-  const orgPanelFocus = useLab((s) => s.orgPanelFocus);
-  const setOrgPanel = useLab((s) => s.setOrgPanel);
+  const openWidgets = useLab((s) => s.openWidgets);
+  const toggleWidget = useLab((s) => s.toggleWidget);
 
-  /* re-tapping the active launcher closes; a different one refocuses */
-  const launchPanel = (focus: Exclude<OrgPanelFocus, null>) => {
-    if (orgPanelOpen && orgPanelFocus === focus) setOrgPanel(false);
-    else setOrgPanel(true, focus);
-  };
+  const launcher = (
+    id: WidgetId,
+    title: string,
+    icon: React.ReactNode
+  ) => (
+    <button
+      type="button"
+      className="rail-btn"
+      data-active={openWidgets.includes(id)}
+      title={title}
+      onClick={() => toggleWidget(id)}
+    >
+      {icon}
+    </button>
+  );
 
   return (
     <motion.div
@@ -70,7 +80,7 @@ export default function Rail() {
           title="Canvas view"
           onClick={() => setView("canvas")}
         >
-          <Shapes size={15} strokeWidth={1.5} />
+          <Shapes size={14} strokeWidth={1.5} />
         </button>
         <button
           type="button"
@@ -79,13 +89,13 @@ export default function Rail() {
           title="Table view"
           onClick={() => setView("table")}
         >
-          <Table2 size={15} strokeWidth={1.5} />
+          <Table2 size={14} strokeWidth={1.5} />
         </button>
       </RailSection>
 
       <RailSection caption="build">
         <button type="button" className="rail-btn" title="Add nucleus shortcut" onClick={() => addSpace()}>
-          <Plus size={15} strokeWidth={1.6} />
+          <Plus size={14} strokeWidth={1.6} />
         </button>
         <button
           type="button"
@@ -93,68 +103,32 @@ export default function Rail() {
           title="Void nucleus placeholder"
           disabled
         >
-          <Minus size={15} strokeWidth={1.5} />
-        </button>
-        <button
-          type="button"
-          className="rail-btn rail-btn-disabled"
-          title="Group placeholder"
-          disabled
-        >
-          <Layers size={15} strokeWidth={1.5} />
+          <Minus size={14} strokeWidth={1.5} />
         </button>
       </RailSection>
 
-      <RailSection caption="annotate">
-        <button
-          type="button"
-          className="rail-btn"
-          data-active={orgPanelOpen && orgPanelFocus === "annotation"}
-          data-orgpanel-keep="true"
-          title="Annotation widget"
-          onClick={() => launchPanel("annotation")}
-        >
-          <Type size={15} strokeWidth={1.5} />
-        </button>
+      <RailSection caption="note">
+        {launcher("annotation", "Annotation widget", <Type size={14} strokeWidth={1.5} />)}
       </RailSection>
 
       <RailSection caption="organism">
-        <button
-          type="button"
-          className="rail-btn"
-          data-active={orgPanelOpen && orgPanelFocus === "organism"}
-          data-orgpanel-keep="true"
-          title="Organism controls"
-          onClick={() => launchPanel("organism")}
-        >
-          <SlidersHorizontal size={15} strokeWidth={1.5} />
-        </button>
+        {launcher("organism", "Organism widget", <SlidersHorizontal size={14} strokeWidth={1.5} />)}
       </RailSection>
 
       <RailSection caption="color">
-        <button
-          type="button"
-          className="rail-btn"
-          data-active={orgPanelOpen && orgPanelFocus === "style"}
-          data-orgpanel-keep="true"
-          title="Color and palette widget"
-          onClick={() => launchPanel("style")}
-        >
-          <Palette size={15} strokeWidth={1.5} />
-        </button>
+        {launcher("palette", "Palette widget", <Palette size={14} strokeWidth={1.5} />)}
+      </RailSection>
+
+      <RailSection caption="layout">
+        {launcher("layout", "Layout widget", <LayoutGrid size={14} strokeWidth={1.5} />)}
+      </RailSection>
+
+      <RailSection caption="saved">
+        {launcher("saved", "Saved views widget", <Bookmark size={14} strokeWidth={1.5} />)}
       </RailSection>
 
       <RailSection caption="display">
-        <button
-          type="button"
-          className="rail-btn"
-          data-active={orgPanelOpen && orgPanelFocus === "display"}
-          data-orgpanel-keep="true"
-          title="Display & debug"
-          onClick={() => launchPanel("display")}
-        >
-          <Eye size={15} strokeWidth={1.5} />
-        </button>
+        {launcher("display", "Display widget", <Eye size={14} strokeWidth={1.5} />)}
       </RailSection>
 
       <RailSection caption="system">
@@ -165,22 +139,15 @@ export default function Rail() {
           onClick={toggleTheme}
         >
           {theme === "day" ? (
-            <Moon size={15} strokeWidth={1.5} />
+            <Moon size={14} strokeWidth={1.5} />
           ) : (
-            <Sun size={15} strokeWidth={1.5} />
+            <Sun size={14} strokeWidth={1.5} />
           )}
         </button>
         <button type="button" className="rail-btn" title="Reset view" onClick={resetView}>
-          <Frame size={15} strokeWidth={1.5} />
+          <Frame size={14} strokeWidth={1.5} />
         </button>
-        <button
-          type="button"
-          className="rail-btn rail-btn-disabled"
-          title="Settings placeholder"
-          disabled
-        >
-          <Settings size={15} strokeWidth={1.5} />
-        </button>
+        {launcher("advanced", "Advanced widget", <Settings2 size={14} strokeWidth={1.5} />)}
       </RailSection>
     </motion.div>
   );

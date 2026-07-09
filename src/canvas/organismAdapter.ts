@@ -175,7 +175,8 @@ export function spacesToNuclei(
   drag?: DragPosition | null,
   opts: OrganismAdapterOptions = DEFAULT_ADAPTER_OPTIONS,
   motion?: OrganismMotionState,
-  paletteMode: PaletteMode = "core"
+  paletteMode: PaletteMode = "core",
+  nucleusPaletteId?: string
 ): ProductionNucleus[] {
   const halfMin = Math.max(1, Math.min(width, height) / 2);
   const visible = spaces.slice(0, MAX_NUCLEI);
@@ -255,7 +256,7 @@ export function spacesToNuclei(
 
   /* — 3. camera map + idle motion + field offsets — */
   return eff.map(({ space, x, y, r }) => {
-    const mappedColor = getNucleusColor(space, paletteMode, areaRange);
+    const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId);
     let wx = x;
     let wy = y;
     if (hasTransform) {

@@ -120,3 +120,12 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Saved views are architecture design iterations, not browser bookmarks. They snapshot store-owned canvas state: spaces, camera, theme, renderer mode, palette, layout, annotation, organism settings, morph style, attachment, reach, blob, and selection display.
 - Saved views persist locally under `mooorf.savedViews.v1` with a 20-snapshot cap. Loading a snapshot replaces canvas state safely, clears selection, and restamps `born` values for smooth organism pop-in.
 - Saved views are intentionally local-only for now. Cloud sharing, export, backend storage, and project-file serialization remain deferred.
+
+## V6K premium visual system + control migration
+- Detailed controls live in floating widgets, not popovers or a single mega-panel. `openWidgets: WidgetId[]` is UI state in the store; array order is stacking order. Widget drag offsets/minimize are component/session state only — never product data.
+- Widget drag uses the CSS `translate` property so Motion's mount `transform` animation and pointer dragging never fight over one property.
+- Widget frames are near-opaque (bg 86% + surface sheen): stacked widgets must not ghost through each other; translucency stays reserved for the dock/rail glass over the canvas.
+- The nucleus palette family is a *tint* over the category mapping (58% toward the ramp shade at privacy+area depth), not a replacement — category hue identity survives every family.
+- Organism palettes override the shader's body/ground uniforms only when `ready: true`; gradient/category/dual-layer blends stay UI-staged (`ready: false`) until the explicit multi-color shader phase.
+- `nucleusPaletteId`/`organismPaletteId`/`annotationDetail`/`showGrid` were added to `SavedCanvasSnapshot` as optional fields so pre-V6K snapshots keep validating and loading.
+- `OrganismControlPanel.tsx` was deleted; dock/widget-shared labels live in `src/ui/controlMeta.ts` so quick switches and detail widgets cannot drift apart.

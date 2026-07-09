@@ -16,6 +16,7 @@ import {
   Paintbrush,
   Palette,
   Plus,
+  Shuffle,
   SlidersHorizontal,
   Upload,
 } from "lucide-react";
@@ -23,11 +24,18 @@ import { useLab } from "../state/store";
 import type { AttachMode, MorphMode, PaletteMode, RendererMode } from "../types";
 import {
   ATTACH_HINTS,
+  ATTACH_LABELS,
   MORPH_DESCRIPTIONS,
+  MORPH_LABELS,
   PALETTE_DESCRIPTIONS,
-} from "./OrganismControlPanel";
-import SavedViewsPanel from "./SavedViewsPanel";
+  PALETTE_LABELS,
+} from "./controlMeta";
 import "./shell.css";
+
+/* V6K bottom dock — quick actions only. Left: renderer/style/attachment/
+   density quick switches. Center: creation cluster. Right: palette, saved
+   views, import/export, widget launcher, random arrangement. Detailed
+   settings live in the floating widgets. */
 
 const MAIN_MORPHS = [
   "cellular-reverse",
@@ -53,15 +61,6 @@ const PALETTE_MODES = [
 ] as const satisfies readonly PaletteMode[];
 const RENDERER_MODES = ["organism", "classic"] as const satisfies readonly RendererMode[];
 
-const MORPH_LABELS: Record<MorphMode, string> = {
-  "cellular-reverse": "Cellular Reverse",
-  "plain-black": "Plain Black",
-  "plain-white": "Plain White",
-  graphite: "Graphite",
-  wine: "Wine",
-  auto: "Auto",
-};
-
 const MORPH_CODES: Record<MorphMode, string> = {
   "cellular-reverse": "CEL",
   "plain-black": "BLK",
@@ -71,21 +70,7 @@ const MORPH_CODES: Record<MorphMode, string> = {
   auto: "AUT",
 };
 
-const ATTACH_LABELS: Record<AttachMode, string> = {
-  tight: "Tight",
-  soft: "Soft",
-  long: "Long",
-  extreme: "Extreme",
-};
-
-const PALETTE_LABELS: Record<PaletteMode, string> = {
-  core: "Core",
-  surreal: "Surreal",
-  architecture: "Architecture",
-  auto: "Auto",
-};
-
-type PanelId = "style" | "attach" | "palette" | "saved" | null;
+type PanelId = "style" | "attach" | "palette" | null;
 type PopAlign = "left" | "center" | "right";
 
 interface DockButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -163,14 +148,15 @@ function DockPopover({
 export default function Dock() {
   const addSpace = useLab((s) => s.addSpace);
   const addSpaces = useLab((s) => s.addSpaces);
+  const applyLayoutPreset = useLab((s) => s.applyLayoutPreset);
   const mergeDistance = useLab((s) => s.settings.mergeDistance);
   const morphMode = useLab((s) => s.settings.morphMode);
   const attachMode = useLab((s) => s.settings.attachMode);
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const rendererMode = useLab((s) => s.settings.rendererMode);
   const setSettings = useLab((s) => s.setSettings);
-  const orgPanelOpen = useLab((s) => s.orgPanelOpen);
-  const setOrgPanel = useLab((s) => s.setOrgPanel);
+  const openWidgets = useLab((s) => s.openWidgets);
+  const toggleWidget = useLab((s) => s.toggleWidget);
   const [panel, setPanel] = useState<PanelId>(null);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
@@ -346,7 +332,7 @@ export default function Dock() {
           aria-label="Add nucleus"
           onClick={() => addSpace()}
         >
-          <Plus size={22} strokeWidth={1.75} />
+          <Plus size={21} strokeWidth={1.75} />
         </button>
         <button
           type="button"
@@ -364,11 +350,11 @@ export default function Dock() {
         <button
           type="button"
           className="void-btn"
-          title="Void nucleus placeholder"
+          title="Void nucleus — staged for the subtractive shader phase"
           aria-label="Void nucleus placeholder"
           disabled
         >
-          <Minus size={17} strokeWidth={1.7} />
+          <Minus size={16} strokeWidth={1.7} />
         </button>
       </DockGroup>
 
@@ -399,6 +385,18 @@ export default function Dock() {
                     </span>
                   </button>
                 ))}
+                <span className="pop-divider" role="separator" />
+                <button
+                  type="button"
+                  className="pop-row"
+                  role="menuitem"
+                  onClick={() => {
+                    setPanel(null);
+                    toggleWidget("palette");
+                  }}
+                >
+                  All palettes →
+                </button>
               </DockPopover>
               <DockButton
                 className="dock-mode-btn palette-mode-btn"
@@ -415,27 +413,23 @@ export default function Dock() {
               </DockButton>
             </div>
 
-            <div className="dock-pop-anchor">
-              <DockPopover
-                open={panel === "saved"}
-                label="Saved views"
-                align="right"
-                className="dock-pop-saved"
-              >
-                <SavedViewsPanel />
-              </DockPopover>
-              <DockButton
-                className="dock-mode-btn saved-views-btn"
-                active={panel === "saved"}
-                title="Saved views"
-                aria-label="Saved views"
-                aria-haspopup="dialog"
-                aria-expanded={panel === "saved"}
-                onClick={() => togglePanel("saved")}
-              >
-                <Bookmark size={16} strokeWidth={1.5} />
-              </DockButton>
-            </div>
+            <DockButton
+              active={openWidgets.includes("saved")}
+              title="Saved views"
+              aria-label="Saved views"
+              aria-haspopup="dialog"
+              aria-expanded={openWidgets.includes("saved")}
+              onClick={() => toggleWidget("saved")}
+            >
+              <Bookmark size={16} strokeWidth={1.5} />
+            </DockButton>
+            <DockButton
+              title="Random arrangement"
+              aria-label="Random arrangement"
+              onClick={() => applyLayoutPreset("random")}
+            >
+              <Shuffle size={16} strokeWidth={1.5} />
+            </DockButton>
             <DockButton
               className="dock-placeholder"
               title="Import placeholder"
@@ -453,13 +447,12 @@ export default function Dock() {
               <Download size={16} strokeWidth={1.5} />
             </DockButton>
             <DockButton
-              active={orgPanelOpen}
-              title="Widget settings panel"
-              aria-label="Widget settings panel"
+              active={openWidgets.includes("organism")}
+              title="Organism widget"
+              aria-label="Organism widget"
               aria-haspopup="dialog"
-              aria-expanded={orgPanelOpen}
-              data-orgpanel-keep="true"
-              onClick={() => setOrgPanel(!orgPanelOpen)}
+              aria-expanded={openWidgets.includes("organism")}
+              onClick={() => toggleWidget("organism")}
             >
               <SlidersHorizontal size={16} strokeWidth={1.5} />
             </DockButton>
