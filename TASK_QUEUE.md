@@ -4,12 +4,18 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- Codex QA of V6H.3, then V6H.4 layout presets or V6I palette mapping
+- V6I palette/category color mapping or V6J saved views by explicit choice
 - Keep `paletteMode` UI-ready until color mapping is intentionally started
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6H.4 Layout Presets / Colony Arrangement
+- Production layout presets: Organic, Core, Colony, Division, Tendril, Orbit, Asymmetry
+- Presets rearrange existing spaces only by `x/y`; table data, ids, names, areas, categories, privacy, colors, and camera are preserved
+- Void preset remains disabled/future until negative production nuclei are explicitly built
+- Layout section added to the Organism Control Surface panel; bottom dock unchanged
+- Build and preview QA passed with known chunk warning
 - V6H.3 Claude Premium UI Implementation
 - Premium dock/rail scale + hover motion; liquid `+` orb; void placeholder styled
 - Panel grip/minimize, motion master toggle, advanced-debug disclosure

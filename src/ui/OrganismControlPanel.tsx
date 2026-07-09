@@ -13,10 +13,12 @@ import { NUCLEUS_PALETTES, ORGANISM_PALETTES } from "../design/palettes";
 import type {
   AnnotationMode,
   AttachMode,
+  LayoutPresetId,
   MorphMode,
   PaletteMode,
   SelectionDisplay,
 } from "../types";
+import { LAYOUT_PRESETS, VOID_LAYOUT_PRESET } from "../canvas/layoutPresets";
 import { MAX_NUCLEI } from "../experiments/organism-lab/organism-types";
 import {
   DEFAULT_ORGANISM_SETTINGS,
@@ -85,6 +87,16 @@ const SELECTIONS: { id: SelectionDisplay; label: string; desc: string }[] = [
   { id: "halo", label: "Halo", desc: "Soft medium focus halo" },
   { id: "influence", label: "Influence", desc: "Large future measurement circle" },
 ];
+
+const LAYOUT_CODES: Record<LayoutPresetId, string> = {
+  organic: "OG",
+  core: "CO",
+  colony: "CL",
+  division: "DV",
+  tendril: "TD",
+  orbit: "OR",
+  asymmetry: "AS",
+};
 
 function SliderRow({
   def,
@@ -213,6 +225,7 @@ export default function OrganismControlPanel() {
   const organism = useLab((s) => s.settings.organism);
   const morphMode = useLab((s) => s.settings.morphMode);
   const paletteMode = useLab((s) => s.settings.paletteMode);
+  const layoutPreset = useLab((s) => s.settings.layoutPreset);
   const attachMode = useLab((s) => s.settings.attachMode);
   const annotationMode = useLab((s) => s.settings.annotationMode);
   const selectionDisplay = useLab((s) => s.settings.selectionDisplay);
@@ -221,6 +234,7 @@ export default function OrganismControlPanel() {
   const spaceCount = useLab((s) => s.spaces.length);
   const setSettings = useLab((s) => s.setSettings);
   const setOrganism = useLab((s) => s.setOrganism);
+  const applyLayoutPreset = useLab((s) => s.applyLayoutPreset);
 
   const panelRef = useRef<HTMLElement>(null);
   const sectionEls = useRef<Record<string, HTMLElement | null>>({});
@@ -377,6 +391,41 @@ export default function OrganismControlPanel() {
                   </span>
                 </button>
               ))}
+            </Section>
+
+            <Section
+              id="layout"
+              title="Layout"
+              hint="colony arrangement"
+              open={!!openSecs.layout}
+              onToggle={toggleSec}
+              sectionRef={bindSec("layout")}
+            >
+              <div className="layout-grid">
+                {LAYOUT_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    className="layout-choice"
+                    aria-pressed={layoutPreset === preset.id}
+                    data-active={layoutPreset === preset.id}
+                    onClick={() => applyLayoutPreset(preset.id)}
+                  >
+                    <span className="layout-code">{LAYOUT_CODES[preset.id]}</span>
+                    <span className="layout-copy">
+                      <span className="layout-name">{preset.label}</span>
+                      <span className="layout-hint">{preset.hint}</span>
+                    </span>
+                  </button>
+                ))}
+                <button type="button" className="layout-choice" disabled>
+                  <span className="layout-code">VD</span>
+                  <span className="layout-copy">
+                    <span className="layout-name">{VOID_LAYOUT_PRESET.label}</span>
+                    <span className="layout-hint">{VOID_LAYOUT_PRESET.hint}</span>
+                  </span>
+                </button>
+              </div>
             </Section>
 
             <Section

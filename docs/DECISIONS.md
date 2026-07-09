@@ -102,3 +102,7 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - A pockets master toggle is deferred: pockets have no non-destructive off state in the field model (threshold/softness always contribute); a future phase can add an explicit amount override if needed.
 - Palette UI renders `src/design/palettes.ts` metadata visually (shade ramps, field strips, gradient previews) but stays presentation-only; renderer/category mapping remains V6I.
 - Editorial annotation stays boxless even when selected — selection is communicated by red type + the tight ring, keeping the Palmer editorial read.
+
+## V6H.4 layout presets
+- Production layout presets are position-only transforms over existing `SpaceCell` records. They update `x/y` and store the active `settings.layoutPreset`, but they never generate a new program, delete spaces, rewrite table-owned fields, reset the camera, or alter classic fallback/lab route behavior.
+- Void remains disabled/future until production negative/subtractive nuclei are intentionally added.

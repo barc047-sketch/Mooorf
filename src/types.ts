@@ -6,6 +6,15 @@ export type RendererMode = "organism" | "classic";
 
 export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
+export type LayoutPresetId =
+  | "organic"
+  | "core"
+  | "colony"
+  | "division"
+  | "tendril"
+  | "orbit"
+  | "asymmetry";
+
 export type AnnotationMode = "editorial" | "pill" | "technical" | "hidden";
 
 export type SelectionDisplay = "tight" | "halo" | "influence";
@@ -93,6 +102,7 @@ export interface SavedCanvasSnapshot {
   camera: Camera;
   rendererMode: RendererMode;
   paletteMode: PaletteMode;
+  layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
   organism: OrganismSettings;
   theme: Theme;

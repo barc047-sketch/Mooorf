@@ -386,10 +386,27 @@
 - [x] table sync, night mode, 390 px, lab route re-verified
 - [x] build passed with known chunk warning (~645 kB)
 
+## V6H.4 — Layout Presets / Colony Arrangement  ✅ COMPLETE
+- [x] production layout preset module added (`src/canvas/layoutPresets.ts`)
+- [x] presets added: Organic, Core, Colony, Division, Tendril, Orbit, Asymmetry
+- [x] Void shown as disabled/future; negative/subtractive production nuclei not started
+- [x] presets rearrange existing spaces only by `x/y`
+- [x] ids, names, areas, categories, privacy, colors, camera, and table data preserved
+- [x] store action added: `applyLayoutPreset(presetId)`
+- [x] compact Layout section added to the Organism Control Surface panel
+- [x] bottom dock, classic fallback, and organism lab route preserved
+- [x] table name/area edit still updates canvas after preset application
+- [x] 390 px dock/panel fit checked
+- [x] build passed with known chunk warning (~648.63 kB)
+
 ## V6I — Palette / Category Color Mapping  ⏳ NEXT CANDIDATE
 - [ ] wire palette semantics into organism/category color behavior only if explicitly requested
 - [ ] keep `paletteMode` as UI setting, not product data
 - [ ] avoid random color usage
+
+## V6J — Saved Views  ⏳ LATER CANDIDATE
+- [ ] use existing saved-view snapshot type only when explicitly requested
+- [ ] do not start during palette/category mapping unless prompted
 
 ## Phase 6.5 — Selection Arc
 - [ ] implement only from approved visual/system docs

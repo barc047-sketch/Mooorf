@@ -3,6 +3,7 @@ import type {
   AnnotationMode,
   AttachMode,
   Camera,
+  LayoutPresetId,
   MorphMode,
   OrganismSettings,
   OrgPanelFocus,
@@ -17,6 +18,7 @@ import { clamp, scatterPoint } from "../lib/geometry";
 import { CELL_PALETTE, DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
+import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPresets";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -27,6 +29,7 @@ export interface LabSettings {
   morphMode: MorphMode;
   attachMode: AttachMode;
   paletteMode: PaletteMode;
+  layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
   selectionDisplay: SelectionDisplay;
   rendererMode: RendererMode;
@@ -61,6 +64,7 @@ interface LabState {
   updateSpace: (id: string, patch: Partial<SpaceCell>) => void;
   moveSpace: (id: string, x: number, y: number) => void;
   removeSpace: (id: string) => void;
+  applyLayoutPreset: (presetId: LayoutPresetId) => void;
 }
 
 const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
@@ -90,6 +94,7 @@ export const useLab = create<LabState>((set) => ({
     morphMode: "cellular-reverse",
     attachMode: "soft",
     paletteMode: "core",
+    layoutPreset: "organic",
     annotationMode: "editorial",
     selectionDisplay: "tight",
     rendererMode: "organism",
@@ -173,6 +178,15 @@ export const useLab = create<LabState>((set) => ({
     set((s) => ({
       spaces: s.spaces.filter((c) => c.id !== id),
       selectedId: s.selectedId === id ? null : s.selectedId,
+    })),
+
+  applyLayoutPreset: (presetId) =>
+    set((s) => ({
+      spaces: arrangeLayoutPreset(s.spaces, presetId),
+      settings: { ...s.settings, layoutPreset: presetId },
+      selectedId: s.selectedId && s.spaces.some((space) => space.id === s.selectedId)
+        ? s.selectedId
+        : null,
     })),
 }));
 

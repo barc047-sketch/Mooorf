@@ -16,9 +16,11 @@ Complete:
 - V6H.1 Full Organism Control Surface
 - V6H.2 UI Command Architecture Cleanup + Resource Prep
 - V6H.3 Claude Premium UI Implementation
+- V6H.3Q Codex QA for Premium UI
+- V6H.4 Layout Presets / Colony Arrangement
 
 Next:
-- Codex QA of V6H.3, then V6H.4 layout presets or V6I palette mapping
+- V6I palette/category color mapping or V6J saved views by explicit choice
 
 Not started:
 - Phase 6.5 Selection Arc
@@ -37,6 +39,8 @@ V6H.1 imported the full Organism Lab parameter model into production: typed `set
 V6H.2 cleaned command ownership: left rail is now navigation/widget launchers, bottom dock is quick creation/mode control, the right-side surface is the detailed widget panel, and the canvas remains direct editing. Annotation modes and selection display modes were added; default labels are editorial and default selection is tight. Palette and widget metadata plus `docs/UI_RESOURCE_AUDIT.md` prepare the Claude premium UI pass without adding packages or starting final widgets/color mapping.
 
 V6H.3 made that architecture visually premium: tighter dock/rail scale with Mac-like hover motion, a liquid-hover `+` orb, a dashed void placeholder, palette-first dock utilities, a panel with grip/minimize affordances, a Motion master switch, an Advanced-debug disclosure, and a palette widget rendering shade ramps / field strips / gradient previews from `src/design/palettes.ts`. Editorial labels stay boxless when selected (red type accent) and technical labels read name · area · category. No store/renderer/table changes and no packages; build green with the known chunk warning.
+
+V6H.4 added production layout presets in the Organism Control Surface panel: Organic, Core, Colony, Division, Tendril, Orbit, and Asymmetry. Presets update existing space `x/y` positions only; ids, names, areas, categories, privacy, colors, camera, table data, classic fallback, and the lab route remain intact. Void is visible as a disabled/future preset until production negative nuclei are explicitly built. Build and preview QA passed with the known chunk warning.
 
 ## Workflow
 
