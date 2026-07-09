@@ -21,7 +21,7 @@ export const LAYOUT_PRESETS: LayoutPreset[] = [
 export const VOID_LAYOUT_PRESET = {
   id: "void",
   label: "Void",
-  hint: "future subtractive nuclei",
+  hint: "dedicated subtractive layout later",
   disabled: true,
 } as const;
 

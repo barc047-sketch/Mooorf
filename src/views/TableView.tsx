@@ -36,6 +36,7 @@ const CATEGORY_OPTIONS = [
   "Admin",
   "Utility",
   "Uncategorized",
+  "Void",
 ];
 
 const MIN_AREA = 1;
@@ -83,11 +84,17 @@ function Row({
   const updateSpace = useLab((s) => s.updateSpace);
   const removeSpace = useLab((s) => s.removeSpace);
   const mappedColor = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId);
+  const kind = cell.kind === "void" ? "void" : "space";
 
   return (
-    <TableRow>
+    <TableRow data-kind={kind}>
       <TableCell className="text-muted-foreground tabular-nums">
         {String(index + 1).padStart(2, "0")}
+      </TableCell>
+      <TableCell>
+        <span className="table-kind-chip" data-kind={kind}>
+          {kind}
+        </span>
       </TableCell>
       <TableCell>
         <Input
@@ -105,6 +112,7 @@ function Row({
           <span
             className="table-category-swatch"
             style={{ background: mappedColor.fill, borderColor: mappedColor.ring }}
+            data-kind={kind}
             title={`${mappedColor.token.label} color`}
             aria-hidden="true"
           />
@@ -202,6 +210,7 @@ export default function TableView() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10">#</TableHead>
+                <TableHead className="w-16">type</TableHead>
                 <TableHead>name</TableHead>
                 <TableHead>area m²</TableHead>
                 <TableHead>category</TableHead>
@@ -226,7 +235,7 @@ export default function TableView() {
               {spaces.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className="py-10 text-center text-muted-foreground"
                   >
                     No spaces yet — add one above.

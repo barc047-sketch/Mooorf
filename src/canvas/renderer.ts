@@ -88,6 +88,7 @@ export function drawScene(
   if (blob.blobOn && spaces.length > 0) {
     const bodies: BlobBody[] = [];
     for (const c of spaces) {
+      if (c.kind === "void") continue;
       let spawn = 1;
       if (c.born) {
         const t = (now - c.born) / SPAWN_MS;
@@ -131,36 +132,55 @@ export function drawScene(
     const r = areaToRadius(c.area) * z * spawn * (lifted ? 1.03 : 1);
     if (r <= 0 || sx < -r - 60 || sx > w + r + 60 || sy < -r - 60 || sy > h + r + 60) continue;
     const mappedColor = getNucleusColor(c, blob.paletteMode, areaRange);
+    const isVoid = c.kind === "void";
 
     ctx.globalAlpha = Math.min(1, Math.max(0, spawn));
 
-    // Object shadow — soft, museum-floor.
-    ctx.save();
-    ctx.shadowColor = lifted ? "rgba(0,0,0,0.26)" : "rgba(0,0,0,0.16)";
-    ctx.shadowBlur = (lifted ? 34 : 22) * z;
-    ctx.shadowOffsetY = (lifted ? 14 : 9) * z;
-    ctx.fillStyle = mappedColor.fill;
-    ctx.beginPath();
-    ctx.arc(sx, sy, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    if (isVoid) {
+      ctx.save();
+      ctx.setLineDash([5 * z, 5 * z]);
+      ctx.lineWidth = Math.max(1.2, 1.5 * z);
+      ctx.strokeStyle = mappedColor.ring;
+      ctx.fillStyle = "rgba(0,0,0,0.035)";
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha *= 0.68;
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * 0.42, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    } else {
+      // Object shadow — soft, museum-floor.
+      ctx.save();
+      ctx.shadowColor = lifted ? "rgba(0,0,0,0.26)" : "rgba(0,0,0,0.16)";
+      ctx.shadowBlur = (lifted ? 34 : 22) * z;
+      ctx.shadowOffsetY = (lifted ? 14 : 9) * z;
+      ctx.fillStyle = mappedColor.fill;
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
 
-    // Ceramic shading — subtle top-light.
-    const g = ctx.createRadialGradient(
-      sx - r * 0.32,
-      sy - r * 0.38,
-      r * 0.15,
-      sx,
-      sy,
-      r
-    );
-    g.addColorStop(0, "rgba(255,255,255,0.16)");
-    g.addColorStop(0.55, "rgba(255,255,255,0)");
-    g.addColorStop(1, "rgba(0,0,0,0.12)");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(sx, sy, r, 0, Math.PI * 2);
-    ctx.fill();
+      // Ceramic shading — subtle top-light.
+      const g = ctx.createRadialGradient(
+        sx - r * 0.32,
+        sy - r * 0.38,
+        r * 0.15,
+        sx,
+        sy,
+        r
+      );
+      g.addColorStop(0, "rgba(255,255,255,0.16)");
+      g.addColorStop(0.55, "rgba(255,255,255,0)");
+      g.addColorStop(1, "rgba(0,0,0,0.12)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Label — only when legible.
     if (r > 26) {

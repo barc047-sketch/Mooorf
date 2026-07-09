@@ -44,6 +44,8 @@ export type WidgetId =
 
 export type Privacy = "public" | "shared" | "private";
 
+export type SpaceKind = "space" | "void";
+
 export type MorphMode =
   | "cellular-reverse"
   | "plain-black"
@@ -53,6 +55,13 @@ export type MorphMode =
   | "auto";
 
 export type AttachMode = "tight" | "soft" | "long" | "extreme";
+
+export type OrganismLayerRole =
+  | "outer-membrane"
+  | "nucleus-body"
+  | "inner-core"
+  | "void"
+  | "influence-ring";
 
 /* Production organism control surface (V6H.1). Persisted in the store so the
    advanced panel survives canvas/table switches. Defaults live in
@@ -103,6 +112,7 @@ export type OrgPanelFocus = "annotation" | "style" | "organism" | "display" | nu
 export interface SpaceCell {
   id: string;
   name: string;
+  kind?: SpaceKind; // omitted/undefined means a normal additive space nucleus
   area: number; // m²
   category: string;
   privacy: Privacy;

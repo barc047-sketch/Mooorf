@@ -39,7 +39,10 @@ uniform float uPocketSoft;
 uniform float uPocketAmount;
 
 uniform vec3 uBodyColor;
+uniform vec3 uBodyColorB;
+uniform vec3 uAccentColor;
 uniform vec3 uBgColor;
+uniform float uColorMix;
 uniform float uNucleusDots;
 
 uniform float uFieldDebug;
@@ -64,9 +67,10 @@ float fieldAt(vec2 p) {
     float core = r2 / d2;
     /* long 1/d tail — promotes merging without inflating the lone surface */
     float tail = n.z * inversesqrt(d2);
-    f += n.w * (pow(core, uTension) + uBias * 0.38 * tail);
+    float contribution = n.w * (pow(core, uTension) + uBias * 0.38 * tail);
+    f += clamp(contribution, -12.0, 18.0);
   }
-  return f * uMass;
+  return clamp(f * uMass, -24.0, 48.0);
 }
 
 void main() {
@@ -84,7 +88,14 @@ void main() {
 
   float organism = body * (1.0 - pocket);
 
-  vec3 col = mix(uBgColor, uBodyColor, organism);
+  float fp = max(f, 0.0);
+  float depth = 1.0 - exp(-fp * 0.28);
+  float screenBlend = 0.5 + 0.5 * sin(p.x * 1.55 + p.y * 0.8);
+  float edge = body * (1.0 - smoothstep(uIso + 0.12, uIso + 1.2, fp));
+  float colorMix = clamp(uColorMix, 0.0, 1.0);
+  vec3 bodyMix = mix(uBodyColor, uBodyColorB, colorMix * (0.28 * screenBlend + 0.72 * depth));
+  bodyMix = mix(bodyMix, uAccentColor, colorMix * edge * 0.22);
+  vec3 col = mix(uBgColor, bodyMix, organism);
 
   /* nuclei rendered as embedded reverse-tone dots (skipped for void nuclei) */
   if (uNucleusDots > 0.001) {
@@ -98,12 +109,11 @@ void main() {
       float w = max(fwidth(dN) * 1.2, 0.0035);
       dots = max(dots, 1.0 - smoothstep(rr - w, rr + w, dN));
     }
-    vec3 dotCol = mix(uBodyColor, uBgColor, organism);
+    vec3 dotCol = mix(bodyMix, uBgColor, organism);
     col = mix(col, dotCol, dots * uNucleusDots * 0.9);
   }
 
   if (uFieldDebug > 0.5) {
-    float fp = max(f, 0.0);
     float g = 1.0 - exp(-fp * 0.32);
     vec3 dbg = mix(vec3(0.95), vec3(0.08), g);
     float band = pow(0.5 + 0.5 * cos(TAU * fp), 24.0);
@@ -147,7 +157,10 @@ export interface OrganismRenderFrame {
   pocketSoft: number;
   pocketAmount: number;
   bodyColor: RGB;
+  bodyColorB: RGB;
   bgColor: RGB;
+  accentColor: RGB;
+  colorMix: number;
   /** 0..1 embedded nucleus dot visibility */
   nucleusDots: number;
   fieldDebug: boolean;
@@ -174,7 +187,10 @@ const UNIFORM_NAMES = [
   "uPocketSoft",
   "uPocketAmount",
   "uBodyColor",
+  "uBodyColorB",
+  "uAccentColor",
   "uBgColor",
+  "uColorMix",
   "uNucleusDots",
   "uFieldDebug",
   "uNucleiDebug",
@@ -266,7 +282,10 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform1f(loc["uPocketSoft"] ?? null, frame.pocketSoft);
       gl.uniform1f(loc["uPocketAmount"] ?? null, frame.pocketAmount);
       gl.uniform3f(loc["uBodyColor"] ?? null, frame.bodyColor[0], frame.bodyColor[1], frame.bodyColor[2]);
+      gl.uniform3f(loc["uBodyColorB"] ?? null, frame.bodyColorB[0], frame.bodyColorB[1], frame.bodyColorB[2]);
+      gl.uniform3f(loc["uAccentColor"] ?? null, frame.accentColor[0], frame.accentColor[1], frame.accentColor[2]);
       gl.uniform3f(loc["uBgColor"] ?? null, frame.bgColor[0], frame.bgColor[1], frame.bgColor[2]);
+      gl.uniform1f(loc["uColorMix"] ?? null, frame.colorMix);
       gl.uniform1f(loc["uNucleusDots"] ?? null, frame.nucleusDots);
       gl.uniform1f(loc["uFieldDebug"] ?? null, frame.fieldDebug ? 1 : 0);
       gl.uniform1f(loc["uNucleiDebug"] ?? null, frame.nucleiDebug ? 1 : 0);

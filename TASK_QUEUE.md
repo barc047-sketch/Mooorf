@@ -4,12 +4,23 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6K multi-layer nucleus / void shader or V6.5 selection arc, depending explicit choice
-- Keep V6I palette mapping stable; do not start per-nucleus shader gradients unless explicitly requested
+- V6.5 selection arc or another explicit post-shader phase
+- Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6L Multi-Color Organism Shader + Negative Nuclei
+- Void nuclei are store-owned rows via optional `SpaceCell.kind`
+- Dock void button creates subtractive nuclei; table/edit/save/load/layout/random preserve them
+- Shader uses negative signed strength, clamped field contribution, and body A/body B/accent/ground/blend uniforms
+- Category/privacy/area-informed organism color mixing and staged blend palettes are active
+- `MAX_NUCLEI` raised to 96 as a renderer cap only; docs/ORGANISM_ENGINE_LIMITS.md added
+- Classic fallback renders voids as hollow/dashed circles
+- Build passed with known chunk warning
+- V6K Premium Visual Widget System + Full Control Migration
+- Seven floating widgets, launcher-only rail, tightened dock, palette families, annotation detail, grid, saved views, table sync, fallback, and lab route preserved
+- Build passed with known chunk warning
 - V6J Saved Views / Design Iterations
 - Dock Saved Views utility now opens compact iteration panel
 - Snapshots preserve spaces, camera, theme, renderer, palette, layout, annotation, organism settings, morph/attachment/reach/blob/selection display
@@ -93,6 +104,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Done recently
 
+- V6L multi-color organism shader + negative nuclei (see docs/ORGANISM_ENGINE_LIMITS.md)
 - V6K premium widget system + control migration (see docs/DESIGN_UI_UPGRADE_V6K.md)
 
 ## Future Features

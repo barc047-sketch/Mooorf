@@ -1,5 +1,25 @@
 # Task Queue
 
+## Current Roadmap
+- [x] V6K Premium Visual System + Full Control Migration
+- [x] V6L Multi-Color Organism Shader + Negative Nuclei
+- [ ] V6.5 Selection Arc or next explicit post-shader phase
+- [ ] V7 Floating Widgets / later widget expansion
+
+## V6L — Multi-Color Organism Shader + Negative Nuclei  ✅ COMPLETE
+- [x] optional `SpaceCell.kind` added for normal/void nuclei with old snapshot compatibility
+- [x] dock void button enabled and wired to store-owned `addVoid()`
+- [x] production shader receives negative strength for voids and clamps signed field contribution
+- [x] body A/body B/accent/ground/color-mix uniforms added for restrained multi-color organism blending
+- [x] category/privacy/area-informed CPU color mixing feeds the organism membrane
+- [x] staged organism gradient palettes enabled through the V6L two-color shader path
+- [x] render cap raised to 96 nuclei; store/canvas data remains unlimited
+- [x] classic fallback renders void as hollow/dashed and excludes voids from additive blob body
+- [x] table rows show space/void type and preserve rename/area/category/privacy editing
+- [x] saved views preserve void state through `kind`
+- [x] docs/ORGANISM_ENGINE_LIMITS.md added
+- [x] build passes with known chunk warning
+
 ## Phase 0 — Setup  ✅ COMPLETE (Prompt 01)
 - [x] Vite React TS app
 - [x] install full core stack (renderer/anim/UI/color/import-export/table + types)

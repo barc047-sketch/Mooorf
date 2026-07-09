@@ -147,6 +147,7 @@ function DockPopover({
 
 export default function Dock() {
   const addSpace = useLab((s) => s.addSpace);
+  const addVoid = useLab((s) => s.addVoid);
   const addSpaces = useLab((s) => s.addSpaces);
   const applyLayoutPreset = useLab((s) => s.applyLayoutPreset);
   const mergeDistance = useLab((s) => s.settings.mergeDistance);
@@ -350,9 +351,9 @@ export default function Dock() {
         <button
           type="button"
           className="void-btn"
-          title="Void nucleus — staged for the subtractive shader phase"
-          aria-label="Void nucleus placeholder"
-          disabled
+          title="Add void nucleus"
+          aria-label="Add void nucleus"
+          onClick={() => addVoid()}
         >
           <Minus size={16} strokeWidth={1.7} />
         </button>

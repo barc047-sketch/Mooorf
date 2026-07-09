@@ -45,7 +45,7 @@ export interface OrganismPaletteChoice {
   accent: string;
   /** preview stops for gradient chips (UI only until the blend shader phase) */
   preview: readonly string[];
-  /** false = UI-complete placeholder awaiting the multi-color shader phase */
+  /** false = UI-complete placeholder awaiting a later renderer phase */
   ready: boolean;
 }
 
@@ -254,37 +254,37 @@ export const ORGANISM_PALETTES: readonly OrganismPaletteChoice[] = [
     id: "atmospheric-blend",
     group: "atmospheric",
     label: "Atmospheric Blend",
-    use: "Gradient membrane — awaits the multi-color shader phase.",
+    use: "Gradient membrane — hazy field blend.",
     blend: "gradient",
     day: { body: "#1c2230", ground: "#f3f2ea" },
     night: { body: "#2b3247", ground: "#070709" },
     accent: "#e5cfa8",
     preview: ["#101318", "#3e435c", "#8c7883", "#e5cfa8"],
-    ready: false,
+    ready: true,
   },
   {
     id: "category-blend",
     group: "architecture",
     label: "Category Blend",
-    use: "Program-colored organism regions — future shader phase.",
+    use: "Program-colored organism influence.",
     blend: "category-blend",
     day: { body: "#2f3133", ground: "#f5f6ee" },
     night: { body: "#4d4f55", ground: "#0b0b0b" },
     accent: "#8a4f4b",
     preview: ["#aa5544", "#a78643", "#655a78", "#5f8568", "#647086"],
-    ready: false,
+    ready: true,
   },
   {
     id: "dual-layer",
     group: "surreal",
     label: "Dual Layer",
-    use: "Membrane + core two-body organism — future shader phase.",
+    use: "Staged membrane/core color blend.",
     blend: "dual-layer",
     day: { body: "#131313", ground: "#f5f6ee" },
     night: { body: "#ededea", ground: "#070707" },
     accent: "#8f1424",
     preview: ["#131313", "#8f1424", "#f4f2e9"],
-    ready: false,
+    ready: true,
   },
 ];
 

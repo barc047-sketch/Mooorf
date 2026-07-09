@@ -32,10 +32,14 @@ export interface NucleusColor {
 
 export interface OrganismPaletteResult {
   bodyHex: string;
+  bodyBHex: string;
   groundHex: string;
   accentHex: string;
   body: [number, number, number];
+  bodyB: [number, number, number];
   ground: [number, number, number];
+  accent: [number, number, number];
+  blend: number;
 }
 
 const NEUTRAL = "#777a79";
@@ -43,6 +47,8 @@ const GRAPHITE = "#171719";
 const BONE = "#f5f2e8";
 const NIGHT = "#070707";
 const WINE = "#8f1424";
+const VOID_FILL = "#070707";
+const VOID_RING = "#c31616";
 
 export const CATEGORY_TOKENS: readonly CategoryToken[] = [
   {
@@ -185,6 +191,9 @@ export function getCategoryToken(category: string): CategoryToken {
   return CATEGORY_LOOKUP.get(normalizeCategory(category)) ?? CATEGORY_LOOKUP.get("uncategorized")!;
 }
 
+export const isVoidSpace = (space: Pick<SpaceCell, "kind">): boolean =>
+  space.kind === "void";
+
 export function getAreaRange(spaces: readonly Pick<SpaceCell, "area">[]): AreaRange {
   if (spaces.length === 0) return { min: 1, max: 1 };
   let min = Infinity;
@@ -254,34 +263,99 @@ export function getCategoryColor(
 }
 
 export function getNucleusColor(
-  space: Pick<SpaceCell, "category" | "privacy" | "area">,
+  space: Pick<SpaceCell, "category" | "privacy" | "area" | "kind">,
   paletteMode: PaletteMode,
   range?: AreaRange,
   nucleusPaletteId?: string
 ): NucleusColor {
+  if (isVoidSpace(space)) {
+    const token = getCategoryToken("Uncategorized");
+    const areaT = areaDepth(space.area, range);
+    return {
+      fill: VOID_FILL,
+      ring: VOID_RING,
+      muted: mixHex(VOID_FILL, "#f4f2e9", 0.28),
+      text: "#f4f2e9",
+      token,
+      areaDepth: areaT,
+    };
+  }
   return getCategoryColor(space.category, space.privacy, space.area, paletteMode, range, nucleusPaletteId);
+}
+
+interface OrganismColorContext {
+  spaces: readonly SpaceCell[];
+  areaRange?: AreaRange;
+  nucleusPaletteId?: string;
+}
+
+const colorAverage = (colors: readonly string[]): string => {
+  if (colors.length === 0) return NEUTRAL;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  for (const color of colors) {
+    const [cr, cg, cb] = hexToRgb(color);
+    r += cr;
+    g += cg;
+    b += cb;
+  }
+  return `#${toHex(r / colors.length)}${toHex(g / colors.length)}${toHex(b / colors.length)}`;
+};
+
+function programAccent(
+  paletteMode: PaletteMode,
+  context?: OrganismColorContext
+): string {
+  if (!context || context.spaces.length === 0) return WINE;
+  const colors = context.spaces
+    .filter((space) => !isVoidSpace(space))
+    .slice(0, 24)
+    .map((space) =>
+      getNucleusColor(space, paletteMode, context.areaRange, context.nucleusPaletteId).fill
+    );
+  return colors.length ? colorAverage(colors) : WINE;
 }
 
 export function getOrganismPalette(
   paletteMode: PaletteMode,
   theme: Theme,
   base?: { bodyHex: string; bgHex: string },
-  organismPaletteId?: string
+  organismPaletteId?: string,
+  context?: OrganismColorContext
 ): OrganismPaletteResult {
   const night = theme === "night";
+  const accentFromProgram = programAccent(paletteMode, context);
 
-  /* V6K — a concrete organism palette overrides the mode-derived colors.
-     Only "ready" (solid) palettes resolve; gradient placeholders fall through. */
+  /* V6L — concrete organism palettes all resolve. Gradient palettes are
+     staged visually through CPU color mixing, not per-nucleus color textures. */
   if (organismPaletteId && organismPaletteId !== ORGANISM_PALETTE_MODE_ID) {
     const choice = getOrganismPaletteChoice(organismPaletteId);
-    if (choice?.ready) {
+    if (choice) {
       const c = night ? choice.night : choice.day;
+      const previewBlend = choice.preview.length > 2 ? choice.preview[choice.preview.length - 1] : choice.accent;
+      const bodyBHex =
+        choice.blend === "solid"
+          ? mixHex(c.body, accentFromProgram, 0.18)
+          : mixHex(previewBlend, accentFromProgram, choice.id === "category-blend" ? 0.52 : 0.26);
+      const blend =
+        choice.blend === "solid"
+          ? 0.18
+          : choice.id === "category-blend"
+            ? 0.66
+            : choice.id === "dual-layer"
+              ? 0.58
+              : 0.48;
       return {
         bodyHex: c.body,
+        bodyBHex,
         groundHex: c.ground,
-        accentHex: choice.accent,
+        accentHex: mixHex(choice.accent, accentFromProgram, choice.id === "category-blend" ? 0.42 : 0.16),
         body: hexToRgb01(c.body),
+        bodyB: hexToRgb01(bodyBHex),
         ground: hexToRgb01(c.ground),
+        accent: hexToRgb01(mixHex(choice.accent, accentFromProgram, choice.id === "category-blend" ? 0.42 : 0.16)),
+        blend,
       };
     }
   }
@@ -312,10 +386,17 @@ export function getOrganismPalette(
         : paletteMode === "auto"
           ? fallback
           : core;
+  const bodyBHex = mixHex(mapped.bodyHex, accentFromProgram, paletteMode === "core" ? 0.12 : 0.26);
+  const accentHex = mixHex(mapped.accentHex, accentFromProgram, paletteMode === "surreal" ? 0.32 : 0.2);
 
   return {
     ...mapped,
+    bodyBHex,
+    accentHex,
     body: hexToRgb01(mapped.bodyHex),
+    bodyB: hexToRgb01(bodyBHex),
     ground: hexToRgb01(mapped.groundHex),
+    accent: hexToRgb01(accentHex),
+    blend: paletteMode === "core" ? 0.14 : 0.28,
   };
 }

@@ -1,8 +1,7 @@
 /* V6K palette widget — the premium color home. Two swatch systems:
    nucleus palettes (curated 10-step family ramps tinting the category
    mapping) and organism palettes (membrane/body + ground sets feeding the
-   shader uniforms; gradient blends stay UI-complete placeholders until the
-   multi-color shader phase). */
+   shader uniforms; V6L enables gradient blends through the two-color path). */
 
 import { useLab } from "../../state/store";
 import {
@@ -118,7 +117,7 @@ export default function PaletteWidget() {
           ))}
         </div>
         <p className="org-attach-hint">
-          Gradient / category blends are staged for the multi-color shader phase.
+          Gradient / category blends use the V6L two-color shader path.
         </p>
       </WidgetSection>
 

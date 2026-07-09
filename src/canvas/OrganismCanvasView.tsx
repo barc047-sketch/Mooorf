@@ -49,7 +49,10 @@ interface SmoothFrame {
   pocketAmount: number;
   dots: number;
   body: RGB;
+  bodyB: RGB;
   bg: RGB;
+  accent: RGB;
+  colorMix: number;
 }
 
 const expK = (response: number, dt: number) => 1 - Math.exp(-Math.max(response, 0.0001) * dt);
@@ -118,7 +121,10 @@ export default function OrganismCanvasView() {
       pocketSoft: 0.45,
       pocketAmount: 1,
       bodyColor: [0, 0, 0],
+      bodyColorB: [0, 0, 0],
       bgColor: [1, 1, 1],
+      accentColor: [0.55, 0.08, 0.14],
+      colorMix: 0,
       nucleusDots: 1,
       fieldDebug: false,
       nucleiDebug: false,
@@ -356,7 +362,12 @@ export default function OrganismCanvasView() {
         settings.paletteMode,
         theme,
         { bodyHex: sc.bodyHex, bgHex: sc.bgHex },
-        settings.organismPaletteId
+        settings.organismPaletteId,
+        {
+          spaces: spaces.slice(0, MAX_NUCLEI),
+          areaRange: getAreaRange(spaces),
+          nucleusPaletteId: settings.nucleusPaletteId,
+        }
       );
       const params = resolved.params;
       const eff = effectiveField(params);
@@ -373,7 +384,10 @@ export default function OrganismCanvasView() {
           pocketAmount: sc.pocketAmount,
           dots: 1,
           body: [palette.body[0], palette.body[1], palette.body[2]],
+          bodyB: [palette.bodyB[0], palette.bodyB[1], palette.bodyB[2]],
           bg: [palette.ground[0], palette.ground[1], palette.ground[2]],
+          accent: [palette.accent[0], palette.accent[1], palette.accent[2]],
+          colorMix: palette.blend,
         };
       }
 
@@ -392,12 +406,18 @@ export default function OrganismCanvasView() {
       let settling = false;
       for (let i = 0; i < 3; i++) {
         smooth.body[i] += (palette.body[i] - smooth.body[i]) * kCol;
+        smooth.bodyB[i] += (palette.bodyB[i] - smooth.bodyB[i]) * kCol;
         smooth.bg[i] += (palette.ground[i] - smooth.bg[i]) * kCol;
+        smooth.accent[i] += (palette.accent[i] - smooth.accent[i]) * kCol;
         settling = settling || Math.abs(palette.body[i] - smooth.body[i]) > 0.002;
+        settling = settling || Math.abs(palette.bodyB[i] - smooth.bodyB[i]) > 0.002;
         settling = settling || Math.abs(palette.ground[i] - smooth.bg[i]) > 0.002;
+        settling = settling || Math.abs(palette.accent[i] - smooth.accent[i]) > 0.002;
       }
+      smooth.colorMix += (palette.blend - smooth.colorMix) * kCol;
       settling =
         settling ||
+        Math.abs(palette.blend - smooth.colorMix) > 0.002 ||
         Math.abs(eff.tension - smooth.tension) > 0.002 ||
         Math.abs(eff.bias - smooth.bias) > 0.002 ||
         Math.abs(params.edgeSoftness - smooth.softness) > 0.002 ||
@@ -439,7 +459,10 @@ export default function OrganismCanvasView() {
       frame.pocketSoft = smooth.pocketSoft;
       frame.pocketAmount = smooth.pocketAmount;
       frame.bodyColor = smooth.body;
+      frame.bodyColorB = smooth.bodyB;
       frame.bgColor = smooth.bg;
+      frame.accentColor = smooth.accent;
+      frame.colorMix = smooth.colorMix;
       frame.nucleusDots = smooth.dots;
       frame.fieldDebug = params.showFieldDebug;
       frame.nucleiDebug = params.showNucleiDebug;
@@ -509,6 +532,7 @@ export default function OrganismCanvasView() {
               className="organism-label-anchor"
               data-nucleus-id={space.id}
               data-category-token={mappedColor.token.id}
+              data-kind={space.kind === "void" ? "void" : "space"}
               data-selected={space.id === selectedId}
               style={labelStyle}
             >

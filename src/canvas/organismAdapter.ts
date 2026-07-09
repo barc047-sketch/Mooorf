@@ -20,6 +20,7 @@ export interface ProductionNucleus {
   color: string;
   category: string;
   privacy: Privacy;
+  kind: "space" | "void";
 }
 
 export interface DragPosition {
@@ -257,6 +258,7 @@ export function spacesToNuclei(
   /* — 3. camera map + idle motion + field offsets — */
   return eff.map(({ space, x, y, r }) => {
     const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId);
+    const isVoid = space.kind === "void";
     let wx = x;
     let wy = y;
     if (hasTransform) {
@@ -308,16 +310,18 @@ export function spacesToNuclei(
       fx,
       fy,
       r: rf,
-      strength:
-        privacyStrength[space.privacy] *
-        (space.id === selectedId ? 1.16 : 1) *
-        opts.nucleusStrength,
+      strength: isVoid
+        ? -0.86 * (space.id === selectedId ? 1.08 : 1) * opts.nucleusStrength
+        : privacyStrength[space.privacy] *
+          (space.id === selectedId ? 1.16 : 1) *
+          opts.nucleusStrength,
       sx: screen.sx,
       sy: screen.sy,
       screenR: rf * halfMin,
       color: mappedColor.fill,
       category: space.category,
       privacy: space.privacy,
+      kind: isVoid ? "void" : "space",
     };
   });
 }

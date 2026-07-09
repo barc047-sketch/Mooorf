@@ -19,7 +19,7 @@ Reference images for this phase live in `assets/references/01`. Use them for str
 The production canvas command structure is:
 
 - **Left rail:** view navigation and widget launchers. It is not a parameter-editing surface.
-- **Bottom dock:** quick creation and quick mode controls. It owns ORG/CLS, style, attachment, reach, add nucleus, void placeholder, saved views placeholder, palette, import/export placeholders, and the widget-panel launcher.
+- **Bottom dock:** quick creation and quick mode controls. It owns ORG/CLS, style, attachment, reach, add nucleus, enabled void nucleus creation, saved views placeholder, palette, import/export placeholders, and the widget-panel launcher.
 - **Widget panel:** detailed settings. The current right-side control surface is the first widget panel and now includes annotation and selection display controls.
 - **Canvas:** direct manipulation of store-owned spaces through select, drag, and future inline edit gestures.
 

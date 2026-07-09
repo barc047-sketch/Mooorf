@@ -105,7 +105,7 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 
 ## V6H.4 layout presets
 - Production layout presets are position-only transforms over existing `SpaceCell` records. They update `x/y` and store the active `settings.layoutPreset`, but they never generate a new program, delete spaces, rewrite table-owned fields, reset the camera, or alter classic fallback/lab route behavior.
-- Void remains disabled/future until production negative/subtractive nuclei are intentionally added.
+- Dedicated Void layout remains disabled/future even after V6L because it is a layout language decision; normal presets preserve void records by spreading existing `SpaceCell` data and only changing `x/y`.
 
 ## V6H.4B quick creation and random layout
 - Random layout is the only intentionally non-deterministic layout option. It remains a position-only transform: `x/y` changes, while ids, names, areas, categories, privacy, colors, table data, and camera are preserved.
@@ -126,6 +126,13 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Widget drag uses the CSS `translate` property so Motion's mount `transform` animation and pointer dragging never fight over one property.
 - Widget frames are near-opaque (bg 86% + surface sheen): stacked widgets must not ghost through each other; translucency stays reserved for the dock/rail glass over the canvas.
 - The nucleus palette family is a *tint* over the category mapping (58% toward the ramp shade at privacy+area depth), not a replacement — category hue identity survives every family.
-- Organism palettes override the shader's body/ground uniforms only when `ready: true`; gradient/category/dual-layer blends stay UI-staged (`ready: false`) until the explicit multi-color shader phase.
+- V6K organism palettes originally used body/ground uniforms only. V6L enables gradient/category/dual-layer palette rows through restrained body A/body B/accent shader uniforms, while true per-nucleus color textures remain deferred.
 - `nucleusPaletteId`/`organismPaletteId`/`annotationDetail`/`showGrid` were added to `SavedCanvasSnapshot` as optional fields so pre-V6K snapshots keep validating and loading.
 - `OrganismControlPanel.tsx` was deleted; dock/widget-shared labels live in `src/ui/controlMeta.ts` so quick switches and detail widgets cannot drift apart.
+
+## V6L multi-color shader and void nuclei
+- `SpaceCell.kind?: "space" | "void"` is optional for backward compatibility; missing kind always behaves as normal additive space data.
+- Void nuclei are store-owned program rows, not renderer-only effects. They can be dragged, edited in the table, saved/loaded, and preserved through layout/random operations.
+- Production void behavior uses negative signed strength in the existing uniform-packed field, with shader contribution clamps for stability.
+- The current render cap is 96 nuclei because the shader still uses uniform arrays. Store/project data is not capped; a future high-density path should use texture/data-buffer nuclei input.
+- V6L prepares layer naming (`outer-membrane`, `nucleus-body`, `inner-core`, `void`, `influence-ring`) but does not add dual-layer editing controls.

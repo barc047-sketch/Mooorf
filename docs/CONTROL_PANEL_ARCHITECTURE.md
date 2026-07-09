@@ -143,7 +143,7 @@ Replacement rule: any panel can be replaced without touching the organism render
 The production command split is now:
 
 - **Left rail:** navigation and widget launchers only. It can expose secondary build shortcuts, but it does not own renderer/style/palette parameters.
-- **Bottom dock:** fast creation and quick mode controls only: renderer toggle, style, attachment, reach, central add nucleus, void placeholder, saved views placeholder, palette, import/export placeholders, and widget settings launcher.
+- **Bottom dock:** fast creation and quick mode controls only: renderer toggle, style, attachment, reach, central add nucleus, enabled void nucleus creation, saved views placeholder, palette, import/export placeholders, and widget settings launcher.
 - **Widget panel:** detailed settings. The existing right-side organism control surface is the first widget panel and now also owns annotation and selection display controls.
 - **Canvas:** direct editing of nuclei through drag/select. Future label/name edits and selected-space popovers should remain canvas interactions backed by the same store.
 

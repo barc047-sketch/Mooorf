@@ -2,6 +2,7 @@
    Noisy diagnostics live here so production surfaces stay calm. */
 
 import { useLab } from "../../state/store";
+import { MAX_NUCLEI } from "../../experiments/organism-lab/organism-types";
 import { SwitchRow, WidgetSection } from "./controls";
 
 export default function AdvancedWidget() {
@@ -19,7 +20,9 @@ export default function AdvancedWidget() {
         </div>
         <div className="org-readout">
           <span>Nuclei</span>
-          <span className="org-readout-val">{spaceCount}</span>
+          <span className="org-readout-val">
+            {spaceCount} <i>/{MAX_NUCLEI} rendered</i>
+          </span>
         </div>
       </WidgetSection>
 
@@ -45,10 +48,10 @@ export default function AdvancedWidget() {
 
       <WidgetSection title="Experimental" hint="staged features">
         <button type="button" className="pal-custom" disabled>
-          Negative / void nuclei — staged
+          Dual-layer organism editing — staged
         </button>
         <button type="button" className="pal-custom" disabled>
-          Multi-category organism blend — staged
+          Per-nucleus color texture — staged
         </button>
       </WidgetSection>
     </>

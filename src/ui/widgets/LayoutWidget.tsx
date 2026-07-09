@@ -1,5 +1,5 @@
 /* V6K layout widget — colony arrangement presets. Safe x/y-only operations
-   on existing spaces; Void stays a disabled future preset. */
+   on existing spaces; void nuclei are preserved as data. */
 
 import { useLab } from "../../state/store";
 import { LAYOUT_PRESETS, VOID_LAYOUT_PRESET } from "../../canvas/layoutPresets";

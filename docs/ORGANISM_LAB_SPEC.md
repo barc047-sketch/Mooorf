@@ -135,7 +135,7 @@ the active preset.
 
 ## Limits / notes
 
-- `MAX_NUCLEI = 48` (uniform array size); count slider caps at 24. DPR ≤ 2.
+- `MAX_NUCLEI = 96` (uniform array render cap); count slider caps at 24. DPR ≤ 2.
 - Fragment cost is O(pixels × count) — fine for a lab; V6F can add a bounding
   quad or tile culling if needed at canvas scale.
 - WebGL context loss is handled (rebuild on restore).

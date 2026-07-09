@@ -3,7 +3,7 @@
    main canvas/table app. Field units: the shorter viewport axis spans [-1, 1],
    origin centered, y up (matches gl_FragCoord math in the shader). */
 
-export const MAX_NUCLEI = 48;
+export const MAX_NUCLEI = 96;
 
 export type OrganismStyleId =
   | "cellular-reverse"

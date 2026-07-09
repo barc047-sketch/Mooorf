@@ -22,7 +22,8 @@ Open (minor, deferred):
 - favicon 404 has been observed as non-breaking
 - high-density labels are crowded at 60+ spaces; label-density/inspector design is deferred to the production UI phase, not a stabilization blocker
 - forced WebGL context-loss simulation was not run in V6G; shared renderer context lost/restored handlers were inspected and organism/classic unmount/remount was verified
-- V6H.4 Void layout preset is intentionally disabled/future until production negative/subtractive nuclei are explicitly built; current layout presets are position-only
+- V6L: negative/subtractive void nuclei are now built; the dedicated Void layout preset remains disabled because a subtractive arrangement language is still separate from position-only layout presets
 - V6H.4B temporary headless Chrome QA displayed the existing WebGL2 fallback; normal in-app/local preview remains the preferred surface for visual organism rendering checks
-- V6I per-nucleus WebGL shader colors are deferred; current color mapping is visible through labels/rings/table swatches/classic fallback plus global organism palette uniforms
+- V6L: multi-color organism blending is active through body A/body B/accent uniforms; true per-nucleus color textures/data buffers remain deferred
 - V6J saved views are local-only design iterations, persisted in guarded localStorage with a 20-snapshot cap; cloud/team sharing/export remains deferred
+- Current WebGL render cap is 96 nuclei; data storage remains unlimited. Future high-density path should move nuclei input from uniform arrays to a texture/data-buffer strategy.

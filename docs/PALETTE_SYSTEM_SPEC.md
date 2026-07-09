@@ -162,8 +162,18 @@ Current taxonomy:
 - Uncategorized / unknown -> neutral grey.
 
 Deferred:
-- Per-nucleus WebGL shader colors and multi-color organism gradients are deferred to V6K or a later explicit shader phase. The current shader exposes global body/ground uniforms only.
+- True per-nucleus WebGL shader colors remain deferred to a texture/data-buffer phase. V6L adds restrained multi-color organism gradients through body A/body B/accent uniforms and CPU category/privacy/area color mixing.
 - Category color does not rewrite `SpaceCell.color`; colors are derived from category/privacy/area/palette at render time.
+
+## V6L Shader Color Mixing
+
+V6L keeps the palette system architectural rather than decorative:
+
+- Solid organism palettes still resolve body/ground/accent values.
+- Atmospheric Blend, Category Blend, and Dual Layer are now selectable and feed the two-color shader blend path.
+- Category/privacy/area colors are sampled on the CPU from visible non-void nuclei, averaged conservatively, then mixed into `bodyB` and `accent`.
+- Void nuclei use a stable subtractive color identity: hollow/dashed black/red in UI and negative signed field strength in WebGL.
+- No per-nucleus color texture exists yet; full region-level category coloration remains future work.
 
 ## Gradient Rules
 

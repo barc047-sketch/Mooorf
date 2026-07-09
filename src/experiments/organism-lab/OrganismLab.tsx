@@ -64,7 +64,10 @@ interface SmoothState {
   pocketAmount: number;
   dots: number;
   body: RGB;
+  bodyB: RGB;
   bg: RGB;
+  accent: RGB;
+  colorMix: number;
 }
 
 function presetParams(p: OrganismPreset): OrganismParams {
@@ -162,7 +165,10 @@ export default function OrganismLab() {
       pocketSoft: 0.9,
       pocketAmount: 1,
       bodyColor: [0, 0, 0],
+      bodyColorB: [0, 0, 0],
       bgColor: [1, 1, 1],
+      accentColor: [0.55, 0.08, 0.14],
+      colorMix: 0,
       nucleusDots: 1,
       fieldDebug: false,
       nucleiDebug: false,
@@ -209,7 +215,10 @@ export default function OrganismLab() {
           pocketAmount: sc.pocketAmount,
           dots: p.showNuclei ? 1 : 0,
           body: [sc.body[0], sc.body[1], sc.body[2]],
+          bodyB: [sc.body[0], sc.body[1], sc.body[2]],
           bg: [sc.bg[0], sc.bg[1], sc.bg[2]],
+          accent: [0.55, 0.08, 0.14],
+          colorMix: 0,
         };
       }
       const kNum = expK(10, dt); /* sliders feel live */
@@ -225,8 +234,10 @@ export default function OrganismLab() {
       smooth.dots += ((p.showNuclei ? 1 : 0) - smooth.dots) * kCol;
       for (let i = 0; i < 3; i++) {
         smooth.body[i] += (sc.body[i] - smooth.body[i]) * kCol;
+        smooth.bodyB[i] += (sc.body[i] - smooth.bodyB[i]) * kCol;
         smooth.bg[i] += (sc.bg[i] - smooth.bg[i]) * kCol;
       }
+      smooth.colorMix += (0 - smooth.colorMix) * kCol;
 
       frame.mass = smooth.mass;
       frame.iso = smooth.iso;
@@ -238,7 +249,10 @@ export default function OrganismLab() {
       frame.pocketAmount = smooth.pocketAmount;
       frame.nucleusDots = smooth.dots;
       frame.bodyColor = smooth.body;
+      frame.bodyColorB = smooth.bodyB;
       frame.bgColor = smooth.bg;
+      frame.accentColor = smooth.accent;
+      frame.colorMix = smooth.colorMix;
       frame.fieldDebug = p.showFieldDebug;
       frame.nucleiDebug = p.showNucleiDebug;
 

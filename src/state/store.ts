@@ -12,6 +12,7 @@ import type {
   SavedCanvasSnapshot,
   SelectionDisplay,
   SpaceCell,
+  SpaceKind,
   Theme,
   ViewMode,
   WidgetId,
@@ -85,6 +86,7 @@ interface LabState {
   resetView: () => void;
 
   addSpace: (partial?: Partial<SpaceCell>) => void;
+  addVoid: () => void;
   addSpaces: (count: number) => void;
   addDemo: (n?: number) => void;
   updateSpace: (id: string, patch: Partial<SpaceCell>) => void;
@@ -98,7 +100,13 @@ interface LabState {
   duplicateSavedView: (id: string) => string | null;
 }
 
-const cloneSpace = (space: SpaceCell): SpaceCell => ({ ...space });
+const normalizeSpaceKind = (kind: unknown): SpaceKind =>
+  kind === "void" ? "void" : "space";
+
+const cloneSpace = (space: SpaceCell): SpaceCell => ({
+  ...space,
+  kind: normalizeSpaceKind(space.kind),
+});
 const cloneCamera = (camera: Camera): Camera => ({ ...camera });
 const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...organism });
 
@@ -124,6 +132,7 @@ const validSpace = (value: unknown): value is SpaceCell =>
   isRecord(value) &&
   typeof value.id === "string" &&
   typeof value.name === "string" &&
+  (value.kind === undefined || value.kind === "space" || value.kind === "void") &&
   typeof value.area === "number" &&
   typeof value.category === "string" &&
   (value.privacy === "public" || value.privacy === "shared" || value.privacy === "private") &&
@@ -205,12 +214,14 @@ const makeSnapshot = (
 
 const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
   const p = scatterPoint(i);
+  const kind = normalizeSpaceKind(partial?.kind);
   return {
     id: uid(),
-    name: "New Space",
-    area: 20,
-    category: "Uncategorized",
-    privacy: "public",
+    name: kind === "void" ? "Void Nucleus" : "New Space",
+    kind,
+    area: kind === "void" ? 36 : 20,
+    category: kind === "void" ? "Void" : "Uncategorized",
+    privacy: kind === "void" ? "shared" : "public",
     color: CELL_PALETTE[i % CELL_PALETTE.length],
     x: p.x,
     y: p.y,
@@ -314,6 +325,19 @@ export const useLab = create<LabState>((set) => ({
   addSpace: (partial) =>
     set((s) => {
       const cell = makeCell(s.spaces.length, partial);
+      return {
+        spaces: [...s.spaces, cell],
+        selectedId: cell.id,
+      };
+    }),
+
+  addVoid: () =>
+    set((s) => {
+      const cell = makeCell(s.spaces.length, {
+        kind: "void",
+        x: s.camera.x,
+        y: s.camera.y,
+      });
       return {
         spaces: [...s.spaces, cell],
         selectedId: cell.id,
