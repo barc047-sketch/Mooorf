@@ -102,9 +102,14 @@ export interface SavedCanvasSnapshot {
   spaces: SpaceCell[];
   camera: Camera;
   rendererMode: RendererMode;
+  morphMode: MorphMode;
+  attachMode: AttachMode;
+  mergeDistance: number;
+  blobOn: boolean;
   paletteMode: PaletteMode;
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
+  selectionDisplay: SelectionDisplay;
   organism: OrganismSettings;
   theme: Theme;
 }

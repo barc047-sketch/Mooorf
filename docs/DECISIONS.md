@@ -115,3 +115,8 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Category/privacy/area colors are derived at render time by `src/design/colorMapping.ts`; they do not mutate `SpaceCell.color` or product data.
 - V6I maps per-space colors into labels, rings, table swatches, and the classic fallback, while the WebGL organism shader remains global body/ground color only.
 - Per-nucleus shader gradients and multi-color organism fields are deferred to V6K or a later explicit shader phase.
+
+## V6J saved views
+- Saved views are architecture design iterations, not browser bookmarks. They snapshot store-owned canvas state: spaces, camera, theme, renderer mode, palette, layout, annotation, organism settings, morph style, attachment, reach, blob, and selection display.
+- Saved views persist locally under `mooorf.savedViews.v1` with a 20-snapshot cap. Loading a snapshot replaces canvas state safely, clears selection, and restamps `born` values for smooth organism pop-in.
+- Saved views are intentionally local-only for now. Cloud sharing, export, backend storage, and project-file serialization remain deferred.

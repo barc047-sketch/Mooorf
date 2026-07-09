@@ -9,6 +9,7 @@ import type {
   OrgPanelFocus,
   PaletteMode,
   RendererMode,
+  SavedCanvasSnapshot,
   SelectionDisplay,
   SpaceCell,
   Theme,
@@ -23,6 +24,8 @@ import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPreset
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
 const TAU = Math.PI * 2;
+const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
+export const SAVED_VIEWS_LIMIT = 20;
 
 export interface LabSettings {
   mergeDistance: number; // 0–300 — fine-tunes membrane reach within the attachment preset
@@ -45,6 +48,7 @@ interface LabState {
   settings: LabSettings;
   selectedId: string | null;
   camera: Camera;
+  savedViews: SavedCanvasSnapshot[];
   orgPanelOpen: boolean;
   orgPanelFocus: OrgPanelFocus;
 
@@ -67,7 +71,113 @@ interface LabState {
   moveSpace: (id: string, x: number, y: number) => void;
   removeSpace: (id: string) => void;
   applyLayoutPreset: (presetId: LayoutPresetId) => void;
+  saveCurrentView: (name?: string) => string | null;
+  loadSavedView: (id: string) => void;
+  renameSavedView: (id: string, name: string) => void;
+  deleteSavedView: (id: string) => void;
+  duplicateSavedView: (id: string) => string | null;
 }
+
+const cloneSpace = (space: SpaceCell): SpaceCell => ({ ...space });
+const cloneCamera = (camera: Camera): Camera => ({ ...camera });
+const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...organism });
+
+const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
+  ...snapshot,
+  spaces: snapshot.spaces.map(cloneSpace),
+  camera: cloneCamera(snapshot.camera),
+  organism: cloneOrganism(snapshot.organism),
+});
+
+const safeStorage = () => {
+  try {
+    return typeof window !== "undefined" ? window.localStorage : null;
+  } catch {
+    return null;
+  }
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const validSpace = (value: unknown): value is SpaceCell =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.name === "string" &&
+  typeof value.area === "number" &&
+  typeof value.category === "string" &&
+  (value.privacy === "public" || value.privacy === "shared" || value.privacy === "private") &&
+  typeof value.color === "string" &&
+  typeof value.x === "number" &&
+  typeof value.y === "number";
+
+const validSnapshot = (value: unknown): value is SavedCanvasSnapshot =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.name === "string" &&
+  typeof value.createdAt === "number" &&
+  Array.isArray(value.spaces) &&
+  value.spaces.every(validSpace) &&
+  isRecord(value.camera) &&
+  typeof value.camera.x === "number" &&
+  typeof value.camera.y === "number" &&
+  typeof value.camera.zoom === "number" &&
+  (value.theme === "day" || value.theme === "night") &&
+  (value.rendererMode === "organism" || value.rendererMode === "classic") &&
+  (value.paletteMode === "core" ||
+    value.paletteMode === "surreal" ||
+    value.paletteMode === "architecture" ||
+    value.paletteMode === "auto") &&
+  isRecord(value.organism);
+
+const loadSavedViews = (): SavedCanvasSnapshot[] => {
+  const storage = safeStorage();
+  if (!storage) return [];
+  try {
+    const parsed = JSON.parse(storage.getItem(SAVED_VIEWS_KEY) ?? "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(validSnapshot).slice(0, SAVED_VIEWS_LIMIT).map(cloneSnapshot);
+  } catch {
+    return [];
+  }
+};
+
+const persistSavedViews = (views: SavedCanvasSnapshot[]) => {
+  const storage = safeStorage();
+  if (!storage) return;
+  try {
+    storage.setItem(SAVED_VIEWS_KEY, JSON.stringify(views.slice(0, SAVED_VIEWS_LIMIT)));
+  } catch {
+    // Persistence is best-effort; in-memory saved views still work.
+  }
+};
+
+const snapshotId = () => `sv_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
+
+const defaultSnapshotName = (views: SavedCanvasSnapshot[]) =>
+  `Iteration ${String(views.length + 1).padStart(2, "0")}`;
+
+const makeSnapshot = (
+  state: Pick<LabState, "spaces" | "camera" | "settings" | "theme" | "savedViews">,
+  name?: string
+): SavedCanvasSnapshot => ({
+  id: snapshotId(),
+  name: name?.trim() || defaultSnapshotName(state.savedViews),
+  createdAt: Date.now(),
+  spaces: state.spaces.map(cloneSpace),
+  camera: cloneCamera(state.camera),
+  rendererMode: state.settings.rendererMode,
+  morphMode: state.settings.morphMode,
+  attachMode: state.settings.attachMode,
+  mergeDistance: state.settings.mergeDistance,
+  blobOn: state.settings.blobOn,
+  paletteMode: state.settings.paletteMode,
+  layoutPreset: state.settings.layoutPreset,
+  annotationMode: state.settings.annotationMode,
+  selectionDisplay: state.settings.selectionDisplay,
+  organism: cloneOrganism(state.settings.organism),
+  theme: state.theme,
+});
 
 const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
   const p = scatterPoint(i);
@@ -104,6 +214,7 @@ export const useLab = create<LabState>((set) => ({
   },
   selectedId: null,
   camera: { x: 0, y: 0, zoom: 1 },
+  savedViews: loadSavedViews(),
   orgPanelOpen: false,
   orgPanelFocus: null,
 
@@ -215,6 +326,85 @@ export const useLab = create<LabState>((set) => ({
         ? s.selectedId
         : null,
     })),
+
+  saveCurrentView: (name) => {
+    let id: string | null = null;
+    set((s) => {
+      const snapshot = makeSnapshot(s, name);
+      id = snapshot.id;
+      const savedViews = [snapshot, ...s.savedViews].slice(0, SAVED_VIEWS_LIMIT);
+      persistSavedViews(savedViews);
+      return { savedViews };
+    });
+    return id;
+  },
+
+  loadSavedView: (id) =>
+    set((s) => {
+      const snapshot = s.savedViews.find((view) => view.id === id);
+      if (!snapshot) return {};
+      const now = Date.now();
+      const spaces = snapshot.spaces.map((space, index) => ({
+        ...cloneSpace(space),
+        born: now + index * 24,
+      }));
+      return {
+        theme: snapshot.theme,
+        spaces,
+        camera: cloneCamera(snapshot.camera),
+        selectedId: null,
+        settings: {
+          ...s.settings,
+          blobOn: snapshot.blobOn ?? s.settings.blobOn,
+          mergeDistance: snapshot.mergeDistance ?? s.settings.mergeDistance,
+          morphMode: snapshot.morphMode ?? s.settings.morphMode,
+          attachMode: snapshot.attachMode ?? s.settings.attachMode,
+          paletteMode: snapshot.paletteMode,
+          layoutPreset: snapshot.layoutPreset,
+          annotationMode: snapshot.annotationMode,
+          selectionDisplay: snapshot.selectionDisplay ?? s.settings.selectionDisplay,
+          rendererMode: snapshot.rendererMode,
+          organism: { ...DEFAULT_ORGANISM_SETTINGS, ...cloneOrganism(snapshot.organism) },
+        },
+      };
+    }),
+
+  renameSavedView: (id, name) =>
+    set((s) => {
+      const trimmed = name.trim();
+      if (!trimmed) return {};
+      const savedViews = s.savedViews.map((view) =>
+        view.id === id ? { ...view, name: trimmed } : view
+      );
+      persistSavedViews(savedViews);
+      return { savedViews };
+    }),
+
+  deleteSavedView: (id) =>
+    set((s) => {
+      const savedViews = s.savedViews.filter((view) => view.id !== id);
+      persistSavedViews(savedViews);
+      return { savedViews };
+    }),
+
+  duplicateSavedView: (id) => {
+    let newId: string | null = null;
+    set((s) => {
+      const snapshot = s.savedViews.find((view) => view.id === id);
+      if (!snapshot) return {};
+      const duplicate: SavedCanvasSnapshot = {
+        ...cloneSnapshot(snapshot),
+        id: snapshotId(),
+        name: `${snapshot.name} Copy`,
+        createdAt: Date.now(),
+      };
+      newId = duplicate.id;
+      const savedViews = [duplicate, ...s.savedViews].slice(0, SAVED_VIEWS_LIMIT);
+      persistSavedViews(savedViews);
+      return { savedViews };
+    });
+    return newId;
+  },
 }));
 
 // Dev-only handle for Playwright/preview QA.

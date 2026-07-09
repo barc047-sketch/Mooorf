@@ -4,12 +4,17 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6J saved views or the next explicit phase
+- V6K multi-layer nucleus / void shader or V6.5 selection arc, depending explicit choice
 - Keep V6I palette mapping stable; do not start per-nucleus shader gradients unless explicitly requested
 - Keep Phase 6.5 selection arc and V7 floating widgets parked
 
 ## Workflow Complete
 
+- V6J Saved Views / Design Iterations
+- Dock Saved Views utility now opens compact iteration panel
+- Snapshots preserve spaces, camera, theme, renderer, palette, layout, annotation, organism settings, morph/attachment/reach/blob/selection display
+- Load, rename, duplicate, delete, localStorage persistence, table sync, fallback, lab route, and 390 px fit checked
+- Build passed with known chunk warning
 - V6I Palette + Category / Privacy Mapping
 - Semantic color resolver added for category/privacy/area/palette mode
 - Palette mode now affects organism global body/ground colors

@@ -429,9 +429,19 @@
 - [x] per-nucleus WebGL shader gradients deferred to V6K or later explicit shader phase
 - [x] next is V6J saved views or the next explicit phase
 
-## V6J — Saved Views  ⏳ LATER CANDIDATE
-- [ ] use existing saved-view snapshot type only when explicitly requested
-- [ ] do not start during palette/category mapping unless prompted
+## V6J — Saved Views / Design Iterations  ✅ COMPLETE
+- [x] saved canvas iterations implemented from the existing `SavedCanvasSnapshot` concept
+- [x] store actions added: `saveCurrentView`, `loadSavedView`, `renameSavedView`, `deleteSavedView`, `duplicateSavedView`
+- [x] snapshots deep-copy spaces and camera
+- [x] snapshots preserve theme, renderer mode, palette mode, layout preset, annotation mode, organism settings, morph style, attachment mode, reach, blob, and selection display
+- [x] loading a saved view safely replaces spaces/camera/settings, clears selection, and restamps `born` values for smooth nucleus pop-in
+- [x] compact Saved Views dock panel added with Save Current, timestamp, metadata, Load, Rename, Duplicate, and Delete
+- [x] localStorage persistence added under `mooorf.savedViews.v1`
+- [x] saved views capped at 20 and guarded against JSON/storage failures
+- [x] table sync after loading checked
+- [x] Add 5, Random, annotation modes, ORG/CLS fallback, 390 px layout, and lab route checked
+- [x] build passed with known chunk warning (~663.07 kB)
+- [x] next is V6K multi-layer nucleus / void shader or V6.5 selection arc by explicit choice
 
 ## Phase 6.5 — Selection Arc
 - [ ] implement only from approved visual/system docs

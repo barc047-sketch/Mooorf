@@ -26,6 +26,7 @@ import {
   MORPH_DESCRIPTIONS,
   PALETTE_DESCRIPTIONS,
 } from "./OrganismControlPanel";
+import SavedViewsPanel from "./SavedViewsPanel";
 import "./shell.css";
 
 const MAIN_MORPHS = [
@@ -84,7 +85,7 @@ const PALETTE_LABELS: Record<PaletteMode, string> = {
   auto: "Auto",
 };
 
-type PanelId = "style" | "attach" | "palette" | null;
+type PanelId = "style" | "attach" | "palette" | "saved" | null;
 type PopAlign = "left" | "center" | "right";
 
 interface DockButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -414,14 +415,27 @@ export default function Dock() {
               </DockButton>
             </div>
 
-            <DockButton
-              className="dock-placeholder"
-              title="Saved views placeholder"
-              aria-label="Saved views placeholder"
-              data-placeholder="true"
-            >
-              <Bookmark size={16} strokeWidth={1.5} />
-            </DockButton>
+            <div className="dock-pop-anchor">
+              <DockPopover
+                open={panel === "saved"}
+                label="Saved views"
+                align="right"
+                className="dock-pop-saved"
+              >
+                <SavedViewsPanel />
+              </DockPopover>
+              <DockButton
+                className="dock-mode-btn saved-views-btn"
+                active={panel === "saved"}
+                title="Saved views"
+                aria-label="Saved views"
+                aria-haspopup="dialog"
+                aria-expanded={panel === "saved"}
+                onClick={() => togglePanel("saved")}
+              >
+                <Bookmark size={16} strokeWidth={1.5} />
+              </DockButton>
+            </div>
             <DockButton
               className="dock-placeholder"
               title="Import placeholder"

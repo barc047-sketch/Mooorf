@@ -20,9 +20,10 @@ Complete:
 - V6H.4 Layout Presets / Colony Arrangement
 - V6H.4B Quick Add Cluster + Random Arrangement
 - V6I Palette + Category / Privacy Mapping
+- V6J Saved Views / Design Iterations
 
 Next:
-- V6J saved views or the next explicit phase
+- V6K multi-layer nucleus / void shader or V6.5 selection arc, depending explicit choice
 
 Not started:
 - Phase 6.5 Selection Arc
@@ -47,6 +48,8 @@ V6H.4 added production layout presets in the Organism Control Surface panel: Org
 V6H.4B added a Random arrangement chip to the Layout panel and a five-dot circular dock button beside `+ NUCLEUS`. Random is a fresh non-deterministic organic spread that updates positions only. The cluster button creates 5 neutral store-owned spaces around the current camera center without demo data or camera reset. Table sync, fallback, mobile dock fit, and lab route were checked; build green with the known chunk warning.
 
 V6I added production palette/category mapping. `src/design/colorMapping.ts` derives restrained architectural colors from category, privacy, area, and palette mode. Palette mode now affects the WebGL organism's global body/ground colors; labels/rings, classic fallback cells, and table swatches use mapped per-space colors. The shader still has global body/ground uniforms only, so per-nucleus WebGL gradients are deferred. Add-5, Random, table sync, fallback, 390 px fit, and lab route were checked; build green with the known chunk warning.
+
+V6J added Saved Views / Design Iterations. The dock Saved Views utility now opens a compact iteration panel with Save Current, Load, Rename, Duplicate, and Delete. Snapshots deep-copy spaces/camera and preserve theme, renderer mode, palette, layout, annotation, organism settings, morph style, attachment mode, reach, blob, and selection display. Saved views persist locally under `mooorf.savedViews.v1`, capped at 20, with guarded JSON/storage handling. Loading clears selection, restamps `born` values for smooth pop-in, and preserves table sync. Build and preview QA passed with the known chunk warning.
 
 ## Workflow
 
