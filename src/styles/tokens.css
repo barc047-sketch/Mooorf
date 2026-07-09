@@ -28,12 +28,13 @@
   --r-card: 9px;
   --r-pill: 100px;
 
-  /* Accent (constant across themes) */
+  /* Product color (content/palette only after V6N, not general UI chrome) */
   --zonuert-red: #c31616;
   --zonuert-red-deep: #8f1111;
 
-  /* Glass */
-  --glass-blur: 14px;
+  /* Editorial glass/chrome */
+  --glass-blur: 18px;
+  --glass-saturate: 142%;
 
   /* V6K premium layering */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -54,9 +55,15 @@
   --ink: #222222;
   --fog: #a1a19c;
   --hairline: rgba(34, 34, 34, 0.16);
-  --accent: var(--zonuert-red);
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-border: rgba(34, 34, 34, 0.14);
+  --chrome-accent: #777166;
+  --chrome-accent-soft: #b8b0a3;
+  --chrome-accent-deep: #2b2a28;
+  --accent: var(--chrome-accent);
+  --glass-bg: rgba(255, 255, 255, 0.48);
+  --glass-panel: color-mix(in srgb, var(--bg) 68%, var(--surface));
+  --glass-panel-strong: color-mix(in srgb, var(--bg) 82%, var(--surface));
+  --glass-border: rgba(34, 34, 34, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.74);
   color-scheme: light;
 }
 
@@ -67,9 +74,15 @@
   --ink: #ededea;
   --fog: #9a9a94;
   --hairline: rgba(237, 237, 234, 0.14);
-  --accent: var(--zonuert-red);
-  --glass-bg: rgba(22, 22, 22, 0.55);
-  --glass-border: rgba(237, 237, 234, 0.12);
+  --chrome-accent: #c6beb0;
+  --chrome-accent-soft: #726d64;
+  --chrome-accent-deep: #111111;
+  --accent: var(--chrome-accent);
+  --glass-bg: rgba(18, 18, 18, 0.44);
+  --glass-panel: color-mix(in srgb, var(--bg) 74%, var(--surface));
+  --glass-panel-strong: color-mix(in srgb, var(--bg) 88%, var(--surface));
+  --glass-border: rgba(237, 237, 234, 0.11);
+  --glass-highlight: rgba(255, 255, 255, 0.11);
   color-scheme: dark;
 }
 

@@ -20,7 +20,7 @@ import {
   MORPHS,
   SELECTIONS,
 } from "../controlMeta";
-import { ChipRow, ChoiceRow, MiniSwitch, SliderRow, WidgetSection } from "./controls";
+import { ChipRow, ChoiceRow, MiniSwitch, SliderRow, SwitchRow, WidgetSection } from "./controls";
 
 export default function OrganismWidget() {
   const organism = useLab((s) => s.settings.organism);
@@ -103,6 +103,11 @@ export default function OrganismWidget() {
       </WidgetSection>
 
       <WidgetSection title="Field" hint="body + smoothing">
+        <SwitchRow
+          label="Camera-aware morph"
+          on={organism.cameraAwareMorph}
+          onToggle={() => setOrganism({ cameraAwareMorph: !organism.cameraAwareMorph })}
+        />
         {sections.organism.sliders.map((def) => (
           <SliderRow
             key={def.key}

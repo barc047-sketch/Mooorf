@@ -91,7 +91,7 @@
   line-height: 0.9;
   letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
-  color: var(--zonuert-red);
+  color: var(--chrome-accent);
 }
 
 .loader-enter {
@@ -101,7 +101,7 @@
   font: inherit;
   font-size: var(--text-body);
   letter-spacing: var(--track-tight);
-  color: var(--zonuert-red);
+  color: var(--chrome-accent);
   background: none;
   border: none;
   text-decoration: underline;
@@ -112,7 +112,7 @@
 }
 
 .loader-enter:hover {
-  color: var(--zonuert-red-deep);
+  color: var(--chrome-accent-deep);
 }
 
 .loader-status {

@@ -7,8 +7,22 @@
 - [x] V6M.1 Ponytail Enforcement Patch
 - [x] V6LQ Shader / Void QA
 - [x] V6.5 Selection Arc + Canvas Rename
-- [ ] V6N Interface Density / Design Refinement
-- [ ] V7 Floating Widgets / later widget expansion
+- [x] V6N Interface Density / Editorial Glass Refinement
+- [ ] V7 Stats / Floating Widgets / later widget expansion
+
+## V6N — Interface Density / Editorial Glass Refinement  ✅ COMPLETE
+- [x] neutral smoke/ink/stone chrome replaces red rail/dock/widget/slider/chip/selection accents
+- [x] shared glass/chrome tokens added in `src/styles/tokens.css`
+- [x] dock/rail/widget density tightened without redesigning command ownership
+- [x] widget glass and palette/saved-view surfaces refined through existing CSS/classes
+- [x] selection arc redesigned smaller and calmer in the existing organism label overlay
+- [x] void selection keeps hollow/subtractive language without red/dashed chaos
+- [x] label text shadow toggle added to Annotation via existing `annotationDetail`
+- [x] camera-aware morph toggle added to Organism via existing `organism` settings
+- [x] saved views preserve both toggles through existing snapshot paths
+- [x] classic fallback selection tick moved to neutral chrome
+- [x] docs/V6N_GLASS_EDITORIAL_DIRECTION.md added
+- [x] build passes with known chunk warning
 
 ## V6.5 — Selection Arc + Canvas Rename  ✅ COMPLETE
 - [x] selected organism nuclei show compact editorial selection arc

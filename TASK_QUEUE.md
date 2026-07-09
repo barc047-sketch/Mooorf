@@ -4,7 +4,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V6N Interface Density / Design Refinement by explicit choice
+- V7 stats/widgets or another explicit phase
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Keep V7 floating widgets parked
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
@@ -12,6 +12,12 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V6N Interface Density / Editorial Glass Refinement
+- Neutral smoke/ink/stone chrome replaces red rail/dock/widget/slider/chip/selection accents
+- Shared glass tokens added; widgets, popovers, saved/palette surfaces, canvas edit popovers refined
+- Selection arc redesigned smaller and calmer in the existing organism overlay
+- Annotation Text shadow toggle and Organism Camera-aware morph toggle added and saved-view persisted
+- Classic fallback selection tick neutralized; build passed with known chunk warning
 - V6.5 Selection Arc + Canvas Rename
 - Selected nuclei show a compact premium arc, handle dots, and metadata
 - Canvas rename and area edit commit through existing `updateSpace`

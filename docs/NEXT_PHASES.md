@@ -4,15 +4,14 @@ Purpose: living roadmap after V6L/V6M.
 
 ## Current Order
 
-1. V6LQ Shader / Void QA
-2. V6.5 Selection Arc + Canvas Rename
-3. V6N Interface Density / Design Refinement
-4. V7 Stats Widgets
-5. V8 Export / Import Polish
-6. V9 Floor System
-7. V10 Performance Scaling / Texture-Buffer Renderer
+1. V7 Stats Widgets
+2. V8 Export / Import Polish
+3. V9 Floor System
+4. V10 Performance Scaling / Texture-Buffer Renderer
 
 ## V6LQ — Shader / Void QA
+
+Status: complete.
 
 Why: V6L touched shader behavior, saved-view data, table rows, and fallback rendering. It needs focused stabilization before direct canvas editing.
 
@@ -22,6 +21,8 @@ Do not use Claude unless visual design direction changes, which this phase shoul
 
 ## V6.5 — Selection Arc + Canvas Rename
 
+Status: complete.
+
 Why: users need direct manipulation around selected nuclei: rename, area adjustment, focused actions, and refined selection affordances.
 
 Codex only: yes for implementation and QA. Keep the arc restrained and use existing store actions.
@@ -29,6 +30,8 @@ Codex only: yes for implementation and QA. Keep the arc restrained and use exist
 Claude currently not used. Use Claude only if a new visual concept is requested.
 
 ## V6N — Interface Density / Design Refinement
+
+Status: complete. See `docs/V6N_GLASS_EDITORIAL_DIRECTION.md`.
 
 Why: the premium UI is functional but needs a density pass after shader/selection stabilize, especially widgets, 390 px layout, high-density labels, and dock/rail balance.
 

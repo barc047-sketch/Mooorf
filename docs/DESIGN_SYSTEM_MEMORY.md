@@ -14,9 +14,9 @@ Purpose: stable aesthetic memory for future UI work.
 
 - Soft glass over the canvas.
 - Precise ink typography.
-- Cream, graphite, fog, black, bone, oxblood/red.
+- Cream, graphite, fog, black, bone, pearl, and warm stone for UI chrome.
 - Subtle gradients only where they communicate emphasis, state, or organism material.
-- Red/wine remains identity and active emphasis.
+- Red/wine remains product/palette material only; V6N removes red from general UI chrome.
 - Muted spectral accents are allowed inside palette/organism moments, not random chrome.
 
 ## Interaction Language
@@ -46,10 +46,12 @@ Purpose: stable aesthetic memory for future UI work.
 - Duplicate controls across rail/dock/widgets.
 - Decorative gradients that compete with program data.
 - Red halo spam for ordinary selection.
+- Red chrome on rail buttons, dock groups, widget headers, sliders, chips, panel accents, or selection arcs.
 
 ## Current Anchors
 
 - `docs/DESIGN_UI_UPGRADE_V6K.md` for premium widget system.
+- `docs/V6N_GLASS_EDITORIAL_DIRECTION.md` for neutral glass chrome and density rules.
 - `docs/PALETTE_SYSTEM_SPEC.md` for palette intent.
 - `docs/PRODUCTION_CANVAS_UI_SYSTEM.md` for shell/control architecture.
 - `assets/references/01` for mood/structure references only.

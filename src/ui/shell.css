@@ -1,10 +1,15 @@
 /* Edge shell — glass/ink controls at viewport edges. Center stays calm. */
 
 .glass {
-  background: var(--glass-bg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 44%, transparent), transparent 48%),
+    color-mix(in srgb, var(--glass-bg) 86%, transparent);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow:
+    0 24px 54px -34px rgba(0, 0, 0, 0.54),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
 }
 
 /* Top-center canvas/table pill */
@@ -41,13 +46,13 @@
 .view-toggle .thumb {
   position: absolute;
   inset: 0;
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
   border: 1px solid var(--hairline);
   border-radius: var(--r-pill);
   z-index: -1;
 }
 
-/* Bottom-center dock — V6K: tighter scale, layered premium depth */
+/* Bottom-center dock — slim editorial glass, quick actions only */
 .dock {
   position: absolute;
   bottom: var(--sp-24);
@@ -56,24 +61,26 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 16px;
+  gap: 3px;
+  padding: 2px;
+  border-radius: 15px;
   max-width: calc(100vw - 18px);
   box-shadow:
-    var(--shadow-float),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 42%, transparent);
+    0 26px 58px -34px rgba(0, 0, 0, 0.58),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 46%, transparent);
 }
 
 .dock-group {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
   padding: 2px;
-  border-radius: 13px;
-  background: color-mix(in srgb, var(--surface) 56%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 62%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--glass-panel) 66%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--hairline) 54%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
 }
 
 /* expand animation on mount — CSS-only so popover AnimatePresence stays
@@ -81,7 +88,7 @@
 .dock-group-items {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
   animation: dock-items-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -135,7 +142,7 @@
   color: var(--ink);
   background: none;
   border: none;
-  border-radius: 10px;
+  border-radius: 9px;
   cursor: pointer;
   transition:
     color 180ms ease,
@@ -148,14 +155,14 @@
 .dock-btn:hover,
 .zoom-btn:hover {
   color: var(--accent);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 76%, transparent);
   transform: translateY(-1.5px);
   box-shadow: 0 6px 14px -9px rgba(0, 0, 0, 0.35);
 }
 
 .rail-btn:hover {
   color: var(--accent);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 76%, transparent);
   transform: translateX(1.5px);
   box-shadow: 0 6px 14px -9px rgba(0, 0, 0, 0.35);
 }
@@ -224,14 +231,14 @@
 .renderer-mode-btn {
   width: 42px;
   color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
 }
 
 .renderer-mode-btn[data-active="true"] {
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
     var(--ink)
   );
 }
@@ -245,7 +252,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 80%, var(--zonuert-red) 20%),
+    color-mix(in srgb, var(--ink) 80%, var(--chrome-accent) 20%),
     var(--ink)
   );
 }
@@ -266,13 +273,13 @@
 }
 
 .nucleus-orb {
-  width: 47px;
-  height: 47px;
+  width: 44px;
+  height: 44px;
   color: var(--surface);
   background:
-    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--zonuert-red) 34%, transparent), transparent 44%),
-    linear-gradient(135deg, color-mix(in srgb, var(--ink) 82%, var(--zonuert-red) 18%), var(--ink));
-  border: 1px solid color-mix(in srgb, var(--surface) 26%, transparent);
+    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--chrome-accent) 34%, transparent), transparent 44%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ink) 82%, var(--chrome-accent) 18%), var(--ink));
+  border: 1px solid color-mix(in srgb, var(--surface) 22%, transparent);
   box-shadow:
     0 18px 38px -18px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 color-mix(in srgb, var(--surface) 18%, transparent);
@@ -283,14 +290,14 @@
     filter 220ms ease;
 }
 
-/* unstable/liquid hover — the membrane wobbles while the orb rises slightly */
+/* membrane hover — restrained rise, no loud color flare */
 .nucleus-orb:hover {
   transform: scale(1.07);
   filter: contrast(1.08) brightness(1.04);
   animation: orb-liquid 2.8s ease-in-out infinite;
   box-shadow:
     0 22px 48px -18px rgba(0, 0, 0, 0.78),
-    0 0 0 5px color-mix(in srgb, var(--zonuert-red) 8%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--chrome-accent) 7%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--surface) 24%, transparent);
 }
 
@@ -301,12 +308,12 @@
 
 .cluster-orb {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   color: var(--surface);
   background:
     radial-gradient(circle at 28% 12%, color-mix(in srgb, var(--surface) 13%, transparent), transparent 40%),
-    linear-gradient(135deg, color-mix(in srgb, var(--ink) 86%, var(--zonuert-red) 14%), var(--ink));
+    linear-gradient(135deg, color-mix(in srgb, var(--ink) 86%, var(--chrome-accent) 14%), var(--ink));
   border: 1px solid color-mix(in srgb, var(--surface) 22%, transparent);
   box-shadow:
     0 14px 28px -18px rgba(0, 0, 0, 0.7),
@@ -323,7 +330,7 @@
   filter: contrast(1.06) brightness(1.03);
   box-shadow:
     0 18px 38px -19px rgba(0, 0, 0, 0.76),
-    0 0 0 4px color-mix(in srgb, var(--zonuert-red) 7%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--chrome-accent) 7%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--surface) 22%, transparent);
 }
 
@@ -403,8 +410,8 @@
 }
 
 .void-btn {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   color: var(--fog);
   background: radial-gradient(
     circle at 50% 44%,
@@ -421,10 +428,10 @@
 }
 
 .void-btn:hover {
-  color: var(--zonuert-red);
-  border-color: color-mix(in srgb, var(--zonuert-red) 58%, var(--hairline));
+  color: var(--chrome-accent);
+  border-color: color-mix(in srgb, var(--chrome-accent) 58%, var(--hairline));
   transform: translateY(-1px) scale(1.04);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--zonuert-red) 7%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--chrome-accent) 7%, transparent);
 }
 
 .morph-color-swatch {
@@ -479,11 +486,11 @@
   flex-direction: column;
   gap: 2px;
   padding: 4px;
-  border-radius: 16px;
+  border-radius: 15px;
   min-width: 150px;
   box-shadow:
-    0 18px 40px -18px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 42%, transparent);
+    0 22px 52px -26px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 46%, transparent);
 }
 
 .dock-pop--left {
@@ -517,14 +524,14 @@
 
 .pop-row:hover {
   color: var(--ink);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
 .pop-row[data-active="true"] {
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
     var(--ink)
   );
 }
@@ -535,7 +542,7 @@
   height: 4px;
   margin-left: auto;
   border-radius: 50%;
-  background: var(--zonuert-red);
+  background: var(--chrome-accent);
 }
 
 .pop-swatch {
@@ -634,7 +641,7 @@
   margin-left: 4px;
   vertical-align: 2px;
   border-radius: 50%;
-  background: var(--zonuert-red);
+  background: var(--chrome-accent);
 }
 
 .dock-pop-attach {
@@ -675,7 +682,7 @@
   font-size: 8px;
   line-height: 1;
   letter-spacing: 0.18em;
-  color: var(--zonuert-red);
+  color: var(--chrome-accent);
 }
 
 .saved-title {
@@ -702,7 +709,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 84%, var(--zonuert-red) 16%),
+    color-mix(in srgb, var(--ink) 84%, var(--chrome-accent) 16%),
     var(--ink)
   );
   border: 1px solid color-mix(in srgb, var(--surface) 20%, transparent);
@@ -807,7 +814,7 @@
 .saved-actions button:hover,
 .saved-rename button:hover {
   color: var(--ink);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
   border-color: var(--hairline);
 }
 
@@ -817,7 +824,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 82%, var(--zonuert-red) 18%),
+    color-mix(in srgb, var(--ink) 82%, var(--chrome-accent) 18%),
     var(--ink)
   );
   border-color: transparent;
@@ -881,7 +888,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
     var(--ink)
   );
 }
@@ -948,7 +955,7 @@
 .table-category-swatch[data-kind="void"] {
   background: transparent !important;
   border-style: dashed;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--zonuert-red) 8%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chrome-accent) 8%, transparent);
 }
 
 .table-kind-chip {
@@ -967,9 +974,9 @@
 }
 
 .table-kind-chip[data-kind="void"] {
-  color: var(--zonuert-red);
+  color: var(--chrome-accent);
   border-style: dashed;
-  background: color-mix(in srgb, var(--zonuert-red) 7%, transparent);
+  background: color-mix(in srgb, var(--chrome-accent) 7%, transparent);
 }
 
 .dock-sep {
@@ -997,7 +1004,7 @@
   width: 88px;
 }
 
-/* ——— V6K premium range inputs — hairline track, ink thumb, red hover halo ——— */
+/* ——— V6N premium range inputs — hairline track, ink thumb, neutral halo ——— */
 .dock-merge input[type="range"],
 .org-slider input[type="range"] {
   -webkit-appearance: none;
@@ -1018,8 +1025,8 @@
 .dock-merge input[type="range"]::-webkit-slider-thumb,
 .org-slider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
   margin-top: -4.5px;
   border: 1px solid color-mix(in srgb, var(--surface) 65%, transparent);
   border-radius: 50%;
@@ -1033,12 +1040,12 @@
   transform: scale(1.18);
   box-shadow:
     0 3px 10px -3px rgba(0, 0, 0, 0.5),
-    0 0 0 4px color-mix(in srgb, var(--zonuert-red) 12%, transparent);
+    0 0 0 4px color-mix(in srgb, var(--chrome-accent) 12%, transparent);
 }
 
 .dock-merge input[type="range"]:active::-webkit-slider-thumb,
 .org-slider input[type="range"]:active::-webkit-slider-thumb {
-  background: color-mix(in srgb, var(--ink) 78%, var(--zonuert-red) 22%);
+  background: color-mix(in srgb, var(--ink) 78%, var(--chrome-accent) 22%);
 }
 
 .dock-merge input[type="range"]::-moz-range-track,
@@ -1052,7 +1059,7 @@
 .org-slider input[type="range"]::-moz-range-progress {
   height: 2px;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--ink) 62%, var(--zonuert-red) 38%);
+  background: color-mix(in srgb, var(--ink) 62%, var(--chrome-accent) 38%);
 }
 
 .dock-merge input[type="range"]::-moz-range-thumb,
@@ -1072,7 +1079,7 @@
 
 .dock-merge input[type="range"]:focus-visible::-webkit-slider-thumb,
 .org-slider input[type="range"]:focus-visible::-webkit-slider-thumb {
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--zonuert-red) 20%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--chrome-accent) 20%, transparent);
 }
 
 /* Left vertical rail — V6H.1 captioned pro-tool sections */
@@ -1084,9 +1091,9 @@
   z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 5px 4px;
-  border-radius: 14px;
+  gap: 4px;
+  padding: 4px 3px;
+  border-radius: 13px;
   box-shadow:
     0 20px 44px -28px rgba(0, 0, 0, 0.4),
     0 2px 8px -6px rgba(0, 0, 0, 0.14),
@@ -1116,9 +1123,9 @@
 }
 
 .rail .rail-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 9px;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
 }
 
 .rail-btn[data-on="true"] {
@@ -1129,7 +1136,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
     var(--ink)
   );
 }
@@ -1138,7 +1145,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 80%, var(--zonuert-red) 20%),
+    color-mix(in srgb, var(--ink) 80%, var(--chrome-accent) 20%),
     var(--ink)
   );
 }
@@ -1235,7 +1242,7 @@
   font-size: 8px;
   line-height: 1;
   letter-spacing: 0.2em;
-  color: var(--zonuert-red);
+  color: var(--chrome-accent);
 }
 
 .org-head-title {
@@ -1482,7 +1489,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
     var(--ink)
   );
 }
@@ -1532,7 +1539,7 @@
   color: var(--surface);
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
     var(--ink)
   );
   border-color: transparent;
@@ -1568,7 +1575,7 @@
 
 .layout-choice[data-active="true"] .layout-code {
   color: var(--surface);
-  background: color-mix(in srgb, var(--zonuert-red) 22%, transparent);
+  background: color-mix(in srgb, var(--chrome-accent) 22%, transparent);
   border-color: color-mix(in srgb, var(--surface) 28%, transparent);
 }
 
@@ -1622,7 +1629,7 @@
 .org-attach-chips .pop-chip[data-active="true"] {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--zonuert-red) 12%),
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
     var(--ink)
   );
 }
@@ -1680,7 +1687,7 @@
   border-color: transparent;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--ink) 82%, var(--zonuert-red) 18%),
+    color-mix(in srgb, var(--ink) 82%, var(--chrome-accent) 18%),
     var(--ink)
   );
 }
@@ -1722,7 +1729,7 @@
   margin-left: 6px;
   vertical-align: 1px;
   border-radius: 50%;
-  background: var(--zonuert-red);
+  background: var(--chrome-accent);
 }
 
 /* ——— palette library (reference-style swatch blocks) ——— */

@@ -27,9 +27,10 @@ Complete:
 - V6M.1 Ponytail Enforcement Patch
 - V6LQ Shader / Void QA
 - V6.5 Selection Arc + Canvas Rename
+- V6N Interface Density / Editorial Glass Refinement
 
 Next:
-- V6N Interface Density / Design Refinement by explicit choice
+- V7 stats/widgets or another explicit phase
 
 Not started:
 - V7 Floating Widgets
@@ -67,6 +68,8 @@ V6M.1 made Ponytail mandatory in the workflow. Future prompts and reports must c
 V6LQ QA passed with no code fixes needed. Build passed with the known chunk warning; void nuclei, shader signed strength, multi-color uniforms, saved-view preservation, table sync, classic fallback, mobile fit, and the lab route were verified.
 
 V6.5 added the production selection arc and direct canvas editing. Selected organism nuclei now show a compact partial arc, handle dots, metadata, and an Edit chip in the existing label overlay. Rename and area edits commit through `updateSpace`, so table sync and saved views stay intact. Void nuclei use dashed/subtractive styling and support the same rename/area flow. Hidden annotation mode hides ordinary labels while preserving selected edit affordances. ORG/CLS fallback and the lab route remain intact; 390 px fit was checked.
+
+V6N refined the existing V6K/V6.5 interface into a slimmer neutral glass system. Red is removed from UI chrome across rail/dock/widgets/sliders/chips/selection/loader/classic selection tick; `--zonuert-red` remains product/palette material only. Shared glass tokens now drive dock, rail, widgets, popovers, saved views, palette surfaces, and canvas edit overlays. Selection arc is smaller and calmer. New persisted toggles: Annotation `Text shadow` (`annotationDetail.textShadow`) and Organism `Camera-aware morph` (`organism.cameraAwareMorph`). Build passed with the known chunk warning. Details: `docs/V6N_GLASS_EDITORIAL_DIRECTION.md`.
 
 ## Workflow
 

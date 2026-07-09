@@ -48,7 +48,7 @@ const BONE = "#f5f2e8";
 const NIGHT = "#070707";
 const WINE = "#8f1424";
 const VOID_FILL = "#070707";
-const VOID_RING = "#c31616";
+const VOID_RING = "#8c877e";
 
 export const CATEGORY_TOKENS: readonly CategoryToken[] = [
   {

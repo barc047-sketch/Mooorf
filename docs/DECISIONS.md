@@ -149,3 +149,9 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Product data writes still go through the central Zustand store via `updateSpace`; inline rename/area drafts are temporary UI state only.
 - Hidden annotation mode suppresses ordinary labels but keeps the selected arc/edit affordance reachable, because canvas editing belongs to the selected object.
 - Classic canvas remains a fallback surface; the premium arc is organism-overlay behavior and does not require rewriting the 2D fallback renderer.
+
+## V6N editorial glass refinement
+- UI chrome moved from red identity accents to neutral smoke/ink/stone glass. `--zonuert-red` remains for product palette material, not rail/dock/widget/selection chrome.
+- Label text shadow is an annotation detail setting (`annotationDetail.textShadow`) so it persists through saved views without adding a parallel label system.
+- Camera-aware morph is an organism setting (`organism.cameraAwareMorph`) so the renderer can preserve or decouple radius response from camera zoom through the existing adapter path.
+- Selection arc/edit polish stays inside the existing organism label overlay; no duplicate inspector, overlay framework, or second state system was added.

@@ -19,7 +19,7 @@ export interface Tokens {
   fog: string;
   hairline: string;
   surface: string;
-  red: string;
+  chromeAccent: string;
 }
 
 export const readTokens = (): Tokens => {
@@ -30,7 +30,7 @@ export const readTokens = (): Tokens => {
     fog: v("--fog"),
     hairline: v("--hairline"),
     surface: v("--surface"),
-    red: v("--zonuert-red"),
+    chromeAccent: v("--chrome-accent"),
   };
 };
 
@@ -196,7 +196,7 @@ export function drawScene(
       ctx.fillText(`${c.area} m²`, sx, sy + nameSize * 0.78, r * 1.7);
     }
 
-    // Selection — refined hairline ring + red tick.
+    // Selection — refined hairline ring + neutral chrome tick.
     if (c.id === selectedId) {
       ctx.strokeStyle = mappedColor.ring;
       ctx.globalAlpha = 0.55;
@@ -205,7 +205,7 @@ export function drawScene(
       ctx.arc(sx, sy, r + 7, 0, Math.PI * 2);
       ctx.stroke();
       ctx.globalAlpha = 1;
-      ctx.fillStyle = tokens.red;
+      ctx.fillStyle = tokens.chromeAccent;
       ctx.beginPath();
       ctx.arc(sx, sy - r - 7, 2.5, 0, Math.PI * 2);
       ctx.fill();

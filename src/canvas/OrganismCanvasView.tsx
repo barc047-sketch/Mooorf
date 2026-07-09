@@ -303,11 +303,11 @@ export default function OrganismCanvasView() {
         if (selection) {
           const arcFactor =
             settings.selectionDisplay === "influence"
-              ? 3.8
+              ? 3.15
               : settings.selectionDisplay === "halo"
-                ? 2.5
-                : 1.45;
-          const arcSize = Math.max(58, Math.min(220, nucleus.screenR * arcFactor + 22));
+                ? 2.05
+                : 1.28;
+          const arcSize = Math.max(48, Math.min(188, nucleus.screenR * arcFactor + 18));
           selection.style.width = `${arcSize}px`;
           selection.style.height = `${arcSize}px`;
         }
@@ -594,6 +594,7 @@ export default function OrganismCanvasView() {
         data-mode={annotationMode}
         data-position={annotationDetail.position}
         data-bbox={annotationDetail.boundingBox ? "true" : undefined}
+        data-shadow={annotationDetail.textShadow ? "true" : "false"}
         style={{ "--label-scale": annotationDetail.textScale } as CSSProperties}
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
@@ -633,14 +634,14 @@ export default function OrganismCanvasView() {
                   <svg className="organism-selection-arc" viewBox="0 0 100 100" aria-hidden="true">
                     <path
                       className="selection-arc-path selection-arc-path--primary"
-                      d="M 18 64 A 37 37 0 0 1 82 32"
+                      d="M 21 63 A 34 34 0 0 1 78 31"
                     />
                     <path
                       className="selection-arc-path selection-arc-path--ghost"
-                      d="M 78 72 A 40 40 0 0 1 36 86"
+                      d="M 75 72 A 35 35 0 0 1 42 84"
                     />
-                    <circle className="selection-arc-dot" cx="18" cy="64" r="2.6" />
-                    <circle className="selection-arc-dot selection-arc-dot--end" cx="82" cy="32" r="2.2" />
+                    <circle className="selection-arc-dot" cx="21" cy="63" r="2.2" />
+                    <circle className="selection-arc-dot selection-arc-dot--end" cx="78" cy="31" r="2" />
                   </svg>
                   <span className="selection-metadata">
                     <span className="selection-type">

@@ -36,6 +36,11 @@ export default function AnnotationWidget() {
           onChange={(v) => setAnnotationDetail({ textScale: v })}
         />
         <SwitchRow
+          label="Text shadow"
+          on={detail.textShadow}
+          onToggle={() => setAnnotationDetail({ textShadow: !detail.textShadow })}
+        />
+        <SwitchRow
           label="Show name"
           on={detail.showName}
           onToggle={() => setAnnotationDetail({ showName: !detail.showName })}

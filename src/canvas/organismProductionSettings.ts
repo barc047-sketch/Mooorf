@@ -44,6 +44,7 @@ export const DEFAULT_ORGANISM_SETTINGS: OrganismSettings = {
 
   showLabels: true,
   showNuclei: true,
+  cameraAwareMorph: true,
   showFieldDebug: false,
   showNucleiDebug: false,
 };
@@ -77,6 +78,7 @@ export interface OrganismAdapterOptions {
   breathing: number;
   wobble: number;
   phaseVariation: number;
+  cameraAwareMorph: boolean;
 }
 
 export interface ResolvedOrganism {
@@ -127,6 +129,7 @@ export function resolveOrganism(settings: LabSettings): ResolvedOrganism {
     breathing: clamp(o.breathing, 0, 1),
     wobble: clamp(o.wobble, 0, 1),
     phaseVariation: clamp(o.phaseVariation, 0, 1),
+    cameraAwareMorph: o.cameraAwareMorph ?? true,
   };
 
   const motionActive =

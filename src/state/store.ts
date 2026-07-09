@@ -50,6 +50,7 @@ export interface LabSettings {
 
 export const DEFAULT_ANNOTATION_DETAIL: AnnotationDetail = {
   textScale: 1,
+  textShadow: true,
   showName: true,
   showArea: true,
   showCategory: true,

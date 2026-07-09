@@ -25,6 +25,7 @@ export type LabelPosition = "auto" | "center" | "above" | "below";
 /* V6K — fine annotation controls. All label-layer only; never product data. */
 export interface AnnotationDetail {
   textScale: number; // 0.75–1.6, multiplies label typography
+  textShadow: boolean;
   showName: boolean;
   showArea: boolean;
   showCategory: boolean; // technical mode only
@@ -102,6 +103,7 @@ export interface OrganismSettings {
   // display / debug
   showLabels: boolean;
   showNuclei: boolean;
+  cameraAwareMorph: boolean;
   showFieldDebug: boolean;
   showNucleiDebug: boolean;
 }

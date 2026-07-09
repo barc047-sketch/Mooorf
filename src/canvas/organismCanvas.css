@@ -45,8 +45,8 @@
   opacity: 0;
   transform: translate(-9999px, -9999px);
   will-change: transform;
-  --nucleus-color: var(--zonuert-red);
-  --nucleus-ring: var(--zonuert-red);
+  --nucleus-color: var(--chrome-accent);
+  --nucleus-ring: var(--chrome-accent);
   --nucleus-muted: var(--fog);
 }
 
@@ -63,7 +63,9 @@
   padding: 3px 7px;
   border: 1px solid color-mix(in srgb, var(--nucleus-color) 22%, var(--glass-border));
   border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 20%, transparent), transparent 56%),
+    color-mix(in srgb, var(--bg) 72%, transparent);
   color: var(--ink);
   font-size: 10px;
   line-height: 1.1;
@@ -71,7 +73,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px) saturate(130%);
+  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 34%, transparent),
+    0 10px 30px -22px rgba(0, 0, 0, 0.45);
 }
 
 .organism-label-main,
@@ -122,6 +128,11 @@
     0 0 3px var(--bg),
     0 0 7px var(--bg),
     0 1px 10px color-mix(in srgb, var(--bg) 80%, transparent);
+}
+
+.organism-label-layer[data-shadow="false"] .organism-label-main,
+.organism-label-layer[data-shadow="false"] .organism-label-meta {
+  text-shadow: none;
 }
 
 .organism-label-layer[data-mode="technical"] .organism-label {
@@ -186,11 +197,11 @@
 }
 
 .organism-label-anchor[data-selected="true"] .organism-label {
-  border-color: var(--zonuert-red);
+  border-color: var(--chrome-accent);
   color: var(--accent);
 }
 
-/* editorial stays boxless when selected — red type accent only */
+/* editorial stays boxless when selected — neutral ink accent only */
 .organism-label-layer[data-mode="editorial"] .organism-label-anchor[data-selected="true"] .organism-label {
   border-color: transparent;
   background: transparent;
@@ -203,7 +214,7 @@
 }
 
 .organism-label-anchor[data-selected="true"] .organism-label-ring {
-  border-color: color-mix(in srgb, var(--nucleus-ring) 68%, var(--zonuert-red));
+  border-color: color-mix(in srgb, var(--nucleus-ring) 54%, var(--chrome-accent));
 }
 
 .organism-label-anchor[data-kind="void"] .organism-label-ring {
@@ -215,7 +226,7 @@
 .organism-label-anchor[data-kind="void"] .organism-label-main::before,
 .organism-label-layer[data-mode="pill"] .organism-label-anchor[data-kind="void"] .organism-label::before {
   content: "− ";
-  color: var(--zonuert-red);
+  color: var(--chrome-accent);
 }
 
 .organism-label-anchor[data-selected="true"][data-selection-display="halo"] .organism-label-ring {
@@ -225,7 +236,7 @@
 }
 
 .organism-label-anchor[data-selected="true"][data-selection-display="influence"] .organism-label-ring {
-  border-color: color-mix(in srgb, var(--nucleus-ring) 54%, var(--zonuert-red) 18%);
+  border-color: color-mix(in srgb, var(--nucleus-ring) 54%, var(--chrome-accent) 18%);
   background: color-mix(in srgb, var(--nucleus-ring) 3%, transparent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--nucleus-ring) 12%, transparent);
 }
@@ -246,60 +257,59 @@
   position: absolute;
   inset: 0;
   overflow: visible;
-  filter: drop-shadow(0 8px 18px color-mix(in srgb, var(--nucleus-ring) 18%, transparent));
+  filter: drop-shadow(0 8px 18px color-mix(in srgb, var(--chrome-accent) 14%, transparent));
 }
 
 .selection-arc-path {
   fill: none;
-  stroke: color-mix(in srgb, var(--nucleus-ring) 72%, var(--zonuert-red));
+  stroke: color-mix(in srgb, var(--nucleus-ring) 58%, var(--chrome-accent));
   stroke-linecap: round;
-  stroke-width: 1.45;
+  stroke-width: 1.25;
   vector-effect: non-scaling-stroke;
 }
 
 .selection-arc-path--ghost {
-  opacity: 0.34;
-  stroke: color-mix(in srgb, var(--nucleus-ring) 42%, var(--ink));
-  stroke-dasharray: 2.4 4;
+  opacity: 0.24;
+  stroke: color-mix(in srgb, var(--chrome-accent) 42%, var(--ink));
 }
 
 .selection-arc-dot {
   fill: var(--bg);
-  stroke: color-mix(in srgb, var(--nucleus-ring) 78%, var(--zonuert-red));
+  stroke: color-mix(in srgb, var(--nucleus-ring) 54%, var(--chrome-accent));
   stroke-width: 1.2;
   vector-effect: non-scaling-stroke;
 }
 
 .selection-arc-dot--end {
-  fill: color-mix(in srgb, var(--zonuert-red) 78%, var(--bg));
+  fill: color-mix(in srgb, var(--chrome-accent) 72%, var(--bg));
 }
 
 .organism-label-anchor[data-selection-display="halo"] .selection-arc-path--primary {
-  stroke-width: 1.65;
+  stroke-width: 1.45;
 }
 
 .organism-label-anchor[data-selection-display="halo"] .organism-selection-arc {
-  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--nucleus-ring) 20%, transparent));
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--chrome-accent) 18%, transparent));
 }
 
 .organism-label-anchor[data-selection-display="influence"] .selection-arc-path--primary {
-  stroke-width: 1.8;
+  stroke-width: 1.55;
 }
 
 .organism-label-anchor[data-selection-display="influence"] .organism-selection-arc {
   filter:
-    drop-shadow(0 0 20px color-mix(in srgb, var(--nucleus-ring) 18%, transparent))
-    drop-shadow(0 18px 28px color-mix(in srgb, var(--zonuert-red) 8%, transparent));
+    drop-shadow(0 0 20px color-mix(in srgb, var(--chrome-accent) 17%, transparent))
+    drop-shadow(0 18px 28px color-mix(in srgb, var(--chrome-accent) 7%, transparent));
 }
 
 .organism-label-anchor[data-kind="void"] .selection-arc-path {
-  stroke-dasharray: 8 5;
-  stroke: color-mix(in srgb, var(--zonuert-red) 72%, var(--nucleus-ring));
+  stroke-dasharray: 5 6;
+  stroke: color-mix(in srgb, var(--chrome-accent) 72%, var(--nucleus-ring));
 }
 
 .organism-label-anchor[data-kind="void"] .selection-arc-dot {
   fill: var(--bg);
-  stroke: color-mix(in srgb, var(--zonuert-red) 80%, var(--nucleus-ring));
+  stroke: color-mix(in srgb, var(--chrome-accent) 80%, var(--nucleus-ring));
 }
 
 .selection-metadata {
@@ -307,23 +317,26 @@
   left: calc(50% + 12px);
   top: 8%;
   display: grid;
-  gap: 2px;
-  min-width: 124px;
-  max-width: 172px;
-  padding: 7px 8px 7px 9px;
-  border: 1px solid color-mix(in srgb, var(--nucleus-ring) 30%, var(--glass-border));
-  border-radius: 10px;
+  gap: 3px;
+  min-width: 116px;
+  max-width: 164px;
+  padding: 7px 8px;
+  border: 1px solid color-mix(in srgb, var(--nucleus-ring) 22%, var(--glass-border));
+  border-radius: 12px;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--bg) 88%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 54%),
+    color-mix(in srgb, var(--glass-panel) 82%, transparent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent),
     0 16px 36px -28px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px) saturate(136%);
+  -webkit-backdrop-filter: blur(12px) saturate(136%);
   color: var(--ink);
   pointer-events: none;
 }
 
 .selection-type {
-  color: color-mix(in srgb, var(--nucleus-ring) 72%, var(--ink));
+  color: color-mix(in srgb, var(--chrome-accent) 72%, var(--ink));
   font-size: 7.5px;
   font-weight: 650;
   letter-spacing: 0.12em;
@@ -356,12 +369,12 @@
 .selection-edit-chip {
   pointer-events: auto;
   justify-self: start;
-  height: 18px;
+  height: 19px;
   margin-top: 2px;
   padding: 0 7px;
-  border: 1px solid color-mix(in srgb, var(--nucleus-ring) 32%, var(--hairline));
+  border: 1px solid color-mix(in srgb, var(--chrome-accent) 30%, var(--hairline));
   border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--ink) 9%, var(--surface));
+  background: color-mix(in srgb, var(--surface) 68%, transparent);
   color: var(--ink);
   font: inherit;
   font-size: 8px;
@@ -372,7 +385,7 @@
 }
 
 .selection-edit-chip:hover {
-  border-color: color-mix(in srgb, var(--nucleus-ring) 58%, var(--zonuert-red));
+  border-color: color-mix(in srgb, var(--nucleus-ring) 58%, var(--chrome-accent));
   color: var(--accent);
 }
 
@@ -386,10 +399,10 @@
   top: calc(50% + 10px);
   z-index: 4;
   display: grid;
-  width: min(184px, calc(100vw - 32px));
+  width: min(178px, calc(100vw - 32px));
   gap: 7px;
   padding: 9px;
-  border-radius: 12px;
+  border-radius: 14px;
   pointer-events: auto;
 }
 
@@ -412,7 +425,7 @@
   border: 1px solid color-mix(in srgb, var(--nucleus-ring) 28%, var(--hairline));
   border-radius: 8px;
   outline: none;
-  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  background: color-mix(in srgb, var(--glass-panel-strong) 86%, transparent);
   color: var(--ink);
   font: inherit;
   font-size: 11px;
@@ -420,7 +433,7 @@
 }
 
 .selection-edit-popover input:focus {
-  border-color: color-mix(in srgb, var(--nucleus-ring) 58%, var(--zonuert-red));
+  border-color: color-mix(in srgb, var(--nucleus-ring) 58%, var(--chrome-accent));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--nucleus-ring) 12%, transparent);
 }
 
@@ -446,8 +459,8 @@
 }
 
 .selection-edit-actions button[type="submit"] {
-  border-color: color-mix(in srgb, var(--zonuert-red) 44%, var(--hairline));
-  background: color-mix(in srgb, var(--zonuert-red) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--chrome-accent) 44%, var(--hairline));
+  background: color-mix(in srgb, var(--chrome-accent) 12%, var(--surface));
   color: var(--accent);
 }
 

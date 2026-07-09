@@ -80,6 +80,7 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - V6J: saved views.
 - V6L: multi-color shader and void nuclei.
 - V6M: Codex workflow OS.
+- V6N: interface density and neutral editorial glass refinement.
 
 ## Current Limits
 
@@ -93,7 +94,6 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 
 - V6LQ shader/void QA.
 - V6.5 selection arc and direct canvas rename.
-- V6N interface density/design refinement.
 - V7 stats widgets.
 - V8 export/import polish.
 - V9 floor system.

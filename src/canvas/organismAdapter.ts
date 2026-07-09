@@ -79,6 +79,7 @@ const DEFAULT_ADAPTER_OPTIONS: OrganismAdapterOptions = {
   breathing: DEFAULT_ORGANISM_SETTINGS.breathing,
   wobble: DEFAULT_ORGANISM_SETTINGS.wobble,
   phaseVariation: DEFAULT_ORGANISM_SETTINGS.phaseVariation,
+  cameraAwareMorph: DEFAULT_ORGANISM_SETTINGS.cameraAwareMorph,
 };
 
 const TAU = Math.PI * 2;
@@ -278,7 +279,8 @@ export function spacesToNuclei(
     let fx = field.fx + opts.offsetX;
     let fy = field.fy + opts.offsetY;
 
-    const rBase = clamp((r * camera.zoom) / halfMin, opts.radiusMin, opts.radiusMax);
+    const morphZoom = opts.cameraAwareMorph ? camera.zoom : 1;
+    const rBase = clamp((r * morphZoom) / halfMin, opts.radiusMin, opts.radiusMax);
     let rf = rBase;
 
     if (motionOn) {
