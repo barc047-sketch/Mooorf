@@ -160,3 +160,9 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Attached premium UI references are visual grammar only. They set standards for dark scientific HUDs, frosted dashboard cards, spatial glass, cinematic overlays, and precise measurement arcs; no layouts, brands, medical content, or proprietary assets are copied.
 - The canonical visual lock is `docs/V6N_REFERENCE_STYLE_LOCK.md`. Future UI must reuse `WidgetFrame`, `WidgetHost`, shared widget controls, existing dock/rail/canvas ownership, and shared glass/chrome tokens before adding new primitives.
 - Shared tokens now include glass dark/light, border, inner highlight, blur, shadow, floating-card radius, pill radius, HUD text, muted text, dot-grid, selection-arc neutral, and warning-data colors. Warning yellow/acid is semantic data warning only, never brand chrome.
+
+## V6N.2 reference-applied UI polish
+- The V6.5 radial selection command menu (`src/canvas/SelectedCellCommandMenu.tsx`) is the single selected-cell command surface. It extends the existing label-overlay selection system and writes only through existing store actions (`updateSpace`, `addSpace`, `removeSpace`, `setCamera`); no parallel inspector or context-menu framework was added.
+- The technical grid is a dot matrix (single radial-gradient background), not crossing lines. It stays camera-synced through the existing `syncGrid` background-size/position path; dot-grid tokens carry per-theme intensity.
+- Selection affordances animate with CSS-only keyframes (arc sweep-in, chip slide, radial button bloom) so the render loop and Motion mount animations are untouched; all honor `prefers-reduced-motion`.
+- Control chrome converges on two visual verbs: ink-gradient for active/confirm, hollow/dashed for subtractive (void button, void arc, delete command). No red chrome anywhere.

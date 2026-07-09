@@ -5,7 +5,6 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 ## Urgent / Next
 
 - V7 stats/widgets or another explicit phase
-- V6N.2 can apply the locked premium style more aggressively if explicitly requested
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Keep V7 floating widgets parked
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
@@ -13,6 +12,12 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V6N.2 Reference-Applied UI Polish
+- Selection arc thinned with leader line + anchor dot; radial command menu integrated (rename/area/duplicate/convert/focus/delete via existing store actions)
+- Edit popover, dot-matrix grid, labels, dock, rail, sliders, switches, saved-view tiles, and widget chrome polished to the V6N.1 reference standard
+- No red UI chrome; CSS-only animations honoring reduced motion
+- Preview QA: selection/edit/menu, table sync, toggles, saved views, ORG/CLS, lab route, 390 px
+- Build passed with known chunk warning
 - V6N.1 Reference-Locked Premium Design System
 - Canonical style lock added at `docs/V6N_REFERENCE_STYLE_LOCK.md`
 - References are visual grammar only: dark scientific HUD, light frosted dashboard, spatial glass, cinematic overlay, architecture translation, selection arcs, typography, density, chrome, data cards, and future widget rules

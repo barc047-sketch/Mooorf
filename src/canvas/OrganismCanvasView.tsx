@@ -41,6 +41,8 @@ import {
   type ProductionNucleus,
 } from "./organismAdapter";
 import { resolveOrganism } from "./organismProductionSettings";
+import SelectedCellCommandMenu from "./SelectedCellCommandMenu";
+import type { SpaceCell, SpaceKind } from "../types";
 import "./organismCanvas.css";
 
 const DPR_MAX = 2;
@@ -53,6 +55,7 @@ interface EditDraft {
   id: string;
   name: string;
   area: string;
+  focus: "name" | "area";
 }
 
 interface SmoothFrame {
@@ -92,27 +95,47 @@ export default function OrganismCanvasView() {
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const showGrid = useLab((s) => s.settings.showGrid);
   const updateSpace = useLab((s) => s.updateSpace);
+  const addSpace = useLab((s) => s.addSpace);
+  const removeSpace = useLab((s) => s.removeSpace);
+  const setCamera = useLab((s) => s.setCamera);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
   const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
-  const selectedSpace = useMemo(
-    () => spaces.find((space) => space.id === selectedId) ?? null,
-    [spaces, selectedId]
-  );
+  const [commandMenuOpen, setCommandMenuOpen] = useState(false);
+  const commandMenuOpenRef = useRef(false);
+  useEffect(() => {
+    commandMenuOpenRef.current = commandMenuOpen;
+  }, [commandMenuOpen]);
 
   useEffect(() => {
-    if (editDraft && editDraft.id !== selectedId) setEditDraft(null);
-  }, [editDraft, selectedId]);
+    setCommandMenuOpen(false);
+    setEditDraft((draft) => (draft && draft.id !== selectedId ? null : draft));
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!commandMenuOpen) return;
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      const target = event.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      event.preventDefault();
+      setCommandMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [commandMenuOpen]);
 
   const stopEditPointer = (event: ReactPointerEvent<HTMLElement>) => {
     event.stopPropagation();
   };
 
-  const beginEdit = (space: typeof selectedSpace) => {
+  const beginEdit = (space: SpaceCell | null, focus: "name" | "area" = "name") => {
     if (!space) return;
+    setCommandMenuOpen(false);
     setEditDraft({
       id: space.id,
       name: space.name,
       area: String(space.area),
+      focus,
     });
   };
 
@@ -130,6 +153,44 @@ export default function OrganismCanvasView() {
     };
     updateSpace(editDraft.id, patch);
     setEditDraft(null);
+  };
+
+  const duplicateSpace = (space: SpaceCell, kind: SpaceKind) => {
+    setCommandMenuOpen(false);
+    addSpace({
+      name: `${space.name} Copy`,
+      kind,
+      area: space.area,
+      category: space.category,
+      privacy: space.privacy,
+      color: space.color,
+      x: space.x + 28,
+      y: space.y + 22,
+      born: Date.now(),
+    });
+  };
+
+  const convertSpaceKind = (space: SpaceCell, kind: SpaceKind) => {
+    setCommandMenuOpen(false);
+    updateSpace(space.id, {
+      kind: kind === "void" ? "space" : "void",
+      category: kind === "void" ? (space.category === "Void" ? "Uncategorized" : space.category) : "Void",
+    });
+  };
+
+  const focusSpace = (space: SpaceCell) => {
+    setCommandMenuOpen(false);
+    const current = useLab.getState().camera;
+    setCamera({
+      x: space.x,
+      y: space.y,
+      zoom: Math.min(2.2, Math.max(current.zoom, 1.35)),
+    });
+  };
+
+  const deleteSpace = (space: SpaceCell) => {
+    setCommandMenuOpen(false);
+    removeSpace(space.id);
   };
 
   const onEditSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -325,6 +386,7 @@ export default function OrganismCanvasView() {
 
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      if (commandMenuOpenRef.current) setCommandMenuOpen(false);
       camTarget = null;
       const { sx, sy } = local(e);
       const hit = hitTestNuclei(currentNuclei(), sx, sy);
@@ -599,7 +661,7 @@ export default function OrganismCanvasView() {
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
           const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId);
-          const kind = space.kind === "void" ? "void" : "space";
+          const kind: SpaceKind = space.kind === "void" ? "void" : "space";
           const selected = space.id === selectedId;
           const editing = editDraft?.id === space.id;
           const labelStyle = {
@@ -640,8 +702,10 @@ export default function OrganismCanvasView() {
                       className="selection-arc-path selection-arc-path--ghost"
                       d="M 75 72 A 35 35 0 0 1 42 84"
                     />
-                    <circle className="selection-arc-dot" cx="21" cy="63" r="2.2" />
-                    <circle className="selection-arc-dot selection-arc-dot--end" cx="78" cy="31" r="2" />
+                    <line className="selection-arc-leader" x1="78" y1="31" x2="88" y2="22" />
+                    <circle className="selection-arc-dot" cx="21" cy="63" r="2" />
+                    <circle className="selection-arc-dot selection-arc-dot--end" cx="78" cy="31" r="1.8" />
+                    <circle className="selection-arc-dot selection-arc-dot--anchor" cx="88" cy="22" r="1.1" />
                   </svg>
                   <span className="selection-metadata">
                     <span className="selection-type">
@@ -651,14 +715,17 @@ export default function OrganismCanvasView() {
                     <span className="selection-detail">
                       {Math.round(space.area)} m² · {kind === "void" ? "subtractive" : space.category}
                     </span>
-                    <button
-                      type="button"
-                      className="selection-edit-chip"
-                      onPointerDown={stopEditPointer}
-                      onClick={() => beginEdit(space)}
-                    >
-                      Edit
-                    </button>
+                    <SelectedCellCommandMenu
+                      kind={kind}
+                      open={commandMenuOpen}
+                      onToggle={() => setCommandMenuOpen((open) => !open)}
+                      onRename={() => beginEdit(space, "name")}
+                      onEditArea={() => beginEdit(space, "area")}
+                      onDuplicate={() => duplicateSpace(space, kind)}
+                      onConvertKind={() => convertSpaceKind(space, kind)}
+                      onFocus={() => focusSpace(space)}
+                      onDelete={() => deleteSpace(space)}
+                    />
                   </span>
                   {editing && (
                     <form
@@ -677,7 +744,7 @@ export default function OrganismCanvasView() {
                               draft ? { ...draft, name: event.target.value } : draft
                             )
                           }
-                          autoFocus
+                          autoFocus={editDraft.focus === "name"}
                           aria-label="Canvas nucleus name"
                         />
                       </label>
@@ -693,6 +760,7 @@ export default function OrganismCanvasView() {
                               draft ? { ...draft, area: event.target.value } : draft
                             )
                           }
+                          autoFocus={editDraft.focus === "area"}
                           aria-label="Canvas nucleus area"
                         />
                       </label>

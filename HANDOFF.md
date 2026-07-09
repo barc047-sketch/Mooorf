@@ -29,6 +29,7 @@ Complete:
 - V6.5 Selection Arc + Canvas Rename
 - V6N Interface Density / Editorial Glass Refinement
 - V6N.1 Reference-Locked Premium Design System
+- V6N.2 Reference-Applied UI Polish
 
 Next:
 - V7 stats/widgets or another explicit phase
@@ -71,6 +72,8 @@ V6LQ QA passed with no code fixes needed. Build passed with the known chunk warn
 V6.5 added the production selection arc and direct canvas editing. Selected organism nuclei now show a compact partial arc, handle dots, metadata, and an Edit chip in the existing label overlay. Rename and area edits commit through `updateSpace`, so table sync and saved views stay intact. Void nuclei use dashed/subtractive styling and support the same rename/area flow. Hidden annotation mode hides ordinary labels while preserving selected edit affordances. ORG/CLS fallback and the lab route remain intact; 390 px fit was checked.
 
 V6N refined the existing V6K/V6.5 interface into a slimmer neutral glass system. Red is removed from UI chrome across rail/dock/widgets/sliders/chips/selection/loader/classic selection tick; `--zonuert-red` remains product/palette material only. Shared glass tokens now drive dock, rail, widgets, popovers, saved views, palette surfaces, and canvas edit overlays. Selection arc is smaller and calmer. New persisted toggles: Annotation `Text shadow` (`annotationDetail.textShadow`) and Organism `Camera-aware morph` (`organism.cameraAwareMorph`). Build passed with the known chunk warning. Details: `docs/V6N_GLASS_EDITORIAL_DIRECTION.md`.
+
+V6N.2 applied the locked reference grammar directly to the live UI (visual/CSS only). Selection gained a thinner arc with a hairline leader and anchor dot, a polished radial command menu (rename/area/duplicate/convert/focus/delete through existing store actions), and a glass-instrument edit popover. The technical grid became a camera-synced dot matrix; labels, dock, rail, sliders, switches, saved-view tiles, and widget chrome were refined to the dark-HUD / frosted-dashboard standard. No red UI chrome; build green; canvas/table sync, saved views, ORG/CLS fallback, lab route, and 390 px fit preview-verified.
 
 V6N.1 locked the premium reference style into the design system. `docs/V6N_REFERENCE_STYLE_LOCK.md` is now the canonical reference grammar for dark scientific HUD, light frosted dashboard, spatial glass, cinematic overlay, selection arc, typography, density, color/chrome, data card, and future widget rules. Shared tokens/primitives were strengthened for glass dark/light, borders, inner highlights, shadows, card/pill radii, HUD/muted text, dot grid, neutral selection arcs, and warning-data color. References remain mood/structure/style only; no external images were moved or duplicated.
 

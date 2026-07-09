@@ -13,7 +13,10 @@ Purpose: stable aesthetic memory for future UI work.
 ## Reference-Locked Visual Standard
 
 V6N.1 locks the visual system to the premium reference grammar in
-`docs/V6N_REFERENCE_STYLE_LOCK.md`.
+`docs/V6N_REFERENCE_STYLE_LOCK.md`. V6N.2 applied it across the live UI
+(selection arc + command menu, edit popover, dot-matrix grid, dock, rail,
+sliders, switches, saved-view tiles, widget chrome); treat the current
+in-app look as the baseline to extend, not restyle.
 
 - No red UI chrome. Red/wine is product or palette material only.
 - UI chrome is neutral graphite / pearl / smoke / bone / black / warm stone.

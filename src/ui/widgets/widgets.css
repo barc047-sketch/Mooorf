@@ -44,7 +44,12 @@
   align-items: center;
   gap: 8px;
   padding: 9px 9px 7px 11px;
-  border-bottom: 1px solid color-mix(in srgb, var(--hairline) 45%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline) 38%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--glass-highlight) 18%, transparent),
+    transparent
+  );
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -61,15 +66,20 @@
 .wframe-grip {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 2.5px;
   padding: 2px 0;
 }
 
 .wframe-grip i {
-  width: 10px;
+  width: 9px;
   height: 1px;
-  background: color-mix(in srgb, var(--fog) 78%, transparent);
+  background: color-mix(in srgb, var(--fog) 58%, transparent);
   border-radius: 1px;
+  transition: background 180ms ease;
+}
+
+.wframe-head:hover .wframe-grip i {
+  background: color-mix(in srgb, var(--fog) 86%, transparent);
 }
 
 .wframe-titles {
@@ -145,7 +155,19 @@
   display: flex;
   gap: 4px;
   padding: 8px 10px 10px;
-  border-top: 1px solid color-mix(in srgb, var(--hairline) 50%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--hairline) 40%, transparent);
+}
+
+/* minimized: reads as a floating title chip */
+.wframe[data-min="true"] {
+  border-radius: var(--r-micro-card);
+  box-shadow:
+    0 14px 34px -24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 var(--glass-inner-highlight);
+}
+
+.wframe[data-min="true"] .wframe-head {
+  background: none;
 }
 
 /* footer variant rendered inside the scroll body (organism widget) */

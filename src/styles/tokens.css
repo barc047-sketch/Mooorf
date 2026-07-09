@@ -35,8 +35,8 @@
   --zonuert-red-deep: #8f1111;
 
   /* Editorial glass/chrome */
-  --glass-blur: 18px;
-  --glass-saturate: 142%;
+  --glass-blur: 22px;
+  --glass-saturate: 150%;
   --glass-card-radius: var(--r-floating-card);
   --glass-pill-radius: var(--r-pill);
 
@@ -74,8 +74,8 @@
   --glass-shadow: 0 26px 58px -34px rgba(0, 0, 0, 0.42);
   --hud-text: color-mix(in srgb, var(--ink) 76%, var(--fog));
   --muted-text: color-mix(in srgb, var(--fog) 86%, transparent);
-  --dot-grid-opacity: 0.07;
-  --dot-grid-color: color-mix(in srgb, var(--ink) 7%, transparent);
+  --dot-grid-opacity: 0.34;
+  --dot-grid-color: color-mix(in srgb, var(--ink) 26%, transparent);
   --selection-arc-neutral: color-mix(in srgb, var(--chrome-accent) 64%, var(--ink));
   --warning-data: #c7cf42;
   color-scheme: light;
@@ -103,8 +103,8 @@
   --glass-shadow: 0 28px 62px -34px rgba(0, 0, 0, 0.72);
   --hud-text: color-mix(in srgb, var(--ink) 76%, var(--fog));
   --muted-text: color-mix(in srgb, var(--fog) 82%, transparent);
-  --dot-grid-opacity: 0.095;
-  --dot-grid-color: color-mix(in srgb, var(--ink) 8%, transparent);
+  --dot-grid-opacity: 0.4;
+  --dot-grid-color: color-mix(in srgb, var(--ink) 30%, transparent);
   --selection-arc-neutral: color-mix(in srgb, var(--chrome-accent) 68%, var(--ink));
   --warning-data: #d7df58;
   color-scheme: dark;

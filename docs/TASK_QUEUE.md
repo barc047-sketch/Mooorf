@@ -9,7 +9,24 @@
 - [x] V6.5 Selection Arc + Canvas Rename
 - [x] V6N Interface Density / Editorial Glass Refinement
 - [x] V6N.1 Reference-Locked Premium Design System
+- [x] V6N.2 Reference-Applied UI Polish
 - [ ] V7 Stats / Floating Widgets / later widget expansion
+
+## V6N.2 — Reference-Applied UI Polish  ✅ COMPLETE
+- [x] selection arc thinned with leader line, anchor dot, and quieter shadows/animations
+- [x] radial selection command menu integrated and polished (rename/area/duplicate/convert/focus/delete via existing store actions)
+- [x] edit popover restyled as glass instrument (inset inputs, ghost cancel, ink save)
+- [x] technical grid converted to camera-synced dot matrix in both themes
+- [x] canvas labels: lighter borders, more blur, tighter editorial halos, tabular meta
+- [x] dock lightened; orbs refined; void button reads hollow/subtractive
+- [x] rail slimmed with faded dividers and softer shadow
+- [x] sliders 1.5px hairline tracks, 9px thumbs; switches inset with shadowed thumbs
+- [x] saved-view cards are bento glass tiles with status dot and tabular meta chips
+- [x] widget head strip highlight, finer grips, softer dividers, minimized chip styling
+- [x] tokens: blur 22px, saturate 150%, dot-grid retuned
+- [x] no red UI chrome anywhere; neutral graphite/pearl/bone throughout
+- [x] preview QA: selection/edit/menu, table sync, toggles, saved views, ORG/CLS, lab route, 390 px
+- [x] build passes with known chunk warning
 
 ## V6N.1 — Reference-Locked Premium Design System  ✅ COMPLETE
 - [x] `docs/V6N_REFERENCE_STYLE_LOCK.md` added as the canonical reference grammar

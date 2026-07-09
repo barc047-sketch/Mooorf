@@ -1,6 +1,9 @@
 # V6N.1 — Reference-Locked Premium Design System
 
-Status: active visual standard for all future UI work.
+Status: active visual standard for all future UI work. V6N.2 applied this
+standard to the live UI: dot-matrix scan grid, thin leader-line selection arc,
+radial selection command menu, glass instrument edit popover, hairline
+sliders/switches, lightened dock/rail, and bento saved-view tiles.
 
 The new reference images are visual grammar, not layouts to copy. They define mood, density, surface behavior, and control language for ZONUERT/MOOORF. Do not reproduce proprietary screens, brands, medical content, dashboard compositions, or exact card arrangements.
 
