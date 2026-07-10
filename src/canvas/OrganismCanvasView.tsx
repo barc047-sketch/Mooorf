@@ -42,6 +42,7 @@ import {
 } from "./organismAdapter";
 import { resolveOrganism } from "./organismProductionSettings";
 import SelectedCellCommandMenu from "./SelectedCellCommandMenu";
+import MovingBorder from "../ui/primitives/MovingBorder";
 import type { SpaceCell, SpaceKind } from "../types";
 import "./organismCanvas.css";
 
@@ -352,23 +353,39 @@ export default function OrganismCanvasView() {
         if (ring) {
           const ringFactor =
             settings.selectionDisplay === "influence"
-              ? 3.4
+              ? 2.85
               : settings.selectionDisplay === "halo"
-                ? 2.2
-                : 1.05; // tight default — a crisp ring hugging the nucleus
+                ? 1.86
+                : 0.96; // tight default — a crisp hairline near the nucleus
           const size = `${Math.max(14, nucleus.screenR * ringFactor)}px`;
           ring.style.width = size;
           ring.style.height = size;
+        }
+        const movingBorder = anchor.querySelector<HTMLElement>(".organism-moving-border");
+        if (movingBorder) {
+          const editing = anchor.dataset.editing === "true";
+          const borderFactor =
+            settings.selectionDisplay === "influence"
+              ? 3.08
+              : settings.selectionDisplay === "halo"
+                ? 2.1
+                : 1.28;
+          const borderSize = Math.max(
+            editing ? 24 : 18,
+            nucleus.screenR * borderFactor + (editing ? 10 : 4)
+          );
+          movingBorder.style.width = `${borderSize}px`;
+          movingBorder.style.height = `${borderSize}px`;
         }
         const selection = anchor.querySelector<HTMLElement>(".organism-selection-system");
         if (selection) {
           const arcFactor =
             settings.selectionDisplay === "influence"
-              ? 3.15
+              ? 2.88
               : settings.selectionDisplay === "halo"
-                ? 2.05
-                : 1.28;
-          const arcSize = Math.max(48, Math.min(188, nucleus.screenR * arcFactor + 18));
+                ? 1.92
+                : 1.36;
+          const arcSize = Math.max(52, Math.min(176, nucleus.screenR * arcFactor + 20));
           selection.style.width = `${arcSize}px`;
           selection.style.height = `${arcSize}px`;
         }
@@ -685,9 +702,32 @@ export default function OrganismCanvasView() {
               data-category-token={mappedColor.token.id}
               data-kind={kind}
               data-selected={selected}
+              data-editing={editing ? "true" : undefined}
               style={labelStyle}
             >
               <span className="organism-label-ring" />
+              {selected && (
+                <MovingBorder
+                  isCircle
+                  className="organism-moving-border"
+                  borderWidth={editing ? 1.35 : 1}
+                  gradientWidth={kind === "void" ? 68 : 54}
+                  duration={editing ? 4.8 : 7.2}
+                  colors={
+                    kind === "void"
+                      ? [
+                          "color-mix(in srgb, var(--bg) 72%, var(--selection-arc-neutral))",
+                          "color-mix(in srgb, var(--chrome-accent) 58%, transparent)",
+                          "color-mix(in srgb, var(--nucleus-ring) 28%, transparent)",
+                        ]
+                      : [
+                          "color-mix(in srgb, var(--nucleus-ring) 62%, var(--selection-arc-neutral))",
+                          "color-mix(in srgb, var(--selection-arc-neutral) 64%, transparent)",
+                          "color-mix(in srgb, var(--glass-highlight) 54%, transparent)",
+                        ]
+                  }
+                />
+              )}
               {selected && (
                 <span
                   className="organism-selection-system"
@@ -696,16 +736,16 @@ export default function OrganismCanvasView() {
                   <svg className="organism-selection-arc" viewBox="0 0 100 100" aria-hidden="true">
                     <path
                       className="selection-arc-path selection-arc-path--primary"
-                      d="M 21 63 A 34 34 0 0 1 78 31"
+                      d="M 24 64 A 33 33 0 0 1 74 28"
                     />
                     <path
                       className="selection-arc-path selection-arc-path--ghost"
-                      d="M 75 72 A 35 35 0 0 1 42 84"
+                      d="M 70 75 A 34 34 0 0 1 43 84"
                     />
-                    <line className="selection-arc-leader" x1="78" y1="31" x2="88" y2="22" />
-                    <circle className="selection-arc-dot" cx="21" cy="63" r="2" />
-                    <circle className="selection-arc-dot selection-arc-dot--end" cx="78" cy="31" r="1.8" />
-                    <circle className="selection-arc-dot selection-arc-dot--anchor" cx="88" cy="22" r="1.1" />
+                    <line className="selection-arc-leader" x1="74" y1="28" x2="86" y2="20" />
+                    <circle className="selection-arc-dot" cx="24" cy="64" r="1.65" />
+                    <circle className="selection-arc-dot selection-arc-dot--end" cx="74" cy="28" r="1.55" />
+                    <circle className="selection-arc-dot selection-arc-dot--anchor" cx="86" cy="20" r="1.25" />
                   </svg>
                   <span className="selection-metadata">
                     <span className="selection-type">

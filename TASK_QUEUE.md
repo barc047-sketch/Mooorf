@@ -12,6 +12,12 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V6N.3 Premium Primitives + Moving Cell Border
+- Added reusable `MovingBorder` primitive for selected/active emphasis only
+- Selected/edit-active organism nuclei use moving border through the existing label overlay; void border is hollow/subtractive
+- Shared glass/widget/dock/rail/popover/card/control materials strengthened with neutral instrument tokens
+- No state, shader, table, saved-view, fallback, package, or lab-route rewrite
+- Build and focused preview QA passed with known chunk warning
 - V6N.2 Reference-Applied UI Polish
 - Selection arc thinned with leader line + anchor dot; radial command menu integrated (rename/area/duplicate/convert/focus/delete via existing store actions)
 - Edit popover, dot-matrix grid, labels, dock, rail, sliders, switches, saved-view tiles, and widget chrome polished to the V6N.1 reference standard

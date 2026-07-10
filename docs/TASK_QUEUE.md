@@ -10,7 +10,22 @@
 - [x] V6N Interface Density / Editorial Glass Refinement
 - [x] V6N.1 Reference-Locked Premium Design System
 - [x] V6N.2 Reference-Applied UI Polish
+- [x] V6N.3 Premium Primitives + Moving Cell Border
 - [ ] V7 Stats / Floating Widgets / later widget expansion
+
+## V6N.3 — Premium Primitives + Moving Cell Border  ✅ COMPLETE
+- [x] checked for existing `moving-border` primitive; none existed
+- [x] added reusable `src/ui/primitives/MovingBorder.tsx` + CSS
+- [x] primitive supports radius, border width, gradient width, duration, colors, circle mode, children, className, and reduced-motion safety
+- [x] selected/edit-active organism nuclei use the moving border through the existing label overlay
+- [x] moving border is not rendered for every cell and does not create duplicate selection state
+- [x] void selection uses hollow/subtractive moving border styling
+- [x] selection arc refined thinner with smaller endpoint dots, quieter leader, and compact metadata chip
+- [x] shared glass tokens strengthened for edge light, grain, instrument track/thumb/halo
+- [x] WidgetFrame, dock, rail, popovers, saved cards, palette cards, sliders, switches, chips, and layout cards inherit upgraded primitive language
+- [x] no product data, shader, table, saved-view, package, classic fallback, or lab-route rewrite
+- [x] build passes with known chunk warning
+- [x] preview QA: app render, selection border, edit popover, widgets, ORG/CLS, table/canvas switch, lab route, 390 px no overflow
 
 ## V6N.2 — Reference-Applied UI Polish  ✅ COMPLETE
 - [x] selection arc thinned with leader line, anchor dot, and quieter shadows/animations

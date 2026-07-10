@@ -11,16 +11,19 @@
   border-radius: var(--glass-card-radius);
   /* premium glass — translucent at the edge, readable in stacked control use */
   background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--glass-edge) 26%, transparent), transparent 36%),
+    radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--glass-dark) 42%, transparent), transparent 44%),
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--glass-highlight) 34%, transparent),
+      color-mix(in srgb, var(--glass-highlight) 38%, transparent),
       transparent 44%
     ),
-    var(--glass-panel-strong);
+    color-mix(in srgb, var(--glass-panel-strong) 90%, transparent);
   border-color: color-mix(in srgb, var(--glass-border) 72%, transparent);
   box-shadow:
     var(--glass-shadow),
-    0 7px 22px -16px rgba(0, 0, 0, 0.32),
+    0 10px 30px -20px rgba(0, 0, 0, 0.38),
+    0 0 0 1px color-mix(in srgb, var(--glass-edge) 12%, transparent),
     inset 0 1px 0 var(--glass-inner-highlight);
   overflow: hidden;
 }
@@ -47,7 +50,7 @@
   border-bottom: 1px solid color-mix(in srgb, var(--hairline) 38%, transparent);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--glass-highlight) 18%, transparent),
+    color-mix(in srgb, var(--glass-highlight) 24%, transparent),
     transparent
   );
   cursor: grab;
@@ -140,7 +143,9 @@
 
 .wframe-btn:hover {
   color: var(--ink);
-  background: color-mix(in srgb, var(--glass-light) 68%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent),
+    color-mix(in srgb, var(--glass-light) 62%, transparent);
   transform: translateY(-1px);
 }
 
@@ -186,7 +191,9 @@
   font: inherit;
   text-align: left;
   color: var(--ink);
-  background: color-mix(in srgb, var(--glass-panel) 74%, transparent);
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-panel) 62%, transparent);
   border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent);
   border-radius: var(--r-micro-card);
   cursor: pointer;
@@ -198,7 +205,9 @@
 }
 
 .pal-family:hover {
-  background: color-mix(in srgb, var(--glass-light) 72%, var(--surface));
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--glass-highlight) 22%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-light) 62%, transparent);
   border-color: var(--hairline);
   transform: translateY(-1px);
   box-shadow: 0 10px 22px -16px rgba(0, 0, 0, 0.38);
@@ -206,7 +215,9 @@
 
 .pal-family[data-active="true"] {
   border-color: color-mix(in srgb, var(--chrome-accent) 55%, var(--hairline));
-  background: color-mix(in srgb, var(--glass-light) 76%, var(--glass-panel-strong));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 26%, transparent), transparent 54%),
+    color-mix(in srgb, var(--glass-light) 72%, var(--glass-panel-strong));
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--chrome-accent) 30%, transparent),
     0 12px 26px -18px rgba(0, 0, 0, 0.4);
@@ -261,7 +272,9 @@
   gap: 4px;
   padding: 5px;
   font: inherit;
-  background: color-mix(in srgb, var(--glass-panel) 74%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 12%, transparent), transparent 58%),
+    color-mix(in srgb, var(--glass-panel) 60%, transparent);
   border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent);
   border-radius: var(--r-micro-card);
   cursor: pointer;
@@ -273,7 +286,9 @@
 }
 
 .pal-chip:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--glass-light) 72%, var(--surface));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 58%),
+    color-mix(in srgb, var(--glass-light) 64%, transparent);
   border-color: var(--hairline);
   transform: translateY(-1px);
   box-shadow: 0 10px 20px -16px rgba(0, 0, 0, 0.36);

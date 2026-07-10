@@ -166,3 +166,8 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - The technical grid is a dot matrix (single radial-gradient background), not crossing lines. It stays camera-synced through the existing `syncGrid` background-size/position path; dot-grid tokens carry per-theme intensity.
 - Selection affordances animate with CSS-only keyframes (arc sweep-in, chip slide, radial button bloom) so the render loop and Motion mount animations are untouched; all honor `prefers-reduced-motion`.
 - Control chrome converges on two visual verbs: ink-gradient for active/confirm, hollow/dashed for subtractive (void button, void arc, delete command). No red chrome anywhere.
+
+## V6N.3 premium primitives
+- A local `MovingBorder` primitive was added because no existing project or installed component covered the selected-cell moving border without importing demo-heavy chrome. It is CSS-driven, neutral/palette-aware, reduced-motion safe, and reusable.
+- MovingBorder is reserved for selected/active/editing emphasis. It should not wrap every cell, widget, card, palette row, or saved-view tile by default.
+- The selected-cell moving border extends the existing organism label overlay and render-loop label sync. No parallel overlay, control surface, or store state was added.

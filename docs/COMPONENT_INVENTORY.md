@@ -19,6 +19,7 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 
 - Use `src/styles/tokens.css` for glass, chrome, radius, HUD text, muted text, dot grid, selection arc, and warning colors.
 - Use `.glass`, `.wframe`, `.dock-*`, `.rail-*`, `.org-*`, `.pop-*`, `.saved-*`, `.pal-*`, and `.selection-*` classes before inventing new chrome.
+- Use `src/ui/primitives/MovingBorder.tsx` for selected/active organism or future instrument borders that need subtle motion. It is not a generic wrapper for every card or every cell.
 - Sliders, switches, segmented chips, choice rows, metadata pills, micro cards, saved-view rows, palette rows, and canvas edit popovers should inherit the shared premium language.
 - New widget/card/control CSS is acceptable only when it extends these primitives or covers a genuinely new interaction.
 - Future stats/data widgets should use compact micro-card patterns, tabular numerals, and glass surfaces from the existing widget system.
@@ -45,6 +46,14 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - Role: `SliderRow`, `SwitchRow`, `WidgetSection`, `ChipRow`, `ChoiceRow`.
 - Reuse: sliders, toggles, chips, and grouped sections.
 - Do not duplicate: one-off slider rows or switch styling.
+
+### MovingBorder
+
+- File: `src/ui/primitives/MovingBorder.tsx`
+- Role: neutral/palette-aware animated border primitive for selected, hover, or edit-active instrument states.
+- Reuse: selected organism nuclei, future active metric widgets, or command surfaces that need a subtle moving perimeter.
+- Do not overuse: do not wrap every cell, card, widget, or palette row by default. Motion is reserved for selected/active emphasis.
+- Implementation note: CSS/SVG-free DOM primitive with CSS masks, reduced-motion support, and custom color/duration/radius props.
 
 ## Shell Components
 
@@ -79,7 +88,7 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 
 - Files: `src/canvas/OrganismCanvasView.tsx`, `src/canvas/organismCanvas.css`.
 - Role: HTML label overlay, label modes, selection ring size/display.
-- Reuse: selection arc should extend this carefully instead of creating independent DOM overlays.
+- Reuse: selection arc and moving cell border should extend this carefully instead of creating independent DOM overlays.
 
 ## Table Components
 

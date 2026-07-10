@@ -4,6 +4,8 @@ Status: active visual standard for all future UI work. V6N.2 applied this
 standard to the live UI: dot-matrix scan grid, thin leader-line selection arc,
 radial selection command menu, glass instrument edit popover, hairline
 sliders/switches, lightened dock/rail, and bento saved-view tiles.
+V6N.3 adds the reusable MovingBorder primitive and selected-cell moving border
+as part of this standard.
 
 The new reference images are visual grammar, not layouts to copy. They define mood, density, surface behavior, and control language for ZONUERT/MOOORF. Do not reproduce proprietary screens, brands, medical content, dashboard compositions, or exact card arrangements.
 
@@ -55,11 +57,13 @@ The new reference images are visual grammar, not layouts to copy. They define mo
 - Panels use shared blur, border, shadow, radius, and inner highlight tokens.
 - Floating cards must feel like one family across dock, rail, widgets, popovers, saved views, palette panels, and canvas edit popovers.
 - New controls should extend the shared primitives before adding CSS.
+- MovingBorder is an active/selected instrument primitive, not a default card frame.
 
 ## Selection Arc Rules
 
 - Selection is a measurement marker, not a decorative ring.
 - Use a partial arc, endpoint dots, neutral stroke, and small metadata chip.
+- Use the moving border only for selected/edit-active cell emphasis; it must stay thin, pointer-transparent, and reduced-motion safe.
 - Default tight selection stays compact.
 - Halo and influence modes may scale, but must feel intentional.
 - Void selection uses subtractive/hollow language in the same family.
