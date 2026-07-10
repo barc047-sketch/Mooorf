@@ -28,6 +28,12 @@
   pointer-events: none;
 }
 
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--glass-fallback);
+  }
+}
+
 /* Top-center canvas/table pill */
 .view-toggle {
   position: absolute;
@@ -77,26 +83,23 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px;
-  border-radius: var(--glass-card-radius);
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   max-width: calc(100vw - 18px);
-  box-shadow:
-    var(--glass-shadow),
-    inset 0 1px 0 var(--glass-inner-highlight);
+  box-shadow: none;
 }
 
 .dock-group {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 2px;
   min-width: 0;
-  padding: 2px;
+  padding: 3px;
   border-radius: calc(var(--r-micro-card) + 2px);
-  background: color-mix(in srgb, var(--glass-panel) 48%, transparent);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--hairline) 38%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 46%, transparent);
 }
 
 /* expand animation on mount — CSS-only so popover AnimatePresence stays
@@ -137,7 +140,7 @@
 
 .dock-group[data-collapsed="true"] {
   gap: 0;
-  background: color-mix(in srgb, var(--surface) 44%, transparent);
+  background: var(--glass-panel-soft);
 }
 
 .dock-group-center {
@@ -304,66 +307,50 @@
 .nucleus-orb {
   width: 44px;
   height: 44px;
-  color: var(--surface);
-  background:
-    radial-gradient(circle at 32% 14%, color-mix(in srgb, var(--surface) 20%, transparent), transparent 46%),
-    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--chrome-accent) 26%, transparent), transparent 48%),
-    linear-gradient(160deg, color-mix(in srgb, var(--ink) 84%, var(--chrome-accent) 16%), var(--ink) 72%);
-  border: 1px solid color-mix(in srgb, var(--surface) 20%, transparent);
+  color: #ffffff;
+  background: #080808;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow:
-    0 18px 38px -18px rgba(0, 0, 0, 0.66),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 22%, transparent),
-    inset 0 -6px 12px -8px rgba(0, 0, 0, 0.5);
+    0 14px 28px -17px rgba(0, 0, 0, 0.72),
+    0 2px 7px -4px rgba(0, 0, 0, 0.48);
   cursor: pointer;
   transition:
     transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 220ms ease,
-    filter 220ms ease;
+    box-shadow 220ms ease;
 }
 
-/* membrane hover — restrained rise, no loud color flare */
 .nucleus-orb:hover {
-  transform: scale(1.07);
-  filter: contrast(1.08) brightness(1.04);
-  animation: orb-liquid 2.8s ease-in-out infinite;
+  transform: translateY(-1.5px) scale(1.04);
   box-shadow:
-    0 22px 48px -18px rgba(0, 0, 0, 0.78),
-    0 0 0 4px color-mix(in srgb, var(--chrome-accent) 7%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 24%, transparent);
+    0 18px 36px -18px rgba(0, 0, 0, 0.8),
+    0 3px 9px -5px rgba(0, 0, 0, 0.56);
 }
 
 .nucleus-orb:active {
   transform: scale(0.96);
-  animation: none;
 }
 
 .cluster-orb {
   position: relative;
   width: 34px;
   height: 34px;
-  color: var(--surface);
-  background:
-    radial-gradient(circle at 30% 14%, color-mix(in srgb, var(--surface) 16%, transparent), transparent 44%),
-    linear-gradient(160deg, color-mix(in srgb, var(--ink) 86%, var(--chrome-accent) 14%), var(--ink) 74%);
-  border: 1px solid color-mix(in srgb, var(--surface) 20%, transparent);
+  color: #ffffff;
+  background: #080808;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow:
-    0 14px 28px -18px rgba(0, 0, 0, 0.66),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 20%, transparent),
-    inset 0 -5px 10px -7px rgba(0, 0, 0, 0.46);
+    0 12px 24px -17px rgba(0, 0, 0, 0.68),
+    0 2px 7px -4px rgba(0, 0, 0, 0.44);
   cursor: pointer;
   transition:
     transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 200ms ease,
-    filter 200ms ease;
+    box-shadow 200ms ease;
 }
 
 .cluster-orb:hover {
   transform: translateY(-1.5px) scale(1.05);
-  filter: contrast(1.06) brightness(1.03);
   box-shadow:
-    0 18px 38px -19px rgba(0, 0, 0, 0.76),
-    0 0 0 4px color-mix(in srgb, var(--chrome-accent) 7%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--surface) 22%, transparent);
+    0 17px 32px -19px rgba(0, 0, 0, 0.78),
+    0 3px 8px -5px rgba(0, 0, 0, 0.52);
 }
 
 .cluster-orb:active {
@@ -375,8 +362,8 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--surface);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--surface) 28%, transparent);
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.28);
   transition:
     transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 180ms ease;
@@ -426,19 +413,6 @@
 
 .cluster-orb:hover .cluster-dot-w {
   transform: translate(-1.5px, -50%);
-}
-
-@keyframes orb-liquid {
-  0%,
-  100% {
-    border-radius: 50%;
-  }
-  30% {
-    border-radius: 46% 54% 51% 49% / 53% 46% 54% 47%;
-  }
-  62% {
-    border-radius: 54% 46% 45% 55% / 46% 55% 45% 54%;
-  }
 }
 
 .void-btn {
@@ -1178,8 +1152,9 @@
   z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 4px 3px;
+  width: 42px;
+  gap: 2px;
+  padding: 5px;
   border-radius: var(--glass-card-radius);
   box-shadow:
     0 18px 44px -30px rgba(0, 0, 0, 0.42),
@@ -1195,7 +1170,7 @@
 
 .rail-sec + .rail-sec {
   position: relative;
-  padding-top: 5px;
+  padding-top: 0;
 }
 
 /* faded hairline dividers — no full-width rules */
@@ -1206,6 +1181,7 @@
   left: 4px;
   right: 4px;
   height: 1px;
+  display: none;
   background: linear-gradient(
     90deg,
     transparent,
@@ -1215,20 +1191,71 @@
   );
 }
 
-.rail-cap {
-  margin-bottom: 1px;
-  font-size: 6.5px;
-  line-height: 1;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted-text);
-  pointer-events: none;
+.rail-sec:nth-of-type(2),
+.rail-sec:nth-of-type(8),
+.rail-sec:nth-of-type(10) {
+  padding-top: 5px;
+}
+
+.rail-sec:nth-of-type(2)::before,
+.rail-sec:nth-of-type(8)::before,
+.rail-sec:nth-of-type(10)::before {
+  display: block;
 }
 
 .rail .rail-btn {
-  width: 24px;
-  height: 24px;
+  position: relative;
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
+}
+
+.rail .rail-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  z-index: 60;
+  width: max-content;
+  max-width: 164px;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
+  border-radius: var(--glass-pill-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent),
+    var(--glass-panel-strong);
+  box-shadow:
+    var(--glass-contact-shadow),
+    inset 0 1px 0 var(--glass-inner-highlight);
+  backdrop-filter: blur(24px) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(24px) saturate(var(--glass-saturate));
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-4px, -50%);
+  transition:
+    opacity 140ms ease,
+    transform 180ms var(--ease-out),
+    visibility 140ms ease;
+}
+
+.rail .rail-btn:hover::after,
+.rail .rail-btn:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -50%);
+}
+
+.rail .rail-btn:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--chrome-accent) 58%, transparent);
+  outline-offset: 2px;
 }
 
 .rail-btn[data-on="true"] {
@@ -1492,8 +1519,8 @@
 .org-sec-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 2px 7px 11px;
+  gap: 5px;
+  padding: 1px 7px 8px;
 }
 
 .org-slider {
@@ -1552,7 +1579,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  padding: 5px 8px;
+  padding: 4px 7px;
   font: inherit;
   text-align: left;
   color: var(--fog);
@@ -2023,10 +2050,10 @@
 
 @media (max-width: 480px) {
   .dock {
-    gap: 2px;
-    padding: 3px;
+    gap: 4px;
+    padding: 0;
     max-width: calc(100vw - 12px);
-    border-radius: 15px;
+    border-radius: 0;
   }
 
   .dock-group {
@@ -2100,12 +2127,15 @@
   }
 
   .dock-merge {
-    gap: 4px;
-    padding: 0 4px;
+    display: none;
   }
 
   .dock-merge input[type="range"] {
     width: 38px;
+  }
+
+  .dock-group-items[data-side="right"] > .dock-btn:last-child {
+    display: none;
   }
 
   .dock-pop {
@@ -2153,12 +2183,8 @@
 /* Short viewports: crunch the rail so all sections stay reachable. */
 @media (max-height: 640px) {
   .rail {
-    gap: 4px;
-    padding: 5px 4px;
-  }
-
-  .rail-cap {
-    display: none;
+    gap: 2px;
+    padding: 4px;
   }
 
   .rail-sec + .rail-sec {
@@ -2166,8 +2192,8 @@
   }
 
   .rail .rail-btn {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
   }
 }
 
@@ -2175,7 +2201,6 @@
 @media (prefers-reduced-motion: reduce) {
   .nucleus-orb:hover {
     transform: none;
-    animation: none;
   }
 
   .cluster-orb:hover {

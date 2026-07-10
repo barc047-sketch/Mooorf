@@ -178,3 +178,20 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Voids are counted separately and excluded from programmed area. Non-finite/non-positive areas read 0 m² and surface through `missingAreaCount`; unknown categories fall back through `getCategoryToken`.
 - Stats data colors come only from `CATEGORY_TOKENS` (category data) or neutral instrument tones (`--chrome-accent` / ink mixes for balance bands); `--warning-data` is reserved for true Data Health warnings. No red chrome, no chart packages.
 - The stats family shares local presentation primitives (`src/ui/widgets/stats/primitives.tsx`) inside the existing `WidgetFrame`/`WidgetHost` system — no second widget framework, no dashboard page. The canonical family spec is `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
+
+## V7.0B liquid glass shell correction
+- Widget focus depth stays derived from the existing `openWidgets` order.
+  `WidgetHost` passes one `focused` boolean and `WidgetFrame` exposes
+  `data-depth="front|back"`; no parallel z-index or focus state is introduced.
+- Shared glass is intentionally translucent (day front/back 0.58/0.36; dark
+  theme equivalents 0.56/0.34) with 32px backdrop blur, WebKit support, and a
+  stronger fallback only when backdrop filtering is unsupported.
+- The dock container is layout-only and visually transparent. Left/right
+  functional groups reuse `.glass` as independent islands; the center remains
+  open canvas.
+- Add and Add-5 are plain near-black/white actions. MovingBorder remains limited
+  to selected/edit-active cells.
+- The rail is permanently icon-only at 42px. Group names remain ARIA labels;
+  buttons use accessible names and token-driven external glass tooltips.
+- This is a presentation-layer correction only: no store, selector, shader,
+  table, saved-view, graph, or Project Pulse metric ownership changed.

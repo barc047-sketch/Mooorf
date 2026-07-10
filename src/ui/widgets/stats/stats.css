@@ -5,8 +5,8 @@
 .pulse {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 9px 5px 6px;
+  gap: 11px;
+  padding: 8px 5px 5px;
 }
 
 /* ——— readouts ——— */

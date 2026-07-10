@@ -88,7 +88,7 @@ function DockGroup({
 }) {
   return (
     <div
-      className={`dock-group dock-group-${side}`}
+      className={`dock-group dock-group-${side}${side === "center" ? "" : " glass"}`}
       data-side={side}
       data-collapsed={collapsed ? "true" : undefined}
     >
@@ -207,7 +207,7 @@ export default function Dock() {
   return (
     <motion.div
       ref={dockRef}
-      className="dock glass"
+      className="dock"
       initial={{ x: "-50%", y: 24, opacity: 0 }}
       animate={{ x: "-50%", y: 0, opacity: 1 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}

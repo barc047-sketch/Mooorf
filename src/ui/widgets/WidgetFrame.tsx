@@ -22,6 +22,7 @@ export interface WidgetFrameProps {
   /** stack slot — cascades the default anchor down the right edge */
   index: number;
   z: number;
+  focused: boolean;
   width?: number;
   headerExtra?: ReactNode;
   footer?: ReactNode;
@@ -34,7 +35,8 @@ export default function WidgetFrame({
   title,
   index,
   z,
-  width = 296,
+  focused,
+  width = 288,
   headerExtra,
   footer,
   children,
@@ -110,6 +112,7 @@ export default function WidgetFrame({
       role="dialog"
       aria-label={title}
       data-widget={id}
+      data-depth={focused ? "front" : "back"}
       data-min={minimized ? "true" : undefined}
       style={{
         width,

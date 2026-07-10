@@ -24,6 +24,21 @@ Dock, rail, widgets, popovers, saved views, palette panels, and canvas edit popo
 
 Shared CSS tokens live in `src/styles/tokens.css`: `--chrome-accent`, `--glass-dark`, `--glass-light`, `--glass-panel`, `--glass-panel-strong`, `--glass-border`, `--glass-inner-highlight`, `--glass-shadow`, `--glass-blur`, `--glass-saturate`, `--glass-card-radius`, and `--glass-pill-radius`.
 
+## V7.0B Stacked Liquid Glass Correction
+
+- `--glass-panel-strong` is the focused surface and `--glass-panel-soft` is the
+  background depth surface; both are genuinely translucent in day and night.
+- Shared blur is 32px with 158% saturation. A close contact shadow and brighter
+  edge bring the focused widget forward; background widgets keep softer shadows
+  without reducing text opacity.
+- `.glass` owns WebKit-compatible backdrop filtering, restrained grain, inner
+  edge light, and the unsupported-filter fallback. Do not recreate these layers
+  per widget.
+- The dock outer shell is transparent. Only the left quick-control group and
+  right utility group carry glass; center actions sit directly over the canvas.
+- Add and Add-5 use solid `#080808`, white marks, and neutral contact shadows.
+- The rail is 42px, icon-only, and uses concise external glass tooltips.
+
 ## Density Rule
 
 Controls should feel like a high-end scientific/editorial instrument:
@@ -35,6 +50,8 @@ Controls should feel like a high-end scientific/editorial instrument:
 - low-noise hover states;
 - tabular numbers where useful;
 - no oversized dashboard cards.
+- V7.0B tightens shared headers/body padding and the organism widget's open rows;
+  authored widths remain per widget rather than one hardcoded global width.
 
 ## Slider Rule
 

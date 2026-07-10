@@ -5,7 +5,8 @@ standard to the live UI: dot-matrix scan grid, thin leader-line selection arc,
 radial selection command menu, glass instrument edit popover, hairline
 sliders/switches, lightened dock/rail, and bento saved-view tiles.
 V6N.3 adds the reusable MovingBorder primitive and selected-cell moving border
-as part of this standard.
+as part of this standard. V7.0B corrects the production shell to true stacked
+liquid glass, independent dock islands, and an icon-only rail.
 
 The new reference images are visual grammar, not layouts to copy. They define mood, density, surface behavior, and control language for ZONUERT/MOOORF. Do not reproduce proprietary screens, brands, medical content, dashboard compositions, or exact card arrangements.
 
@@ -55,6 +56,14 @@ The new reference images are visual grammar, not layouts to copy. They define mo
 
 - Reuse `WidgetFrame`, `.glass`, `.wframe`, `.org-*`, `.pop-*`, `.saved-*`, `.pal-*`, and shared tokens.
 - Panels use shared blur, border, shadow, radius, and inner highlight tokens.
+- Focused and background widgets must expose readable depth through the existing
+  stack: focused glass is clearer with a stronger edge/contact shadow; background
+  glass is softer and more translucent, never simply dimmed.
+- Day glass should remain in the approximate 0.40–0.62 surface-alpha range and
+  night glass in the approximate 0.32–0.55 range unless readability requires a
+  small exception. Large near-opaque cream rectangles are prohibited.
+- Use `backdrop-filter` plus `-webkit-backdrop-filter`, and provide an opaque
+  fallback only when backdrop filtering is unavailable.
 - Floating cards must feel like one family across dock, rail, widgets, popovers, saved views, palette panels, and canvas edit popovers.
 - New controls should extend the shared primitives before adding CSS.
 - MovingBorder is an active/selected instrument primitive, not a default card frame.
@@ -79,8 +88,10 @@ The new reference images are visual grammar, not layouts to copy. They define mo
 
 ## Spacing / Density Rules
 
-- Rail is a launcher, not a tool panel.
-- Dock is quick action, not a dashboard.
+- Rail is a 40–46px icon-only launcher, not a tool panel. Labels live in accessible
+  names and external shared-glass tooltips, not permanent section text.
+- Dock is quick action, not a dashboard. It has no enclosing outer capsule: left
+  and right glass islands flank open-canvas central actions.
 - Widgets own details and should stay compact.
 - Sliders stay single-line.
 - Cards and chips should be dense but not cramped.
@@ -108,3 +119,5 @@ The new reference images are visual grammar, not layouts to copy. They define mo
 - Keep dock/rail/widget/canvas ownership clean.
 - New widget files are justified only when existing widgets cannot own the behavior.
 - Future V6N.2/V7 work should apply this standard more aggressively to dock, rail, widgets, selection, and data cards.
+- Every future V7 widget inherits V7.0B `WidgetFrame` depth/material and must not
+  create an opaque card shell or its own stacking logic.

@@ -25,10 +25,10 @@ interface WidgetDef {
 
 const WIDGET_DEFS: Record<WidgetId, WidgetDef> = {
   annotation: { eyebrow: "CANVAS", title: "Annotation", body: () => <AnnotationWidget /> },
-  organism: { eyebrow: "RENDER", title: "Organism", width: 304, body: () => <OrganismWidget /> },
+  organism: { eyebrow: "RENDER", title: "Organism", width: 292, body: () => <OrganismWidget /> },
   layout: { eyebrow: "ARRANGE", title: "Layout", body: () => <LayoutWidget /> },
-  palette: { eyebrow: "COLOR", title: "Palette", width: 312, body: () => <PaletteWidget /> },
-  saved: { eyebrow: "ITERATIONS", title: "Saved Views", width: 308, body: () => <SavedViewsWidget /> },
+  palette: { eyebrow: "COLOR", title: "Palette", width: 304, body: () => <PaletteWidget /> },
+  saved: { eyebrow: "ITERATIONS", title: "Saved Views", width: 300, body: () => <SavedViewsWidget /> },
   display: { eyebrow: "VIEW", title: "Display", body: () => <DisplayWidget /> },
   advanced: { eyebrow: "SYSTEM", title: "Advanced", body: () => <AdvancedWidget /> },
   stats: { eyebrow: "INTELLIGENCE", title: "Project Pulse", width: 300, body: () => <ProjectPulseWidget /> },
@@ -79,6 +79,7 @@ export default function WidgetHost() {
             width={def.width}
             index={slots.current.get(id) ?? 0}
             z={z}
+            focused={z === openWidgets.length - 1}
           >
             {def.body()}
           </WidgetFrame>

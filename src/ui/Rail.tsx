@@ -32,7 +32,6 @@ function RailSection({
 }) {
   return (
     <div className="rail-sec" role="group" aria-label={caption}>
-      <span className="rail-cap">{caption}</span>
       {children}
     </div>
   );
@@ -57,7 +56,9 @@ export default function Rail() {
       type="button"
       className="rail-btn"
       data-active={openWidgets.includes(id)}
+      data-tooltip={title}
       title={title}
+      aria-label={title}
       onClick={() => toggleWidget(id)}
     >
       {icon}
@@ -78,7 +79,9 @@ export default function Rail() {
           type="button"
           className="rail-btn"
           data-active={view === "canvas"}
+          data-tooltip="Canvas view"
           title="Canvas view"
+          aria-label="Canvas view"
           onClick={() => setView("canvas")}
         >
           <Shapes size={14} strokeWidth={1.5} />
@@ -87,7 +90,9 @@ export default function Rail() {
           type="button"
           className="rail-btn"
           data-active={view === "table"}
+          data-tooltip="Table view"
           title="Table view"
+          aria-label="Table view"
           onClick={() => setView("table")}
         >
           <Table2 size={14} strokeWidth={1.5} />
@@ -95,13 +100,22 @@ export default function Rail() {
       </RailSection>
 
       <RailSection caption="build">
-        <button type="button" className="rail-btn" title="Add nucleus shortcut" onClick={() => addSpace()}>
+        <button
+          type="button"
+          className="rail-btn"
+          data-tooltip="Add nucleus"
+          title="Add nucleus shortcut"
+          aria-label="Add nucleus shortcut"
+          onClick={() => addSpace()}
+        >
           <Plus size={14} strokeWidth={1.6} />
         </button>
         <button
           type="button"
           className="rail-btn rail-btn-disabled"
+          data-tooltip="Void nucleus — dock"
           title="Void nucleus placeholder"
+          aria-label="Void nucleus placeholder"
           disabled
         >
           <Minus size={14} strokeWidth={1.5} />
@@ -140,7 +154,9 @@ export default function Rail() {
         <button
           type="button"
           className="rail-btn"
+          data-tooltip={theme === "day" ? "Night mode" : "Day mode"}
           title={theme === "day" ? "Night mode" : "Day mode"}
+          aria-label={theme === "day" ? "Night mode" : "Day mode"}
           onClick={toggleTheme}
         >
           {theme === "day" ? (
@@ -149,7 +165,14 @@ export default function Rail() {
             <Sun size={14} strokeWidth={1.5} />
           )}
         </button>
-        <button type="button" className="rail-btn" title="Reset view" onClick={resetView}>
+        <button
+          type="button"
+          className="rail-btn"
+          data-tooltip="Reset view"
+          title="Reset view"
+          aria-label="Reset view"
+          onClick={resetView}
+        >
           <Frame size={14} strokeWidth={1.5} />
         </button>
         {launcher("advanced", "Advanced widget", <Settings2 size={14} strokeWidth={1.5} />)}

@@ -16,8 +16,9 @@ V6N.1 locks the visual system to the premium reference grammar in
 `docs/V6N_REFERENCE_STYLE_LOCK.md`. V6N.2 applied it across the live UI
 (selection arc + command menu, edit popover, dot-matrix grid, dock, rail,
 sliders, switches, saved-view tiles, widget chrome). V6N.3 hardened the
-premium primitive layer and added the selected-cell moving border; treat the current
-in-app look as the baseline to extend, not restyle.
+premium primitive layer and added the selected-cell moving border. V7.0B
+corrected that baseline from near-opaque card chrome to true stacked liquid
+glass; treat the current in-app look as the baseline to extend, not restyle.
 
 - No red UI chrome. Red/wine is product or palette material only.
 - UI chrome is neutral graphite / pearl / smoke / bone / black / warm stone.
@@ -29,6 +30,24 @@ in-app look as the baseline to extend, not restyle.
 - Do not create cheap rectangular panels or uncontrolled card styles.
 - Do not duplicate dock, rail, widget, table, or canvas responsibilities.
 - New UI files must be justified by clearer ownership or reduced duplication.
+
+## V7.0B Liquid Glass Shell Lock
+
+- Floating surfaces use theme-specific translucent material: focused widgets are
+  approximately 0.58 alpha in day mode, background widgets approximately 0.36;
+  both keep 32px backdrop blur and 158% saturation. Night mode uses the same
+  hierarchy with dark tints.
+- `WidgetHost` remains the only z-order owner. `WidgetFrame` receives the current
+  focus state and exposes `data-depth="front|back"`; do not add a second focus or
+  z-index manager.
+- The dock has no outer glass slab. Left quick controls and right utilities are
+  independent `.glass` islands; the center creation group floats in open canvas.
+- Add and Add-5 are plain near-black circles with white marks and only a quiet
+  contact shadow. MovingBorder stays exclusive to selected/edit-active cells.
+- The rail is a 42px icon-only launcher with accessible names and external glass
+  tooltips. Permanent section captions are prohibited.
+- Future V7 widgets inherit these corrected primitives, compact headers, and
+  controlled vertical density. They must not reintroduce cream-heavy cards.
 
 ## Visual Language
 

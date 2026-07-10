@@ -35,8 +35,8 @@
   --zonuert-red-deep: #8f1111;
 
   /* Editorial glass/chrome */
-  --glass-blur: 22px;
-  --glass-saturate: 150%;
+  --glass-blur: 32px;
+  --glass-saturate: 158%;
   --glass-card-radius: var(--r-floating-card);
   --glass-pill-radius: var(--r-pill);
   --glass-noise: rgba(255, 255, 255, 0.028);
@@ -68,17 +68,23 @@
   --chrome-accent-soft: #b8b0a3;
   --chrome-accent-deep: #2b2a28;
   --accent: var(--chrome-accent);
-  --glass-bg: rgba(255, 255, 255, 0.42);
-  --glass-light: rgba(255, 255, 255, 0.68);
+  --glass-bg: rgba(250, 251, 247, 0.44);
+  --glass-light: rgba(255, 255, 255, 0.52);
   --glass-dark: rgba(34, 34, 34, 0.07);
-  --glass-panel: color-mix(in srgb, var(--bg) 58%, var(--surface));
-  --glass-panel-strong: color-mix(in srgb, var(--bg) 74%, var(--surface));
+  --glass-panel: rgba(249, 250, 246, 0.46);
+  --glass-panel-strong: rgba(250, 251, 247, 0.58);
+  --glass-panel-soft: rgba(249, 250, 246, 0.36);
+  --glass-fallback: rgba(249, 250, 246, 0.9);
   --glass-border: rgba(34, 34, 34, 0.12);
   --glass-highlight: rgba(255, 255, 255, 0.74);
   --glass-inner-highlight: color-mix(in srgb, var(--glass-highlight) 62%, transparent);
   --glass-shadow:
     0 30px 72px -38px rgba(0, 0, 0, 0.42),
     0 3px 12px -9px rgba(0, 0, 0, 0.16);
+  --glass-shadow-back:
+    0 22px 54px -38px rgba(0, 0, 0, 0.28),
+    0 2px 8px -7px rgba(0, 0, 0, 0.12);
+  --glass-contact-shadow: 0 10px 22px -18px rgba(0, 0, 0, 0.38);
   --glass-noise: rgba(255, 255, 255, 0.045);
   --glass-edge: rgba(255, 255, 255, 0.52);
   --instrument-track: color-mix(in srgb, var(--ink) 15%, transparent);
@@ -104,17 +110,23 @@
   --chrome-accent-soft: #726d64;
   --chrome-accent-deep: #111111;
   --accent: var(--chrome-accent);
-  --glass-bg: rgba(18, 18, 18, 0.36);
+  --glass-bg: rgba(13, 13, 13, 0.4);
   --glass-light: rgba(255, 255, 255, 0.13);
   --glass-dark: rgba(0, 0, 0, 0.46);
-  --glass-panel: color-mix(in srgb, var(--bg) 68%, var(--surface));
-  --glass-panel-strong: color-mix(in srgb, var(--bg) 82%, var(--surface));
+  --glass-panel: rgba(16, 16, 16, 0.42);
+  --glass-panel-strong: rgba(18, 18, 18, 0.56);
+  --glass-panel-soft: rgba(12, 12, 12, 0.34);
+  --glass-fallback: rgba(15, 15, 15, 0.92);
   --glass-border: rgba(237, 237, 234, 0.11);
   --glass-highlight: rgba(255, 255, 255, 0.11);
   --glass-inner-highlight: color-mix(in srgb, var(--glass-highlight) 72%, transparent);
   --glass-shadow:
     0 34px 82px -40px rgba(0, 0, 0, 0.78),
     0 3px 12px -9px rgba(0, 0, 0, 0.42);
+  --glass-shadow-back:
+    0 24px 62px -42px rgba(0, 0, 0, 0.66),
+    0 2px 9px -7px rgba(0, 0, 0, 0.34);
+  --glass-contact-shadow: 0 12px 26px -19px rgba(0, 0, 0, 0.72);
   --glass-noise: rgba(255, 255, 255, 0.032);
   --glass-edge: rgba(255, 255, 255, 0.16);
   --instrument-track: color-mix(in srgb, var(--ink) 15%, transparent);

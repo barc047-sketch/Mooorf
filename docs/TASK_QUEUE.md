@@ -12,7 +12,20 @@
 - [x] V6N.2 Reference-Applied UI Polish
 - [x] V6N.3 Premium Primitives + Moving Cell Border
 - [x] V7.0 Spatial Intelligence System + Project Pulse Flagship
+- [x] V7.0B Liquid Glass Shell Correction
 - [ ] V7.1 Remaining stats widget family (Sol — Category Mix, Privacy Balance, Area Leaders, Data Health)
+
+## V7.0B — Liquid Glass Shell Correction  ✅ COMPLETE
+- [x] shared day/night glass surfaces are translucent with 32px blur, saturation, edge light, layered/contact shadows, WebKit support, and unsupported-filter fallback
+- [x] focused/background WidgetFrame depth comes from existing `openWidgets` order through `data-depth`; no second z-index manager
+- [x] overlapping widgets show canvas and lower panels while preserving readable text
+- [x] dock outer rectangle removed; left/right controls are independent glass islands
+- [x] Add and Add-5 are plain near-black circles; Void remains hollow/subtractive; MovingBorder is not used in the dock
+- [x] rail is 42px icon-only with concise glass tooltips, ARIA labels, keyboard focus, and reduced separators
+- [x] shared widget header/body/row density tightened; Project Pulse hierarchy and selectors untouched
+- [x] future V7 widgets locked to corrected primitives in design/component docs
+- [x] no dependencies, product state, shader, graph, table, saved-view, or selector changes
+- [x] build passes with known chunk warning; focused desktop/mobile live QA complete
 
 ## V7.0 — Spatial Intelligence System + Project Pulse Flagship  ✅ COMPLETE
 - [x] `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md` defines purpose, hierarchy, widget family, visual grammar, metric formatting, data-color rules, compact/expanded behavior, empty/error states, selector ownership, graph/floor future integration, and Sol guidance

@@ -11,6 +11,12 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V7.0B Liquid Glass Shell Correction
+- True translucent WidgetFrame material with existing-stack focused/background depth
+- Dock outer slab removed; independent left/right glass islands; plain-black Add/Add-5; hollow Void retained
+- 42px icon-only rail with accessible glass tooltips; tighter shared widget density
+- Project Pulse selectors/hierarchy and product/store/render contracts unchanged
+- Build and focused desktop/mobile preview QA passed with known chunk warning
 - V7.0 Spatial Intelligence System + Project Pulse Flagship
 - `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md` defines the family, hierarchy, formatting, data-color rules, states, selector ownership, and Sol guidance
 - Pure selectors at `src/domain/stats/selectors.ts`; voids never inflate program area; safe fallbacks for bad data

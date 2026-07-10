@@ -36,9 +36,11 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 ### `WidgetFrame`
 
 - File: `src/ui/widgets/WidgetFrame.tsx`
-- Role: shared widget chrome: title, drag, minimize, close, focus, mobile sheet.
+- Role: shared widget chrome: title, drag, minimize, close, focus, mobile sheet,
+  and V7.0B front/back liquid-glass depth through `data-depth`.
 - Reuse: all floating widgets should use this frame.
-- Do not duplicate: custom draggable card shells.
+- Do not duplicate: custom draggable card shells, stacking managers, or opaque
+  per-widget material.
 
 ### Widget Controls
 
@@ -84,14 +86,18 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - File: `src/ui/Dock.tsx`
 - Role: bottom quick actions only.
 - Owns: renderer mode, quick style/attachment, density, add nucleus, add-5, void, quick palette/saved/random/import/export/system launchers.
+- V7.0B material: no outer dock capsule; left/right are independent `.glass`
+  islands and the plain-black Add/Add-5 circles float in the center.
 - Do not add: large forms, inspectors, or full advanced controls.
 
 ### `Rail`
 
 - File: `src/ui/Rail.tsx`
-- Role: launcher/navigation rail only.
+- Role: 42px icon-only launcher/navigation rail with accessible names and
+  external shared-glass tooltips.
 - Owns: canvas/table navigation and widget launch.
-- Do not add: duplicate full controls already owned by widgets/dock.
+- Do not add: permanent section captions or duplicate full controls already
+  owned by widgets/dock.
 
 ### `SavedViewsPanel`
 
