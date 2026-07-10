@@ -73,10 +73,11 @@ export const WIDGET_PANEL_DEFINITIONS: readonly WidgetPanelDefinition[] = [
   },
   {
     id: "stats",
-    label: "Stats",
-    responsibility: "Future selector-backed metrics and warnings.",
+    label: "Project Pulse",
+    responsibility:
+      "Spatial intelligence flagship — live program metrics from pure selectors (src/domain/stats). Family spec: docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md.",
     launcher: "rail",
-    status: "future",
+    status: "live",
   },
   {
     id: "export",

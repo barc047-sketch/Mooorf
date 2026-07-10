@@ -171,3 +171,10 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - A local `MovingBorder` primitive was added because no existing project or installed component covered the selected-cell moving border without importing demo-heavy chrome. It is CSS-driven, neutral/palette-aware, reduced-motion safe, and reusable.
 - MovingBorder is reserved for selected/active/editing emphasis. It should not wrap every cell, widget, card, palette row, or saved-view tile by default.
 - The selected-cell moving border extends the existing organism label overlay and render-loop label sync. No parallel overlay, control surface, or store state was added.
+
+## V7.0 spatial intelligence
+- Live stats derive from the store-owned `SpaceCell[]` through pure selectors in `src/domain/stats/selectors.ts` — the Zustand array is the runtime master graph. Converting spaces to a `ZonuertProject` per render was rejected as heavier and lossy (no runtime floors/relationships); instead selector names/shapes mirror `src/domain/graph/selectors.ts` so the V9 graph migration swaps the data source, not the widgets.
+- Metric ownership is exclusive: widgets never hold metric state, never compute in components, and never hardcode production numbers. All family widgets consume selectors via `useMemo` on the `spaces` reference, which makes table/canvas edits and saved-view loads update automatically.
+- Voids are counted separately and excluded from programmed area. Non-finite/non-positive areas read 0 m² and surface through `missingAreaCount`; unknown categories fall back through `getCategoryToken`.
+- Stats data colors come only from `CATEGORY_TOKENS` (category data) or neutral instrument tones (`--chrome-accent` / ink mixes for balance bands); `--warning-data` is reserved for true Data Health warnings. No red chrome, no chart packages.
+- The stats family shares local presentation primitives (`src/ui/widgets/stats/primitives.tsx`) inside the existing `WidgetFrame`/`WidgetHost` system — no second widget framework, no dashboard page. The canonical family spec is `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.

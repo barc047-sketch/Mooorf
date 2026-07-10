@@ -14,6 +14,7 @@ import PaletteWidget from "./PaletteWidget";
 import SavedViewsWidget from "./SavedViewsWidget";
 import DisplayWidget from "./DisplayWidget";
 import AdvancedWidget from "./AdvancedWidget";
+import ProjectPulseWidget from "./stats/ProjectPulseWidget";
 
 interface WidgetDef {
   eyebrow: string;
@@ -30,6 +31,7 @@ const WIDGET_DEFS: Record<WidgetId, WidgetDef> = {
   saved: { eyebrow: "ITERATIONS", title: "Saved Views", width: 308, body: () => <SavedViewsWidget /> },
   display: { eyebrow: "VIEW", title: "Display", body: () => <DisplayWidget /> },
   advanced: { eyebrow: "SYSTEM", title: "Advanced", body: () => <AdvancedWidget /> },
+  stats: { eyebrow: "INTELLIGENCE", title: "Project Pulse", width: 300, body: () => <ProjectPulseWidget /> },
 };
 
 export default function WidgetHost() {

@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import {
+  Activity,
   Bookmark,
   Eye,
   Frame,
@@ -125,6 +126,10 @@ export default function Rail() {
 
       <RailSection caption="saved">
         {launcher("saved", "Saved views widget", <Bookmark size={14} strokeWidth={1.5} />)}
+      </RailSection>
+
+      <RailSection caption="stats">
+        {launcher("stats", "Project Pulse widget", <Activity size={14} strokeWidth={1.5} />)}
       </RailSection>
 
       <RailSection caption="display">

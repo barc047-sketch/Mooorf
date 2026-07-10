@@ -4,14 +4,18 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V7 stats/widgets or another explicit phase
+- V7.1 remaining stats widget family (Sol): Category Mix, Privacy Balance, Area Leaders, Data Health — spec in `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
-- Keep V7 floating widgets parked
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
 - Future prompts must include the Ponytail checklist
 
 ## Current Feature Complete
 
+- V7.0 Spatial Intelligence System + Project Pulse Flagship
+- `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md` defines the family, hierarchy, formatting, data-color rules, states, selector ownership, and Sol guidance
+- Pure selectors at `src/domain/stats/selectors.ts`; voids never inflate program area; safe fallbacks for bad data
+- Project Pulse flagship from shared stats primitives inside WidgetFrame; rail Stats launcher; live store-derived metrics
+- Preview QA: metric sync (add/void/edit/saved views/layout-neutral), day/night, 390 px, ORG/CLS, lab route; build green with known chunk warning
 - V6N.3 Premium Primitives + Moving Cell Border
 - Added reusable `MovingBorder` primitive for selected/active emphasis only
 - Selected/edit-active organism nuclei use moving border through the existing label overlay; void border is hollow/subtractive

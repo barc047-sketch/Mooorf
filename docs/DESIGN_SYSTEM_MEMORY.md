@@ -69,6 +69,13 @@ in-app look as the baseline to extend, not restyle.
 - Red chrome on rail buttons, dock groups, widget headers, sliders, chips, panel accents, or selection arcs.
 - Moving borders on every cell/card/widget; use motion sparingly for active instrument emphasis.
 
+## Stats Instruments (V7)
+
+- Stats widgets are spatial diagnostic instruments, never SaaS dashboard cards.
+- Hierarchy per instrument: hero readout → side vitals → hairline micro distribution → footer insight rows. Values are tabular; hero stays ≤ ~22px.
+- Category data colors come only from `CATEGORY_TOKENS`; balance bands use neutral instrument tones; `--warning-data` only for true warnings.
+- Shared family primitives live in `src/ui/widgets/stats/primitives.tsx`; the flagship reference is Project Pulse. Spec: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
+
 ## Current Anchors
 
 - `docs/DESIGN_UI_UPGRADE_V6K.md` for premium widget system.

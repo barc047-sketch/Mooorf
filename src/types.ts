@@ -33,7 +33,8 @@ export interface AnnotationDetail {
   boundingBox: boolean; // hairline box even in boxless modes
 }
 
-/* V6K — floating widget system. Order in the open list = stacking order. */
+/* V6K — floating widget system. Order in the open list = stacking order.
+   V7 adds "stats" (Project Pulse — spatial intelligence). */
 export type WidgetId =
   | "annotation"
   | "organism"
@@ -41,7 +42,8 @@ export type WidgetId =
   | "palette"
   | "saved"
   | "display"
-  | "advanced";
+  | "advanced"
+  | "stats";
 
 export type Privacy = "public" | "shared" | "private";
 

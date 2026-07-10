@@ -32,6 +32,9 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - `src/ui/widgets/DisplayWidget.tsx` — theme, grid, label/nuclei display.
 - `src/ui/widgets/AdvancedWidget.tsx` — diagnostics and staged controls.
 - `src/ui/widgets/widgets.css` — widget-specific layout.
+- `src/ui/widgets/stats/ProjectPulseWidget.tsx` — V7 flagship spatial intelligence widget.
+- `src/ui/widgets/stats/primitives.tsx` — shared stats readout/distribution/insight primitives + metric formatting.
+- `src/domain/stats/selectors.ts` — pure derived program metrics (single metric owner).
 - `src/ui/controlMeta.ts` — shared labels/descriptions for dock and widgets.
 
 ## Canvas / Engine Files
@@ -95,9 +98,8 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 
 ## Deferred Features
 
-- V6LQ shader/void QA.
-- V6.5 selection arc and direct canvas rename.
-- V7 stats widgets.
+- V7.1 remaining stats family (Sol): Category Mix, Privacy Balance, Area Leaders, Data Health — spec in `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
+- Relationship Health / Floor Summary widgets (need graph/floor runtime data).
 - V8 export/import polish.
 - V9 floor system.
 - V10 performance scaling with texture/data-buffer renderer.

@@ -11,7 +11,24 @@
 - [x] V6N.1 Reference-Locked Premium Design System
 - [x] V6N.2 Reference-Applied UI Polish
 - [x] V6N.3 Premium Primitives + Moving Cell Border
-- [ ] V7 Stats / Floating Widgets / later widget expansion
+- [x] V7.0 Spatial Intelligence System + Project Pulse Flagship
+- [ ] V7.1 Remaining stats widget family (Sol — Category Mix, Privacy Balance, Area Leaders, Data Health)
+
+## V7.0 — Spatial Intelligence System + Project Pulse Flagship  ✅ COMPLETE
+- [x] `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md` defines purpose, hierarchy, widget family, visual grammar, metric formatting, data-color rules, compact/expanded behavior, empty/error states, selector ownership, graph/floor future integration, and Sol guidance
+- [x] pure selectors added at `src/domain/stats/selectors.ts` over store-owned `SpaceCell[]` — no duplicated metric state anywhere
+- [x] voids counted separately and excluded from programmed area
+- [x] non-finite/non-positive areas read 0 m² and surface via `missingAreaCount`
+- [x] unknown categories fall back safely through `getCategoryToken`
+- [x] Project Pulse implemented from shared primitives (`MetricReadout`, `MicroDistribution`, `InsightRow`) inside the existing `WidgetFrame`
+- [x] content: total program, space count, void count, program-mix band + legend, openness balance, largest space, dominant category
+- [x] elegant dormant empty state for zero-space projects
+- [x] `WidgetId` + `WIDGET_DEFS` + rail Stats launcher + registry entry (live)
+- [x] table/canvas edits, add 1/add 5, saved-view load, Random/layout neutrality preview-verified
+- [x] drag/minimize/close/z-order/Escape/mobile sheet inherited from WidgetFrame and verified
+- [x] day/night premium, 390 px sheet, ORG/CLS, lab route, zero console warnings, no red chrome
+- [x] build passes with known chunk warning
+- [x] only the flagship shipped — no dashboard page, no other family widgets
 
 ## V6N.3 — Premium Primitives + Moving Cell Border  ✅ COMPLETE
 - [x] checked for existing `moving-border` primitive; none existed

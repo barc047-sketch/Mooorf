@@ -55,6 +55,28 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - Do not overuse: do not wrap every cell, card, widget, or palette row by default. Motion is reserved for selected/active emphasis.
 - Implementation note: CSS/SVG-free DOM primitive with CSS masks, reduced-motion support, and custom color/duration/radius props.
 
+## Stats / Spatial Intelligence (V7)
+
+### Stats Selectors
+
+- File: `src/domain/stats/selectors.ts`
+- Role: pure derived metrics over store `spaces` (program area, counts, category shares, privacy balance, leaders, data-health counts).
+- Reuse: every stats widget must consume these; add new metrics here first.
+- Do not duplicate: metric math inside components, metric state in the store, hardcoded numbers.
+
+### Stats Primitives
+
+- Files: `src/ui/widgets/stats/primitives.tsx`, `src/ui/widgets/stats/stats.css`
+- Role: `MetricReadout`, `MicroDistribution`, `InsightRow` + `formatInt`/`formatShare`/`formatCount` — the shared instrument language for the V7 family.
+- Reuse: extend this file for family needs (MiniRank, StatusDot); keep `pulse-*` CSS family.
+- Do not duplicate: per-widget readout/band/format variants or chart libraries.
+
+### ProjectPulseWidget
+
+- File: `src/ui/widgets/stats/ProjectPulseWidget.tsx`
+- Role: V7 flagship — the normative reference for structure, tone, and data flow of all stats widgets.
+- Spec: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
+
 ## Shell Components
 
 ### `Dock`

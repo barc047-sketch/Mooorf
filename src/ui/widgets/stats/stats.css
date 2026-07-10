@@ -1,0 +1,229 @@
+/* V7 spatial intelligence — Project Pulse instrument styling.
+   Lives inside the shared WidgetFrame glass; everything here is neutral
+   chrome + token-driven data color. No red, no dashboard tiles. */
+
+.pulse {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 9px 5px 6px;
+}
+
+/* ——— readouts ——— */
+
+.pulse-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pulse-label {
+  font-size: 7.5px;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--hud-text);
+  white-space: nowrap;
+}
+
+.pulse-value {
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: var(--track-tighter);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.pulse-value i {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--fog);
+  margin-left: 5px;
+}
+
+.pulse-readout[data-mini="true"] {
+  gap: 3px;
+}
+
+.pulse-readout[data-mini="true"] .pulse-value {
+  font-size: 12.5px;
+  letter-spacing: var(--track-tight);
+}
+
+.pulse-readout[data-mini="true"] .pulse-value i {
+  font-size: 8px;
+  margin-left: 3px;
+}
+
+/* ——— hero row — asymmetric: primary metric + stacked side vitals ——— */
+
+.pulse-hero {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 2px 2px 0;
+}
+
+.pulse-hero > .pulse-readout:first-child {
+  flex: 1;
+}
+
+.pulse-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 14px;
+  border-left: 1px solid color-mix(in srgb, var(--hairline) 55%, transparent);
+}
+
+/* ——— micro distribution ——— */
+
+.pulse-dist {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0 2px;
+}
+
+.pulse-dist-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pulse-detail {
+  font-size: 8.5px;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fog);
+  white-space: nowrap;
+}
+
+.pulse-band {
+  display: flex;
+  gap: 2px;
+  height: 4px;
+}
+
+.pulse-band i {
+  flex-grow: 1;
+  flex-basis: 0;
+  min-width: 3px;
+  border-radius: 2px;
+  opacity: 0.9;
+  transition: flex-grow 480ms var(--ease-out);
+}
+
+.pulse-band .pulse-band-dormant {
+  background: color-mix(in srgb, var(--fog) 30%, transparent);
+  opacity: 1;
+}
+
+.pulse-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 1px;
+}
+
+.pulse-legend-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pulse-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  align-self: center;
+  flex: none;
+}
+
+.pulse-legend-name {
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulse-legend-share {
+  margin-left: auto;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fog);
+}
+
+/* ——— footer insights ——— */
+
+.pulse-insights {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid color-mix(in srgb, var(--hairline) 45%, transparent);
+  padding: 2px 2px 0;
+}
+
+.pulse-insight {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0 5px;
+}
+
+.pulse-insight + .pulse-insight {
+  border-top: 1px solid color-mix(in srgb, var(--hairline) 26%, transparent);
+}
+
+.pulse-insight-value {
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulse-insight-value b {
+  font-weight: 500;
+}
+
+/* ——— empty / dormant instrument ——— */
+
+.pulse-empty {
+  gap: 9px;
+  padding: 16px 6px 12px;
+  text-align: left;
+}
+
+.pulse-empty p {
+  margin: 0;
+  font-size: 12.5px;
+  letter-spacing: var(--track-tight);
+  color: var(--ink);
+}
+
+.pulse-empty-hint {
+  font-size: 9px;
+  line-height: 1.5;
+  color: var(--muted-text);
+}
+
+.pulse-empty .pulse-band {
+  margin-top: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-band i {
+    transition: none;
+  }
+}

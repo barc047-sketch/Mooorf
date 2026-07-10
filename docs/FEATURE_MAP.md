@@ -74,6 +74,13 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 - Related docs: `docs/ORGANISM_LAB_SPEC.md`, `docs/ORGANISM_ENGINE_LIMITS.md`.
 - Risk: medium; keep route isolated and do not import production store into lab.
 
+## Spatial Intelligence / Stats Widgets
+
+- Purpose: live derived program metrics floating as diagnostic instruments (V7 family; Project Pulse is the flagship).
+- Main files: `src/domain/stats/selectors.ts`, `src/ui/widgets/stats/*`, `src/ui/widgets/WidgetHost.tsx`, `src/ui/Rail.tsx`, `src/types.ts` (WidgetId), `src/ui/panels/widgetRegistry.ts`.
+- Related docs: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`, `docs/V6N_REFERENCE_STYLE_LOCK.md`.
+- Risk: medium; metrics must stay pure/derived (no duplicated state), voids must never inflate program area, and data colors must stay token-driven.
+
 ## Selection Arc
 
 - Purpose: future direct canvas selection/rename/area affordances.

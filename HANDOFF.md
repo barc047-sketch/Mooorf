@@ -31,12 +31,13 @@ Complete:
 - V6N.1 Reference-Locked Premium Design System
 - V6N.2 Reference-Applied UI Polish
 - V6N.3 Premium Primitives + Moving Cell Border
+- V7.0 Spatial Intelligence System + Project Pulse Flagship
 
 Next:
-- V7 stats/widgets or another explicit phase
+- V7.1 remaining stats widget family (Sol) or another explicit phase
 
 Not started:
-- V7 Floating Widgets
+- V7.1 Category Mix / Privacy Balance / Area Leaders / Data Health widgets
 
 ## Current Decision
 
@@ -79,6 +80,8 @@ V6N.2 applied the locked reference grammar directly to the live UI (visual/CSS o
 V6N.3 added the reusable `MovingBorder` primitive and upgraded the shared premium primitive layer. Selected/edit-active organism nuclei now use a subtle moving border through the existing label overlay only; voids get hollow/subtractive styling. Shared glass, widget, dock, rail, popover, saved/palette card, slider, switch, chip, and layout-card materials were strengthened with neutral edge light, grain, and instrument tokens. No product data, shader, table, saved-view, package, fallback, or lab-route rewrite. Build and focused preview QA passed.
 
 V6N.1 locked the premium reference style into the design system. `docs/V6N_REFERENCE_STYLE_LOCK.md` is now the canonical reference grammar for dark scientific HUD, light frosted dashboard, spatial glass, cinematic overlay, selection arc, typography, density, color/chrome, data card, and future widget rules. Shared tokens/primitives were strengthened for glass dark/light, borders, inner highlights, shadows, card/pill radii, HUD/muted text, dot grid, neutral selection arcs, and warning-data color. References remain mood/structure/style only; no external images were moved or duplicated.
+
+V7.0 defined the spatial intelligence system (`docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`) and shipped the flagship Project Pulse widget. Pure selectors over the store `spaces` array (`src/domain/stats/selectors.ts`) own every metric: total program m² (voids excluded), space/void counts, category shares, privacy balance, largest space, and data-health counts. The widget composes shared instrument primitives (MetricReadout, MicroDistribution, InsightRow) inside the existing WidgetFrame, launches from a new rail Stats section, and updates live from table/canvas edits and saved-view loads. Build green; preview QA covered metrics sync, layout neutrality, day/night, 390 px sheet, ORG/CLS, and the lab route. Sol implements the remaining family from the system doc.
 
 ## Workflow
 
