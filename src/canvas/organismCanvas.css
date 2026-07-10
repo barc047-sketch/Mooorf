@@ -63,13 +63,11 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-width: 140px;
-  padding: 3px 8px;
-  border: 1px solid color-mix(in srgb, var(--nucleus-color) 14%, var(--glass-border));
-  border-radius: var(--glass-pill-radius);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 54%),
-    color-mix(in srgb, var(--bg) 62%, transparent);
+  max-width: 168px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--ink);
   font-size: 10px;
   line-height: 1.1;
@@ -77,11 +75,9 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  backdrop-filter: blur(11px) saturate(138%);
-  -webkit-backdrop-filter: blur(11px) saturate(138%);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 38%, transparent),
-    0 12px 30px -24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
 
 .organism-label-main,
@@ -103,13 +99,20 @@
   left: 10px;
   top: 9px;
   padding: 0;
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
+  color: var(--ink);
 }
 
-.organism-label-layer[data-mode="pill"] .organism-label,
-.organism-label-layer[data-mode="technical"] .organism-label {
+.organism-label-layer[data-mode="pill"] .organism-label {
+  display: block;
+  max-width: 140px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--nucleus-color) 14%, var(--glass-border));
+  border-radius: var(--glass-pill-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 54%),
+    color-mix(in srgb, var(--bg) 62%, transparent);
+  backdrop-filter: blur(11px) saturate(138%);
+  -webkit-backdrop-filter: blur(11px) saturate(138%);
   box-shadow:
     inset 2px 0 0 color-mix(in srgb, var(--nucleus-color) 72%, transparent),
     0 10px 30px -22px rgba(0, 0, 0, 0.45);
@@ -143,21 +146,14 @@
 
 .organism-label-layer[data-mode="technical"] .organism-label {
   max-width: 168px;
-  padding: 4px 7px;
-  border-radius: 8px;
+  padding: 0;
   font-size: 9px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 52%),
-    color-mix(in srgb, var(--bg) 74%, transparent);
+  color: var(--ink);
 }
 
 .organism-label-layer[data-mode="technical"] .organism-label-meta {
   font-size: 7.5px;
   text-transform: uppercase;
-}
-
-.organism-label-layer[data-mode="pill"] .organism-label {
-  display: block;
 }
 
 /* V6K label position modes — placement relative to the nucleus anchor */
@@ -186,7 +182,7 @@
 }
 
 /* V6K bounding box — hairline frame even in boxless modes */
-.organism-label-layer[data-bbox="true"] .organism-label {
+.organism-label-layer[data-mode="pill"][data-bbox="true"] .organism-label {
   padding: 3px 7px;
   border: 1px solid color-mix(in srgb, var(--nucleus-color) 34%, var(--hairline));
   border-radius: 6px;
@@ -209,15 +205,16 @@
     background 180ms ease;
 }
 
-.organism-label-anchor[data-selected="true"] .organism-label {
+.organism-label-layer[data-mode="pill"]
+  .organism-label-anchor[data-selected="true"]
+  .organism-label {
   border-color: var(--chrome-accent);
   color: var(--accent);
 }
 
 /* editorial stays boxless when selected — neutral ink accent only */
 .organism-label-layer[data-mode="editorial"] .organism-label-anchor[data-selected="true"] .organism-label {
-  border-color: transparent;
-  background: transparent;
+  color: var(--accent);
 }
 
 .organism-label-layer[data-mode="editorial"]

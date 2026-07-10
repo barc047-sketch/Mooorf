@@ -1,8 +1,8 @@
 # V7 — Spatial Intelligence System
 
-Status: **V7.1 production family complete**. Project Pulse is the single rail
+Status: **V7.1B production interface complete**. Project Pulse is the single rail
 gateway and flagship; Category Mix, Privacy Balance, Area Leaders, and Data
-Health are independent live instruments.
+Health are independent live instruments with authored semantic geometry.
 
 Read with: `docs/V6N_REFERENCE_STYLE_LOCK.md`, `docs/DESIGN_SYSTEM_MEMORY.md`,
 `docs/COMPONENT_INVENTORY.md`.
@@ -56,11 +56,31 @@ or hardcode production numbers.
 | 6. Relationship Health | adjacency/connectivity — runtime `SpaceCell` has **no relationships**; graph `RelationshipEdge` exists only in the V4.5B domain layer. Future-ready: define selectors against `ZonuertProject` when the graph goes live (V9+) | future |
 | 7. Floor Summary | runtime store has **no floor data**; `getFloorTotals` already exists in the graph layer. Integrate at V9 floors | future |
 
-One `WidgetId` per shipped widget is registered in `WIDGET_DEFS`
-(`src/ui/widgets/WidgetHost.tsx`). The rail keeps one Stats launcher, which
+One `WidgetId` per shipped widget is registered in `WIDGET_DEFINITIONS`
+(`src/ui/panels/widgetRegistry.ts`). The rail keeps one Stats launcher, which
 opens Project Pulse. Its compact `InstrumentLauncher` popover opens the other
 four independently through the existing `openWidget` action. No metric lives
 in the rail/dock and there is no second widget manager.
+
+## V7.1B Authored Geometry
+
+Widget geometry is canonical metadata in `src/ui/panels/widgetRegistry.ts`,
+not per-component CSS. `WidgetFrame` reads the semantic variant, authored
+width/minimums/height intention, scale, icon, and one-line title while keeping
+the existing drag/focus/minimize/close stack. At `<=640px` every variant still
+becomes the existing inset full-width sheet.
+
+| Instrument | Variant | Authored geometry |
+| --- | --- | --- |
+| Project Pulse | `large` | 332px wide; 248px minimum height; flagship asymmetry |
+| Category Mix | `rail-horizontal` | 444px wide; 226px minimum height; paired rows + dominant band |
+| Privacy Balance | `horizontal` | 420px wide; 214px minimum height; compact balance band |
+| Area Leaders | `rail-vertical` | 276px wide; 352px minimum height; single ranked column |
+| Data Health | `vertical` | 264px wide; 318px minimum height; diagnostic strip |
+
+These shapes are authored, not user-resizable. `compact`, `standard`,
+`horizontal`, `vertical`, `rail-horizontal`, `rail-vertical`, and `large` are
+the reusable vocabulary for the full widget family.
 
 ## Information Hierarchy (per instrument)
 
@@ -155,3 +175,20 @@ parallel primitive set or import a chart library. Everything lives inside
   compliance or quality thresholds are invented.
 - Next V7 work: Relationship Health and Floor Summary remain deferred until
   relationships and floor ids exist in the live runtime graph.
+
+## V7.1B Interface Rules
+
+- `settings.uiScale` is the single Interface Scale owner: Compact 88%, Standard
+  100%, Comfortable 112%. It writes root `--ui-scale`, scales chrome only,
+  clamps to 100% on mobile, persists in saved views, and migrates old snapshots
+  to 1.0. Canvas coordinates, radii, areas, and camera math never read it.
+- Normal editorial and technical labels are pure text: no background, border,
+  blur, pill, or outer card. Glass is exclusive to explicit Pill mode and the
+  small selected metadata/edit surface.
+- The existing loader now exits after the first usable WebGL frame or the first
+  Classic fallback frame. Its 380ms floor prevents flashing; a safety exit
+  prevents a permanent blocked shell. The index is staged readiness, not fake
+  download percentage.
+- Widget label/icon/geometry metadata is canonical in the registry. Rail,
+  Instruments submenu, and one-line WidgetFrame headers reuse the same Lucide
+  icon object; `WidgetHost` remains the body and z-order owner.

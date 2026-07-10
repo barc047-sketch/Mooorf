@@ -34,9 +34,10 @@ Complete:
 - V7.0 Spatial Intelligence System + Project Pulse Flagship
 - V7.0B Liquid Glass Shell Correction
 - V7.1 Spatial Intelligence Widget Family
+- V7.1B Adaptive Instrument Geometry + Interface Polish
 
 Next:
-- Terra compact QA/fixes for V7.1, then the next explicit phase
+- Terra V7.1Q reviews V7.0, V7.0B, V7.1, and V7.1B together
 
 Not started:
 - Relationship Health / Floor Summary (await live relationship/floor data)
@@ -95,6 +96,15 @@ Project Pulse inherits the material unchanged, and selectors/store/shader/table/
 saved-view contracts remain intact. Build and focused preview QA passed.
 
 V7.1 completes the runtime-backed family with Category Mix, Privacy Balance, Area Leaders, and Data Health. Pure selectors own all math and widgets derive from the stable `spaces` reference with `useMemo`; voids stay outside program totals. Project Pulse remains the sole rail Stats destination and exposes a compact Instruments popover that opens the four independent movable WidgetFrames. Area Leaders reuses selection, Data Health reuses the table/view flow, and no dashboard, compliance rules, package, manager state, or parallel editing path was added. Build is green at 733.00 kB; focused desktop/mobile QA passed with no console or finite-output failures. Terra receives the compact independent QA/fix handoff.
+
+V7.1B refines the shared interface before that QA: registry-owned semantic
+geometry makes the V7 instruments visibly wide/tall/flagship, the same canonical
+icon now appears in rail/submenu/header, and headers are one line. Display owns a
+saved 88/100/112% Interface Scale that changes chrome without touching canvas
+geometry. Editorial/technical labels are fully unbounded; Pill/selection glass
+remains intentional. The existing loader exits from the first usable WebGL or
+Classic frame instead of a fake countdown. Build and focused live QA pass;
+Terra now reviews V7.0 through V7.1B as one system.
 
 ## Workflow
 

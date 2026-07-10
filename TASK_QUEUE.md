@@ -4,13 +4,19 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- Terra compact QA/fixes for the completed V7.1 spatial intelligence widget family
+- Terra V7.1Q combined QA/fixes for V7.0, V7.0B, V7.1, and V7.1B
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
 - Future prompts must include the Ponytail checklist
 
 ## Current Feature Complete
 
+- V7.1B Adaptive Instrument Geometry + Interface Polish
+- Registry-owned semantic V7 shapes and canonical rail/submenu/header icons
+- One-line WidgetFrame identity bars; existing drag/depth/mobile sheet preserved
+- Display Interface Scale 88/100/112%, saved-view persisted, legacy 1.0 migration, canvas geometry unchanged
+- Unbounded editorial/technical labels; Pill and selected edit glass preserved
+- Existing loader driven by first usable WebGL/Classic frame; focused QA/build green
 - V7.1 Spatial Intelligence Widget Family
 - Category Mix, Privacy Balance, Area Leaders, and Data Health derive live through pure selectors and stable `spaces` + `useMemo`
 - One Stats rail launcher retained; Project Pulse Instruments popover opens four independent WidgetFrames

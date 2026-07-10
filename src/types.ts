@@ -4,6 +4,13 @@ export type ViewMode = "canvas" | "table";
 
 export type RendererMode = "organism" | "classic";
 
+export type CanvasReadiness =
+  | "initialising"
+  | "preparing"
+  | "resolving"
+  | "fallback"
+  | "ready";
+
 export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
 export type LayoutPresetId =
@@ -153,6 +160,8 @@ export interface SavedCanvasSnapshot {
   selectionDisplay: SelectionDisplay;
   organism: OrganismSettings;
   theme: Theme;
+  /* V7.1B — optional so older local snapshots migrate to Standard (1.0). */
+  uiScale?: number;
   /* V6K additions — optional so pre-V6K snapshots keep loading */
   annotationDetail?: AnnotationDetail;
   showGrid?: boolean;

@@ -202,3 +202,22 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Additive spaces alone contribute to program totals. Voids are counted separately; invalid numeric areas contribute zero and produce blocking health evidence.
 - Data Health classifications are deterministic only: numeric unreliability blocks, incomplete metadata attends. Relationship, floor, bylaw, and design-quality judgments remain deferred until real data/contracts exist.
 - Area Leaders reuses `select`; Data Health reuses `select` + `setView("table")`. No camera focus, table filter, remediation state, dependencies, dashboard, or duplicate editing flow was added.
+
+## V7.1B adaptive interface architecture
+- `src/ui/panels/widgetRegistry.ts` is the presentation metadata owner for every
+  widget: label, canonical Lucide icon, launcher role, and semantic authored
+  geometry. `WidgetHost` keeps body rendering and stack ownership; no manager or
+  icon store was added.
+- Geometry is authored, not user-resizable. Mobile always uses the existing
+  WidgetFrame sheet override.
+- `settings.uiScale` is the sole interface-scale value. It is normalized by
+  `src/state/uiScale.ts`, applied through root tokens/authored frame dimensions,
+  persisted in `SavedCanvasSnapshot`, and defaults missing legacy values to 1.0.
+  Canvas world coordinates, camera, area/radius logic, and shader inputs do not
+  consume it.
+- Loader completion is actual renderer readiness: first successful WebGL paint
+  or first Classic paint after fallback. The existing loader owns the editorial
+  transition; a short minimum prevents flash and a safety exit prevents lockout.
+- Normal editorial/technical labels are unbounded text. The old bounding-box
+  preference is honored only inside explicit Pill mode; selected metadata and
+  edit surfaces keep their intentionally small glass.

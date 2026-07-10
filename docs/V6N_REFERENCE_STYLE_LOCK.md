@@ -6,7 +6,9 @@ radial selection command menu, glass instrument edit popover, hairline
 sliders/switches, lightened dock/rail, and bento saved-view tiles.
 V6N.3 adds the reusable MovingBorder primitive and selected-cell moving border
 as part of this standard. V7.0B corrects the production shell to true stacked
-liquid glass, independent dock islands, and an icon-only rail.
+liquid glass, independent dock islands, and an icon-only rail. V7.1B adds
+semantic authored widget geometry, one-line icon/title bars, persistent
+token-driven interface scale, unbounded normal labels, and renderer readiness.
 
 The new reference images are visual grammar, not layouts to copy. They define mood, density, surface behavior, and control language for ZONUERT/MOOORF. Do not reproduce proprietary screens, brands, medical content, dashboard compositions, or exact card arrangements.
 
@@ -121,3 +123,13 @@ The new reference images are visual grammar, not layouts to copy. They define mo
 - Future V6N.2/V7 work should apply this standard more aggressively to dock, rail, widgets, selection, and data cards.
 - Every future V7 widget inherits V7.0B `WidgetFrame` depth/material and must not
   create an opaque card shell or its own stacking logic.
+- Geometry comes from the canonical registry vocabulary (`compact`, `standard`,
+  `horizontal`, `vertical`, `rail-horizontal`, `rail-vertical`, `large`). Mobile
+  always returns to the existing sheet override; do not create per-widget
+  responsive managers.
+- Header identity is one canonical Lucide icon plus one non-wrapping name.
+  Category eyebrows above widget names are prohibited.
+- Interface scale uses root tokens and authored dimensions; transforms/browser
+  zoom must not scale the canvas or blur the control surface.
+- Editorial and technical nucleus labels are pure unbounded text. Only explicit
+  Pill labels and selected/edit surfaces may use glass.

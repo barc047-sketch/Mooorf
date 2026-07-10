@@ -14,6 +14,20 @@
 - [x] V7.0 Spatial Intelligence System + Project Pulse Flagship
 - [x] V7.0B Liquid Glass Shell Correction
 - [x] V7.1 Spatial Intelligence Widget Family
+- [x] V7.1B Adaptive Instrument Geometry + Interface Polish
+
+## V7.1B — Adaptive Instrument Geometry + Interface Polish  ✅ COMPLETE
+- [x] semantic registry geometry variants with authored width/minimum/height intent
+- [x] V7 shapes: Project Pulse large; Category Mix rail-horizontal; Privacy Balance horizontal; Area Leaders rail-vertical; Data Health vertical
+- [x] existing mobile `<=640px` sheet override wins over every geometry
+- [x] canonical registry icons reused by rail, Instruments submenu, and one-line WidgetFrame headers
+- [x] Display Interface Scale presets: Compact 88%, Standard 100%, Comfortable 112%
+- [x] one normalized store-owned `uiScale`; root tokens/chrome only; mobile clamps to 100%
+- [x] saved-view persistence and old-snapshot migration to 1.0; canvas coordinates/radii unchanged
+- [x] editorial/technical labels fully unbounded; Pill and selected/edit glass preserved
+- [x] existing loader refactored to first usable WebGL/Classic paint with anti-flash floor and safety exit
+- [x] contract tests + build green; focused desktop/mobile/renderer/sync/stress QA green
+- [ ] Terra V7.1Q reviews V7.0 + V7.0B + V7.1 + V7.1B together
 
 ## V7.1 — Spatial Intelligence Widget Family  ✅ COMPLETE
 - [x] pure `selectCategoryMix`, `selectPrivacyBalance`, `selectAreaLeaders`, and `selectDataHealth` APIs with dependency-free malformed/empty/void edge tests
@@ -27,7 +41,7 @@
 - [x] stable Zustand pattern: select `spaces`, derive with `useMemo`
 - [x] build green; main bundle 733.00 kB, below the ~750 kB review threshold
 - [x] focused live QA: four launch paths/coexistence, add/add-five/void, table edits, ranking selection, Open Table, Random, saved restore, themes, 390 px, ORG/CLS, lab route, console and finite-output checks
-- [ ] Terra compact live QA/fixes handoff after Sol implementation
+- [ ] Terra V7.1Q combined live QA/fixes handoff after V7.1B
 
 ## V7.0B — Liquid Glass Shell Correction  ✅ COMPLETE
 - [x] shared day/night glass surfaces are translucent with 32px blur, saturation, edge light, layered/contact shadows, WebKit support, and unsupported-filter fallback

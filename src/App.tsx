@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
 import { useLab } from "./state/store";
 import Loader from "./ui/Loader";
 import ViewToggle from "./ui/ViewToggle";
@@ -37,11 +37,27 @@ function MainApp() {
   const view = useLab((s) => s.view);
   const empty = useLab((s) => s.spaces.length === 0);
   const rendererMode = useLab((s) => s.settings.rendererMode);
+  const uiScale = useLab((s) => s.settings.uiScale);
 
   // Apply theme tokens at the document root so the whole app + canvas react.
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
+
+  // Interface scale changes authored chrome density only. Canvas world/camera
+  // coordinates never read this property; mobile clamps the visual scale.
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const mobile = window.matchMedia("(max-width: 640px)");
+    const applyScale = () => {
+      const effectiveScale = mobile.matches ? Math.min(uiScale, 1) : uiScale;
+      root.style.setProperty("--ui-scale", String(effectiveScale));
+      root.style.setProperty("--ui-scale-user", String(uiScale));
+    };
+    applyScale();
+    mobile.addEventListener("change", applyScale);
+    return () => mobile.removeEventListener("change", applyScale);
+  }, [uiScale]);
 
   return (
     <div className="app-shell">

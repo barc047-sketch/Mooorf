@@ -65,11 +65,13 @@ export default function AnnotationWidget() {
           onChange={(position) => setAnnotationDetail({ position })}
           ariaLabel="Label position"
         />
-        <SwitchRow
-          label="Bounding box"
-          on={detail.boundingBox}
-          onToggle={() => setAnnotationDetail({ boundingBox: !detail.boundingBox })}
-        />
+        {annotationMode === "pill" && (
+          <SwitchRow
+            label="Pill outline"
+            on={detail.boundingBox}
+            onToggle={() => setAnnotationDetail({ boundingBox: !detail.boundingBox })}
+          />
+        )}
       </WidgetSection>
     </>
   );

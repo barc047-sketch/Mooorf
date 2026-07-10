@@ -2,13 +2,18 @@
    Day = gallery cream museum. Night = graph-noir red. */
 
 :root {
+  /* Canonical interface density multiplier. App writes the persisted store
+     value here; canvas world geometry never reads it. */
+  --ui-scale: 1;
+  --ui-scale-user: 1;
+
   /* Type */
   --font-ui: "Inter Tight", "Neue Haas Grotesk Display Pro", "Helvetica Neue",
     Helvetica, Arial, sans-serif;
 
-  --text-caption: 11px;
-  --text-body: 14px;
-  --text-body-lg: 18px;
+  --text-caption: calc(11px * var(--ui-scale));
+  --text-body: calc(14px * var(--ui-scale));
+  --text-body-lg: calc(18px * var(--ui-scale));
   --text-display: 120px;
 
   --track-tight: -0.02em;
@@ -16,19 +21,19 @@
   --track-display: -0.04em;
 
   /* Spacing (6px base) */
-  --sp-6: 6px;
-  --sp-12: 12px;
-  --sp-18: 18px;
-  --sp-24: 24px;
-  --sp-66: 66px;
-  --sp-96: 96px;
+  --sp-6: calc(6px * var(--ui-scale));
+  --sp-12: calc(12px * var(--ui-scale));
+  --sp-18: calc(18px * var(--ui-scale));
+  --sp-24: calc(24px * var(--ui-scale));
+  --sp-66: calc(66px * var(--ui-scale));
+  --sp-96: calc(96px * var(--ui-scale));
 
   /* Radii */
-  --r-input: 3px;
-  --r-card: 9px;
-  --r-floating-card: 16px;
+  --r-input: calc(3px * var(--ui-scale));
+  --r-card: calc(9px * var(--ui-scale));
+  --r-floating-card: calc(16px * var(--ui-scale));
   --r-pill: 100px;
-  --r-micro-card: 10px;
+  --r-micro-card: calc(10px * var(--ui-scale));
 
   /* Product color (content/palette only after V6N, not general UI chrome) */
   --zonuert-red: #c31616;

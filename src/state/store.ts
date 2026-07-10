@@ -4,6 +4,7 @@ import type {
   AnnotationMode,
   AttachMode,
   Camera,
+  CanvasReadiness,
   LayoutPresetId,
   MorphMode,
   OrganismSettings,
@@ -22,6 +23,7 @@ import { CELL_PALETTE, DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
 import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPresets";
+import { normalizeUiScale } from "./uiScale";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -30,6 +32,7 @@ const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 export const SAVED_VIEWS_LIMIT = 20;
 
 export interface LabSettings {
+  uiScale: number;
   mergeDistance: number; // 0–300 — fine-tunes membrane reach within the attachment preset
   blobOn: boolean;
   morphMode: MorphMode;
@@ -63,6 +66,7 @@ interface LabState {
   view: ViewMode;
   spaces: SpaceCell[];
   loaderDone: boolean;
+  canvasReadiness: CanvasReadiness;
   settings: LabSettings;
   selectedId: string | null;
   camera: Camera;
@@ -73,6 +77,7 @@ interface LabState {
   toggleTheme: () => void;
   setView: (view: ViewMode) => void;
   setLoaderDone: () => void;
+  setCanvasReadiness: (stage: CanvasReadiness) => void;
   setSettings: (patch: Partial<LabSettings>) => void;
   setOrganism: (patch: Partial<OrganismSettings>) => void;
   setAnnotationDetail: (patch: Partial<AnnotationDetail>) => void;
@@ -113,6 +118,7 @@ const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...or
 
 const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
   ...snapshot,
+  uiScale: normalizeUiScale(snapshot.uiScale),
   spaces: snapshot.spaces.map(cloneSpace),
   camera: cloneCamera(snapshot.camera),
   organism: cloneOrganism(snapshot.organism),
@@ -207,6 +213,7 @@ const makeSnapshot = (
   selectionDisplay: state.settings.selectionDisplay,
   organism: cloneOrganism(state.settings.organism),
   theme: state.theme,
+  uiScale: normalizeUiScale(state.settings.uiScale),
   annotationDetail: { ...state.settings.annotationDetail },
   showGrid: state.settings.showGrid,
   nucleusPaletteId: state.settings.nucleusPaletteId,
@@ -236,7 +243,9 @@ export const useLab = create<LabState>((set) => ({
   view: "canvas",
   spaces: [],
   loaderDone: false,
+  canvasReadiness: "initialising",
   settings: {
+    uiScale: 1,
     mergeDistance: 120,
     blobOn: true,
     morphMode: "cellular-reverse",
@@ -263,6 +272,8 @@ export const useLab = create<LabState>((set) => ({
   setView: (view) => set({ view }),
 
   setLoaderDone: () => set({ loaderDone: true }),
+
+  setCanvasReadiness: (canvasReadiness) => set({ canvasReadiness }),
 
   setSettings: (patch) =>
     set((s) => ({ settings: { ...s.settings, ...patch } })),
@@ -433,6 +444,7 @@ export const useLab = create<LabState>((set) => ({
         selectedId: null,
         settings: {
           ...s.settings,
+          uiScale: normalizeUiScale(snapshot.uiScale),
           blobOn: snapshot.blobOn ?? s.settings.blobOn,
           mergeDistance: snapshot.mergeDistance ?? s.settings.mergeDistance,
           morphMode: snapshot.morphMode ?? s.settings.morphMode,

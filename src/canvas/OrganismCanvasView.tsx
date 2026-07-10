@@ -217,6 +217,12 @@ export default function OrganismCanvasView() {
     const canvas = canvasRef.current;
     if (!host || !canvas) return;
 
+    const announceReadiness = (stage: "initialising" | "preparing" | "resolving" | "fallback" | "ready") => {
+      const state = useLab.getState();
+      if (!state.loaderDone) state.setCanvasReadiness(stage);
+    };
+    announceReadiness("initialising");
+
     let renderer: OrganismRenderer | null = null;
     try {
       renderer = createOrganismRenderer(canvas);
@@ -225,9 +231,14 @@ export default function OrganismCanvasView() {
     }
     if (!renderer) {
       setGlOk(false);
+      announceReadiness("fallback");
+      // The intro sits above the shell, so a failed WebGL mount cannot wait
+      // for a hidden manual button. Reuse the existing Classic canvas.
+      queueMicrotask(() => useLab.getState().setSettings({ rendererMode: "classic" }));
       return;
     }
     setGlOk(true);
+    announceReadiness("preparing");
 
     const cam = { ...useLab.getState().camera };
     let spaces = useLab.getState().spaces;
@@ -498,9 +509,12 @@ export default function OrganismCanvasView() {
     canvas.addEventListener("wheel", onWheel, { passive: false });
 
     let raf = 0;
+    let firstUsableFrame = false;
+    let rendererFailed = false;
     let last = performance.now();
     const render = (now: number) => {
       raf = requestAnimationFrame(render);
+      if (rendererFailed) return;
       const dt = Math.min(Math.max((now - last) / 1000, 0), 0.05);
       last = now;
 
@@ -631,7 +645,19 @@ export default function OrganismCanvasView() {
       frame.nucleusDots = smooth.dots;
       frame.fieldDebug = params.showFieldDebug;
       frame.nucleiDebug = params.showNucleiDebug;
-      renderer?.render(frame);
+      if (!firstUsableFrame) announceReadiness("resolving");
+      try {
+        renderer?.render(frame);
+        if (!firstUsableFrame) {
+          firstUsableFrame = true;
+          announceReadiness("ready");
+        }
+      } catch {
+        rendererFailed = true;
+        setGlOk(false);
+        announceReadiness("fallback");
+        queueMicrotask(() => useLab.getState().setSettings({ rendererMode: "classic" }));
+      }
     };
     raf = requestAnimationFrame(render);
 

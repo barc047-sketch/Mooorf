@@ -1,32 +1,32 @@
-/* Cinematic loader — editorial, tokens-driven. Hidden until GSAP fades in. */
+/* Renderer-readiness intro. The shell mounts beneath this surface; exit is
+   driven by the first usable WebGL or Classic frame, never a fake countdown. */
 
 .loader {
   position: fixed;
   inset: 0;
   z-index: 100;
+  overflow: hidden;
+  clip-path: inset(0% 0% 0% 0%);
   background: var(--bg);
   color: var(--ink);
   opacity: 0;
   visibility: hidden;
-  clip-path: inset(0% 0% 0% 0%);
-  overflow: hidden;
 }
 
-/* Gradient mass — bottom-left corner, ~30% of viewport area (58vw × 54vh ≈ 31%). */
 .loader-gradient {
   position: absolute;
-  left: -6vw;
-  bottom: -8vh;
+  left: -10vw;
+  bottom: -13vh;
   width: 58vw;
   height: 54vh;
+  opacity: 0.72;
   pointer-events: none;
 }
 
 .g {
   position: absolute;
   border-radius: 50%;
-  filter: blur(54px);
-  will-change: transform;
+  filter: blur(58px);
 }
 
 .g1 {
@@ -34,7 +34,7 @@
   bottom: 0;
   width: 78%;
   height: 82%;
-  background: radial-gradient(circle at 35% 60%, #ff6b2c 0%, #ff6b2c 18%, rgba(255, 107, 44, 0) 62%);
+  background: radial-gradient(circle at 35% 60%, #ff6b2c 0%, #ff6b2c 13%, transparent 62%);
 }
 
 .g2 {
@@ -42,7 +42,7 @@
   bottom: 10%;
   width: 66%;
   height: 72%;
-  background: radial-gradient(circle at 60% 45%, #d9306b 0%, #d9306b 16%, rgba(217, 48, 107, 0) 60%);
+  background: radial-gradient(circle at 60% 45%, #d9306b 0%, #d9306b 12%, transparent 60%);
 }
 
 .g3 {
@@ -50,7 +50,7 @@
   bottom: 26%;
   width: 58%;
   height: 60%;
-  background: radial-gradient(circle at 50% 50%, #2439c8 0%, #2439c8 14%, rgba(36, 57, 200, 0) 58%);
+  background: radial-gradient(circle at 50% 50%, #2439c8 0%, #2439c8 10%, transparent 58%);
   mix-blend-mode: multiply;
 }
 
@@ -58,66 +58,103 @@
   mix-blend-mode: screen;
 }
 
-/* Tiny brand, top-left. */
 .loader-brand {
   position: absolute;
-  top: var(--sp-24);
-  left: var(--sp-24);
-  font-size: var(--text-body);
+  top: clamp(20px, 3.4vw, 46px);
+  left: clamp(20px, 3.4vw, 46px);
+  z-index: 2;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: var(--track-tight);
+  letter-spacing: 0.02em;
 }
 
 .loader-brand span {
   display: block;
-  margin-top: 2px;
-  font-size: var(--text-caption);
-  font-weight: 400;
-  letter-spacing: 0.08em;
+  margin-top: 4px;
   color: var(--fog);
+  font-size: 7px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
 }
 
-/* Countdown corner — bottom-right. */
-.loader-corner {
-  position: absolute;
-  right: var(--sp-24);
-  bottom: var(--sp-24);
-  text-align: right;
-}
-
+/* Oversized editorial readiness index. The glyph deliberately exceeds the
+   viewport and is clipped on the top, right and bottom edges. */
 .loader-count {
-  font-size: clamp(72px, 11vw, var(--text-display));
-  font-weight: 300;
-  line-height: 0.9;
-  letter-spacing: var(--track-display);
+  position: absolute;
+  top: -12dvh;
+  right: -0.09em;
+  bottom: -12dvh;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 124dvh;
+  color: color-mix(in srgb, var(--ink) 88%, var(--chrome-accent));
+  font-size: min(126dvh, 76vw);
+  font-weight: 260;
   font-variant-numeric: tabular-nums;
-  color: var(--chrome-accent);
-}
-
-.loader-enter {
-  display: inline-block;
-  margin-top: var(--sp-12);
-  padding: 0;
-  font: inherit;
-  font-size: var(--text-body);
-  letter-spacing: var(--track-tight);
-  color: var(--chrome-accent);
-  background: none;
-  border: none;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.loader-enter:hover {
-  color: var(--chrome-accent-deep);
+  letter-spacing: -0.095em;
+  line-height: 0.72;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
 }
 
 .loader-status {
-  margin-top: var(--sp-6);
-  font-size: var(--text-caption);
-  letter-spacing: 0.12em;
+  position: absolute;
+  left: clamp(20px, 3.4vw, 46px);
+  bottom: clamp(28px, 7vh, 72px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: min(260px, 44vw);
+  text-align: left;
+}
+
+.loader-status span,
+.loader-status i {
+  font-style: normal;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.loader-status span {
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.loader-status i {
   color: var(--fog);
+  font-size: 7px;
+  letter-spacing: 0.15em;
+}
+
+@media (max-width: 640px) {
+  .loader-count {
+    top: -7dvh;
+    right: -0.12em;
+    bottom: -7dvh;
+    height: 114dvh;
+    font-size: min(114dvh, 112vw);
+  }
+
+  .loader-status {
+    bottom: 34px;
+    max-width: 52vw;
+  }
+
+  .loader-gradient {
+    left: -26vw;
+    width: 86vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader {
+    transition: none;
+  }
 }

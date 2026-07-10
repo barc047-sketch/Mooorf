@@ -20,54 +20,21 @@ import PrivacyBalanceWidget from "./stats/PrivacyBalanceWidget";
 import AreaLeadersWidget from "./stats/AreaLeadersWidget";
 import DataHealthWidget from "./stats/DataHealthWidget";
 import InstrumentLauncher from "./stats/InstrumentLauncher";
+import { getWidgetDefinition } from "../panels/widgetRegistry";
 
-interface WidgetDef {
-  eyebrow: string;
-  title: string;
-  width?: number;
-  headerExtra?: () => React.ReactNode;
-  body: () => React.ReactNode;
-}
-
-const WIDGET_DEFS: Record<WidgetId, WidgetDef> = {
-  annotation: { eyebrow: "CANVAS", title: "Annotation", body: () => <AnnotationWidget /> },
-  organism: { eyebrow: "RENDER", title: "Organism", width: 292, body: () => <OrganismWidget /> },
-  layout: { eyebrow: "ARRANGE", title: "Layout", body: () => <LayoutWidget /> },
-  palette: { eyebrow: "COLOR", title: "Palette", width: 304, body: () => <PaletteWidget /> },
-  saved: { eyebrow: "ITERATIONS", title: "Saved Views", width: 300, body: () => <SavedViewsWidget /> },
-  display: { eyebrow: "VIEW", title: "Display", body: () => <DisplayWidget /> },
-  advanced: { eyebrow: "SYSTEM", title: "Advanced", body: () => <AdvancedWidget /> },
-  stats: {
-    eyebrow: "INTELLIGENCE",
-    title: "Project Pulse",
-    width: 300,
-    headerExtra: () => <InstrumentLauncher />,
-    body: () => <ProjectPulseWidget />,
-  },
-  "category-mix": {
-    eyebrow: "INTELLIGENCE",
-    title: "Category Mix",
-    width: 304,
-    body: () => <CategoryMixWidget />,
-  },
-  "privacy-balance": {
-    eyebrow: "INTELLIGENCE",
-    title: "Privacy Balance",
-    width: 304,
-    body: () => <PrivacyBalanceWidget />,
-  },
-  "area-leaders": {
-    eyebrow: "INTELLIGENCE",
-    title: "Area Leaders",
-    width: 318,
-    body: () => <AreaLeadersWidget />,
-  },
-  "data-health": {
-    eyebrow: "INTELLIGENCE",
-    title: "Data Health",
-    width: 310,
-    body: () => <DataHealthWidget />,
-  },
+const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
+  annotation: () => <AnnotationWidget />,
+  organism: () => <OrganismWidget />,
+  layout: () => <LayoutWidget />,
+  palette: () => <PaletteWidget />,
+  saved: () => <SavedViewsWidget />,
+  display: () => <DisplayWidget />,
+  advanced: () => <AdvancedWidget />,
+  stats: () => <ProjectPulseWidget />,
+  "category-mix": () => <CategoryMixWidget />,
+  "privacy-balance": () => <PrivacyBalanceWidget />,
+  "area-leaders": () => <AreaLeadersWidget />,
+  "data-health": () => <DataHealthWidget />,
 };
 
 export default function WidgetHost() {
@@ -105,20 +72,21 @@ export default function WidgetHost() {
   return (
     <AnimatePresence>
       {openWidgets.map((id, z) => {
-        const def = WIDGET_DEFS[id];
+        const definition = getWidgetDefinition(id);
+        const Body = WIDGET_BODIES[id];
         return (
           <WidgetFrame
             key={id}
             id={id}
-            eyebrow={def.eyebrow}
-            title={def.title}
-            width={def.width}
+            title={definition.label}
+            icon={definition.icon}
+            geometry={definition.geometry}
             index={slots.current.get(id) ?? 0}
             z={z}
             focused={z === openWidgets.length - 1}
-            headerExtra={def.headerExtra?.()}
+            headerExtra={id === "stats" ? <InstrumentLauncher /> : undefined}
           >
-            {def.body()}
+            <Body />
           </WidgetFrame>
         );
       })}

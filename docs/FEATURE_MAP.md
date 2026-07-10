@@ -80,7 +80,18 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 - Main files: `src/domain/stats/selectors.ts`, `src/ui/widgets/stats/*`, `src/ui/widgets/WidgetHost.tsx`, `src/ui/Rail.tsx`, `src/types.ts` (WidgetId), `src/ui/panels/widgetRegistry.ts`.
 - Related docs: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`, `docs/V6N_REFERENCE_STYLE_LOCK.md`.
 - Risk: medium; metrics must stay pure/derived (no duplicated state), voids must never inflate program area, and data colors must stay token-driven.
-- Status: V7.1 complete — Category Mix, Privacy Balance, Area Leaders, and Data Health are live; Relationship Health/Floor Summary await runtime graph data.
+- Status: V7.1B complete — Category Mix, Privacy Balance, Area Leaders, and Data Health are live with registry-owned semantic geometry and canonical icons; Relationship Health/Floor Summary await runtime graph data.
+
+## Adaptive Interface / Readiness (V7.1B)
+
+- Purpose: authored widget aspect ratios, persistent chrome scale, unbounded
+  normal labels, first-render readiness, and one-line icon/title identity.
+- Main files: `src/ui/panels/widgetRegistry.ts`, `src/ui/widgets/WidgetFrame.tsx`,
+  `src/ui/widgets/WidgetHost.tsx`, `src/state/uiScale.ts`, `src/state/store.ts`,
+  `src/App.tsx`, `src/ui/Loader.tsx`, `src/canvas/OrganismCanvasView.tsx`,
+  `src/canvas/CanvasView.tsx`, `src/canvas/organismCanvas.css`.
+- Risk: high for saved-view migration, mobile sheets, renderer error exits, and
+  drag bounds; canvas world geometry and metric selectors must remain unchanged.
 
 ## Selection Arc
 

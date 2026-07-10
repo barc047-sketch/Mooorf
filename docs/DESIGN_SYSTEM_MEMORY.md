@@ -49,6 +49,22 @@ glass; treat the current in-app look as the baseline to extend, not restyle.
 - Future V7 widgets inherit these corrected primitives, compact headers, and
   controlled vertical density. They must not reintroduce cream-heavy cards.
 
+## V7.1B Adaptive Interface Lock
+
+- Floating instruments use semantic authored shapes from the canonical widget
+  registry. Horizontal analytical rails and vertical diagnostic strips should
+  coexist; equal dashboard-card geometry is prohibited.
+- Every widget header is one icon plus one non-wrapping title. Eyebrows do not
+  stack above titles. The same registry icon appears in rail launchers,
+  submenus, and headers.
+- Interface Scale is store-owned and token-driven: 88% / 100% / 112%. It may
+  change chrome density but never canvas world coordinates or nucleus radii.
+- Normal editorial and technical cell labels are unbounded text only. No
+  background, border, blur, or card is allowed outside explicit Pill mode.
+- The readiness intro uses a giant edge-clipped index on the right and compact
+  actual stage copy on the left; exit follows first renderer paint, not a fake
+  countdown.
+
 ## Visual Language
 
 - Soft glass over the canvas.

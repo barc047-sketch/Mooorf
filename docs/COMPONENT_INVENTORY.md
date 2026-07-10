@@ -36,11 +36,22 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 ### `WidgetFrame`
 
 - File: `src/ui/widgets/WidgetFrame.tsx`
-- Role: shared widget chrome: title, drag, minimize, close, focus, mobile sheet,
-  and V7.0B front/back liquid-glass depth through `data-depth`.
+- Role: shared widget chrome: canonical icon + one-line title, semantic geometry,
+  drag, minimize, close, focus, mobile sheet, and V7.0B front/back liquid-glass
+  depth through `data-depth`.
 - Reuse: all floating widgets should use this frame.
 - Do not duplicate: custom draggable card shells, stacking managers, or opaque
   per-widget material.
+
+### Widget Registry
+
+- File: `src/ui/panels/widgetRegistry.ts`
+- Role: canonical widget label, Lucide icon, launcher role, status, and semantic
+  authored geometry. Rail, Instruments submenu, and WidgetFrame consume it.
+- Reuse: add presentation metadata here; keep widget body rendering in
+  `WidgetHost` and open/focus state in the existing store.
+- Do not duplicate: icon maps, width maps, per-widget responsive managers, or
+  separate geometry CSS.
 
 ### Widget Controls
 
@@ -124,6 +135,17 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - Files: `src/canvas/OrganismCanvasView.tsx`, `src/canvas/organismCanvas.css`.
 - Role: HTML label overlay, label modes, selection ring size/display.
 - Reuse: selection arc and moving cell border should extend this carefully instead of creating independent DOM overlays.
+- V7.1B: editorial/technical labels are unbounded text; only Pill mode and the
+  selected metadata/edit surfaces may use glass.
+
+## Interface Scale / Readiness
+
+- Files: `src/state/uiScale.ts`, `src/state/store.ts`, `src/App.tsx`,
+  `src/ui/widgets/DisplayWidget.tsx`, `src/ui/Loader.tsx`.
+- Role: one normalized `settings.uiScale`, saved-view migration/persistence,
+  root `--ui-scale` application, and first-frame renderer readiness.
+- Do not duplicate: local scale state, browser zoom, transformed canvas shells,
+  countdown loaders, or renderer-specific overlay loaders.
 
 ## Table Components
 

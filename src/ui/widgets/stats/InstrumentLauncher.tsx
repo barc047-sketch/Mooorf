@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useLab } from "../../../state/store";
 import type { WidgetId } from "../../../types";
+import { getWidgetDefinition } from "../../panels/widgetRegistry";
 
 const INSTRUMENTS: readonly { id: WidgetId; label: string; detail: string }[] = [
   { id: "category-mix", label: "Category Mix", detail: "Program distribution" },
@@ -18,9 +19,12 @@ export default function InstrumentLauncher() {
   const openWidget = useLab((state) => state.openWidget);
   const openWidgets = useLab((state) => state.openWidgets);
 
+  const StatsIcon = getWidgetDefinition("stats").icon;
+
   return (
     <Popover>
       <PopoverTrigger className="instrument-trigger" aria-label="Open spatial intelligence instruments">
+        <StatsIcon size={9} strokeWidth={1.5} />
         Instruments <ChevronDown size={9} strokeWidth={1.6} />
       </PopoverTrigger>
       <PopoverContent className="instrument-menu glass" align="end" side="bottom" sideOffset={7}>
@@ -28,6 +32,7 @@ export default function InstrumentLauncher() {
         <div className="instrument-menu-list">
           {INSTRUMENTS.map((instrument) => {
             const active = openWidgets.includes(instrument.id);
+            const Icon = getWidgetDefinition(instrument.id).icon;
             return (
               <button
                 key={instrument.id}
@@ -36,7 +41,10 @@ export default function InstrumentLauncher() {
                 data-active={active ? "true" : undefined}
                 onClick={() => openWidget(instrument.id)}
               >
-                <span>{instrument.label}</span>
+                <span className="instrument-menu-name">
+                  <Icon size={11} strokeWidth={1.5} aria-hidden="true" />
+                  {instrument.label}
+                </span>
                 <i>{active ? "Open" : instrument.detail}</i>
               </button>
             );

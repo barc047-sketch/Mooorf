@@ -6,8 +6,9 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 
 ## Core State Files
 
-- `src/types.ts` — shared app/domain UI types: spaces, renderer mode, palettes, annotation, saved snapshots, organism settings.
+- `src/types.ts` — shared app/domain UI types: spaces, renderer/readiness mode, palettes, annotation, saved snapshots, organism settings.
 - `src/state/store.ts` — Zustand source of truth: spaces, camera, settings, widgets, saved views, CRUD, layout, void creation.
+- `src/state/uiScale.ts` — normalized 82–118% interface-scale contract and 88/100/112 presets; canvas geometry never consumes it.
 - `src/App.tsx` — route split, main app shell, canvas/table rendering, lab route.
 
 ## UI Files
@@ -32,6 +33,7 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - `src/ui/widgets/DisplayWidget.tsx` — theme, grid, label/nuclei display.
 - `src/ui/widgets/AdvancedWidget.tsx` — diagnostics and staged controls.
 - `src/ui/widgets/widgets.css` — widget-specific layout.
+- `src/ui/panels/widgetRegistry.ts` — canonical widget labels, icons, launcher ownership, and semantic authored geometry.
 - `src/ui/widgets/stats/ProjectPulseWidget.tsx` — V7 flagship spatial intelligence widget.
 - `src/ui/widgets/stats/InstrumentLauncher.tsx` — compact Project Pulse gateway for the four independent instruments.
 - `src/ui/widgets/stats/CategoryMixWidget.tsx`, `PrivacyBalanceWidget.tsx`, `AreaLeadersWidget.tsx`, `DataHealthWidget.tsx` — live V7.1 family.
@@ -43,6 +45,7 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 ## Canvas / Engine Files
 
 - `src/canvas/OrganismCanvasView.tsx` — production WebGL organism canvas, labels, drag/pan/zoom, render loop.
+- `src/ui/Loader.tsx` — existing startup surface, now driven by first usable WebGL/Classic frame readiness.
 - `src/canvas/organismAdapter.ts` — `SpaceCell` to production nuclei mapping, motion, hit testing, void signed strength.
 - `src/canvas/organismProductionSettings.ts` — production organism defaults/resolver.
 - `src/canvas/organismCanvas.css` — organism canvas label/fallback/grid styling.
@@ -91,6 +94,7 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - V6N: interface density and neutral editorial glass refinement.
 - V6N.1: reference-locked premium design system and shared primitive hardening.
 - V7.0/V7.1: Project Pulse gateway and complete runtime-backed spatial intelligence widget family.
+- V7.1B: adaptive instrument geometry, canonical icons/headers, persistent UI scale, unbounded labels, and renderer-readiness intro.
 
 ## Current Limits
 

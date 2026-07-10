@@ -1,23 +1,16 @@
 import { motion } from "motion/react";
 import {
-  Activity,
-  Bookmark,
-  Eye,
   Frame,
-  LayoutGrid,
   Minus,
   Moon,
-  Palette,
   Plus,
-  Settings2,
   Shapes,
-  SlidersHorizontal,
   Sun,
   Table2,
-  Type,
 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { WidgetId } from "../types";
+import { getWidgetDefinition } from "./panels/widgetRegistry";
 import "./shell.css";
 
 /* V6K left rail — launchers only. Every detailed control opens a floating
@@ -49,21 +42,23 @@ export default function Rail() {
 
   const launcher = (
     id: WidgetId,
-    title: string,
-    icon: React.ReactNode
-  ) => (
-    <button
-      type="button"
-      className="rail-btn"
-      data-active={openWidgets.includes(id)}
-      data-tooltip={title}
-      title={title}
-      aria-label={title}
-      onClick={() => toggleWidget(id)}
-    >
-      {icon}
-    </button>
-  );
+    title = `${getWidgetDefinition(id).label} widget`
+  ) => {
+    const Icon = getWidgetDefinition(id).icon;
+    return (
+      <button
+        type="button"
+        className="rail-btn"
+        data-active={openWidgets.includes(id)}
+        data-tooltip={title}
+        title={title}
+        aria-label={title}
+        onClick={() => toggleWidget(id)}
+      >
+        <Icon size={14} strokeWidth={1.5} />
+      </button>
+    );
+  };
 
   return (
     <motion.div
@@ -123,31 +118,31 @@ export default function Rail() {
       </RailSection>
 
       <RailSection caption="note">
-        {launcher("annotation", "Annotation widget", <Type size={14} strokeWidth={1.5} />)}
+        {launcher("annotation")}
       </RailSection>
 
       <RailSection caption="organism">
-        {launcher("organism", "Organism widget", <SlidersHorizontal size={14} strokeWidth={1.5} />)}
+        {launcher("organism")}
       </RailSection>
 
       <RailSection caption="color">
-        {launcher("palette", "Palette widget", <Palette size={14} strokeWidth={1.5} />)}
+        {launcher("palette")}
       </RailSection>
 
       <RailSection caption="layout">
-        {launcher("layout", "Layout widget", <LayoutGrid size={14} strokeWidth={1.5} />)}
+        {launcher("layout")}
       </RailSection>
 
       <RailSection caption="saved">
-        {launcher("saved", "Saved views widget", <Bookmark size={14} strokeWidth={1.5} />)}
+        {launcher("saved")}
       </RailSection>
 
       <RailSection caption="stats">
-        {launcher("stats", "Project Pulse widget", <Activity size={14} strokeWidth={1.5} />)}
+        {launcher("stats")}
       </RailSection>
 
       <RailSection caption="display">
-        {launcher("display", "Display widget", <Eye size={14} strokeWidth={1.5} />)}
+        {launcher("display")}
       </RailSection>
 
       <RailSection caption="system">
@@ -175,7 +170,7 @@ export default function Rail() {
         >
           <Frame size={14} strokeWidth={1.5} />
         </button>
-        {launcher("advanced", "Advanced widget", <Settings2 size={14} strokeWidth={1.5} />)}
+        {launcher("advanced")}
       </RailSection>
     </motion.div>
   );

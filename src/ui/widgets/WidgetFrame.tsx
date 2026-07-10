@@ -5,11 +5,12 @@
    the drag position. Offsets are session-remembered per widget id (UI state
    only — never product data). */
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { Minus, X } from "lucide-react";
+import { Minus, X, type LucideIcon } from "lucide-react";
 import { useLab } from "../../state/store";
 import type { WidgetId } from "../../types";
+import type { WidgetGeometry } from "../panels/widgetRegistry";
 import "./widgets.css";
 
 const SNAP_PX = 22; // magnetic: near-home drops tidy back into the stack
@@ -17,13 +18,13 @@ const offsetMemory = new Map<WidgetId, { dx: number; dy: number }>();
 
 export interface WidgetFrameProps {
   id: WidgetId;
-  eyebrow: string;
   title: string;
+  icon: LucideIcon;
+  geometry: WidgetGeometry;
   /** stack slot — cascades the default anchor down the right edge */
   index: number;
   z: number;
   focused: boolean;
-  width?: number;
   headerExtra?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
@@ -31,18 +32,19 @@ export interface WidgetFrameProps {
 
 export default function WidgetFrame({
   id,
-  eyebrow,
   title,
+  icon: Icon,
+  geometry,
   index,
   z,
   focused,
-  width = 288,
   headerExtra,
   footer,
   children,
 }: WidgetFrameProps) {
   const closeWidget = useLab((s) => s.closeWidget);
   const focusWidget = useLab((s) => s.focusWidget);
+  const uiScale = useLab((s) => s.settings.uiScale);
   const frameRef = useRef<HTMLElement>(null);
   const [minimized, setMinimized] = useState(false);
   const drag = useRef({ on: false, sx: 0, sy: 0, bx: 0, by: 0 });
@@ -112,14 +114,21 @@ export default function WidgetFrame({
       role="dialog"
       aria-label={title}
       data-widget={id}
+      data-geometry={geometry.variant}
+      data-aspect={geometry.aspectIntent}
       data-depth={focused ? "front" : "back"}
       data-min={minimized ? "true" : undefined}
       style={{
-        width,
+        width: Math.round(geometry.width * uiScale),
+        minWidth: Math.round(geometry.minWidth * uiScale),
+        minHeight: geometry.minHeight ? Math.round(geometry.minHeight * uiScale) : undefined,
+        "--wframe-authored-max-height": geometry.maxHeight
+          ? `${Math.round(geometry.maxHeight * uiScale)}px`
+          : undefined,
         top: 72 + index * 42,
         zIndex: 40 + z,
         translate: `${offset.current.dx}px ${offset.current.dy}px`,
-      }}
+      } as CSSProperties}
       initial={{ opacity: 0, y: 10, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -138,8 +147,10 @@ export default function WidgetFrame({
           <i />
           <i />
         </span>
+        <span className="wframe-icon" aria-hidden="true">
+          <Icon size={13} strokeWidth={1.5} />
+        </span>
         <div className="wframe-titles">
-          <span className="wframe-eyebrow">{eyebrow}</span>
           <span className="wframe-title">{title}</span>
         </div>
         {headerExtra && <span className="wframe-extra">{headerExtra}</span>}

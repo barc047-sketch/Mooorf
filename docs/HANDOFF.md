@@ -1,5 +1,29 @@
 # Handoff
 
+## V7.1B — Adaptive Instrument Geometry + Interface Polish
+
+- **Geometry:** the existing widget registry now canonically owns label, Lucide
+  icon, launcher role, and semantic authored geometry. Project Pulse is large;
+  Category Mix/Privacy Balance are wide; Area Leaders/Data Health are tall.
+  `WidgetFrame` keeps drag/focus/minimize/close/depth and mobile sheet behavior.
+- **Scale:** Display exposes Compact 88%, Standard 100%, Comfortable 112% through
+  one normalized `settings.uiScale`. Root tokens/chrome respond; canvas world
+  coordinates/radii do not. Saved views persist it and old views migrate to 1.0.
+- **Labels:** editorial and technical labels are pure unbounded text. Glass is
+  retained only for explicit Pill mode and selected metadata/edit surfaces.
+- **Loader/header:** the existing loader now follows the first usable WebGL or
+  Classic frame, with a 380ms anti-flash floor and safety exit. Widget headers
+  use the registry icon plus one-line name; rail/submenu/header icons match.
+- **Ponytail:** reused WidgetFrame/Host/registry/Display/store/saved migration,
+  both renderers, Annotation, tokens, and existing mobile sheet. New
+  `state/uiScale.ts` isolates the reusable normalization/preset contract only.
+- **Verification:** contract tests and build pass. Focused live QA covered both
+  readiness paths, all V7 shapes/overlap, three scales + saved restore, unchanged
+  canvas coordinates, label modes/edit surface, table sync, ORG/CLS, 390px,
+  day/night, 61 cells, lab route, clean console, and finite output.
+- **Next:** Terra V7.1Q reviews V7.0, V7.0B, V7.1, and V7.1B together. Relationship
+  Health and Floor Summary remain deferred.
+
 Claude must update after each phase.
 
 ## Report format (use for every phase from now on)
