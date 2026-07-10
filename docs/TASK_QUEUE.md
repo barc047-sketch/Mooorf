@@ -17,6 +17,17 @@
 - [x] V7.1B Adaptive Instrument Geometry + Interface Polish
 - [x] V7.1Q Independent QA + Stabilization (V7.0–V7.1B; no defects, no fixes)
 - [x] V7.1C Continuous Interface Scale slider
+- [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
+
+## V7.1D — Independent Widget Scale  ✅ COMPLETE
+- [x] second Display section, identical format to Interface Scale (presets + 82–118% slider)
+- [x] canonical `settings.widgetScale` + dedicated `setWidgetScale` store action; fully independent of `uiScale`
+- [x] outer frame footprint = `uiScale * widgetScale` (each applied once); internal content = widgetScale only
+- [x] new `--widget-scale` root token; rail/dock/canvas-controls/tooltips and Dock.tsx's shared pop-chip/org-slider unaffected
+- [x] all five V7 widgets keep distinct authored geometry/aspect at every scale combination
+- [x] drag-clamp safety net reused on scale-driven resize; never resets position
+- [x] independent saved-view persistence/restore; legacy migration to 1.0 without disturbing uiScale
+- [x] verified at 1440/1280/1024/768px; no mobile-specific work; contract tests + build green
 
 ## V7.1C — Continuous Interface Scale  ✅ COMPLETE
 - [x] keep Compact 88% / Standard 100% / Comfortable 112% presets

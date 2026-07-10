@@ -162,6 +162,8 @@ export interface SavedCanvasSnapshot {
   theme: Theme;
   /* V7.1B — optional so older local snapshots migrate to Standard (1.0). */
   uiScale?: number;
+  /* V7.1D — independent widget-window scale; optional so older snapshots migrate to Standard (1.0). */
+  widgetScale?: number;
   /* V6K additions — optional so pre-V6K snapshots keep loading */
   annotationDetail?: AnnotationDetail;
   showGrid?: boolean;

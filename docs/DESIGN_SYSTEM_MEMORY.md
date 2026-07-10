@@ -63,6 +63,15 @@ glass; treat the current in-app look as the baseline to extend, not restyle.
   coordinates or nucleus radii. Custom values show no active preset (subtle
   "Custom" header state); mobile clamps rendered scale to 100% but the stored
   preference and the slider readout keep the user's value.
+- Widget Scale (V7.1D) is a second, independent canonical value
+  (`settings.widgetScale`, same 82–118% bounds/presets/control format as
+  Interface Scale) that owns widget window footprint and internal widget
+  content only — header height, icon, typography, control density, internal
+  gaps. It never touches rail, dock, canvas controls/tooltips outside
+  widgets, canvas coordinates, or nucleus radii. A widget's rendered
+  footprint reflects both Interface Scale and Widget Scale multiplied
+  together, each applied exactly once (`src/ui/widgets/WidgetFrame.tsx`);
+  authored geometry variant and aspect intent are preserved at every scale.
 - Normal editorial and technical cell labels are unbounded text only. No
   background, border, blur, or card is allowed outside explicit Pill mode.
 - The readiness intro uses a giant edge-clipped index on the right and compact

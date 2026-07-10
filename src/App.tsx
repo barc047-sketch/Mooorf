@@ -38,6 +38,7 @@ function MainApp() {
   const empty = useLab((s) => s.spaces.length === 0);
   const rendererMode = useLab((s) => s.settings.rendererMode);
   const uiScale = useLab((s) => s.settings.uiScale);
+  const widgetScale = useLab((s) => s.settings.widgetScale);
 
   // Apply theme tokens at the document root so the whole app + canvas react.
   useEffect(() => {
@@ -58,6 +59,12 @@ function MainApp() {
     mobile.addEventListener("change", applyScale);
     return () => mobile.removeEventListener("change", applyScale);
   }, [uiScale]);
+
+  // Widget Scale (V7.1D) is independent of Interface Scale: it owns widget
+  // window/content density only and never clamps on narrow viewports.
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty("--widget-scale", String(widgetScale));
+  }, [widgetScale]);
 
   return (
     <div className="app-shell">

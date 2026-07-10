@@ -234,3 +234,36 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Mobile behavior is unchanged: rendered scale clamps to 100% at ≤640px while the
   stored preference, the `--ui-scale-user` token, and the slider readout keep the
   user's value. No browser zoom, no transform-based canvas scaling.
+
+## V7.1D independent widget scale
+- `settings.widgetScale` is a second canonical scale value, sharing
+  `src/state/uiScale.ts`'s bounds/presets/normalization contract with
+  `settings.uiScale` (identical 0.82–1.18 range and 88/100/112% presets, so one
+  generic normalizer serves both — `normalizeUiScale`/`normalizeWidgetScale`
+  and `getUiScalePreset`/`getWidgetScalePreset` are thin aliases over the same
+  internal function). Changing one never mutates the other; both persist
+  independently in `SavedCanvasSnapshot` and migrate missing values to 1.0.
+- Ownership split, so each value is applied exactly once and never multiplied
+  into the other twice: **outer widget-frame footprint** (width/minWidth/
+  minHeight/max-height, minimized-chip width) reflects `uiScale * widgetScale`
+  combined once in `WidgetFrame.tsx`/`widgets.css`. **Internal widget content**
+  (header height/icon/title, section headers, sliders, chips, body padding) is
+  Widget-Scale-owned only, via the new `--widget-scale` root token consumed by
+  `widgets.css` and a `.wframe-body`-scoped override block. Rail, dock, canvas
+  controls, and tooltips outside widgets read only `--ui-scale` and never
+  `--widget-scale`. Where a shared shell.css primitive (`.pop-chip`,
+  `.org-slider`) is also used outside widgets (Dock.tsx merge-distance
+  control), the Widget Scale override is scoped under `.wframe-body` with
+  matching or higher specificity so the non-widget instance is unaffected.
+- Widget geometry stays authored: scaling multiplies each widget's own base
+  width/height, so relative proportions (flagship vs. wide vs. tall) and
+  `data-geometry`/`data-aspect` are preserved at every combination of the two
+  scales — no widget is ever flattened to a uniform size.
+- `WidgetFrame` reuses its existing drag-clamp formula (`dragBounds`, factored
+  out of `onHeadMove`) in a new effect keyed on the combined scale: if a
+  scale-driven size change pushes a dragged widget's position outside the same
+  reachability bounds drag already enforces, it nudges the offset back in
+  (animated); it never resets position and is a no-op when the widget is
+  already reachable. No mobile clamp was added for Widget Scale — desktop/
+  tablet is the V7.1D target and authored widget widths never approach
+  768–834px viewport widths even at 118%.

@@ -7,6 +7,11 @@
   --ui-scale: 1;
   --ui-scale-user: 1;
 
+  /* V7.1D — independent widget-window/content multiplier. Consumed only by
+     widget frame + widget-internal CSS (widgets.css, .wframe-body-scoped
+     control rules); rail, dock, canvas controls, and tooltips never read it. */
+  --widget-scale: 1;
+
   /* Type */
   --font-ui: "Inter Tight", "Neue Haas Grotesk Display Pro", "Helvetica Neue",
     Helvetica, Arial, sans-serif;

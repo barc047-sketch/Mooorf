@@ -37,6 +37,7 @@ Complete:
 - V7.1B Adaptive Instrument Geometry + Interface Polish
 - V7.1Q Independent QA + Stabilization (V7.0–V7.1B reviewed; no defects, no fixes)
 - V7.1C Continuous Interface Scale slider
+- V7.1D Independent Widget Scale (desktop/laptop/iPad)
 
 Next:
 - Relationship Health / Floor Summary (await live relationship/floor data)
@@ -116,6 +117,18 @@ Presets and slider share the single canonical `settings.uiScale`; custom values
 persist and restore exactly from saved views; mobile still renders at 100% while
 preserving the stored preference. No second scale state, component, or setter.
 Build and focused live QA pass.
+
+V7.1D (desktop/laptop/iPad scope) adds a second, independent canonical value —
+`settings.widgetScale` — via a visually identical Display section, sharing
+Interface Scale's presets/slider format and normalization contract. Widget
+window footprint reflects `uiScale * widgetScale` combined once; internal
+widget content (header, icon, controls, gaps) is Widget-Scale-owned only via a
+new `--widget-scale` token, scoped so rail/dock/canvas/tooltips and the shared
+pop-chip/org-slider primitives' non-widget callers stay untouched. All five V7
+widgets keep their distinct authored geometry at every scale; a reused
+drag-clamp safety net keeps dragged widgets reachable without resetting
+position. Persists independently in saved views with 1.0 legacy migration.
+Verified at 1440/1280/1024/768px; build and focused live QA pass.
 
 ## Workflow
 

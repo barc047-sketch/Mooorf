@@ -23,7 +23,7 @@ import { CELL_PALETTE, DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
 import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPresets";
-import { normalizeUiScale } from "./uiScale";
+import { normalizeUiScale, normalizeWidgetScale } from "./uiScale";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -33,6 +33,8 @@ export const SAVED_VIEWS_LIMIT = 20;
 
 export interface LabSettings {
   uiScale: number;
+  /** V7.1D — widget windows + internal widget content only; never rail/dock/canvas. */
+  widgetScale: number;
   mergeDistance: number; // 0–300 — fine-tunes membrane reach within the attachment preset
   blobOn: boolean;
   morphMode: MorphMode;
@@ -79,6 +81,7 @@ interface LabState {
   setLoaderDone: () => void;
   setCanvasReadiness: (stage: CanvasReadiness) => void;
   setSettings: (patch: Partial<LabSettings>) => void;
+  setWidgetScale: (value: number) => void;
   setOrganism: (patch: Partial<OrganismSettings>) => void;
   setAnnotationDetail: (patch: Partial<AnnotationDetail>) => void;
   openWidget: (id: WidgetId) => void;
@@ -119,6 +122,7 @@ const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...or
 const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
   ...snapshot,
   uiScale: normalizeUiScale(snapshot.uiScale),
+  widgetScale: normalizeWidgetScale(snapshot.widgetScale),
   spaces: snapshot.spaces.map(cloneSpace),
   camera: cloneCamera(snapshot.camera),
   organism: cloneOrganism(snapshot.organism),
@@ -214,6 +218,7 @@ const makeSnapshot = (
   organism: cloneOrganism(state.settings.organism),
   theme: state.theme,
   uiScale: normalizeUiScale(state.settings.uiScale),
+  widgetScale: normalizeWidgetScale(state.settings.widgetScale),
   annotationDetail: { ...state.settings.annotationDetail },
   showGrid: state.settings.showGrid,
   nucleusPaletteId: state.settings.nucleusPaletteId,
@@ -246,6 +251,7 @@ export const useLab = create<LabState>((set) => ({
   canvasReadiness: "initialising",
   settings: {
     uiScale: 1,
+    widgetScale: 1,
     mergeDistance: 120,
     blobOn: true,
     morphMode: "cellular-reverse",
@@ -277,6 +283,11 @@ export const useLab = create<LabState>((set) => ({
 
   setSettings: (patch) =>
     set((s) => ({ settings: { ...s.settings, ...patch } })),
+
+  setWidgetScale: (value) =>
+    set((s) => ({
+      settings: { ...s.settings, widgetScale: normalizeWidgetScale(value) },
+    })),
 
   setOrganism: (patch) =>
     set((s) => ({
@@ -445,6 +456,7 @@ export const useLab = create<LabState>((set) => ({
         settings: {
           ...s.settings,
           uiScale: normalizeUiScale(snapshot.uiScale),
+          widgetScale: normalizeWidgetScale(snapshot.widgetScale),
           blobOn: snapshot.blobOn ?? s.settings.blobOn,
           mergeDistance: snapshot.mergeDistance ?? s.settings.mergeDistance,
           morphMode: snapshot.morphMode ?? s.settings.morphMode,

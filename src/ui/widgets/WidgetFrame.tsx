@@ -5,7 +5,7 @@
    the drag position. Offsets are session-remembered per widget id (UI state
    only — never product data). */
 
-import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { Minus, X, type LucideIcon } from "lucide-react";
 import { useLab } from "../../state/store";
@@ -15,6 +15,19 @@ import "./widgets.css";
 
 const SNAP_PX = 22; // magnetic: near-home drops tidy back into the stack
 const offsetMemory = new Map<WidgetId, { dx: number; dy: number }>();
+
+/** Viewport-reachable offset bounds for a frame at its current rect/offset —
+ * shared by drag and the scale-change safety clamp so both use one formula. */
+const dragBounds = (rect: DOMRect, current: { dx: number; dy: number }) => {
+  const curX = rect.left - current.dx;
+  const curY = rect.top - current.dy;
+  return {
+    minX: 12 - curX - rect.width + 96,
+    maxX: window.innerWidth - 12 - curX - 96,
+    minY: 12 - curY,
+    maxY: window.innerHeight - 52 - curY,
+  };
+};
 
 export interface WidgetFrameProps {
   id: WidgetId;
@@ -45,10 +58,14 @@ export default function WidgetFrame({
   const closeWidget = useLab((s) => s.closeWidget);
   const focusWidget = useLab((s) => s.focusWidget);
   const uiScale = useLab((s) => s.settings.uiScale);
+  const widgetScale = useLab((s) => s.settings.widgetScale);
+  /* V7.1D — outer frame footprint reflects both scales, each applied once. */
+  const scale = uiScale * widgetScale;
   const frameRef = useRef<HTMLElement>(null);
   const [minimized, setMinimized] = useState(false);
   const drag = useRef({ on: false, sx: 0, sy: 0, bx: 0, by: 0 });
   const offset = useRef(offsetMemory.get(id) ?? { dx: 0, dy: 0 });
+  const mountedScale = useRef(scale);
 
   const applyOffset = (dx: number, dy: number, animate = false) => {
     const el = frameRef.current;
@@ -86,12 +103,7 @@ export default function WidgetFrame({
     const dx = drag.current.bx + (e.clientX - drag.current.sx);
     const dy = drag.current.by + (e.clientY - drag.current.sy);
     /* keep the title strip reachable — clamp against the viewport */
-    const curX = rect.left - offset.current.dx;
-    const curY = rect.top - offset.current.dy;
-    const minX = 12 - curX - rect.width + 96;
-    const maxX = window.innerWidth - 12 - curX - 96;
-    const minY = 12 - curY;
-    const maxY = window.innerHeight - 52 - curY;
+    const { minX, maxX, minY, maxY } = dragBounds(rect, offset.current);
     applyOffset(
       Math.min(Math.max(dx, minX), maxX),
       Math.min(Math.max(dy, minY), maxY)
@@ -107,6 +119,22 @@ export default function WidgetFrame({
     if (Math.abs(dx) < SNAP_PX && Math.abs(dy) < SNAP_PX) applyOffset(0, 0, true);
   };
 
+  /* V7.1D — when Interface/Widget Scale grows a frame, nudge it back onto
+   * screen only if it became substantially unreachable; never reset to
+   * defaults and never touch an already-in-bounds position. */
+  useEffect(() => {
+    if (scale === mountedScale.current) return;
+    mountedScale.current = scale;
+    const el = frameRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const { minX, maxX, minY, maxY } = dragBounds(rect, offset.current);
+    const { dx, dy } = offset.current;
+    const clampedDx = Math.min(Math.max(dx, minX), maxX);
+    const clampedDy = Math.min(Math.max(dy, minY), maxY);
+    if (clampedDx !== dx || clampedDy !== dy) applyOffset(clampedDx, clampedDy, true);
+  }, [scale]);
+
   return (
     <motion.section
       ref={frameRef}
@@ -119,11 +147,11 @@ export default function WidgetFrame({
       data-depth={focused ? "front" : "back"}
       data-min={minimized ? "true" : undefined}
       style={{
-        width: Math.round(geometry.width * uiScale),
-        minWidth: Math.round(geometry.minWidth * uiScale),
-        minHeight: geometry.minHeight ? Math.round(geometry.minHeight * uiScale) : undefined,
+        width: Math.round(geometry.width * scale),
+        minWidth: Math.round(geometry.minWidth * scale),
+        minHeight: geometry.minHeight ? Math.round(geometry.minHeight * scale) : undefined,
         "--wframe-authored-max-height": geometry.maxHeight
-          ? `${Math.round(geometry.maxHeight * uiScale)}px`
+          ? `${Math.round(geometry.maxHeight * scale)}px`
           : undefined,
         top: 72 + index * 42,
         zIndex: 40 + z,

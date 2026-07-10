@@ -148,6 +148,15 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
   step) beside the existing presets, reusing the `SliderRow` control primitive
   (`controls.tsx`) and `normalizeUiScale`. Presets and slider share one store
   value; no second scale state, no new slider component.
+- V7.1D: DisplayWidget adds a second, visually identical Widget Scale section
+  (same presets/slider/format) writing `settings.widgetScale` via the new
+  `setWidgetScale` store action. `WidgetFrame.tsx` combines
+  `uiScale * widgetScale` once for outer frame dimensions; `widgets.css` and a
+  `.wframe-body`-scoped override block own internal widget-content density via
+  the new `--widget-scale` root token — scoped so shell.css's shared control
+  primitives (`.pop-chip`, `.org-slider`) stay untouched for their non-widget
+  callers (Dock.tsx merge-distance chip/slider). No second widget manager, no
+  duplicated slider CSS, no new package.
 - Do not duplicate: local scale state, browser zoom, transformed canvas shells,
   countdown loaders, or renderer-specific overlay loaders.
 

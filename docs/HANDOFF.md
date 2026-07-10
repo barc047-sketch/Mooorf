@@ -1,5 +1,32 @@
 # Handoff
 
+## V7.1D — Independent Widget Scale (desktop/laptop/iPad)
+
+- **Control:** Display gains a second section, "Widget Scale," in the exact
+  visual/interaction format as Interface Scale (same presets, same continuous
+  82–118% slider, same percentage readout, same "Custom" header state). It
+  writes a new canonical `settings.widgetScale` via a dedicated `setWidgetScale`
+  store action — fully independent of `settings.uiScale`.
+- **Ownership split:** outer widget-frame footprint reflects
+  `uiScale * widgetScale` (each applied once, `WidgetFrame.tsx`); internal
+  widget content (header, icon, title, section headers, sliders, chips, body
+  padding) is Widget-Scale-owned only via a new `--widget-scale` root token,
+  scoped so rail/dock/canvas-controls/tooltips and the shared `.pop-chip`/
+  `.org-slider` primitives' non-widget callers (Dock.tsx) are unaffected.
+- **Geometry preserved:** all five V7 widgets keep their distinct authored
+  shapes (flagship/wide/tall) and `data-geometry`/`data-aspect` at every scale
+  combination — verified at 0.82, 1.0, and 1.18 for every widget.
+- **Positioning:** `WidgetFrame` reuses its existing drag-clamp formula in a
+  new effect keyed on the combined scale, nudging a dragged widget back only if
+  a scale-driven resize made it unreachable; never resets position.
+- **Persistence:** custom Interface Scale and Widget Scale values save/restore
+  independently and exactly through saved views; legacy snapshots missing
+  `widgetScale` migrate to 1.0 without disturbing a saved `uiScale`.
+- **Target:** 1440/1280/1024/768–834px verified (no phone-specific work); no
+  mobile clamp added for Widget Scale since authored widget widths stay well
+  under tablet viewport widths even at 118%.
+- **Next:** Relationship Health and Floor Summary remain deferred.
+
 ## V7.1C — Continuous Interface Scale
 
 - **Control:** Display keeps the Compact/Standard/Comfortable presets and adds a
