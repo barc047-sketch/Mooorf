@@ -221,3 +221,16 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Normal editorial/technical labels are unbounded text. The old bounding-box
   preference is honored only inside explicit Pill mode; selected metadata and
   edit surfaces keep their intentionally small glass.
+
+## V7.1C continuous interface scale
+- The Interface Scale control keeps the Compact/Standard/Comfortable presets and
+  adds a continuous slider (82–118%, 1% step) in `DisplayWidget`. Both write the
+  single canonical `settings.uiScale`; there is no second scale state.
+- The slider reuses the existing `SliderRow` primitive (`controls.tsx`, extended
+  only with an optional `aria-valuetext`) and clamps/rounds through the existing
+  `normalizeUiScale`. Custom values persist unrounded to presets and restore
+  exactly from saved views; a value that matches no preset shows no active chip
+  and a subtle "Custom" header state.
+- Mobile behavior is unchanged: rendered scale clamps to 100% at ≤640px while the
+  stored preference, the `--ui-scale-user` token, and the slider readout keep the
+  user's value. No browser zoom, no transform-based canvas scaling.

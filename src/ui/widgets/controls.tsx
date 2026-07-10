@@ -12,6 +12,7 @@ export function SliderRow({
   max,
   step,
   fmt,
+  ariaValueText,
   onChange,
 }: {
   label: string;
@@ -20,6 +21,7 @@ export function SliderRow({
   max: number;
   step: number;
   fmt?: (v: number) => string;
+  ariaValueText?: string;
   onChange: (v: number) => void;
 }) {
   return (
@@ -36,6 +38,7 @@ export function SliderRow({
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         aria-label={label}
+        aria-valuetext={ariaValueText}
       />
     </label>
   );

@@ -35,9 +35,11 @@ Complete:
 - V7.0B Liquid Glass Shell Correction
 - V7.1 Spatial Intelligence Widget Family
 - V7.1B Adaptive Instrument Geometry + Interface Polish
+- V7.1Q Independent QA + Stabilization (V7.0–V7.1B reviewed; no defects, no fixes)
+- V7.1C Continuous Interface Scale slider
 
 Next:
-- Terra V7.1Q reviews V7.0, V7.0B, V7.1, and V7.1B together
+- Relationship Health / Floor Summary (await live relationship/floor data)
 
 Not started:
 - Relationship Health / Floor Summary (await live relationship/floor data)
@@ -105,6 +107,15 @@ geometry. Editorial/technical labels are fully unbounded; Pill/selection glass
 remains intentional. The existing loader exits from the first usable WebGL or
 Classic frame instead of a fake countdown. Build and focused live QA pass;
 Terra now reviews V7.0 through V7.1B as one system.
+
+V7.1Q ran that combined independent QA (static review, contract tests, live
+regression) and found no reproducible defects, so no code changed. V7.1C then
+adds a continuous Interface Scale slider (82–118%, 1% step) beside the presets in
+Display, reusing the existing `SliderRow` primitive and `normalizeUiScale`.
+Presets and slider share the single canonical `settings.uiScale`; custom values
+persist and restore exactly from saved views; mobile still renders at 100% while
+preserving the stored preference. No second scale state, component, or setter.
+Build and focused live QA pass.
 
 ## Workflow
 

@@ -4,13 +4,15 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- Terra V7.1Q combined QA/fixes for V7.0, V7.0B, V7.1, and V7.1B
+- Relationship Health / Floor Summary await live relationship/floor data
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
 - Future prompts must include the Ponytail checklist
 
 ## Current Feature Complete
 
+- V7.1C Continuous Interface Scale: presets + 82–118% slider share one `settings.uiScale`; custom values persist/restore; mobile clamps render to 100% keeping preference
+- V7.1Q Independent QA + Stabilization: V7.0–V7.1B reviewed, no defects, no fixes
 - V7.1B Adaptive Instrument Geometry + Interface Polish
 - Registry-owned semantic V7 shapes and canonical rail/submenu/header icons
 - One-line WidgetFrame identity bars; existing drag/depth/mobile sheet preserved

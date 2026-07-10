@@ -15,6 +15,19 @@
 - [x] V7.0B Liquid Glass Shell Correction
 - [x] V7.1 Spatial Intelligence Widget Family
 - [x] V7.1B Adaptive Instrument Geometry + Interface Polish
+- [x] V7.1Q Independent QA + Stabilization (V7.0–V7.1B; no defects, no fixes)
+- [x] V7.1C Continuous Interface Scale slider
+
+## V7.1C — Continuous Interface Scale  ✅ COMPLETE
+- [x] keep Compact 88% / Standard 100% / Comfortable 112% presets
+- [x] add continuous slider 82–118%, 1% step, tabular % readout, default 100%
+- [x] presets + slider drive one canonical `settings.uiScale`; no second state
+- [x] custom values show no active preset + subtle "Custom" header state
+- [x] reuse `SliderRow` primitive (added optional `aria-valuetext`) and `normalizeUiScale`
+- [x] custom values persist and restore exactly from saved views; legacy → 1.0
+- [x] mobile renders at 100% but preserves stored preference + slider readout
+- [x] a11y: aria-valuemin/max/now/text, arrows + Home/End, preset pressed state
+- [x] canvas coordinates/radii unchanged; contract tests + build green; 390px no overflow
 
 ## V7.1B — Adaptive Instrument Geometry + Interface Polish  ✅ COMPLETE
 - [x] semantic registry geometry variants with authored width/minimum/height intent
@@ -27,7 +40,7 @@
 - [x] editorial/technical labels fully unbounded; Pill and selected/edit glass preserved
 - [x] existing loader refactored to first usable WebGL/Classic paint with anti-flash floor and safety exit
 - [x] contract tests + build green; focused desktop/mobile/renderer/sync/stress QA green
-- [ ] Terra V7.1Q reviews V7.0 + V7.0B + V7.1 + V7.1B together
+- [x] Terra V7.1Q reviews V7.0 + V7.0B + V7.1 + V7.1B together (no defects found)
 
 ## V7.1 — Spatial Intelligence Widget Family  ✅ COMPLETE
 - [x] pure `selectCategoryMix`, `selectPrivacyBalance`, `selectAreaLeaders`, and `selectDataHealth` APIs with dependency-free malformed/empty/void edge tests
@@ -41,7 +54,7 @@
 - [x] stable Zustand pattern: select `spaces`, derive with `useMemo`
 - [x] build green; main bundle 733.00 kB, below the ~750 kB review threshold
 - [x] focused live QA: four launch paths/coexistence, add/add-five/void, table edits, ranking selection, Open Table, Random, saved restore, themes, 390 px, ORG/CLS, lab route, console and finite-output checks
-- [ ] Terra V7.1Q combined live QA/fixes handoff after V7.1B
+- [x] Terra V7.1Q combined live QA/fixes handoff after V7.1B (QA passed, no fixes)
 
 ## V7.0B — Liquid Glass Shell Correction  ✅ COMPLETE
 - [x] shared day/night glass surfaces are translucent with 32px blur, saturation, edge light, layered/contact shadows, WebKit support, and unsupported-filter fallback

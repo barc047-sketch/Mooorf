@@ -1,5 +1,22 @@
 # Handoff
 
+## V7.1C — Continuous Interface Scale
+
+- **Control:** Display keeps the Compact/Standard/Comfortable presets and adds a
+  continuous Interface Scale slider (82–118%, 1% step, tabular % readout). Presets
+  and slider drive the one canonical `settings.uiScale`; custom values show no
+  active preset and a subtle "Custom" header state.
+- **Reuse:** slider is the existing `SliderRow` primitive (extended only with an
+  optional `aria-valuetext`); values clamp/round through `normalizeUiScale`.
+  Saved-view persistence, root `--ui-scale` application, and the mobile clamp are
+  the existing V7.1B systems — no new scale state, component, or store setter.
+- **Behavior verified:** presets set 88/100/112%; slider reaches 82% and 118%;
+  custom 97/103/107% apply and restore exactly from saved views; mobile renders
+  at 100% while preserving the stored preference and slider readout; canvas
+  coordinates/radii unchanged; keyboard (arrows/Home/End) works; 390px no
+  overflow; contract tests + build pass; clean console.
+- **Next:** Relationship Health and Floor Summary remain deferred.
+
 ## V7.1B — Adaptive Instrument Geometry + Interface Polish
 
 - **Geometry:** the existing widget registry now canonically owns label, Lucide

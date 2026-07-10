@@ -144,6 +144,10 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
   `src/ui/widgets/DisplayWidget.tsx`, `src/ui/Loader.tsx`.
 - Role: one normalized `settings.uiScale`, saved-view migration/persistence,
   root `--ui-scale` application, and first-frame renderer readiness.
+- V7.1C: DisplayWidget adds a continuous Interface Scale slider (82–118%, 1%
+  step) beside the existing presets, reusing the `SliderRow` control primitive
+  (`controls.tsx`) and `normalizeUiScale`. Presets and slider share one store
+  value; no second scale state, no new slider component.
 - Do not duplicate: local scale state, browser zoom, transformed canvas shells,
   countdown loaders, or renderer-specific overlay loaders.
 
