@@ -76,10 +76,11 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 
 ## Spatial Intelligence / Stats Widgets
 
-- Purpose: live derived program metrics floating as diagnostic instruments (V7 family; Project Pulse is the flagship).
+- Purpose: live derived program metrics floating as diagnostic instruments. Project Pulse is the single rail gateway; four V7.1 instruments can coexist independently.
 - Main files: `src/domain/stats/selectors.ts`, `src/ui/widgets/stats/*`, `src/ui/widgets/WidgetHost.tsx`, `src/ui/Rail.tsx`, `src/types.ts` (WidgetId), `src/ui/panels/widgetRegistry.ts`.
 - Related docs: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`, `docs/V6N_REFERENCE_STYLE_LOCK.md`.
 - Risk: medium; metrics must stay pure/derived (no duplicated state), voids must never inflate program area, and data colors must stay token-driven.
+- Status: V7.1 complete — Category Mix, Privacy Balance, Area Leaders, and Data Health are live; Relationship Health/Floor Summary await runtime graph data.
 
 ## Selection Arc
 

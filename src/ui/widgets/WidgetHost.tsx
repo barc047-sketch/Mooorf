@@ -15,11 +15,17 @@ import SavedViewsWidget from "./SavedViewsWidget";
 import DisplayWidget from "./DisplayWidget";
 import AdvancedWidget from "./AdvancedWidget";
 import ProjectPulseWidget from "./stats/ProjectPulseWidget";
+import CategoryMixWidget from "./stats/CategoryMixWidget";
+import PrivacyBalanceWidget from "./stats/PrivacyBalanceWidget";
+import AreaLeadersWidget from "./stats/AreaLeadersWidget";
+import DataHealthWidget from "./stats/DataHealthWidget";
+import InstrumentLauncher from "./stats/InstrumentLauncher";
 
 interface WidgetDef {
   eyebrow: string;
   title: string;
   width?: number;
+  headerExtra?: () => React.ReactNode;
   body: () => React.ReactNode;
 }
 
@@ -31,7 +37,37 @@ const WIDGET_DEFS: Record<WidgetId, WidgetDef> = {
   saved: { eyebrow: "ITERATIONS", title: "Saved Views", width: 300, body: () => <SavedViewsWidget /> },
   display: { eyebrow: "VIEW", title: "Display", body: () => <DisplayWidget /> },
   advanced: { eyebrow: "SYSTEM", title: "Advanced", body: () => <AdvancedWidget /> },
-  stats: { eyebrow: "INTELLIGENCE", title: "Project Pulse", width: 300, body: () => <ProjectPulseWidget /> },
+  stats: {
+    eyebrow: "INTELLIGENCE",
+    title: "Project Pulse",
+    width: 300,
+    headerExtra: () => <InstrumentLauncher />,
+    body: () => <ProjectPulseWidget />,
+  },
+  "category-mix": {
+    eyebrow: "INTELLIGENCE",
+    title: "Category Mix",
+    width: 304,
+    body: () => <CategoryMixWidget />,
+  },
+  "privacy-balance": {
+    eyebrow: "INTELLIGENCE",
+    title: "Privacy Balance",
+    width: 304,
+    body: () => <PrivacyBalanceWidget />,
+  },
+  "area-leaders": {
+    eyebrow: "INTELLIGENCE",
+    title: "Area Leaders",
+    width: 318,
+    body: () => <AreaLeadersWidget />,
+  },
+  "data-health": {
+    eyebrow: "INTELLIGENCE",
+    title: "Data Health",
+    width: 310,
+    body: () => <DataHealthWidget />,
+  },
 };
 
 export default function WidgetHost() {
@@ -80,6 +116,7 @@ export default function WidgetHost() {
             index={slots.current.get(id) ?? 0}
             z={z}
             focused={z === openWidgets.length - 1}
+            headerExtra={def.headerExtra?.()}
           >
             {def.body()}
           </WidgetFrame>

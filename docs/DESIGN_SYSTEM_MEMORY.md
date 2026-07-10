@@ -93,7 +93,10 @@ glass; treat the current in-app look as the baseline to extend, not restyle.
 - Stats widgets are spatial diagnostic instruments, never SaaS dashboard cards.
 - Hierarchy per instrument: hero readout → side vitals → hairline micro distribution → footer insight rows. Values are tabular; hero stays ≤ ~22px.
 - Category data colors come only from `CATEGORY_TOKENS`; balance bands use neutral instrument tones; `--warning-data` only for true warnings.
-- Shared family primitives live in `src/ui/widgets/stats/primitives.tsx`; the flagship reference is Project Pulse. Spec: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
+- Shared family primitives live in `src/ui/widgets/stats/primitives.tsx`; the flagship reference is Project Pulse. V7.1 adds restrained ranked rows and deterministic health signals without dashboard cards.
+- Keep one rail Stats launcher. Project Pulse owns the compact Instruments popover; Category Mix, Privacy Balance, Area Leaders, and Data Health remain independent WidgetFrames with existing stack depth.
+- Category bands use category tokens, privacy uses neutral ink depth, and `--warning-data` appears only as actual health evidence. No compliance thresholds or red chrome.
+- Spec: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
 
 ## Current Anchors
 

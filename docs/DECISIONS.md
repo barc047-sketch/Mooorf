@@ -195,3 +195,10 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
   buttons use accessible names and token-driven external glass tooltips.
 - This is a presentation-layer correction only: no store, selector, shader,
   table, saved-view, graph, or Project Pulse metric ownership changed.
+
+## V7.1 spatial intelligence widget family
+- Project Pulse remains the sole Stats rail destination. A compact header popover opens four independent WidgetFrames through the existing `openWidget`/`openWidgets` lifecycle; no additional rail icons or manager state.
+- `selectCategoryMix`, `selectPrivacyBalance`, `selectAreaLeaders`, and `selectDataHealth` are pure over `readonly SpaceCell[]`. Widgets subscribe to the stable `spaces` reference and derive with `useMemo` to avoid unstable Zustand snapshots.
+- Additive spaces alone contribute to program totals. Voids are counted separately; invalid numeric areas contribute zero and produce blocking health evidence.
+- Data Health classifications are deterministic only: numeric unreliability blocks, incomplete metadata attends. Relationship, floor, bylaw, and design-quality judgments remain deferred until real data/contracts exist.
+- Area Leaders reuses `select`; Data Health reuses `select` + `setView("table")`. No camera focus, table filter, remediation state, dependencies, dashboard, or duplicate editing flow was added.

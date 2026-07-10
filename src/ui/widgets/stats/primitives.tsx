@@ -114,3 +114,81 @@ export function InsightRow({ k, v }: { k: string; v: ReactNode }) {
     </div>
   );
 }
+
+/* ——— RankedMetricRow — selectable ranking line + restrained share field ——— */
+
+export function RankedMetricRow({
+  rank,
+  label,
+  meta,
+  value,
+  share,
+  color = "var(--fog)",
+  selected,
+  onClick,
+}: {
+  rank?: number;
+  label: string;
+  meta?: string;
+  value: string;
+  share: number;
+  color?: string;
+  selected?: boolean;
+  onClick?: () => void;
+}) {
+  const content = (
+    <>
+      <span className="pulse-rank-index">{rank ? String(rank).padStart(2, "0") : "·"}</span>
+      <span className="pulse-rank-copy">
+        <span className="pulse-rank-name">{label}</span>
+        {meta && <span className="pulse-rank-meta">{meta}</span>}
+      </span>
+      <span className="pulse-rank-value">{value}</span>
+      <span className="pulse-rank-share">{formatShare(share)}</span>
+      <i className="pulse-rank-field" aria-hidden="true">
+        <i style={{ width: formatShare(share), background: color }} />
+      </i>
+    </>
+  );
+
+  return onClick ? (
+    <button
+      type="button"
+      className="pulse-rank"
+      data-selected={selected ? "true" : undefined}
+      aria-pressed={selected}
+      onClick={onClick}
+    >
+      {content}
+    </button>
+  ) : (
+    <div className="pulse-rank" data-selected={selected ? "true" : undefined}>
+      {content}
+    </div>
+  );
+}
+
+/* ——— HealthSignal — deterministic issue readout, warning color is data-only ——— */
+
+export function HealthSignal({
+  label,
+  detail,
+  count,
+  severity,
+}: {
+  label: string;
+  detail: string;
+  count: number;
+  severity: "attention" | "blocking";
+}) {
+  return (
+    <div className="pulse-health-signal" data-severity={severity}>
+      <span className="pulse-health-marker" aria-hidden="true" />
+      <span className="pulse-health-copy">
+        <span className="pulse-rank-name">{label}</span>
+        <span className="pulse-rank-meta">{detail}</span>
+      </span>
+      <span className="pulse-health-count">{formatCount(count)}</span>
+    </div>
+  );
+}

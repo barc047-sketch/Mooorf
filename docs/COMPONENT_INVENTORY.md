@@ -62,15 +62,15 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 ### Stats Selectors
 
 - File: `src/domain/stats/selectors.ts`
-- Role: pure derived metrics over store `spaces` (program area, counts, category shares, privacy balance, leaders, data-health counts).
+- Role: pure derived metrics over store `spaces` (program area, counts, category mix, normalized privacy groups, valid leaders, deterministic data health).
 - Reuse: every stats widget must consume these; add new metrics here first.
 - Do not duplicate: metric math inside components, metric state in the store, hardcoded numbers.
 
 ### Stats Primitives
 
 - Files: `src/ui/widgets/stats/primitives.tsx`, `src/ui/widgets/stats/stats.css`
-- Role: `MetricReadout`, `MicroDistribution`, `InsightRow` + `formatInt`/`formatShare`/`formatCount` — the shared instrument language for the V7 family.
-- Reuse: extend this file for family needs (MiniRank, StatusDot); keep `pulse-*` CSS family.
+- Role: `MetricReadout`, `MicroDistribution`, `InsightRow`, `RankedMetricRow`, `HealthSignal` + format helpers — the shared instrument language for the V7 family.
+- Reuse: compose these primitives inside WidgetFrame; keep the `pulse-*` CSS family.
 - Do not duplicate: per-widget readout/band/format variants or chart libraries.
 
 ### ProjectPulseWidget
@@ -78,6 +78,13 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - File: `src/ui/widgets/stats/ProjectPulseWidget.tsx`
 - Role: V7 flagship — the normative reference for structure, tone, and data flow of all stats widgets.
 - Spec: `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
+
+### V7.1 Instrument Family
+
+- Files: `CategoryMixWidget.tsx`, `PrivacyBalanceWidget.tsx`, `AreaLeadersWidget.tsx`, `DataHealthWidget.tsx`, `InstrumentLauncher.tsx` under `src/ui/widgets/stats/`.
+- Role: four independent movable instruments opened from Project Pulse's compact Instruments popover.
+- Ownership: Category Mix uses category tokens; Privacy Balance stays neutral; Area Leaders delegates to existing selection; Data Health delegates to existing table/view actions.
+- Do not duplicate: rail launchers, widget manager state, camera focus, table filtering, compliance thresholds, or remediation state.
 
 ## Shell Components
 

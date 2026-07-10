@@ -13,7 +13,21 @@
 - [x] V6N.3 Premium Primitives + Moving Cell Border
 - [x] V7.0 Spatial Intelligence System + Project Pulse Flagship
 - [x] V7.0B Liquid Glass Shell Correction
-- [ ] V7.1 Remaining stats widget family (Sol — Category Mix, Privacy Balance, Area Leaders, Data Health)
+- [x] V7.1 Spatial Intelligence Widget Family
+
+## V7.1 — Spatial Intelligence Widget Family  ✅ COMPLETE
+- [x] pure `selectCategoryMix`, `selectPrivacyBalance`, `selectAreaLeaders`, and `selectDataHealth` APIs with dependency-free malformed/empty/void edge tests
+- [x] additive program area excludes voids; invalid values remain finite and surface as deterministic health evidence
+- [x] Category Mix ships top-six + Other with category-token colors, m², share, and counts
+- [x] Privacy Balance ships public/shared/private/unknown evidence plus service-category context; no invented thresholds
+- [x] Area Leaders ships selectable top-five valid program spaces via the existing `select` action
+- [x] Data Health ships blocking numeric vs attention metadata signals and reuses the existing table/view flow
+- [x] one rail Stats launcher retained; Project Pulse Instruments popover opens all four independent WidgetFrames
+- [x] shared `RankedMetricRow` and `HealthSignal` primitives; no chart package, dashboard, manager, metric state, shader, or store rewrite
+- [x] stable Zustand pattern: select `spaces`, derive with `useMemo`
+- [x] build green; main bundle 733.00 kB, below the ~750 kB review threshold
+- [x] focused live QA: four launch paths/coexistence, add/add-five/void, table edits, ranking selection, Open Table, Random, saved restore, themes, 390 px, ORG/CLS, lab route, console and finite-output checks
+- [ ] Terra compact live QA/fixes handoff after Sol implementation
 
 ## V7.0B — Liquid Glass Shell Correction  ✅ COMPLETE
 - [x] shared day/night glass surfaces are translucent with 32px blur, saturation, edge light, layered/contact shadows, WebKit support, and unsupported-filter fallback

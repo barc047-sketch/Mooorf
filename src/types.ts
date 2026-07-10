@@ -34,7 +34,7 @@ export interface AnnotationDetail {
 }
 
 /* V6K — floating widget system. Order in the open list = stacking order.
-   V7 adds "stats" (Project Pulse — spatial intelligence). */
+   V7/V7.1 adds the Project Pulse gateway and independent instruments. */
 export type WidgetId =
   | "annotation"
   | "organism"
@@ -43,7 +43,11 @@ export type WidgetId =
   | "saved"
   | "display"
   | "advanced"
-  | "stats";
+  | "stats"
+  | "category-mix"
+  | "privacy-balance"
+  | "area-leaders"
+  | "data-health";
 
 export type Privacy = "public" | "shared" | "private";
 

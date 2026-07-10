@@ -4,13 +4,17 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
-- V7.1 remaining stats widget family (Sol): Category Mix, Privacy Balance, Area Leaders, Data Health — spec in `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`
+- Terra compact QA/fixes for the completed V7.1 spatial intelligence widget family
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
 - Future prompts must include the Ponytail checklist
 
 ## Current Feature Complete
 
+- V7.1 Spatial Intelligence Widget Family
+- Category Mix, Privacy Balance, Area Leaders, and Data Health derive live through pure selectors and stable `spaces` + `useMemo`
+- One Stats rail launcher retained; Project Pulse Instruments popover opens four independent WidgetFrames
+- Voids excluded from program totals; deterministic numeric/metadata health only; build and focused desktop/mobile QA green at 733.00 kB
 - V7.0B Liquid Glass Shell Correction
 - True translucent WidgetFrame material with existing-stack focused/background depth
 - Dock outer slab removed; independent left/right glass islands; plain-black Add/Add-5; hollow Void retained

@@ -7,10 +7,10 @@ import type { WidgetId } from "../../types";
 export type WidgetPanelStatus = "live" | "prepared" | "future";
 
 export interface WidgetPanelDefinition {
-  id: WidgetId | "selected-space" | "stats" | "export";
+  id: WidgetId | "selected-space" | "export";
   label: string;
   responsibility: string;
-  launcher: "rail" | "dock" | "both";
+  launcher: "rail" | "dock" | "both" | "widget";
   status: WidgetPanelStatus;
 }
 
@@ -77,6 +77,34 @@ export const WIDGET_PANEL_DEFINITIONS: readonly WidgetPanelDefinition[] = [
     responsibility:
       "Spatial intelligence flagship — live program metrics from pure selectors (src/domain/stats). Family spec: docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md.",
     launcher: "rail",
+    status: "live",
+  },
+  {
+    id: "category-mix",
+    label: "Category Mix",
+    responsibility: "Programmed-area distribution by normalized category token.",
+    launcher: "widget",
+    status: "live",
+  },
+  {
+    id: "privacy-balance",
+    label: "Privacy Balance",
+    responsibility: "Evidence-only area balance across normalized privacy groups.",
+    launcher: "widget",
+    status: "live",
+  },
+  {
+    id: "area-leaders",
+    label: "Area Leaders",
+    responsibility: "Selectable top-five additive-space ranking by valid area.",
+    launcher: "widget",
+    status: "live",
+  },
+  {
+    id: "data-health",
+    label: "Data Health",
+    responsibility: "Deterministic numeric and metadata completeness signals with table handoff.",
+    launcher: "widget",
     status: "live",
   },
   {

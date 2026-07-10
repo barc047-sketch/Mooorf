@@ -1,7 +1,8 @@
 # V7 — Spatial Intelligence System
 
-Status: system defined; **Project Pulse implemented as the flagship production
-reference**. Sol implements the remaining family from this document.
+Status: **V7.1 production family complete**. Project Pulse is the single rail
+gateway and flagship; Category Mix, Privacy Balance, Area Leaders, and Data
+Health are independent live instruments.
 
 Read with: `docs/V6N_REFERENCE_STYLE_LOCK.md`, `docs/DESIGN_SYSTEM_MEMORY.md`,
 `docs/COMPONENT_INVENTORY.md`.
@@ -33,7 +34,7 @@ or hardcode production numbers.
 - New metrics: add a selector here first, then consume it. Never compute in
   the component.
 
-### Architectural data rules (already enforced in the flagship)
+### Architectural data rules (enforced across the family)
 
 - Voids (`kind: "void"`) never count toward programmed area; they are counted
   separately (`voidCount`).
@@ -48,16 +49,18 @@ or hardcode production numbers.
 | Widget | Content | Status |
 | --- | --- | --- |
 | **1. Project Pulse** | total program m², space count, void count, program mix band + legend, openness band, largest, dominant | **LIVE — flagship reference** |
-| 2. Category Mix | full `getCategoryShares` list: per-category area, share, count; restrained token colors | Sol |
-| 3. Privacy Balance | `getPrivacyBalance`: public / shared / private area + share; service ratio via category token `service` share | Sol |
-| 4. Area Leaders | `getAreaLeaders(spaces, 5)` ranked compact list (MiniRank pattern) | Sol |
-| 5. Data Health | `missingAreaCount`, `uncategorizedCount`, zero-area warnings; extend selectors with further checks as needed | Sol |
+| 2. Category Mix | top six categories + Other, area/share/count, token-colored distribution | **LIVE** |
+| 3. Privacy Balance | public/shared/private/unknown evidence, dominant type, service-category context | **LIVE** |
+| 4. Area Leaders | top five valid additive spaces; category/share; existing selection action | **LIVE** |
+| 5. Data Health | blank/duplicate names, invalid program/void areas, uncategorized and unknown-privacy signals | **LIVE** |
 | 6. Relationship Health | adjacency/connectivity — runtime `SpaceCell` has **no relationships**; graph `RelationshipEdge` exists only in the V4.5B domain layer. Future-ready: define selectors against `ZonuertProject` when the graph goes live (V9+) | future |
 | 7. Floor Summary | runtime store has **no floor data**; `getFloorTotals` already exists in the graph layer. Integrate at V9 floors | future |
 
-One `WidgetId` per shipped widget; register in `WIDGET_DEFS`
-(`src/ui/widgets/WidgetHost.tsx`) and launch from the rail. Rail = launcher
-only; no metrics in rail or dock.
+One `WidgetId` per shipped widget is registered in `WIDGET_DEFS`
+(`src/ui/widgets/WidgetHost.tsx`). The rail keeps one Stats launcher, which
+opens Project Pulse. Its compact `InstrumentLauncher` popover opens the other
+four independently through the existing `openWidget` action. No metric lives
+in the rail/dock and there is no second widget manager.
 
 ## Information Hierarchy (per instrument)
 
@@ -81,6 +84,8 @@ Skip levels a widget doesn't need; never reorder them.
   `DistributionSegment { id, label, color, share }`; zero-share segments are
   skipped; an empty band renders the dormant gray bar automatically.
 - `InsightRow { k, v }`
+- `RankedMetricRow` — shared ranked area/share row with optional existing-store selection.
+- `HealthSignal` — deterministic issue line; `--warning-data` is data evidence only.
 - Format helpers: `formatInt` (whole, comma-grouped), `formatShare`
   (whole %), `formatCount` (two-digit padded).
 
@@ -136,20 +141,17 @@ parallel primitive set or import a chart library. Everything lives inside
 - Migration contract: keep selector signatures shape-compatible with the
   graph selectors so V9 swaps the data source, not the widgets.
 
-## Implementation Guidance for Sol
+## V7.1 Implementation Record
 
-1. Read this doc + `src/ui/widgets/stats/ProjectPulseWidget.tsx` — it is the
-   normative reference for structure, tone, and data flow.
-2. Per widget: add the `WidgetId` union member (`src/types.ts`), the
-   `WIDGET_DEFS` entry (eyebrow `INTELLIGENCE`, width ≈ 296–304), a rail
-   launcher in the existing `stats`/intelligence section (or group launchers
-   into one section — do not add a second rail), and update
-   `src/ui/panels/widgetRegistry.ts`.
-3. Selectors first (pure, tested by hand in preview via `window.lab`), then
-   compose the widget from the shared primitives. New CSS only extends
-   `stats.css` with `pulse-*`-family classes.
-4. QA per widget: add one/add five, add void (area must not move), table
-   edits, Random/layout neutrality, saved-view load, minimize/close, day +
-   night, 390px sheet, zero console warnings, no red chrome.
-5. Do not: duplicate metric state, put stats in dock/rail bodies, install
-   chart packages, exceed the information hierarchy, or restyle WidgetFrame.
+- Selector ownership: `selectCategoryMix`, `selectPrivacyBalance`,
+  `selectAreaLeaders`, and `selectDataHealth` remain pure functions in the
+  existing stats selector module. Edge cases are covered in
+  `selectors.test.ts`; every numeric output remains finite.
+- Runtime stability: each widget selects only the stable `spaces` array and
+  derives its snapshot with `useMemo`. Newly allocated metric objects are
+  never returned directly from a Zustand selector.
+- Health classification is deterministic: invalid/non-positive/non-finite
+  numeric data is blocking; incomplete metadata is attention; no architectural
+  compliance or quality thresholds are invented.
+- Next V7 work: Relationship Health and Floor Summary remain deferred until
+  relationships and floor ids exist in the live runtime graph.

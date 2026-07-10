@@ -33,12 +33,13 @@ Complete:
 - V6N.3 Premium Primitives + Moving Cell Border
 - V7.0 Spatial Intelligence System + Project Pulse Flagship
 - V7.0B Liquid Glass Shell Correction
+- V7.1 Spatial Intelligence Widget Family
 
 Next:
-- V7.1 remaining stats widget family (Sol) or another explicit phase
+- Terra compact QA/fixes for V7.1, then the next explicit phase
 
 Not started:
-- V7.1 Category Mix / Privacy Balance / Area Leaders / Data Health widgets
+- Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
 
@@ -82,7 +83,7 @@ V6N.3 added the reusable `MovingBorder` primitive and upgraded the shared premiu
 
 V6N.1 locked the premium reference style into the design system. `docs/V6N_REFERENCE_STYLE_LOCK.md` is now the canonical reference grammar for dark scientific HUD, light frosted dashboard, spatial glass, cinematic overlay, selection arc, typography, density, color/chrome, data card, and future widget rules. Shared tokens/primitives were strengthened for glass dark/light, borders, inner highlights, shadows, card/pill radii, HUD/muted text, dot grid, neutral selection arcs, and warning-data color. References remain mood/structure/style only; no external images were moved or duplicated.
 
-V7.0 defined the spatial intelligence system (`docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`) and shipped the flagship Project Pulse widget. Pure selectors over the store `spaces` array (`src/domain/stats/selectors.ts`) own every metric: total program m² (voids excluded), space/void counts, category shares, privacy balance, largest space, and data-health counts. The widget composes shared instrument primitives (MetricReadout, MicroDistribution, InsightRow) inside the existing WidgetFrame, launches from a new rail Stats section, and updates live from table/canvas edits and saved-view loads. Build green; preview QA covered metrics sync, layout neutrality, day/night, 390 px sheet, ORG/CLS, and the lab route. Sol implements the remaining family from the system doc.
+V7.0 defined the spatial intelligence system (`docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`) and shipped the flagship Project Pulse widget. Pure selectors over the store `spaces` array (`src/domain/stats/selectors.ts`) own every metric: total program m² (voids excluded), space/void counts, category shares, privacy balance, largest space, and data-health counts. The widget composes shared instrument primitives (MetricReadout, MicroDistribution, InsightRow) inside the existing WidgetFrame, launches from a new rail Stats section, and updates live from table/canvas edits and saved-view loads. Build green; preview QA covered metrics sync, layout neutrality, day/night, 390 px sheet, ORG/CLS, and the lab route. V7.1 now completes the remaining runtime-backed family.
 
 V7.0B corrected the global shell before expanding that widget family. Shared
 day/night glass is now genuinely translucent with focused/background depth from
@@ -92,6 +93,8 @@ plain-black Add/Add-5 circles and the hollow Void action. The rail is a 42px
 icon-only launcher with accessible glass tooltips. Widget headers/rows are denser,
 Project Pulse inherits the material unchanged, and selectors/store/shader/table/
 saved-view contracts remain intact. Build and focused preview QA passed.
+
+V7.1 completes the runtime-backed family with Category Mix, Privacy Balance, Area Leaders, and Data Health. Pure selectors own all math and widgets derive from the stable `spaces` reference with `useMemo`; voids stay outside program totals. Project Pulse remains the sole rail Stats destination and exposes a compact Instruments popover that opens the four independent movable WidgetFrames. Area Leaders reuses selection, Data Health reuses the table/view flow, and no dashboard, compliance rules, package, manager state, or parallel editing path was added. Build is green at 733.00 kB; focused desktop/mobile QA passed with no console or finite-output failures. Terra receives the compact independent QA/fix handoff.
 
 ## Workflow
 

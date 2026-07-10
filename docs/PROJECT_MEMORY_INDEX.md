@@ -33,8 +33,11 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - `src/ui/widgets/AdvancedWidget.tsx` — diagnostics and staged controls.
 - `src/ui/widgets/widgets.css` — widget-specific layout.
 - `src/ui/widgets/stats/ProjectPulseWidget.tsx` — V7 flagship spatial intelligence widget.
-- `src/ui/widgets/stats/primitives.tsx` — shared stats readout/distribution/insight primitives + metric formatting.
+- `src/ui/widgets/stats/InstrumentLauncher.tsx` — compact Project Pulse gateway for the four independent instruments.
+- `src/ui/widgets/stats/CategoryMixWidget.tsx`, `PrivacyBalanceWidget.tsx`, `AreaLeadersWidget.tsx`, `DataHealthWidget.tsx` — live V7.1 family.
+- `src/ui/widgets/stats/primitives.tsx` — shared stats readout/distribution/ranking/health primitives + metric formatting.
 - `src/domain/stats/selectors.ts` — pure derived program metrics (single metric owner).
+- `src/domain/stats/selectors.test.ts` — dependency-free malformed/empty/void selector edge cases.
 - `src/ui/controlMeta.ts` — shared labels/descriptions for dock and widgets.
 
 ## Canvas / Engine Files
@@ -87,6 +90,7 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - V6M: Codex workflow OS.
 - V6N: interface density and neutral editorial glass refinement.
 - V6N.1: reference-locked premium design system and shared primitive hardening.
+- V7.0/V7.1: Project Pulse gateway and complete runtime-backed spatial intelligence widget family.
 
 ## Current Limits
 
@@ -98,7 +102,6 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 
 ## Deferred Features
 
-- V7.1 remaining stats family (Sol): Category Mix, Privacy Balance, Area Leaders, Data Health — spec in `docs/V7_SPATIAL_INTELLIGENCE_SYSTEM.md`.
 - Relationship Health / Floor Summary widgets (need graph/floor runtime data).
 - V8 export/import polish.
 - V9 floor system.
