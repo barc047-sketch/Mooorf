@@ -93,6 +93,27 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 - Risk: high for saved-view migration, mobile sheets, renderer error exits, and
   drag bounds; canvas world geometry and metric selectors must remain unchanged.
 
+## Export / Presentation Pack (V7.2)
+
+- Purpose: PNG, PDF, CSV, JSON, and ZIP presentation-pack export from the
+  master graph/current canvas state, plus true-vector SVG for Classic mode.
+- Main files: `src/export/*` (types, filenames, csv, projectSnapshot,
+  manifest, pageLayout, resolution, svgExport, pdfExport, canvasComposite,
+  exportService), `src/canvas/exportCapture.ts` (renderer-aware capture
+  bridge), `src/canvas/CanvasView.tsx`/`OrganismCanvasView.tsx` (capture
+  providers), `src/canvas/renderer.ts` (`drawScene` optional `includeLabels`),
+  `src/ui/widgets/ExportWidget.tsx`, `src/ui/Dock.tsx` (existing Export
+  placeholder activated), `src/ui/panels/widgetRegistry.ts`, `src/types.ts`
+  (`WidgetId`), `src/components/ui/sonner.tsx` (Toaster mounted in App.tsx).
+- Related docs: `docs/DECISIONS.md` (V7.2 architecture + SVG truthfulness),
+  `docs/COMPONENT_INVENTORY.md`.
+- Risk: high for renderer capture timing (WebGL `preserveDrawingBuffer:false`)
+  and scale isolation; canvas world coordinates/camera and Interface/Widget
+  Scale must never be touched by export generation.
+- Status: V7.2 complete for desktop/laptop/iPad. Organism SVG is truthfully
+  reported unavailable (no reusable vector membrane path); multi-frame/batch
+  export remains deferred.
+
 ## Selection Arc
 
 - Purpose: future direct canvas selection/rename/area affordances.

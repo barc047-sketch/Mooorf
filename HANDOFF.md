@@ -38,6 +38,7 @@ Complete:
 - V7.1Q Independent QA + Stabilization (V7.0–V7.1B reviewed; no defects, no fixes)
 - V7.1C Continuous Interface Scale slider
 - V7.1D Independent Widget Scale (desktop/laptop/iPad)
+- V7.2 Export & Presentation Pack (desktop/laptop/iPad)
 
 Next:
 - Relationship Health / Floor Summary (await live relationship/floor data)
@@ -129,6 +130,26 @@ widgets keep their distinct authored geometry at every scale; a reused
 drag-clamp safety net keeps dragged widgets reachable without resetting
 position. Persists independently in saved views with 1.0 legacy migration.
 Verified at 1440/1280/1024/768px; build and focused live QA pass.
+
+V7.2 (desktop/laptop/iPad scope) activates the long-reserved Dock Export
+placeholder into a full Export widget covering PNG, PDF, CSV, JSON, and a ZIP
+presentation pack, plus true-vector SVG for Classic mode. One renderer-aware
+capture bridge (`src/canvas/exportCapture.ts`) lets Classic re-render the
+existing pure `drawScene` onto an offscreen canvas at any resolution, while
+Organism captures the live WebGL canvas synchronously within the same render
+tick it draws (required by `preserveDrawingBuffer:false`) plus the HTML label
+overlay via `html-to-image`, with the command menu/edit form always excluded
+and the selection ring/border excluded in Clean mode — no rail/dock/widget
+chrome and no visible flash. `pdf-lib` builds a single-page A4/A3 presentation
+with optional title/metadata; `jszip`/`file-saver` assemble the pack from one
+shared capture reused across every artifact. JSON export reuses the existing
+`SavedCanvasSnapshot` field set instead of a new schema. SVG is truthful:
+Classic emits real vector circles/text (the blob/membrane merge layer is
+documented as omitted, not faked); Organism reports SVG unavailable rather
+than mislabeling a raster capture as vector. Interface Scale and Widget Scale
+verified to never affect export pixel dimensions. Heavy libraries are
+dynamically imported and code-split out of the main chunk. Build and focused
+live QA pass.
 
 ## Workflow
 

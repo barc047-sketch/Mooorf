@@ -160,6 +160,32 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - Do not duplicate: local scale state, browser zoom, transformed canvas shells,
   countdown loaders, or renderer-specific overlay loaders.
 
+## Export / Presentation Pack (V7.2)
+
+- Files: `src/export/*`, `src/canvas/exportCapture.ts`, `src/ui/widgets/ExportWidget.tsx`.
+- Role: `ExportWidget` owns run-local settings only (format/resolution/
+  background/labels/selection/padding/page/orientation/title/metadata
+  toggles — plain `useState`, never persisted to the store). `exportService.ts`
+  is the single generation entry point for PNG/PDF/CSV/JSON/SVG/ZIP pack;
+  format-specific logic (page fit, manifest, filenames) lives in its own pure
+  module, never inline in the widget. `exportCapture.ts` is the one
+  renderer-aware bridge — Classic re-renders the existing pure `drawScene`
+  onto an offscreen canvas at any resolution; Organism captures the live
+  WebGL canvas synchronously within the render tick it draws (required since
+  the context uses `preserveDrawingBuffer:false`) plus the HTML label-layer
+  overlay via `html-to-image`, composited by `canvasComposite.ts`.
+- Reuse: `ChipRow`/`SwitchRow`/`WidgetSection` (`controls.tsx`), the existing
+  Dock Export placeholder (now activated), `widgetRegistry.ts` ownership
+  pattern, `sonner`'s `Toaster` (mounted for the first time in `App.tsx`,
+  reusing the existing unused `components/ui/sonner.tsx` wrapper), PapaParse's
+  `unparse` for CSV, the already-installed `pdf-lib`/`jszip`/`file-saver`/
+  `html-to-image`.
+- Do not duplicate: a second widget manager, a second slider/chip CSS
+  language (new `.wexport-*` rules are additive, `.pop-chip`/`.org-slider`
+  reused as-is), a second project-state schema (the JSON export mirrors
+  `SavedCanvasSnapshot`'s field set instead of inventing one), or export
+  option state in the global store.
+
 ## Table Components
 
 - File: `src/views/TableView.tsx`

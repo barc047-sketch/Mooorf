@@ -11,6 +11,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V7.2 Export & Presentation Pack: activates the existing Dock Export placeholder; PNG/PDF/CSV/JSON/ZIP + true-vector Classic SVG; one renderer-aware capture bridge (Classic pure re-render, Organism synchronous same-tick WebGL capture + html-to-image labels); Interface/Widget Scale verified to never affect export dimensions; heavy libs dynamically imported; verified 1440/1024/768px
 - V7.1D Independent Widget Scale: second Display section (same format as Interface Scale) writes canonical `settings.widgetScale`; outer frame = uiScale×widgetScale once, internal content = widgetScale only; rail/dock/canvas/tooltips unaffected; verified 1440/1280/1024/768px
 - V7.1C Continuous Interface Scale: presets + 82–118% slider share one `settings.uiScale`; custom values persist/restore; mobile clamps render to 100% keeping preference
 - V7.1Q Independent QA + Stabilization: V7.0–V7.1B reviewed, no defects, no fixes
@@ -185,5 +186,6 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - Cmd/Ctrl-scroll resize
 - Floating stat widgets (metrics/warnings)
 - Floors
-- Export
+- Project JSON import (export schema is import-ready; import UI not built)
+- Multi-frame/batch export; Organism vector SVG (true membrane path)
 - Gallery/templates later

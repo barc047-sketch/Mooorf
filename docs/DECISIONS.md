@@ -267,3 +267,78 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
   already reachable. No mobile clamp was added for Widget Scale — desktop/
   tablet is the V7.1D target and authored widget widths never approach
   768–834px viewport widths even at 118%.
+
+## V7.2 export architecture
+
+- **One capture bridge, two providers.** `src/canvas/exportCapture.ts` is a
+  tiny registry — whichever canvas view is mounted (Classic or Organism)
+  registers exactly one capture provider on mount and unregisters on unmount.
+  The export service never imports canvas/WebGL internals directly; it only
+  calls `requestCanvasCapture({scale, includeLabels, includeSelection})`.
+- **Classic capture is a pure re-render, not a live-canvas readback.**
+  `CanvasView.tsx`'s provider calls the existing pure `drawScene` (unchanged
+  signature except one new optional `{includeLabels}` — defaults to `true` so
+  the live canvas's behavior is untouched) onto a fresh offscreen canvas sized
+  to the requested resolution. This sidesteps all WebGL buffer-timing concerns
+  and gives exact resolution control at any scale, including 4×.
+- **Organism capture must happen inside the same render tick that draws it.**
+  The organism WebGL context is created with `preserveDrawingBuffer:false`
+  (unchanged — flipping it on would add a persistent per-frame copy cost to
+  every live frame just to serve occasional exports). A capture request
+  temporarily calls the existing `renderer.resize(w,h,scale)` to render at the
+  export resolution, forces `dirty=true`, and waits for the render loop's next
+  successful `renderer.render(frame)` call. Immediately after that call — same
+  synchronous tick, before the buffer can be cleared or the DPR restored — the
+  canvas is cloned via `drawImage` onto a new canvas and the promise resolves
+  with the clone. Only then is `renderer.resize` restored to the live DPR.
+  A 5s timeout rejects the request if a render frame never arrives (e.g. a
+  backgrounded/throttled tab), and any pending request is rejected on renderer
+  failure or unmount so a promise can never hang forever.
+- **Labels are a second, independently captured layer for Organism.** They
+  are a separate HTML overlay (`labelLayerRef`), not baked into the WebGL
+  canvas, so they're captured via `html-to-image`'s `toCanvas` at a matching
+  `pixelRatio`. Its `filter` option removes `.selection-command-wrap` (the
+  three-dot command menu) and `.selection-edit-popover` (the rename/area
+  edit form) unconditionally — those are interactive chrome, never export
+  content, regardless of the Selection toggle — and additionally removes
+  `.organism-moving-border`/`.organism-selection-system` when the Selection
+  option is "Clean". This is DOM-filter-based exclusion, not a live-state
+  mutation or CSS class toggle on the real UI, so there is no flash.
+- **Compositing owns background/padding, not the renderer adapters.**
+  `canvasComposite.ts` is the only place that resolves the Background option
+  to a color (`--bg` token / `#fff` / transparent), validates dimensions
+  (`resolution.ts`, hard 16384px/40MP ceilings, rejects NaN/Infinity/oversize
+  before allocating), and draws the captured canvas + optional label layer
+  onto one final flattened output canvas. Renderer adapters only ever supply
+  raw captured pixels; format-specific logic never lives in a canvas view.
+- **JSON export reuses the `SavedCanvasSnapshot` field set, not a new schema.**
+  `projectSnapshot.ts`'s `ProjectExportSettings` mirrors the same fields
+  `makeSnapshot`/`loadSavedView` already round-trip, wrapped in a versioned
+  envelope (`schemaVersion`, `exportedAt`, `project.title`, `summary`).
+  `openWidgets` and other session-only state are never included.
+- **One shared capture per presentation pack.** `buildPresentationPack`
+  captures/composites the canvas exactly once and reuses that same canvas for
+  both the PNG and the PDF's embedded image — it never re-captures per format,
+  avoiding redundant 4× WebGL/html-to-image work.
+- **Heavy libraries are dynamically imported from the export service/adapters
+  only**, never imported statically: `pdf-lib` (`pdfExport.ts`), `jszip` and
+  `file-saver` (`exportService.ts`), `html-to-image` (the organism capture
+  provider). They are absent from the initial canvas render path; the
+  production build code-splits them into separate chunks.
+- **SVG truthfulness.** Classic mode's `svgExport.ts` mirrors `drawScene`'s
+  exact coordinate math (`toX`/`toY`, `areaToRadius`, `getNucleusColor`) to
+  emit real `<circle>`/`<text>` elements — a genuine vector export. The
+  blob/membrane merge layer (`src/canvas/blob.ts`) builds its silhouette as a
+  `Path2D` from a d3-contour + Catmull-Rom spline pipeline with no exposed
+  path-data API; extracting equivalent SVG `d` attributes was judged too large
+  for this phase, so the merge visual is simply omitted from SVG (documented
+  in the widget caption and here) rather than rasterized and mislabeled as
+  vector. Organism mode has no reusable vector membrane path at all (implicit
+  WebGL field), so `organismSvgAvailability()` reports it unavailable with a
+  truthful reason instead of silently degrading to a raster PNG relabeled as
+  `.svg`.
+- **Export settings are widget-local `useState`, never store state.** Format,
+  resolution, background, labels, selection, padding, page, orientation,
+  title, and metadata toggles are export-run-scoped preferences, not project
+  data — consistent with the existing rule that ephemeral UI state never
+  enters the master graph/store or saved-view snapshot.

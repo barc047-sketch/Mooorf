@@ -10,6 +10,7 @@ import WidgetHost from "./ui/widgets/WidgetHost";
 import CanvasView from "./canvas/CanvasView";
 import OrganismCanvasView from "./canvas/OrganismCanvasView";
 import TableView from "./views/TableView";
+import { Toaster } from "sonner";
 import "./App.css";
 
 /* V6E experiment route — hidden URL, separate lazy chunk, zero cost to the
@@ -103,6 +104,7 @@ function MainApp() {
           )}
         </>
       )}
+      <Toaster position="bottom-center" theme={theme === "night" ? "dark" : "light"} />
     </div>
   );
 }

@@ -60,6 +60,11 @@ const easeOutBack = (t: number) => {
 
 export const SPAWN_MS = 450;
 
+export interface DrawSceneOptions {
+  /** V7.2 export adapter — omit to keep the live canvas's existing behavior. */
+  includeLabels?: boolean;
+}
+
 // Returns true while the organism layer is mid-transition (caller repaints).
 export function drawScene(
   ctx: CanvasRenderingContext2D,
@@ -72,8 +77,10 @@ export function drawScene(
   drag: DragOverride | null,
   tokens: Tokens,
   now: number,
-  blob: BlobSettings
+  blob: BlobSettings,
+  options?: DrawSceneOptions
 ): boolean {
+  const includeLabels = options?.includeLabels ?? true;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h); // body token bg shows through
   let blobSettling = false;
@@ -183,7 +190,7 @@ export function drawScene(
     }
 
     // Label — only when legible.
-    if (r > 26) {
+    if (r > 26 && includeLabels) {
       const dark = isDark(mappedColor.fill);
       const nameSize = Math.min(15, Math.max(10, r * 0.22));
       ctx.textAlign = "center";

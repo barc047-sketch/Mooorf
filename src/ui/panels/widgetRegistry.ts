@@ -6,6 +6,7 @@ import {
   Activity,
   BarChart3,
   Bookmark,
+  Download,
   Eye,
   LayoutGrid,
   ListOrdered,
@@ -39,7 +40,7 @@ export interface WidgetGeometry {
 }
 
 export interface WidgetPanelDefinition {
-  id: WidgetId | "selected-space" | "export";
+  id: WidgetId | "selected-space";
   label: string;
   responsibility: string;
   launcher: "rail" | "dock" | "both" | "widget";
@@ -164,6 +165,16 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
     icon: ShieldCheck,
     geometry: { variant: "vertical", width: 264, minWidth: 244, minHeight: 318, maxHeight: 500, aspectIntent: "tall" },
   },
+  export: {
+    id: "export",
+    label: "Export",
+    responsibility:
+      "PNG/PDF/CSV/JSON/SVG export and the ZIP presentation pack. Generation lives in src/export/exportService.ts.",
+    launcher: "dock",
+    status: "live",
+    icon: Download,
+    geometry: { variant: "vertical", width: 308, minWidth: 280, minHeight: 420, maxHeight: 680, aspectIntent: "tall" },
+  },
 };
 
 export const getWidgetDefinition = (id: WidgetId): WidgetDefinition => WIDGET_DEFINITIONS[id];
@@ -175,13 +186,6 @@ export const WIDGET_PANEL_DEFINITIONS: readonly WidgetPanelDefinition[] = [
     label: "Selected Space",
     responsibility: "Future selected nucleus property editor.",
     launcher: "rail",
-    status: "future",
-  },
-  {
-    id: "export",
-    label: "Export",
-    responsibility: "Future export frame and output settings.",
-    launcher: "dock",
     status: "future",
   },
 ];

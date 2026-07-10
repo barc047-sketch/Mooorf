@@ -56,6 +56,14 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - `src/lib/geometry.ts` — area-to-radius, scatter, hit test, clamp.
 - `src/experiments/organism-lab/*` — isolated WebGL2 lab route and shader prototype.
 
+## Export Files (V7.2)
+
+- `src/export/exportService.ts` — single generation entry point: `exportPng`, `exportPdf`, `exportCsv`, `exportJson`, `exportSvg`, `buildPresentationPack`.
+- `src/export/canvasComposite.ts` — background/padding compositing over a renderer-supplied capture.
+- `src/export/pdfExport.ts`, `svgExport.ts`, `csv.ts`, `projectSnapshot.ts`, `manifest.ts`, `pageLayout.ts`, `resolution.ts`, `filenames.ts`, `types.ts` — one pure module per format/concern.
+- `src/canvas/exportCapture.ts` — the one renderer-aware capture bridge Classic/Organism register into.
+- `src/ui/widgets/ExportWidget.tsx` — Format/Visual/Presentation/Generate instrument; run-local `useState` only.
+
 ## Palette Files
 
 - `src/design/palettes.ts` — curated nucleus families and organism palette metadata.
@@ -95,6 +103,8 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - V6N.1: reference-locked premium design system and shared primitive hardening.
 - V7.0/V7.1: Project Pulse gateway and complete runtime-backed spatial intelligence widget family.
 - V7.1B: adaptive instrument geometry, canonical icons/headers, persistent UI scale, unbounded labels, and renderer-readiness intro.
+- V7.1C/V7.1D: continuous Interface Scale slider; independent Widget Scale (desktop/laptop/iPad).
+- V7.2: Export & Presentation Pack — PNG/PDF/CSV/JSON/ZIP, true-vector SVG for Classic only (desktop/laptop/iPad).
 
 ## Current Limits
 
@@ -103,10 +113,13 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - Known Vite main chunk warning remains accepted.
 - High-density labels are crowded at 60+ spaces.
 - Dedicated Void layout preset remains deferred.
+- Organism SVG export is unavailable (no reusable vector membrane path); the Classic blob/membrane merge layer is omitted from SVG (Path2D contour, not vector-extractable this phase).
 
 ## Deferred Features
 
 - Relationship Health / Floor Summary widgets (need graph/floor runtime data).
-- V8 export/import polish.
+- Project JSON import (export schema is import-ready; import UI not built this phase).
+- Multi-frame/batch export.
+- Organism vector SVG (true membrane path export).
 - V9 floor system.
 - V10 performance scaling with texture/data-buffer renderer.

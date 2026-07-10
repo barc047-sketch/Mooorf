@@ -440,10 +440,12 @@ export default function Dock() {
               <Upload size={16} strokeWidth={1.5} />
             </DockButton>
             <DockButton
-              className="dock-placeholder"
-              title="Export placeholder"
-              aria-label="Export placeholder"
-              data-placeholder="true"
+              active={openWidgets.includes("export")}
+              title="Export"
+              aria-label="Export"
+              aria-haspopup="dialog"
+              aria-expanded={openWidgets.includes("export")}
+              onClick={() => toggleWidget("export")}
             >
               <Download size={16} strokeWidth={1.5} />
             </DockButton>

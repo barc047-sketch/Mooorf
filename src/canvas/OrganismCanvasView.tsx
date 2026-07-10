@@ -44,7 +44,10 @@ import { resolveOrganism } from "./organismProductionSettings";
 import SelectedCellCommandMenu from "./SelectedCellCommandMenu";
 import MovingBorder from "../ui/primitives/MovingBorder";
 import type { SpaceCell, SpaceKind } from "../types";
+import { registerCanvasCapture, type CaptureRequestOptions } from "./exportCapture";
 import "./organismCanvas.css";
+
+const CAPTURE_TIMEOUT_MS = 5000;
 
 const DPR_MAX = 2;
 const Z_MIN = 0.25;
@@ -254,6 +257,7 @@ export default function OrganismCanvasView() {
     let h = 0;
     let lastCommitted = useLab.getState().camera;
     let camTarget: typeof cam | null = null;
+    let pendingCapture: { resolve: (canvas: HTMLCanvasElement) => void; reject: (err: Error) => void } | null = null;
 
     const nucleiBuf = new Float32Array(MAX_NUCLEI * 4);
     const frame: OrganismRenderFrame = {
@@ -308,6 +312,70 @@ export default function OrganismCanvasView() {
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(host);
+
+    /* V7.2 export adapter — WebGL requires preserveDrawingBuffer:false-safe
+     * capture: request a render at the export scale, clone the buffer
+     * synchronously inside the same render tick (before it can be cleared),
+     * then restore the live DPR. Labels are a separate HTML overlay captured
+     * via html-to-image and composited by the export service. */
+    const captureWebglFrame = (scale: 1 | 2 | 4): Promise<HTMLCanvasElement> =>
+      new Promise<HTMLCanvasElement>((resolve, reject) => {
+        if (rendererFailed || !renderer) {
+          reject(new Error("Organism renderer is unavailable for export."));
+          return;
+        }
+        const timeout = window.setTimeout(() => {
+          if (pendingCapture) {
+            pendingCapture = null;
+            renderer?.resize(w, h, dpr);
+            reject(new Error("Canvas export timed out waiting for a render frame."));
+          }
+        }, CAPTURE_TIMEOUT_MS);
+        renderer.resize(w, h, scale);
+        dirty = true;
+        pendingCapture = {
+          resolve: (frameCanvas) => {
+            window.clearTimeout(timeout);
+            resolve(frameCanvas);
+          },
+          reject: (err) => {
+            window.clearTimeout(timeout);
+            reject(err);
+          },
+        };
+      });
+
+    const unregisterCapture = registerCanvasCapture(
+      async ({ scale, includeLabels, includeSelection }: CaptureRequestOptions) => {
+        const cssW = w;
+        const cssH = h;
+        const webglCanvas = await captureWebglFrame(scale);
+        renderer?.resize(cssW, cssH, dpr);
+        dirty = true;
+
+        let labelLayerCanvas: HTMLCanvasElement | undefined;
+        const layer = labelLayerRef.current;
+        if (includeLabels && layer) {
+          const { toCanvas } = await import("html-to-image");
+          labelLayerCanvas = await toCanvas(layer, {
+            pixelRatio: scale,
+            backgroundColor: undefined,
+            filter: (node) => {
+              if (!(node instanceof Element)) return true;
+              if (node.classList.contains("selection-command-wrap")) return false;
+              if (node.classList.contains("selection-edit-popover")) return false;
+              if (!includeSelection) {
+                if (node.classList.contains("organism-moving-border")) return false;
+                if (node.classList.contains("organism-selection-system")) return false;
+              }
+              return true;
+            },
+          });
+        }
+
+        return { canvas: webglCanvas, cssWidth: cssW, cssHeight: cssH, labelLayer: labelLayerCanvas };
+      }
+    );
 
     const local = (e: PointerEvent | WheelEvent) => {
       const r = canvas.getBoundingClientRect();
@@ -652,10 +720,32 @@ export default function OrganismCanvasView() {
           firstUsableFrame = true;
           announceReadiness("ready");
         }
+        /* Buffer is guaranteed valid only within this synchronous tick
+         * (preserveDrawingBuffer:false) — clone it immediately so a later
+         * resize/redraw can never race the export service's read. */
+        if (pendingCapture) {
+          const req = pendingCapture;
+          pendingCapture = null;
+          try {
+            const clone = document.createElement("canvas");
+            clone.width = canvas.width;
+            clone.height = canvas.height;
+            const cctx = clone.getContext("2d");
+            if (!cctx) throw new Error("Could not clone the organism canvas for export.");
+            cctx.drawImage(canvas, 0, 0);
+            req.resolve(clone);
+          } catch (err) {
+            req.reject(err instanceof Error ? err : new Error("Organism canvas capture failed."));
+          }
+        }
       } catch {
         rendererFailed = true;
         setGlOk(false);
         announceReadiness("fallback");
+        if (pendingCapture) {
+          pendingCapture.reject(new Error("Organism renderer failed during export."));
+          pendingCapture = null;
+        }
         queueMicrotask(() => useLab.getState().setSettings({ rendererMode: "classic" }));
       }
     };
@@ -667,6 +757,11 @@ export default function OrganismCanvasView() {
       unsub();
       mo.disconnect();
       ro.disconnect();
+      unregisterCapture();
+      if (pendingCapture) {
+        pendingCapture.reject(new Error("Organism canvas unmounted during export."));
+        pendingCapture = null;
+      }
       renderer?.dispose();
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);

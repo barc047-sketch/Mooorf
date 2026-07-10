@@ -461,6 +461,106 @@
   text-transform: uppercase;
 }
 
+/* ——— V7.2 Export widget — primary action, text field, status line ——— */
+.wexport-primary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 9.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--surface);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
+    var(--ink)
+  );
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), opacity 160ms ease;
+}
+
+.wexport-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.wexport-primary:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.wexport-spin {
+  animation: wexport-spin 900ms linear infinite;
+}
+
+@keyframes wexport-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.wexport-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 2px 0;
+}
+
+.wexport-field label {
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+
+.wexport-input {
+  width: 100%;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 10.5px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--glass-light) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.wexport-input:focus-visible {
+  border-color: color-mix(in srgb, var(--chrome-accent) 55%, var(--hairline));
+  background: color-mix(in srgb, var(--glass-light) 46%, transparent);
+}
+
+.wexport-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 2px;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--fog);
+}
+
+.wexport-status[data-stage="error"] {
+  color: color-mix(in srgb, var(--fog) 30%, #b5493f);
+}
+
+.wexport-status[data-stage="complete"] {
+  color: color-mix(in srgb, var(--fog) 30%, var(--chrome-accent));
+}
+
+.wexport-unavailable {
+  padding: 5px 2px 1px;
+  font-size: 8.5px;
+  line-height: 1.35;
+  color: var(--fog);
+}
+
 /* phones: widgets become full-width sheets pinned above the dock */
 @media (max-width: 640px) {
   .wframe {

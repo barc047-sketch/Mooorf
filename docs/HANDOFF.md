@@ -1,5 +1,41 @@
 # Handoff
 
+## V7.2 — Export & Presentation Pack (desktop/laptop/iPad)
+
+- **Export widget:** activates the existing Dock Export placeholder; opens a
+  distinctive vertical instrument (Format chips → Visual → Presentation →
+  Generate) built entirely from existing `WidgetSection`/`ChipRow`/`SwitchRow`
+  primitives. Settings are widget-local `useState`, never store state.
+- **Formats:** PNG (1×/2×/4×, theme/white/transparent background, labels
+  include/exclude, selection clean/include, tight/standard/wide padding), PDF
+  (A4/A3, landscape/portrait, optional title + area/count/date metadata
+  footer via `pdf-lib`), CSV (id/name/area/category/privacy/kind/x/y via
+  PapaParse `unparse`), JSON (versioned snapshot reusing the
+  `SavedCanvasSnapshot` field set), and a ZIP Presentation Pack (canvas.png +
+  presentation.pdf + spaces.csv + project.json + manifest.json via `jszip`/
+  `file-saver`, one shared capture reused across every artifact).
+- **Capture architecture:** one renderer-aware bridge
+  (`src/canvas/exportCapture.ts`). Classic re-renders the existing pure
+  `drawScene` onto an offscreen canvas at any resolution — no live-canvas
+  dependency. Organism captures the live WebGL canvas synchronously within the
+  same render tick it draws (required by `preserveDrawingBuffer:false`),
+  restores its DPR immediately after, and separately captures the HTML label
+  overlay via `html-to-image` with a DOM filter that always excludes the
+  command menu/edit form and optionally the selection ring/border. Output
+  never contains rail, dock, widgets, tooltips, or edit chrome, and there is
+  no visible flash.
+- **SVG:** true vector for Classic (`<circle>`/`<text>`, same geometry math as
+  `drawScene`); the blob/membrane merge layer is omitted (Path2D contour, not
+  vector-extractable this phase) rather than faked. Organism SVG is reported
+  truthfully unavailable — no reusable vector membrane path exists.
+- **Scale isolation:** Interface Scale and Widget Scale never affect export
+  pixel dimensions — verified at 82%/118% for both, output byte-for-byte
+  identical dimensions regardless of chrome scale.
+- **Performance:** `pdf-lib`, `jszip`, `file-saver`, `html-to-image` are all
+  dynamically imported from the export service/capture adapters only — code
+  splits into separate chunks, absent from the initial canvas render path.
+- **Next:** multi-frame/batch export and organism vector SVG remain deferred.
+
 ## V7.1D — Independent Widget Scale (desktop/laptop/iPad)
 
 - **Control:** Display gains a second section, "Widget Scale," in the exact

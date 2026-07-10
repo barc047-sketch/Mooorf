@@ -78,6 +78,24 @@ glass; treat the current in-app look as the baseline to extend, not restyle.
   actual stage copy on the left; exit follows first renderer paint, not a fake
   countdown.
 
+## V7.2 Export Lock
+
+- Export widget reuses the exact `WidgetSection`/`ChipRow`/`SwitchRow`
+  instrument language every other widget uses — no bespoke export UI system.
+- Visual exports (PNG/PDF/SVG/pack) render from the master graph/current
+  canvas state only: no rail, dock, widgets, tooltips, loader, hover handles,
+  edit controls, or debugging overlays ever appear in output, achieved by
+  scoping capture to the canvas host + label layer rather than hiding chrome
+  globally.
+- Interface Scale and Widget Scale never affect exported pixel dimensions —
+  export resolution depends only on the chosen scale (1×/2×/4×), padding, and
+  page settings.
+- SVG must be truthful: Classic mode emits real vector `<circle>`/`<text>`
+  geometry; Organism mode reports SVG as unavailable rather than presenting a
+  raster capture as vector. The Classic blob/membrane merge layer is likewise
+  omitted from SVG (Path2D contour, not vector-extractable this phase) rather
+  than faked.
+
 ## Visual Language
 
 - Soft glass over the canvas.

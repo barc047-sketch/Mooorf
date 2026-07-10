@@ -54,7 +54,8 @@ export type WidgetId =
   | "category-mix"
   | "privacy-balance"
   | "area-leaders"
-  | "data-health";
+  | "data-health"
+  | "export";
 
 export type Privacy = "public" | "shared" | "private";
 

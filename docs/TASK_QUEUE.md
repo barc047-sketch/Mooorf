@@ -18,6 +18,20 @@
 - [x] V7.1Q Independent QA + Stabilization (V7.0–V7.1B; no defects, no fixes)
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
+- [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## V7.2 — Export & Presentation Pack  ✅ COMPLETE
+- [x] activate existing Dock Export placeholder → Export widget (no duplicate launcher)
+- [x] PNG: 1×/2×/4×, theme/white/transparent background, labels include/exclude, selection clean/include, tight/standard/wide padding
+- [x] PDF: A4/A3, landscape/portrait, optional title + area/count/date metadata footer via pdf-lib
+- [x] CSV: id/name/area/category/privacy/kind/x/y via PapaParse unparse
+- [x] JSON: versioned snapshot reusing the SavedCanvasSnapshot field set (no second schema)
+- [x] ZIP presentation pack: canvas.png + presentation.pdf + spaces.csv + project.json + manifest.json, one shared capture reused
+- [x] SVG: true vector for Classic (circles/text); Organism truthfully reported unavailable; blob/membrane merge layer documented as omitted
+- [x] renderer-aware capture bridge; Classic pure re-render, Organism synchronous same-tick WebGL capture + html-to-image label layer, DOM-filtered command menu/edit form/selection
+- [x] Interface Scale / Widget Scale verified to never affect export pixel dimensions
+- [x] heavy libs (pdf-lib/jszip/file-saver/html-to-image) dynamically imported, code-split out of main chunk
+- [x] contract tests (filenames/CSV/snapshot/manifest/page-layout/resolution/SVG) + build green
 
 ## V7.1D — Independent Widget Scale  ✅ COMPLETE
 - [x] second Display section, identical format to Interface Scale (presets + 82–118% slider)

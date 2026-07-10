@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useLab } from "../state/store";
 import { hitTest, clamp } from "../lib/geometry";
 import { drawScene, readTokens, SPAWN_MS, type DragOverride } from "./renderer";
+import { registerCanvasCapture } from "./exportCapture";
 import "./canvas.css";
 
 const DPR_MAX = 2;
@@ -77,6 +78,34 @@ export default function CanvasView() {
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(host);
+
+    /* V7.2 export adapter — Classic re-renders the pure drawScene layer onto
+     * a fresh offscreen canvas at the requested scale/options. No dependency
+     * on the live canvas's buffer, so no readback timing concerns. */
+    const unregisterCapture = registerCanvasCapture(async ({ scale, includeLabels, includeSelection }) => {
+      const cssW = host.clientWidth;
+      const cssH = host.clientHeight;
+      const off = document.createElement("canvas");
+      off.width = Math.max(1, Math.round(cssW * scale));
+      off.height = Math.max(1, Math.round(cssH * scale));
+      const offCtx = off.getContext("2d");
+      if (!offCtx) throw new Error("Could not create an export surface for the Classic canvas.");
+      drawScene(
+        offCtx,
+        cssW,
+        cssH,
+        scale,
+        cam,
+        spaces,
+        includeSelection ? selectedId : null,
+        null,
+        tokens,
+        Date.now(),
+        settings,
+        { includeLabels }
+      );
+      return { canvas: off, cssWidth: cssW, cssHeight: cssH };
+    });
 
     const toWorld = (sx: number, sy: number) => ({
       x: (sx - w / 2) / cam.zoom + cam.x,
@@ -228,6 +257,7 @@ export default function CanvasView() {
       unsub();
       mo.disconnect();
       ro.disconnect();
+      unregisterCapture();
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
