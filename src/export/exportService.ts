@@ -22,7 +22,7 @@ export type PackProgressStage =
   | "Compressing pack"
   | "Complete";
 
-const currentSettingsForSnapshot = (): ProjectExportSettings => {
+export const currentSettingsForSnapshot = (): ProjectExportSettings => {
   const s = useLab.getState().settings;
   return {
     rendererMode: s.rendererMode,
@@ -33,7 +33,6 @@ const currentSettingsForSnapshot = (): ProjectExportSettings => {
     paletteMode: s.paletteMode,
     layoutPreset: s.layoutPreset,
     annotationMode: s.annotationMode,
-    selectionDisplay: s.selectionDisplay,
     annotationDetail: { ...s.annotationDetail },
     showGrid: s.showGrid,
     nucleusPaletteId: s.nucleusPaletteId,
@@ -44,9 +43,17 @@ const currentSettingsForSnapshot = (): ProjectExportSettings => {
   };
 };
 
-const download = async (blob: Blob, filename: string) => {
+export const download = async (blob: Blob, filename: string) => {
   const { saveAs } = await import("file-saver");
   saveAs(blob, filename);
+};
+
+export const buildCurrentProjectSnapshot = (project: string) => {
+  const state = useLab.getState();
+  return buildProjectSnapshot(
+    { spaces: state.spaces, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
+    project
+  );
 };
 
 export const exportPng = async (project: string, visual: ExportVisualOptions): Promise<void> => {
@@ -72,9 +79,9 @@ export const exportSvg = async (project: string): Promise<void> => {
     cssWidth,
     cssHeight,
     paletteMode: state.settings.paletteMode,
+    nucleusPaletteId: state.settings.nucleusPaletteId,
     background: (cs.getPropertyValue("--bg").trim() || "#ffffff"),
     includeLabels: true,
-    selectedId: state.selectedId,
     paddingPx: 0,
   });
   const blob = new Blob([svg], { type: "image/svg+xml" });
@@ -88,11 +95,7 @@ export const exportCsv = async (project: string): Promise<void> => {
 };
 
 export const exportJson = async (project: string): Promise<void> => {
-  const state = useLab.getState();
-  const snapshot = buildProjectSnapshot(
-    { spaces: state.spaces, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
-    project
-  );
+  const snapshot = buildCurrentProjectSnapshot(project);
   const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
   await download(blob, buildDataFilename(project, "json"));
 };

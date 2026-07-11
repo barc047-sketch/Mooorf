@@ -114,9 +114,16 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
   reported unavailable (no reusable vector membrane path); multi-frame/batch
   export remains deferred.
 
-## Selection Arc
+## Selection Feedback (V7.3)
 
-- Purpose: future direct canvas selection/rename/area affordances.
-- Main files likely: `src/canvas/OrganismCanvasView.tsx`, `src/canvas/organismCanvas.css`, `src/types.ts`, `src/state/store.ts`.
-- Related docs: `docs/V4_5_SELECTION_ARC_SYSTEM.md`, `docs/NEXT_PHASES.md`.
-- Risk: high; can conflict with drag/pan/label hit areas.
+- Status: the former partial orbit/selection arc and halo/influence modes were intentionally removed in V7.3. They are neither active nor planned.
+- Current ownership: `src/canvas/OrganismCanvasView.tsx` keeps the existing MovingBorder, selected metadata, command menu, and rename/area edit surface; Classic uses an on-body boundary keyline only.
+- Export rule: the removed arc is never captured or emitted. Clean selection still filters the moving keyline/details where applicable.
+- Risk: keep the details shell pointer-transparent and actions leaf-interactive so canvas drag/pan/zoom remain available.
+
+## File Intake / Project Transfer (V7.3)
+
+- Purpose: local-only `.mooorf`, config, CSV, XLS, and XLSX review and atomic apply.
+- Main files: `src/import/*`, `src/ui/widgets/FileIntakeWidget.tsx`, `src/ui/widgets/WidgetHost.tsx`, `src/ui/Dock.tsx`, `src/export/projectSnapshot.ts`.
+- Ownership: one global drop queue, one import service, one File Intake WidgetFrame, central Zustand product data, V7.2 snapshot extension.
+- Risk: high for destructive replacement; schema validation, recovery snapshot, one transaction, and Undo are mandatory.

@@ -38,7 +38,7 @@ export default function Rail() {
   const addSpace = useLab((s) => s.addSpace);
   const resetView = useLab((s) => s.resetView);
   const openWidgets = useLab((s) => s.openWidgets);
-  const toggleWidget = useLab((s) => s.toggleWidget);
+  const openWidget = useLab((s) => s.openWidget);
 
   const launcher = (
     id: WidgetId,
@@ -53,7 +53,7 @@ export default function Rail() {
         data-tooltip={title}
         title={title}
         aria-label={title}
-        onClick={() => toggleWidget(id)}
+        onClick={() => openWidget(id)}
       >
         <Icon size={14} strokeWidth={1.5} />
       </button>

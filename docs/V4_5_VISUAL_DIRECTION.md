@@ -14,7 +14,7 @@ All four are mood/interaction references only — no proprietary branding, asset
 - **Palmer** → editorial canvas / generous object spacing / quiet edge UI / scattered circular space-cells.
 - **Rayon** → CAD toolbar grouping / precision interaction / inspector logic (grouped tools, shortcut-first, technical labels).
 - **Superpower** → soft grey-white glass metric widgets, compact technical typography, animated key numbers.
-- **Dark scan UI** → dotted technical canvas background, warning chips, curved orbit selection arc, animated metric cards. Layout and health content NOT copied — only the dotted-grid / orbit-selection / warning-chip interaction pattern.
+- **Dark scan UI** → dotted technical canvas background, warning chips, and animated metric cards. The earlier orbit-selection interpretation was retired and removed in V7.3.
 
 ## Final direction
 Palmer editorial canvas + Rayon CAD usability + Superpower metric glass + dark scan analysis UI + Graph Noir Red identity.

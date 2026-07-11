@@ -1,9 +1,6 @@
 /* V6K organism widget — all organism render behavior in one movable home:
-   style, attachment/reach, field, nuclei, offsets, motion master, pockets,
-   and selection (influence mode tucked behind an advanced disclosure). */
+   style, attachment/reach, field, nuclei, offsets, motion master, and pockets. */
 
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 import { useLab } from "../../state/store";
 import { MAX_NUCLEI } from "../../experiments/organism-lab/organism-types";
 import {
@@ -15,10 +12,8 @@ import {
 import {
   ATTACH_HINTS,
   ATTACHES,
-  INFLUENCE_SELECTION,
   MORPH_DESCRIPTIONS,
   MORPHS,
-  SELECTIONS,
 } from "../controlMeta";
 import { ChipRow, ChoiceRow, MiniSwitch, SliderRow, SwitchRow, WidgetSection } from "./controls";
 
@@ -27,12 +22,10 @@ export default function OrganismWidget() {
   const morphMode = useLab((s) => s.settings.morphMode);
   const attachMode = useLab((s) => s.settings.attachMode);
   const mergeDistance = useLab((s) => s.settings.mergeDistance);
-  const selectionDisplay = useLab((s) => s.settings.selectionDisplay);
   const rendererMode = useLab((s) => s.settings.rendererMode);
   const spaceCount = useLab((s) => s.spaces.length);
   const setSettings = useLab((s) => s.setSettings);
   const setOrganism = useLab((s) => s.setOrganism);
-  const [influenceOpen, setInfluenceOpen] = useState(selectionDisplay === "influence");
 
   const setNum = (key: NumericOrgKey, v: number) => setOrganism({ [key]: v });
   const sections = Object.fromEntries(ORG_CONTROL_SECTIONS.map((s) => [s.id, s]));
@@ -175,37 +168,6 @@ export default function OrganismWidget() {
             onChange={(v) => setNum(def.key, v)}
           />
         ))}
-      </WidgetSection>
-
-      <WidgetSection title="Selection" hint="ring behavior">
-        <ChipRow
-          options={SELECTIONS.map(({ id, label }) => ({ id, label }))}
-          value={selectionDisplay === "influence" ? "tight" : selectionDisplay}
-          onChange={(selectionDisplay) => setSettings({ selectionDisplay })}
-          ariaLabel="Selection display"
-        />
-        <button
-          type="button"
-          className="org-adv-toggle"
-          aria-expanded={influenceOpen}
-          data-live={selectionDisplay === "influence" ? "true" : undefined}
-          onClick={() => setInfluenceOpen((o) => !o)}
-        >
-          <span>Influence mode</span>
-          <ChevronDown size={10} className="org-chev" data-open={influenceOpen ? "true" : "false"} />
-        </button>
-        {influenceOpen && (
-          <ChoiceRow
-            active={selectionDisplay === "influence"}
-            name={INFLUENCE_SELECTION.label}
-            desc={INFLUENCE_SELECTION.desc}
-            onClick={() =>
-              setSettings({
-                selectionDisplay: selectionDisplay === "influence" ? "tight" : "influence",
-              })
-            }
-          />
-        )}
       </WidgetSection>
 
       <div className="org-foot org-foot--widget">

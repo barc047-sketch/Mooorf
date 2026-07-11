@@ -19,10 +19,10 @@ export interface ClassicSvgOptions {
   cssWidth: number;
   cssHeight: number;
   paletteMode: PaletteMode;
+  nucleusPaletteId: string;
   /** Resolved background color, or null for a transparent SVG. */
   background: string | null;
   includeLabels: boolean;
-  selectedId: string | null;
   paddingPx: number;
 }
 
@@ -34,7 +34,7 @@ export interface ClassicSvgOptions {
  * keeps this a truthful vector export rather than silently rasterizing it.
  * See docs/DECISIONS.md V7.2 SVG truthfulness note. */
 export const buildClassicSvg = (options: ClassicSvgOptions): string => {
-  const { spaces, camera, cssWidth, cssHeight, paletteMode, background, includeLabels, selectedId, paddingPx } =
+  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, background, includeLabels, paddingPx } =
     options;
   const w = Math.max(1, Math.round(cssWidth));
   const h = Math.max(1, Math.round(cssHeight));
@@ -59,7 +59,7 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
     if (!Number.isFinite(r) || r <= 0) continue;
     const cx = toX(cell.x);
     const cy = toY(cell.y);
-    const color = getNucleusColor(cell, paletteMode, areaRange);
+    const color = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId);
     const isVoid = cell.kind === "void";
 
     if (isVoid) {
@@ -68,12 +68,6 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
       );
     } else {
       parts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color.fill}" />`);
-    }
-
-    if (cell.id === selectedId) {
-      parts.push(
-        `<circle cx="${cx}" cy="${cy}" r="${r + 7}" fill="none" stroke="${color.ring}" stroke-width="1" opacity="0.55" />`
-      );
     }
 
     if (includeLabels && r > 26) {

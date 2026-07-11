@@ -4,12 +4,7 @@ export type ViewMode = "canvas" | "table";
 
 export type RendererMode = "organism" | "classic";
 
-export type CanvasReadiness =
-  | "initialising"
-  | "preparing"
-  | "resolving"
-  | "fallback"
-  | "ready";
+export type { StartupMilestone as CanvasReadiness } from "./ui/readiness";
 
 export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
@@ -24,8 +19,6 @@ export type LayoutPresetId =
   | "asymmetry";
 
 export type AnnotationMode = "editorial" | "pill" | "technical" | "hidden";
-
-export type SelectionDisplay = "tight" | "halo" | "influence";
 
 export type LabelPosition = "auto" | "center" | "above" | "below";
 
@@ -55,6 +48,7 @@ export type WidgetId =
   | "privacy-balance"
   | "area-leaders"
   | "data-health"
+  | "import"
   | "export";
 
 export type Privacy = "public" | "shared" | "private";
@@ -75,8 +69,7 @@ export type OrganismLayerRole =
   | "outer-membrane"
   | "nucleus-body"
   | "inner-core"
-  | "void"
-  | "influence-ring";
+  | "void";
 
 /* Production organism control surface (V6H.1). Persisted in the store so the
    advanced panel survives canvas/table switches. Defaults live in
@@ -158,7 +151,6 @@ export interface SavedCanvasSnapshot {
   paletteMode: PaletteMode;
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
-  selectionDisplay: SelectionDisplay;
   organism: OrganismSettings;
   theme: Theme;
   /* V7.1B — optional so older local snapshots migrate to Standard (1.0). */

@@ -22,7 +22,7 @@ cream canvas · white surface · soft grey surface · fog border · graphite tex
 --z-glass-border
 --z-grid-dot
 --z-grid-line
---z-selection-arc
+--selection-keyline-neutral
 --z-metric-gradient-a
 --z-metric-gradient-b
 ```

@@ -64,6 +64,15 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - `src/canvas/exportCapture.ts` — the one renderer-aware capture bridge Classic/Organism register into.
 - `src/ui/widgets/ExportWidget.tsx` — Format/Visual/Presentation/Generate instrument; run-local `useState` only.
 
+## File Intake / Transfer Files (V7.3)
+
+- `src/import/projectFiles.ts` — versioned `.mooorf` / `.mooorf-config.json` builders and security/schema validation, extending the V7.2 snapshot.
+- `src/import/tableImport.ts` — pure CSV/worksheet header mapping, diagnostics, preview rows, and replace/merge/append planning.
+- `src/import/fileIntake.ts` — extension/MIME/signature/size routing plus local FileReader/XLSX parsing and truthful progress stages.
+- `src/import/projectTransfer.ts` — current-state capture, downloads, atomic project/config/table apply, recovery, and Undo restore.
+- `src/import/FileIntakeProvider.tsx` — one application-root drop layer and ephemeral five-file queue.
+- `src/ui/widgets/FileIntakeWidget.tsx` — the one WidgetFrame body for every supported file category.
+
 ## Palette Files
 
 - `src/design/palettes.ts` — curated nucleus families and organism palette metadata.
@@ -105,6 +114,7 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 - V7.1B: adaptive instrument geometry, canonical icons/headers, persistent UI scale, unbounded labels, and renderer-readiness intro.
 - V7.1C/V7.1D: continuous Interface Scale slider; independent Widget Scale (desktop/laptop/iPad).
 - V7.2: Export & Presentation Pack — PNG/PDF/CSV/JSON/ZIP, true-vector SVG for Classic only (desktop/laptop/iPad).
+- V7.3: file intake/project+config transfer/table mapping, readiness numeral, canonical palette parity, dock motion, z layers, and stable widget focus lifecycle.
 
 ## Current Limits
 
@@ -118,7 +128,6 @@ Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` 
 ## Deferred Features
 
 - Relationship Health / Floor Summary widgets (need graph/floor runtime data).
-- Project JSON import (export schema is import-ready; import UI not built this phase).
 - Multi-frame/batch export.
 - Organism vector SVG (true membrane path export).
 - V9 floor system.

@@ -27,5 +27,5 @@ If Claude is limited, Codex may implement visual work using:
 7. Codex setup — complete
 8. V6B Venom blob polish — next
 9. V6C QA / bugfix
-10. V6.5 Selection arc
+10. V6.5 Selection arc (historical; orbit/arc removed V7.3)
 11. V7 Floating widgets

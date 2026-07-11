@@ -3,33 +3,31 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useLab } from "../state/store";
 import type { CanvasReadiness } from "../types";
+import { READINESS_PROGRESS } from "./readiness";
 import "./loader.css";
 
 gsap.registerPlugin(useGSAP);
 
 const MIN_VISIBLE_MS = 380;
+const FINAL_ROLL_MS = 760;
 const SAFETY_EXIT_MS = 10_000;
 
 const READINESS_COPY: Record<CanvasReadiness, readonly [string, string]> = {
-  initialising: ["INITIALISING FIELD", "CREATING RENDER CONTEXT"],
-  preparing: ["PREPARING NUCLEI", "MAPPING SPATIAL PROGRAM"],
-  resolving: ["RESOLVING CANVAS", "PAINTING FIRST FRAME"],
-  fallback: ["CLASSIC FALLBACK", "RECOVERING CANVAS PATH"],
+  "shell-start": ["INITIALISING SHELL", "STARTING LOCAL WORKSPACE"],
+  "store-restored": ["PROJECT RESTORED", "RESOLVING SAVED WORK"],
+  "fonts-ready": ["TYPE SYSTEM READY", "PREPARING EDITORIAL CANVAS"],
+  "canvas-mounted": ["CANVAS MOUNTED", "CREATING RENDER CONTEXT"],
+  "renderer-ready": ["RENDERER READY", "MAPPING SPATIAL PROGRAM"],
+  "render-requested": ["RESOLVING CANVAS", "PAINTING FIRST FRAME"],
   ready: ["CANVAS READY", "SPATIAL FIELD RESOLVED"],
-};
-
-const READINESS_INDEX: Record<CanvasReadiness, string> = {
-  initialising: "01",
-  preparing: "02",
-  resolving: "03",
-  fallback: "02",
-  ready: "04",
 };
 
 export default function Loader() {
   const readiness = useLab((state) => state.canvasReadiness);
   const setLoaderDone = useLab((state) => state.setLoaderDone);
   const root = useRef<HTMLDivElement>(null);
+  const count = useRef<HTMLSpanElement>(null);
+  const previousProgress = useRef(0);
   const mountedAt = useRef(performance.now());
   const exitStarted = useRef(false);
 
@@ -48,12 +46,47 @@ export default function Loader() {
   );
 
   useEffect(() => {
+    const target = READINESS_PROGRESS[readiness];
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!count.current) return;
+    if (reduced) {
+      count.current.textContent = String(target).padStart(2, "0");
+      previousProgress.current = target;
+      return;
+    }
+    const value = { current: previousProgress.current };
+    gsap.fromTo(
+      count.current,
+      { yPercent: readiness === "shell-start" ? 12 : 8, autoAlpha: readiness === "shell-start" ? 0 : 1 },
+      { yPercent: 0, autoAlpha: 1, duration: readiness === "shell-start" ? 0.62 : 0.38, ease: "power3.out" }
+    );
+    const tween = gsap.to(value, {
+      current: target,
+      duration: Math.min(0.72, Math.max(0.2, (target - previousProgress.current) / 90)),
+      ease: "power2.out",
+      onUpdate: () => {
+        if (count.current) count.current.textContent = String(Math.round(value.current)).padStart(2, "0");
+      },
+      onComplete: () => {
+        previousProgress.current = target;
+      },
+    });
+    return () => {
+      tween.kill();
+    };
+  }, [readiness]);
+
+  useEffect(() => {
     if (readiness !== "ready" || exitStarted.current) return;
-    const remaining = Math.max(0, MIN_VISIBLE_MS - (performance.now() - mountedAt.current));
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const remaining = Math.max(
+      0,
+      MIN_VISIBLE_MS - (performance.now() - mountedAt.current),
+      reduced ? 0 : FINAL_ROLL_MS
+    );
     const timer = window.setTimeout(() => {
       if (exitStarted.current) return;
       exitStarted.current = true;
-      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       gsap.to(root.current, {
         autoAlpha: 0,
         clipPath: "inset(0% 0% 100% 0%)",
@@ -94,7 +127,7 @@ export default function Loader() {
       </header>
 
       <div className="loader-count" data-testid="loader-count" aria-hidden="true">
-        {READINESS_INDEX[readiness]}
+        <span ref={count}>00</span>
       </div>
 
       <div className="loader-status" role="status" aria-live="polite">

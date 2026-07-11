@@ -14,11 +14,13 @@ Purpose: stable aesthetic memory for future UI work.
 
 V6N.1 locks the visual system to the premium reference grammar in
 `docs/V6N_REFERENCE_STYLE_LOCK.md`. V6N.2 applied it across the live UI
-(selection arc + command menu, edit popover, dot-matrix grid, dock, rail,
+(historical selection arc + command menu, edit popover, dot-matrix grid, dock, rail,
 sliders, switches, saved-view tiles, widget chrome). V6N.3 hardened the
 premium primitive layer and added the selected-cell moving border. V7.0B
 corrected that baseline from near-opaque card chrome to true stacked liquid
 glass; treat the current in-app look as the baseline to extend, not restyle.
+
+V7.3 intentionally removes the orbit/selection arc and halo/influence modes. Current selection language is the subtle MovingBorder/keyline plus compact metadata/command/edit affordance; do not reintroduce a large orbit, curved progress mark, or halo. V7.3 also locks shell controls above widgets through canonical z tokens and adds restrained distance-based Dock magnification without restoring an outer slab.
 
 - No red UI chrome. Red/wine is product or palette material only.
 - UI chrome is neutral graphite / pearl / smoke / bone / black / warm stone.
@@ -131,8 +133,8 @@ glass; treat the current in-app look as the baseline to extend, not restyle.
 - Over-large panels.
 - Duplicate controls across rail/dock/widgets.
 - Decorative gradients that compete with program data.
-- Red halo spam for ordinary selection.
-- Red chrome on rail buttons, dock groups, widget headers, sliders, chips, panel accents, or selection arcs.
+- Large orbit/arc/halo selection graphics.
+- Red chrome on rail buttons, dock groups, widget headers, sliders, chips, panel accents, or selection feedback.
 - Moving borders on every cell/card/widget; use motion sparingly for active instrument emphasis.
 
 ## Stats Instruments (V7)

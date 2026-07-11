@@ -6,7 +6,7 @@ Status: implemented direction for the production shell after V6.5 selection edit
 
 UI chrome is monochrome / smoke / ink / graphite / pearl / warm-stone.
 
-- Do not use red for rail buttons, dock chrome, widget headers, sliders, chips, panel accents, loader action text, or selection arc chrome.
+- Do not use red for rail buttons, dock chrome, widget headers, sliders, chips, panel accents, loader action text, or selection feedback chrome.
 - Keep `--zonuert-red` available for product palette material, legacy content colors, and explicitly semantic future warnings.
 - Canvas/program colors may still come from category, privacy, palette, area, and organism material mapping.
 
@@ -57,16 +57,16 @@ Controls should feel like a high-end scientific/editorial instrument:
 
 Slider tracks stay hairline and neutral. Thumbs use ink/stone, not red. Hover/focus halos are subtle neutral chrome.
 
-## Selection Arc Rule
+## Selection Feedback Rule (arc removed V7.3)
+
+V7.3 intentionally removed the orbit/arc and halo/influence variants. Current feedback is the subtle MovingBorder/keyline plus compact metadata/command/edit surface; do not reintroduce a large selection orbit.
 
 Selection uses the existing organism label overlay.
 
-- Default tight selection is a compact partial arc with small endpoint dots.
-- Halo and influence modes scale intentionally but stay controlled.
-- Void selection uses hollow/subtractive styling within the same arc family.
-- No aggressive red rings, dashed chaos, or large normal-selection circles.
-
-The canonical reference-locked rule lives in `docs/V6N_REFERENCE_STYLE_LOCK.md`: partial arc, endpoint dots, neutral stroke, small metadata chip, void as subtractive/hollow.
+- Selected/edit-active cells use a thin pointer-transparent MovingBorder/keyline.
+- Metadata, command actions, rename, and area edit remain compact and reachable.
+- Void selection stays hollow/subtractive without an orbit or halo.
+- No aggressive red rings, curved progress marks, endpoint dots, or large selection circles.
 
 ## Label Shadow Toggle
 

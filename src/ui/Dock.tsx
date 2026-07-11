@@ -1,11 +1,12 @@
 import {
+  createContext,
+  useContext,
   useEffect,
   useRef,
   useState,
-  type ButtonHTMLAttributes,
   type ReactNode,
 } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform, type HTMLMotionProps, type MotionValue } from "motion/react";
 import {
   Bookmark,
   ChevronLeft,
@@ -73,9 +74,11 @@ const MORPH_CODES: Record<MorphMode, string> = {
 type PanelId = "style" | "attach" | "palette" | null;
 type PopAlign = "left" | "center" | "right";
 
-interface DockButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface DockButtonProps extends HTMLMotionProps<"button"> {
   active?: boolean;
 }
+
+const DockPointerContext = createContext<MotionValue<number> | null>(null);
 
 function DockGroup({
   side,
@@ -97,16 +100,39 @@ function DockGroup({
   );
 }
 
-function DockButton({ active, className = "", children, ...props }: DockButtonProps) {
+function DockButton({ active, className = "", children, onFocus, onBlur, ...props }: DockButtonProps) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const contextX = useContext(DockPointerContext);
+  const fallbackX = useMotionValue(Number.POSITIVE_INFINITY);
+  const mouseX = contextX ?? fallbackX;
+  const reduced = useReducedMotion();
+  const targetScale = useTransform(mouseX, (x) => {
+    if (reduced || !Number.isFinite(x) || !ref.current) return 1;
+    const rect = ref.current.getBoundingClientRect();
+    const distance = Math.abs(x - (rect.left + rect.width / 2));
+    return distance >= 120 ? 1 : 1 + (1 - distance / 120) * 0.34;
+  });
+  const scale = useSpring(targetScale, { stiffness: 520, damping: 34, mass: 0.34 });
   return (
-    <button
+    <motion.button
+      ref={ref}
       type="button"
       className={["dock-btn", className].filter(Boolean).join(" ")}
       data-active={active ? "true" : undefined}
+      style={{ scale }}
+      onFocus={(event) => {
+        onFocus?.(event);
+        const rect = ref.current?.getBoundingClientRect();
+        if (rect) mouseX.set(rect.left + rect.width / 2);
+      }}
+      onBlur={(event) => {
+        onBlur?.(event);
+        mouseX.set(Number.POSITIVE_INFINITY);
+      }}
       {...props}
     >
       {children}
-    </button>
+    </motion.button>
   );
 }
 
@@ -157,11 +183,12 @@ export default function Dock() {
   const rendererMode = useLab((s) => s.settings.rendererMode);
   const setSettings = useLab((s) => s.setSettings);
   const openWidgets = useLab((s) => s.openWidgets);
-  const toggleWidget = useLab((s) => s.toggleWidget);
+  const openWidget = useLab((s) => s.openWidget);
   const [panel, setPanel] = useState<PanelId>(null);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const dockRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(Number.POSITIVE_INFINITY);
 
   useEffect(() => {
     if (!panel) return;
@@ -205,6 +232,7 @@ export default function Dock() {
   );
 
   return (
+    <DockPointerContext.Provider value={mouseX}>
     <motion.div
       ref={dockRef}
       className="dock"
@@ -213,6 +241,10 @@ export default function Dock() {
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
       role="toolbar"
       aria-label="Canvas tools"
+      onPointerMove={(event) => {
+        if (event.pointerType === "mouse") mouseX.set(event.clientX);
+      }}
+      onPointerLeave={() => mouseX.set(Number.POSITIVE_INFINITY)}
     >
       <DockGroup side="left" collapsed={!leftOpen}>
         <DockButton
@@ -326,17 +358,15 @@ export default function Dock() {
       </DockGroup>
 
       <DockGroup side="center">
-        <button
-          type="button"
+        <DockButton
           className="nucleus-orb"
           title="Add nucleus"
           aria-label="Add nucleus"
           onClick={() => addSpace()}
         >
           <Plus size={21} strokeWidth={1.75} />
-        </button>
-        <button
-          type="button"
+        </DockButton>
+        <DockButton
           className="cluster-orb"
           title="Add 5 nuclei"
           aria-label="Add 5 nuclei"
@@ -347,16 +377,15 @@ export default function Dock() {
           <span className="cluster-dot cluster-dot-e" />
           <span className="cluster-dot cluster-dot-s" />
           <span className="cluster-dot cluster-dot-w" />
-        </button>
-        <button
-          type="button"
+        </DockButton>
+        <DockButton
           className="void-btn"
           title="Add void nucleus"
           aria-label="Add void nucleus"
           onClick={() => addVoid()}
         >
           <Minus size={16} strokeWidth={1.7} />
-        </button>
+        </DockButton>
       </DockGroup>
 
       <DockGroup side="right" collapsed={!rightOpen}>
@@ -393,7 +422,7 @@ export default function Dock() {
                   role="menuitem"
                   onClick={() => {
                     setPanel(null);
-                    toggleWidget("palette");
+                    openWidget("palette");
                   }}
                 >
                   All palettes →
@@ -420,7 +449,7 @@ export default function Dock() {
               aria-label="Saved views"
               aria-haspopup="dialog"
               aria-expanded={openWidgets.includes("saved")}
-              onClick={() => toggleWidget("saved")}
+              onClick={() => openWidget("saved")}
             >
               <Bookmark size={16} strokeWidth={1.5} />
             </DockButton>
@@ -432,10 +461,12 @@ export default function Dock() {
               <Shuffle size={16} strokeWidth={1.5} />
             </DockButton>
             <DockButton
-              className="dock-placeholder"
-              title="Import placeholder"
-              aria-label="Import placeholder"
-              data-placeholder="true"
+              active={openWidgets.includes("import")}
+              title="File Intake"
+              aria-label="File Intake"
+              aria-haspopup="dialog"
+              aria-expanded={openWidgets.includes("import")}
+              onClick={() => openWidget("import")}
             >
               <Upload size={16} strokeWidth={1.5} />
             </DockButton>
@@ -445,7 +476,7 @@ export default function Dock() {
               aria-label="Export"
               aria-haspopup="dialog"
               aria-expanded={openWidgets.includes("export")}
-              onClick={() => toggleWidget("export")}
+              onClick={() => openWidget("export")}
             >
               <Download size={16} strokeWidth={1.5} />
             </DockButton>
@@ -455,7 +486,7 @@ export default function Dock() {
               aria-label="Organism widget"
               aria-haspopup="dialog"
               aria-expanded={openWidgets.includes("organism")}
-              onClick={() => toggleWidget("organism")}
+              onClick={() => openWidget("organism")}
             >
               <SlidersHorizontal size={16} strokeWidth={1.5} />
             </DockButton>
@@ -474,5 +505,6 @@ export default function Dock() {
         </DockButton>
       </DockGroup>
     </motion.div>
+    </DockPointerContext.Provider>
   );
 }

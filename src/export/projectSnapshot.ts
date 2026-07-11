@@ -8,7 +8,6 @@ import type {
   OrganismSettings,
   PaletteMode,
   RendererMode,
-  SelectionDisplay,
   SpaceCell,
   Theme,
 } from "../types";
@@ -27,7 +26,6 @@ export interface ProjectExportSettings {
   paletteMode: PaletteMode;
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
-  selectionDisplay: SelectionDisplay;
   annotationDetail: AnnotationDetail;
   showGrid: boolean;
   nucleusPaletteId: string;

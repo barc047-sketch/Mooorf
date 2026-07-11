@@ -58,7 +58,7 @@ Read repo state first. Use docs/PROJECT_MEMORY_INDEX.md and docs/FEATURE_MAP.md.
 Expected latest commit: <hash>.
 
 Goal: QA only for void nuclei and multi-color shader. Fix real bugs only.
-Do not start selection arc, direct rename, export, floors, or texture-buffer renderer.
+Do not reintroduce the removed selection arc/halo system or start floors/texture-buffer rendering without an explicit phase.
 
 Read: docs/ORGANISM_ENGINE_LIMITS.md, docs/BUGS.md, src/canvas/OrganismCanvasView.tsx,
 src/canvas/organismAdapter.ts, src/experiments/organism-lab/organism-shader.ts,

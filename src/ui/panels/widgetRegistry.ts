@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Type,
+  Upload,
   type LucideIcon,
 } from "lucide-react";
 import type { WidgetId } from "../../types";
@@ -174,6 +175,15 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
     status: "live",
     icon: Download,
     geometry: { variant: "vertical", width: 308, minWidth: 280, minHeight: 420, maxHeight: 680, aspectIntent: "tall" },
+  },
+  import: {
+    id: "import",
+    label: "File Intake",
+    responsibility: "Local project, configuration, CSV, XLS, and XLSX review with atomic apply and Undo.",
+    launcher: "dock",
+    status: "live",
+    icon: Upload,
+    geometry: { variant: "vertical", width: 330, minWidth: 296, minHeight: 420, maxHeight: 680, aspectIntent: "tall" },
   },
 };
 

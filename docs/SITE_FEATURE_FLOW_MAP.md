@@ -13,7 +13,7 @@ Status: planning only. This is a priority map, not an implementation checklist f
 | Studio | Canvas | Nuclei | Add, drag, select | yes | no | Store remains source of truth. |
 | Studio | Canvas | Labels | Show/hide labels | yes | no | Overlay above WebGL organism. |
 | Studio | Canvas | Grid | Show/hide grid | yes | no | UI overlay, not renderer data. |
-| Studio | Canvas | Selection | Selected nucleus state | yes | no | Selection arc later. |
+| Studio | Canvas | Selection | Moving keyline + metadata/command/edit state | yes | no | Orbit/arc intentionally removed V7.3. |
 | Studio | Canvas | Style | Cellular Reverse / Plain / etc. | yes | no | Reduced production control. |
 | Studio | Canvas | Palette | Core palette group | yes | no | Full palette system later. |
 | Studio | Canvas | Attachment | Tight / Soft / Long | yes | no | Maps to renderer behavior. |
@@ -83,4 +83,4 @@ Later:
 | Floors UI | graph floor model | Later, not V6F.1. |
 | Floating widgets | graph selectors | Already documented, build later. |
 | Export | canvas capture strategy | Export phase, not V6F.1. |
-| Selection arc | selection arc spec | Phase 6.5, not V6F.1. |
+| Selection feedback | MovingBorder + metadata/edit overlay | V7.3 current; orbit/arc removed. |

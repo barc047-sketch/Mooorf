@@ -3,7 +3,7 @@
   --mb-border-width: 1px;
   --mb-gradient-width: 58deg;
   --mb-duration: 7.5s;
-  --mb-color-a: color-mix(in srgb, var(--selection-arc-neutral) 82%, var(--bg));
+  --mb-color-a: color-mix(in srgb, var(--selection-keyline-neutral) 82%, var(--bg));
   --mb-color-b: color-mix(in srgb, var(--chrome-accent) 64%, transparent);
   --mb-color-c: color-mix(in srgb, var(--glass-highlight) 58%, transparent);
   position: relative;

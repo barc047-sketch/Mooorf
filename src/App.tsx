@@ -11,6 +11,7 @@ import CanvasView from "./canvas/CanvasView";
 import OrganismCanvasView from "./canvas/OrganismCanvasView";
 import TableView from "./views/TableView";
 import { Toaster } from "sonner";
+import FileIntakeProvider from "./import/FileIntakeProvider";
 import "./App.css";
 
 /* V6E experiment route — hidden URL, separate lazy chunk, zero cost to the
@@ -41,6 +42,23 @@ function MainApp() {
   const uiScale = useLab((s) => s.settings.uiScale);
   const widgetScale = useLab((s) => s.settings.widgetScale);
 
+  useLayoutEffect(() => {
+    const state = useLab.getState();
+    if (!state.loaderDone) state.setCanvasReadiness("store-restored");
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    const ready = document.fonts?.ready ?? Promise.resolve();
+    void ready.then(() => {
+      const state = useLab.getState();
+      if (live && !state.loaderDone) state.setCanvasReadiness("fonts-ready");
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
   // Apply theme tokens at the document root so the whole app + canvas react.
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -68,8 +86,9 @@ function MainApp() {
   }, [widgetScale]);
 
   return (
-    <div className="app-shell">
-      {!loaderDone && <Loader />}
+    <FileIntakeProvider>
+      <div className="app-shell">
+        {!loaderDone && <Loader />}
 
       <header className="brand">ZONUERT</header>
 
@@ -104,7 +123,8 @@ function MainApp() {
           )}
         </>
       )}
-      <Toaster position="bottom-center" theme={theme === "night" ? "dark" : "light"} />
-    </div>
+        <Toaster className="zonuert-toaster" position="bottom-center" theme={theme === "night" ? "dark" : "light"} />
+      </div>
+    </FileIntakeProvider>
   );
 }

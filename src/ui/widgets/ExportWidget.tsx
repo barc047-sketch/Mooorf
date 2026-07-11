@@ -29,6 +29,7 @@ import {
   type ExportStage,
 } from "../../export/types";
 import { ChipRow, SwitchRow, WidgetSection } from "./controls";
+import { downloadConfig, downloadFullProject } from "../../import/projectTransfer";
 
 type ExportFormatChoice = "png" | "pdf" | "data" | "pack";
 
@@ -260,6 +261,12 @@ export default function ExportWidget() {
             {busy && <Loader2 size={10} className="wexport-spin" />}
             {statusMessage}
           </p>
+        )}
+        {format === "data" && (
+          <div className="wexport-transfer-actions">
+            <button type="button" className="wexport-secondary" disabled={busy} onClick={() => void downloadFullProject(project).then(() => toast.success("Project file downloaded")).catch((error) => toast.error(error instanceof Error ? error.message : "Project download failed."))}>Download Project</button>
+            <button type="button" className="wexport-secondary" disabled={busy} onClick={() => void downloadConfig(project).then(() => toast.success("Configuration downloaded")).catch((error) => toast.error(error instanceof Error ? error.message : "Configuration download failed."))}>Download Config</button>
+          </div>
         )}
       </WidgetSection>
     </>

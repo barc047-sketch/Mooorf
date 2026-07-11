@@ -11,7 +11,6 @@ import type {
   PaletteMode,
   RendererMode,
   SavedCanvasSnapshot,
-  SelectionDisplay,
   SpaceCell,
   SpaceKind,
   Theme,
@@ -19,11 +18,12 @@ import type {
   WidgetId,
 } from "../types";
 import { clamp, scatterPoint } from "../lib/geometry";
-import { CELL_PALETTE, DEMO_PROGRAM } from "../lib/demo";
+import { DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
 import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPresets";
 import { normalizeUiScale, normalizeWidgetScale } from "./uiScale";
+import { readinessCanAdvance } from "../ui/readiness";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -43,7 +43,6 @@ export interface LabSettings {
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
   annotationDetail: AnnotationDetail;
-  selectionDisplay: SelectionDisplay;
   rendererMode: RendererMode;
   showGrid: boolean;
   /** "auto" = category mapping owns nucleus colors (pre-V6K behavior) */
@@ -86,7 +85,6 @@ interface LabState {
   setAnnotationDetail: (patch: Partial<AnnotationDetail>) => void;
   openWidget: (id: WidgetId) => void;
   closeWidget: (id: WidgetId) => void;
-  toggleWidget: (id: WidgetId) => void;
   focusWidget: (id: WidgetId) => void;
   select: (id: string | null) => void;
   setCamera: (camera: Camera) => void;
@@ -214,7 +212,6 @@ const makeSnapshot = (
   paletteMode: state.settings.paletteMode,
   layoutPreset: state.settings.layoutPreset,
   annotationMode: state.settings.annotationMode,
-  selectionDisplay: state.settings.selectionDisplay,
   organism: cloneOrganism(state.settings.organism),
   theme: state.theme,
   uiScale: normalizeUiScale(state.settings.uiScale),
@@ -235,7 +232,7 @@ const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
     area: kind === "void" ? 36 : 20,
     category: kind === "void" ? "Void" : "Uncategorized",
     privacy: kind === "void" ? "shared" : "public",
-    color: CELL_PALETTE[i % CELL_PALETTE.length],
+    color: "",
     x: p.x,
     y: p.y,
     born: Date.now(),
@@ -248,7 +245,7 @@ export const useLab = create<LabState>((set) => ({
   view: "canvas",
   spaces: [],
   loaderDone: false,
-  canvasReadiness: "initialising",
+  canvasReadiness: "shell-start",
   settings: {
     uiScale: 1,
     widgetScale: 1,
@@ -260,7 +257,6 @@ export const useLab = create<LabState>((set) => ({
     layoutPreset: "organic",
     annotationMode: "editorial",
     annotationDetail: { ...DEFAULT_ANNOTATION_DETAIL },
-    selectionDisplay: "tight",
     rendererMode: "organism",
     showGrid: false,
     nucleusPaletteId: "auto",
@@ -279,7 +275,12 @@ export const useLab = create<LabState>((set) => ({
 
   setLoaderDone: () => set({ loaderDone: true }),
 
-  setCanvasReadiness: (canvasReadiness) => set({ canvasReadiness }),
+  setCanvasReadiness: (canvasReadiness) =>
+    set((state) =>
+      state.loaderDone || !readinessCanAdvance(state.canvasReadiness, canvasReadiness)
+        ? {}
+        : { canvasReadiness }
+    ),
 
   setSettings: (patch) =>
     set((s) => ({ settings: { ...s.settings, ...patch } })),
@@ -311,13 +312,6 @@ export const useLab = create<LabState>((set) => ({
 
   closeWidget: (id) =>
     set((s) => ({ openWidgets: s.openWidgets.filter((w) => w !== id) })),
-
-  toggleWidget: (id) =>
-    set((s) => ({
-      openWidgets: s.openWidgets.includes(id)
-        ? s.openWidgets.filter((w) => w !== id)
-        : [...s.openWidgets, id],
-    })),
 
   focusWidget: (id) =>
     set((s) =>
@@ -468,7 +462,6 @@ export const useLab = create<LabState>((set) => ({
             ...DEFAULT_ANNOTATION_DETAIL,
             ...(snapshot.annotationDetail ?? {}),
           },
-          selectionDisplay: snapshot.selectionDisplay ?? s.settings.selectionDisplay,
           rendererMode: snapshot.rendererMode,
           showGrid: snapshot.showGrid ?? s.settings.showGrid,
           nucleusPaletteId: snapshot.nucleusPaletteId ?? s.settings.nucleusPaletteId,

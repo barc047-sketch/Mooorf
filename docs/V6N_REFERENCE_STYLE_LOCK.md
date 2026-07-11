@@ -1,28 +1,30 @@
 # V6N.1 — Reference-Locked Premium Design System
 
 Status: active visual standard for all future UI work. V6N.2 applied this
-standard to the live UI: dot-matrix scan grid, thin leader-line selection arc,
-radial selection command menu, glass instrument edit popover, hairline
+standard to the live UI: dot-matrix scan grid, radial selection command menu,
+glass instrument edit popover, hairline
 sliders/switches, lightened dock/rail, and bento saved-view tiles.
 V6N.3 adds the reusable MovingBorder primitive and selected-cell moving border
 as part of this standard. V7.0B corrects the production shell to true stacked
 liquid glass, independent dock islands, and an icon-only rail. V7.1B adds
 semantic authored widget geometry, one-line icon/title bars, persistent
 token-driven interface scale, unbounded normal labels, and renderer readiness.
+V7.3 removes the historical orbit/arc and halo variants; the active standard is
+MovingBorder/keyline plus compact metadata/command/edit feedback.
 
 The new reference images are visual grammar, not layouts to copy. They define mood, density, surface behavior, and control language for ZONUERT/MOOORF. Do not reproduce proprietary screens, brands, medical content, dashboard compositions, or exact card arrangements.
 
 ## Reference Interpretation
 
-- **Dark scientific HUD**: use graphite/black fields, low-contrast dotted grids, tiny precise icons, thin measurement arcs, compact warning chips, and quiet floating controls.
+- **Dark scientific HUD**: use graphite/black fields, low-contrast dotted grids, tiny precise icons, compact warning chips, and quiet floating controls.
 - **Light frosted dashboard**: use calm bento rhythm, pearl/fog surfaces, small data cards, tabular numerals, subtle micro charts, and generous negative space.
 - **Spatial glass / VisionOS**: use translucent frosted panels, soft inner highlights, ambient blur, rounded pill controls, and real depth without noisy stacked blur.
 - **Editorial cinematic overlay**: let the canvas stay dominant. Controls float as art-directed instruments over content, never as a generic SaaS dashboard.
-- **Architecture translation**: canvas is the living spatial scan; widgets are scientific instruments; selection arcs are measurement markers; table remains the schedule/data layer; saved views are design iterations.
+- **Architecture translation**: canvas is the living spatial scan; widgets are scientific instruments; selected keylines and metadata are measurement feedback; table remains the schedule/data layer; saved views are design iterations.
 
 ## What To Copy Conceptually
 
-- Thin partial arcs with endpoint dots.
+- Thin selected keylines and compact metadata instruments.
 - Dark scan grids and biometric/HUD precision.
 - Bento-like data density for future stats widgets.
 - Floating glass panels with soft edge highlights.
@@ -70,14 +72,13 @@ The new reference images are visual grammar, not layouts to copy. They define mo
 - New controls should extend the shared primitives before adding CSS.
 - MovingBorder is an active/selected instrument primitive, not a default card frame.
 
-## Selection Arc Rules
+## Selection Feedback Rules (V7.3 supersedes the historical arc)
 
-- Selection is a measurement marker, not a decorative ring.
-- Use a partial arc, endpoint dots, neutral stroke, and small metadata chip.
+The orbit/arc and halo/influence modes were intentionally removed in V7.3. Do not restore curved progress marks, orbit handles, or large halos. Use only the subtle MovingBorder/keyline and compact selected metadata/command/edit surface.
+
 - Use the moving border only for selected/edit-active cell emphasis; it must stay thin, pointer-transparent, and reduced-motion safe.
-- Default tight selection stays compact.
-- Halo and influence modes may scale, but must feel intentional.
-- Void selection uses subtractive/hollow language in the same family.
+- Metadata and command/edit surfaces stay compact.
+- Void selection uses subtractive/hollow language without an orbit.
 - No red rings, thick strokes, dashed chaos, or cluttered metadata.
 
 ## Typography Rules

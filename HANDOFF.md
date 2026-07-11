@@ -39,6 +39,7 @@ Complete:
 - V7.1C Continuous Interface Scale slider
 - V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+- V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 Next:
 - Relationship Health / Floor Summary (await live relationship/floor data)
@@ -47,6 +48,8 @@ Not started:
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+V7.3 removes the orbit/selection arc and halo modes while retaining the MovingBorder, compact metadata/command menu, and direct rename/area edit flow. It adds real readiness-numeral milestones, one canonical explicit/category/palette/stable-ID color resolver shared by both renderers/exports, one local-only File Intake widget/queue for `.mooorf`/config/CSV/XLS/XLSX, atomic recovery+Undo, restrained dock magnification, canonical shell/widget z layers, and focus-only widget reselection. Build and 1440/1024/768 live QA are green; the browser harness could not attach a local file, while parsing/apply behavior is contract-tested. Full detail: `docs/HANDOFF.md`.
 
 Organism Lab is the preferred production canvas direction. Spaces become nuclei in an organism field. The old canvas remains a fallback until the production organism canvas is fully stable.
 

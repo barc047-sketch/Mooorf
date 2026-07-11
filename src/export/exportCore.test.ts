@@ -59,7 +59,7 @@ const spaces: SpaceCell[] = [
 ];
 const csv = spacesToCsv(spaces);
 const csvLines = csv.trim().split("\r\n");
-equal(csvLines[0], "id,name,area,category,privacy,kind,x,y", "CSV header order");
+equal(csvLines[0], "id,name,area,category,privacy,kind,color,x,y", "CSV header order");
 equal(csvLines.length, 4, "one row per space plus header");
 ok(csv.includes('"Quote""s, comma"'), "CSV escapes embedded quotes/commas");
 ok(csvLines[2].includes(",void,"), "void kind is labeled explicitly");
@@ -75,7 +75,6 @@ const settings = {
   paletteMode: "core" as const,
   layoutPreset: "organic" as const,
   annotationMode: "editorial" as const,
-  selectionDisplay: "tight" as const,
   annotationDetail: { textScale: 1, textShadow: true, showName: true, showArea: true, showCategory: true, position: "auto" as const, boundingBox: false },
   showGrid: false,
   nucleusPaletteId: "auto",

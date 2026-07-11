@@ -19,7 +19,7 @@ Bottom docks, glass panels, toolbars, hover menus, command menus, sliders, switc
 - CanvasView
 - renderer
 - pan/zoom/drag
-- selection arc (only if a dependency would be heavier than a small custom SVG arc — see [V4_5_SELECTION_ARC_SYSTEM.md](V4_5_SELECTION_ARC_SYSTEM.md))
+- selected keyline/metadata/edit feedback (the historical arc spec was removed in V7.3)
 - organism/blob
 - graph/store sync
 - import/export glue

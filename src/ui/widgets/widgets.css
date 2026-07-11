@@ -5,7 +5,7 @@
   --wframe-surface: var(--glass-panel-strong);
   position: absolute;
   right: var(--sp-24);
-  z-index: 40;
+  z-index: var(--z-widget);
   display: flex;
   flex-direction: column;
   max-height: min(
@@ -492,6 +492,23 @@
 .wexport-primary:disabled {
   cursor: default;
   opacity: 0.5;
+}
+
+.wexport-transfer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.wexport-secondary {
+  min-height: 28px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--glass-panel-strong) 68%, transparent);
+  color: var(--ink);
+  font: inherit;
+  font-size: 8px;
+  cursor: pointer;
 }
 
 .wexport-spin {

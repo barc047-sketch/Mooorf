@@ -12,6 +12,7 @@ export interface BlobSettings {
   morphMode: MorphMode;
   attachMode: AttachMode;
   paletteMode: PaletteMode;
+  nucleusPaletteId: string;
 }
 
 export interface Tokens {
@@ -138,7 +139,7 @@ export function drawScene(
 
     const r = areaToRadius(c.area) * z * spawn * (lifted ? 1.03 : 1);
     if (r <= 0 || sx < -r - 60 || sx > w + r + 60 || sy < -r - 60 || sy > h + r + 60) continue;
-    const mappedColor = getNucleusColor(c, blob.paletteMode, areaRange);
+    const mappedColor = getNucleusColor(c, blob.paletteMode, areaRange, blob.nucleusPaletteId);
     const isVoid = c.kind === "void";
 
     ctx.globalAlpha = Math.min(1, Math.max(0, spawn));
@@ -189,6 +190,20 @@ export function drawScene(
       ctx.fill();
     }
 
+    /* Selection uses only a subtle boundary keyline in Classic. The removed
+       orbit/arc/halo geometry is not recreated, and export adapters pass null. */
+    if (c.id === selectedId) {
+      ctx.save();
+      ctx.globalAlpha = 0.72;
+      ctx.strokeStyle = mappedColor.ring;
+      ctx.lineWidth = Math.max(1, 1.15 * z);
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(sx, sy, Math.max(1, r - 0.75), 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Label — only when legible.
     if (r > 26 && includeLabels) {
       const dark = isDark(mappedColor.fill);
@@ -201,21 +216,6 @@ export function drawScene(
       ctx.fillStyle = dark ? "rgba(255,255,255,0.55)" : "rgba(20,20,20,0.45)";
       ctx.font = `400 ${Math.max(9, nameSize * 0.72)}px ${FONT}`;
       ctx.fillText(`${c.area} m²`, sx, sy + nameSize * 0.78, r * 1.7);
-    }
-
-    // Selection — refined hairline ring + neutral chrome tick.
-    if (c.id === selectedId) {
-      ctx.strokeStyle = mappedColor.ring;
-      ctx.globalAlpha = 0.55;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(sx, sy, r + 7, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = tokens.chromeAccent;
-      ctx.beginPath();
-      ctx.arc(sx, sy - r - 7, 2.5, 0, Math.PI * 2);
-      ctx.fill();
     }
 
     ctx.globalAlpha = 1;

@@ -12,6 +12,21 @@
      control rules); rail, dock, canvas controls, and tooltips never read it. */
   --widget-scale: 1;
 
+  /* Canonical interaction layers. Widget focus may reorder only inside the
+     widget band; shell controls always remain reachable above it. */
+  --z-canvas: 0;
+  --z-canvas-content: 10;
+  --z-canvas-overlay: 20;
+  --z-widget: 40;
+  --z-widget-focused: 59;
+  --z-shell: 100;
+  --z-popover: 120;
+  --z-tooltip: 140;
+  --z-file-drop: 160;
+  --z-dialog: 180;
+  --z-toast: 200;
+  --z-loader: 300;
+
   /* Type */
   --font-ui: "Inter Tight", "Neue Haas Grotesk Display Pro", "Helvetica Neue",
     Helvetica, Arial, sans-serif;
@@ -104,7 +119,7 @@
   --muted-text: color-mix(in srgb, var(--fog) 86%, transparent);
   --dot-grid-opacity: 0.34;
   --dot-grid-color: color-mix(in srgb, var(--ink) 26%, transparent);
-  --selection-arc-neutral: color-mix(in srgb, var(--chrome-accent) 64%, var(--ink));
+  --selection-keyline-neutral: color-mix(in srgb, var(--chrome-accent) 64%, var(--ink));
   --warning-data: #c7cf42;
   color-scheme: light;
 }
@@ -146,7 +161,7 @@
   --muted-text: color-mix(in srgb, var(--fog) 82%, transparent);
   --dot-grid-opacity: 0.4;
   --dot-grid-color: color-mix(in srgb, var(--ink) 30%, transparent);
-  --selection-arc-neutral: color-mix(in srgb, var(--chrome-accent) 68%, var(--ink));
+  --selection-keyline-neutral: color-mix(in srgb, var(--chrome-accent) 68%, var(--ink));
   --warning-data: #d7df58;
   color-scheme: dark;
 }

@@ -194,6 +194,40 @@ export function getCategoryToken(category: string): CategoryToken {
 export const isVoidSpace = (space: Pick<SpaceCell, "kind">): boolean =>
   space.kind === "void";
 
+const canonicalHex = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const color = value.trim();
+  if (/^#[0-9a-f]{6}$/i.test(color)) return color.toLowerCase();
+  if (/^#[0-9a-f]{3}$/i.test(color)) {
+    const [r, g, b] = color.slice(1).toLowerCase();
+    return `#${r}${r}${g}${g}${b}${b}`;
+  }
+  return null;
+};
+
+const stableIndex = (value: string, length: number): number => {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0) % Math.max(1, length);
+};
+
+const nucleusColorFromFill = (
+  fill: string,
+  token: CategoryToken,
+  areaT: number,
+  ringTarget = WINE
+): NucleusColor => ({
+  fill,
+  ring: mixHex(fill, ringTarget, 0.28),
+  muted: mixHex(fill, luminance(fill) > 0.35 ? "#4f4f4d" : "#d8d3c2", 0.46),
+  text: luminance(fill) > 0.36 ? "#171719" : "#f4f2e9",
+  token,
+  areaDepth: areaT,
+});
+
 export function getAreaRange(spaces: readonly Pick<SpaceCell, "area">[]): AreaRange {
   if (spaces.length === 0) return { min: 1, max: 1 };
   let min = Infinity;
@@ -263,14 +297,19 @@ export function getCategoryColor(
 }
 
 export function getNucleusColor(
-  space: Pick<SpaceCell, "category" | "privacy" | "area" | "kind">,
+  space: Pick<SpaceCell, "category" | "privacy" | "area" | "kind"> &
+    Partial<Pick<SpaceCell, "id" | "color">>,
   paletteMode: PaletteMode,
   range?: AreaRange,
   nucleusPaletteId?: string
 ): NucleusColor {
+  const explicit = canonicalHex(space.color);
+  const token = getCategoryToken(space.category);
+  const areaT = areaDepth(space.area, range);
+  if (explicit) {
+    return nucleusColorFromFill(explicit, token, areaT, isVoidSpace(space) ? VOID_RING : WINE);
+  }
   if (isVoidSpace(space)) {
-    const token = getCategoryToken("Uncategorized");
-    const areaT = areaDepth(space.area, range);
     return {
       fill: VOID_FILL,
       ring: VOID_RING,
@@ -280,7 +319,14 @@ export function getNucleusColor(
       areaDepth: areaT,
     };
   }
-  return getCategoryColor(space.category, space.privacy, space.area, paletteMode, range, nucleusPaletteId);
+  const mapped = getCategoryColor(space.category, space.privacy, space.area, paletteMode, range, nucleusPaletteId);
+  if (space.category.trim() || !nucleusPaletteId || nucleusPaletteId === NUCLEUS_PALETTE_AUTO_ID) {
+    return mapped;
+  }
+  const ramp = getNucleusPalette(nucleusPaletteId);
+  if (!ramp) return mapped;
+  const assigned = ramp.shades[stableIndex(space.id ?? "", ramp.shades.length)];
+  return nucleusColorFromFill(mixHex(mapped.fill, assigned, 0.72), mapped.token, mapped.areaDepth);
 }
 
 interface OrganismColorContext {

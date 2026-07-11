@@ -25,9 +25,9 @@ Working discipline for every ZONUERT phase. Canonical sources: CLAUDE.md, [PERFO
 - Use `/compact` or lean on HANDOFF.md when context grows; HANDOFF.md is updated after every phase so any session can resume from it.
 
 ## Ponytail (before ANY new code)
-1. Reuse existing code → 2. adapt existing component → 3. shadcn/Base UI → 4. Skiper/Cult/Watermelon/Magic/Aceternity/React Bits/glasscn → 5. CSS/tokens → 6. tiny helper → 7. custom only if unavoidable. Custom is expected only for: CanvasView, renderer, pan/zoom/drag, selection arc (if lighter than a dependency), organism/blob, graph/store sync, import/export glue, performance helpers.
+1. Reuse existing code → 2. adapt existing component → 3. shadcn/Base UI → 4. Skiper/Cult/Watermelon/Magic/Aceternity/React Bits/glasscn → 5. CSS/tokens → 6. tiny helper → 7. custom only if unavoidable. Custom is expected only for: CanvasView, renderer, pan/zoom/drag, selected keyline/edit feedback, organism/blob, graph/store sync, import/export glue, performance helpers.
 
 ## Model routing
 - **LOW** — Sonnet 5 / Opus 4.8, medium effort: docs, setup, resource index, handoff, checklists, audits.
 - **HIGH** — Fable 5, high effort: graph schema, selectors, store integration, table sync, import contract, normal implementation.
-- **ULTRA** — Fable 5, Ultracode/xhigh: ONLY premium visual implementation, organism/blob, selection arc, shader/gradient polish, animation, hard performance bugs. Never for docs, setup, table sync, or small UI fixes.
+- **ULTRA** — Fable 5, Ultracode/xhigh: ONLY premium visual implementation, organism/blob, selected interaction polish, shader/gradient polish, animation, hard performance bugs. Never for docs, setup, table sync, or small UI fixes.

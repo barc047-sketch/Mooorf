@@ -190,21 +190,6 @@
   box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.45);
 }
 
-.organism-label-ring {
-  position: absolute;
-  left: 0;
-  top: 0;
-  border: 1.25px solid transparent;
-  border-radius: 50%;
-  opacity: 0;
-  transform: translate(-50%, -50%);
-  transition:
-    opacity 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
-}
-
 .organism-label-layer[data-mode="pill"]
   .organism-label-anchor[data-selected="true"]
   .organism-label {
@@ -223,35 +208,10 @@
   color: var(--accent);
 }
 
-.organism-label-anchor[data-selected="true"] .organism-label-ring {
-  opacity: 0.5;
-  border-color: color-mix(in srgb, var(--nucleus-ring) 28%, var(--selection-arc-neutral));
-}
-
-.organism-label-anchor[data-kind="void"] .organism-label-ring {
-  border-color: color-mix(in srgb, var(--nucleus-ring) 34%, transparent);
-  border-style: dashed;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-}
-
 .organism-label-anchor[data-kind="void"] .organism-label-main::before,
 .organism-label-layer[data-mode="pill"] .organism-label-anchor[data-kind="void"] .organism-label::before {
   content: "− ";
   color: var(--chrome-accent);
-}
-
-.organism-label-anchor[data-selected="true"][data-selection-display="halo"] .organism-label-ring {
-  opacity: 0.42;
-  border-color: color-mix(in srgb, var(--nucleus-ring) 24%, transparent);
-  background: color-mix(in srgb, var(--nucleus-ring) 4%, transparent);
-  box-shadow: 0 0 20px color-mix(in srgb, var(--nucleus-ring) 13%, transparent);
-}
-
-.organism-label-anchor[data-selected="true"][data-selection-display="influence"] .organism-label-ring {
-  opacity: 0.58;
-  border-color: color-mix(in srgb, var(--nucleus-ring) 36%, var(--chrome-accent) 14%);
-  background: color-mix(in srgb, var(--nucleus-ring) 3%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--nucleus-ring) 12%, transparent);
 }
 
 .organism-moving-border {
@@ -263,7 +223,7 @@
   height: 20px;
   opacity: 0.88;
   filter:
-    drop-shadow(0 0 8px color-mix(in srgb, var(--selection-arc-neutral) 12%, transparent))
+    drop-shadow(0 0 8px color-mix(in srgb, var(--selection-keyline-neutral) 12%, transparent))
     drop-shadow(0 10px 18px color-mix(in srgb, var(--bg) 18%, transparent));
   transform: translate(-50%, -50%);
   transition:
@@ -274,7 +234,7 @@
 .organism-label-anchor[data-editing="true"] .organism-moving-border {
   opacity: 1;
   filter:
-    drop-shadow(0 0 10px color-mix(in srgb, var(--selection-arc-neutral) 18%, transparent))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--selection-keyline-neutral) 18%, transparent))
     drop-shadow(0 12px 20px color-mix(in srgb, var(--bg) 20%, transparent));
 }
 
@@ -288,108 +248,19 @@
   mix-blend-mode: normal;
 }
 
-.organism-selection-system {
+.organism-selection-details {
   position: absolute;
   left: 0;
   top: 0;
   z-index: 3;
-  width: 72px;
-  height: 72px;
-  transform: translate(-50%, -50%);
   pointer-events: none;
   color: var(--nucleus-ring);
 }
 
-.organism-selection-arc {
-  position: absolute;
-  inset: 0;
-  overflow: visible;
-  filter:
-    drop-shadow(0 4px 10px color-mix(in srgb, var(--selection-arc-neutral) 8%, transparent))
-    drop-shadow(0 10px 20px color-mix(in srgb, var(--bg) 16%, transparent));
-  animation: selection-arc-in 320ms var(--ease-out);
-}
-
-@keyframes selection-arc-in {
-  from {
-    opacity: 0;
-    transform: scale(0.94) rotate(-8deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-.selection-arc-path {
-  fill: none;
-  stroke: color-mix(in srgb, var(--nucleus-ring) 36%, var(--selection-arc-neutral));
-  stroke-linecap: round;
-  stroke-width: 0.86;
-  vector-effect: non-scaling-stroke;
-}
-
-.selection-arc-path--ghost {
-  opacity: 0.11;
-  stroke: color-mix(in srgb, var(--selection-arc-neutral) 42%, var(--ink));
-}
-
-/* hairline leader from the arc toward the metadata chip */
-.selection-arc-leader {
-  stroke: color-mix(in srgb, var(--selection-arc-neutral) 42%, transparent);
-  stroke-width: 0.68;
-  vector-effect: non-scaling-stroke;
-  opacity: 0.48;
-}
-
-.selection-arc-dot {
-  fill: var(--bg);
-  stroke: color-mix(in srgb, var(--nucleus-ring) 34%, var(--selection-arc-neutral));
-  stroke-width: 0.9;
-  vector-effect: non-scaling-stroke;
-}
-
-.selection-arc-dot--end {
-  fill: color-mix(in srgb, var(--selection-arc-neutral) 62%, var(--bg));
-}
-
-.selection-arc-dot--anchor {
-  fill: var(--selection-arc-neutral);
-  stroke: none;
-}
-
-.organism-label-anchor[data-selection-display="halo"] .selection-arc-path--primary {
-  stroke-width: 0.96;
-}
-
-.organism-label-anchor[data-selection-display="halo"] .organism-selection-arc {
-  filter: drop-shadow(0 0 13px color-mix(in srgb, var(--selection-arc-neutral) 10%, transparent));
-}
-
-.organism-label-anchor[data-selection-display="influence"] .selection-arc-path--primary {
-  stroke-width: 1.05;
-}
-
-.organism-label-anchor[data-selection-display="influence"] .organism-selection-arc {
-  filter:
-    drop-shadow(0 0 16px color-mix(in srgb, var(--selection-arc-neutral) 10%, transparent))
-    drop-shadow(0 14px 24px color-mix(in srgb, var(--selection-arc-neutral) 5%, transparent));
-}
-
-.organism-label-anchor[data-kind="void"] .selection-arc-path {
-  stroke-dasharray: 2 5;
-  stroke: color-mix(in srgb, var(--chrome-accent) 72%, var(--nucleus-ring));
-}
-
-.organism-label-anchor[data-kind="void"] .selection-arc-dot {
-  fill: var(--bg);
-  stroke: color-mix(in srgb, var(--chrome-accent) 80%, var(--nucleus-ring));
-}
-
 .selection-metadata {
   position: absolute;
-  left: calc(50% + 18px);
-  top: -1%;
+  left: 22px;
+  top: -12px;
   display: grid;
   gap: 2px;
   min-width: 106px;
@@ -631,7 +502,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .organism-selection-arc,
   .selection-metadata,
   .selection-edit-popover,
   .selection-command-menu,
@@ -640,14 +510,14 @@
   }
 }
 
-.organism-selection-system[data-editing="true"] .selection-metadata {
+.organism-selection-details[data-editing="true"] .selection-metadata {
   opacity: 0.24;
 }
 
 .selection-edit-popover {
   position: absolute;
-  left: calc(50% + 14px);
-  top: calc(50% + 10px);
+  left: 14px;
+  top: 10px;
   z-index: 4;
   display: grid;
   width: min(180px, calc(100vw - 32px));

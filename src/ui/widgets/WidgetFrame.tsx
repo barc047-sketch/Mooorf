@@ -154,7 +154,7 @@ export default function WidgetFrame({
           ? `${Math.round(geometry.maxHeight * scale)}px`
           : undefined,
         top: 72 + index * 42,
-        zIndex: 40 + z,
+        zIndex: `calc(var(--z-widget) + ${Math.min(z, 19)})`,
         translate: `${offset.current.dx}px ${offset.current.dy}px`,
       } as CSSProperties}
       initial={{ opacity: 0, y: 10, scale: 0.97 }}

@@ -19,11 +19,11 @@ export default function CanvasView() {
   useEffect(() => {
     const host = hostRef.current!;
     const canvas = canvasRef.current!;
-    const announceReadiness = (stage: "fallback" | "resolving" | "ready") => {
+    const announceReadiness = (stage: "canvas-mounted" | "renderer-ready" | "render-requested" | "ready") => {
       const state = useLab.getState();
       if (!state.loaderDone) state.setCanvasReadiness(stage);
     };
-    announceReadiness("fallback");
+    announceReadiness("canvas-mounted");
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       // Keep the shell reachable even if the browser cannot provide a 2D
@@ -31,6 +31,7 @@ export default function CanvasView() {
       announceReadiness("ready");
       return;
     }
+    announceReadiness("renderer-ready");
     const st = useLab.getState();
 
     // Live mirrors (refs, not React state)
@@ -240,7 +241,7 @@ export default function CanvasView() {
       if (!dirty && !spawning) return;
       dirty = false;
       // Organism style/attachment transitions keep settling for a few frames.
-      if (!firstUsableFrame) announceReadiness("resolving");
+      if (!firstUsableFrame) announceReadiness("render-requested");
       if (drawScene(ctx, w, h, dpr, cam, spaces, selectedId, drag, tokens, now, settings)) {
         dirty = true;
       }

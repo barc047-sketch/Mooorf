@@ -21,9 +21,9 @@ const svg = buildClassicSvg({
   cssWidth: 800,
   cssHeight: 600,
   paletteMode: "core",
+  nucleusPaletteId: "auto",
   background: "#f5f6ee",
   includeLabels: true,
-  selectedId: "a",
   paddingPx: 0,
 });
 
@@ -40,9 +40,9 @@ const noLabels = buildClassicSvg({
   cssWidth: 800,
   cssHeight: 600,
   paletteMode: "core",
+  nucleusPaletteId: "auto",
   background: null,
   includeLabels: false,
-  selectedId: null,
   paddingPx: 0,
 });
 ok(!noLabels.includes("<text"), "labels excluded when includeLabels is false");
@@ -54,9 +54,9 @@ const padded = buildClassicSvg({
   cssWidth: 800,
   cssHeight: 600,
   paletteMode: "core",
+  nucleusPaletteId: "auto",
   background: "#fff",
   includeLabels: true,
-  selectedId: null,
   paddingPx: 32,
 });
 ok(padded.includes('width="864"') && padded.includes('height="664"'), "padding adds to total canvas dimensions");
@@ -68,9 +68,9 @@ const zoomed = buildClassicSvg({
   cssWidth: 800,
   cssHeight: 600,
   paletteMode: "core",
+  nucleusPaletteId: "auto",
   background: null,
   includeLabels: false,
-  selectedId: null,
   paddingPx: 0,
 });
 ok(zoomed.includes("<circle"), "zoomed camera still produces valid circle geometry");

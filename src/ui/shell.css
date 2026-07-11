@@ -40,7 +40,7 @@
   top: var(--sp-24);
   left: 50%;
   /* centering via Motion x:-50% (inline transform owns this element) */
-  z-index: 20;
+  z-index: var(--z-shell);
   display: flex;
   gap: 2px;
   padding: 3px;
@@ -80,7 +80,7 @@
   bottom: var(--sp-24);
   left: 50%;
   /* centering via Motion x:-50% (inline transform owns this element) */
-  z-index: 20;
+  z-index: var(--z-shell);
   display: flex;
   align-items: center;
   gap: calc(9px * var(--ui-scale));
@@ -491,7 +491,7 @@
   bottom: calc(100% + 14px);
   left: 50%;
   translate: -50% 0;
-  z-index: 30;
+  z-index: var(--z-popover);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1149,7 +1149,7 @@
   left: var(--sp-24);
   top: 50%;
   /* centering via Motion y:-50% (inline transform owns this element) */
-  z-index: 20;
+  z-index: var(--z-shell);
   display: flex;
   flex-direction: column;
   width: calc(42px * var(--ui-scale));
@@ -1222,7 +1222,7 @@
   position: absolute;
   left: calc(100% + (10px * var(--ui-scale)));
   top: 50%;
-  z-index: 60;
+  z-index: var(--z-tooltip);
   width: max-content;
   max-width: calc(164px * var(--ui-scale));
   padding: calc(5px * var(--ui-scale)) calc(8px * var(--ui-scale));
@@ -1296,7 +1296,7 @@
   position: absolute;
   right: var(--sp-24);
   bottom: var(--sp-24);
-  z-index: 20;
+  z-index: var(--z-shell);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1320,7 +1320,7 @@
   position: absolute;
   left: var(--sp-24);
   bottom: var(--sp-24);
-  z-index: 20;
+  z-index: var(--z-shell);
   font-size: var(--text-caption);
   letter-spacing: 0.08em;
   color: var(--hud-text);
@@ -1332,7 +1332,7 @@
   position: absolute;
   top: 72px;
   right: var(--sp-24);
-  z-index: 40;
+  z-index: var(--z-widget);
   display: flex;
   flex-direction: column;
   width: 306px;

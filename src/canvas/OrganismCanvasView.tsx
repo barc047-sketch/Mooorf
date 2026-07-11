@@ -220,11 +220,11 @@ export default function OrganismCanvasView() {
     const canvas = canvasRef.current;
     if (!host || !canvas) return;
 
-    const announceReadiness = (stage: "initialising" | "preparing" | "resolving" | "fallback" | "ready") => {
+    const announceReadiness = (stage: "canvas-mounted" | "renderer-ready" | "render-requested" | "ready") => {
       const state = useLab.getState();
       if (!state.loaderDone) state.setCanvasReadiness(stage);
     };
-    announceReadiness("initialising");
+    announceReadiness("canvas-mounted");
 
     let renderer: OrganismRenderer | null = null;
     try {
@@ -234,14 +234,14 @@ export default function OrganismCanvasView() {
     }
     if (!renderer) {
       setGlOk(false);
-      announceReadiness("fallback");
+      announceReadiness("renderer-ready");
       // The intro sits above the shell, so a failed WebGL mount cannot wait
       // for a hidden manual button. Reuse the existing Classic canvas.
       queueMicrotask(() => useLab.getState().setSettings({ rendererMode: "classic" }));
       return;
     }
     setGlOk(true);
-    announceReadiness("preparing");
+    announceReadiness("renderer-ready");
 
     const cam = { ...useLab.getState().camera };
     let spaces = useLab.getState().spaces;
@@ -366,7 +366,7 @@ export default function OrganismCanvasView() {
               if (node.classList.contains("selection-edit-popover")) return false;
               if (!includeSelection) {
                 if (node.classList.contains("organism-moving-border")) return false;
-                if (node.classList.contains("organism-selection-system")) return false;
+                if (node.classList.contains("organism-selection-details")) return false;
               }
               return true;
             },
@@ -427,46 +427,15 @@ export default function OrganismCanvasView() {
         anchor.style.opacity = "1";
         anchor.style.transform = `translate(${nucleus.sx}px, ${nucleus.sy}px)`;
         anchor.dataset.selected = nucleus.id === selectedId ? "true" : "false";
-        anchor.dataset.selectionDisplay = settings.selectionDisplay;
-        const ring = anchor.querySelector<HTMLElement>(".organism-label-ring");
-        if (ring) {
-          const ringFactor =
-            settings.selectionDisplay === "influence"
-              ? 2.85
-              : settings.selectionDisplay === "halo"
-                ? 1.86
-                : 0.96; // tight default — a crisp hairline near the nucleus
-          const size = `${Math.max(14, nucleus.screenR * ringFactor)}px`;
-          ring.style.width = size;
-          ring.style.height = size;
-        }
         const movingBorder = anchor.querySelector<HTMLElement>(".organism-moving-border");
         if (movingBorder) {
           const editing = anchor.dataset.editing === "true";
-          const borderFactor =
-            settings.selectionDisplay === "influence"
-              ? 3.08
-              : settings.selectionDisplay === "halo"
-                ? 2.1
-                : 1.28;
           const borderSize = Math.max(
             editing ? 24 : 18,
-            nucleus.screenR * borderFactor + (editing ? 10 : 4)
+            nucleus.screenR * 1.28 + (editing ? 10 : 4)
           );
           movingBorder.style.width = `${borderSize}px`;
           movingBorder.style.height = `${borderSize}px`;
-        }
-        const selection = anchor.querySelector<HTMLElement>(".organism-selection-system");
-        if (selection) {
-          const arcFactor =
-            settings.selectionDisplay === "influence"
-              ? 2.88
-              : settings.selectionDisplay === "halo"
-                ? 1.92
-                : 1.36;
-          const arcSize = Math.max(52, Math.min(176, nucleus.screenR * arcFactor + 20));
-          selection.style.width = `${arcSize}px`;
-          selection.style.height = `${arcSize}px`;
         }
       });
     };
@@ -713,7 +682,7 @@ export default function OrganismCanvasView() {
       frame.nucleusDots = smooth.dots;
       frame.fieldDebug = params.showFieldDebug;
       frame.nucleiDebug = params.showNucleiDebug;
-      if (!firstUsableFrame) announceReadiness("resolving");
+      if (!firstUsableFrame) announceReadiness("render-requested");
       try {
         renderer?.render(frame);
         if (!firstUsableFrame) {
@@ -741,7 +710,7 @@ export default function OrganismCanvasView() {
       } catch {
         rendererFailed = true;
         setGlOk(false);
-        announceReadiness("fallback");
+        announceReadiness("renderer-ready");
         if (pendingCapture) {
           pendingCapture.reject(new Error("Organism renderer failed during export."));
           pendingCapture = null;
@@ -826,7 +795,6 @@ export default function OrganismCanvasView() {
               data-editing={editing ? "true" : undefined}
               style={labelStyle}
             >
-              <span className="organism-label-ring" />
               {selected && (
                 <MovingBorder
                   isCircle
@@ -837,37 +805,20 @@ export default function OrganismCanvasView() {
                   colors={
                     kind === "void"
                       ? [
-                          "color-mix(in srgb, var(--bg) 72%, var(--selection-arc-neutral))",
+                          "color-mix(in srgb, var(--bg) 72%, var(--selection-keyline-neutral))",
                           "color-mix(in srgb, var(--chrome-accent) 58%, transparent)",
                           "color-mix(in srgb, var(--nucleus-ring) 28%, transparent)",
                         ]
                       : [
-                          "color-mix(in srgb, var(--nucleus-ring) 62%, var(--selection-arc-neutral))",
-                          "color-mix(in srgb, var(--selection-arc-neutral) 64%, transparent)",
+                          "color-mix(in srgb, var(--nucleus-ring) 62%, var(--selection-keyline-neutral))",
+                          "color-mix(in srgb, var(--selection-keyline-neutral) 64%, transparent)",
                           "color-mix(in srgb, var(--glass-highlight) 54%, transparent)",
                         ]
                   }
                 />
               )}
               {selected && (
-                <span
-                  className="organism-selection-system"
-                  data-editing={editing ? "true" : undefined}
-                >
-                  <svg className="organism-selection-arc" viewBox="0 0 100 100" aria-hidden="true">
-                    <path
-                      className="selection-arc-path selection-arc-path--primary"
-                      d="M 24 64 A 33 33 0 0 1 74 28"
-                    />
-                    <path
-                      className="selection-arc-path selection-arc-path--ghost"
-                      d="M 70 75 A 34 34 0 0 1 43 84"
-                    />
-                    <line className="selection-arc-leader" x1="74" y1="28" x2="86" y2="20" />
-                    <circle className="selection-arc-dot" cx="24" cy="64" r="1.65" />
-                    <circle className="selection-arc-dot selection-arc-dot--end" cx="74" cy="28" r="1.55" />
-                    <circle className="selection-arc-dot selection-arc-dot--anchor" cx="86" cy="20" r="1.25" />
-                  </svg>
+                <span className="organism-selection-details" data-editing={editing ? "true" : undefined}>
                   <span className="selection-metadata">
                     <span className="selection-type">
                       {kind === "void" ? "Void" : mappedColor.token.label}

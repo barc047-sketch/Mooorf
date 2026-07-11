@@ -268,6 +268,17 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
   tablet is the V7.1D target and authored widget widths never approach
   768–834px viewport widths even at 118%.
 
+## V7.3 file intake and canvas interaction architecture
+
+- The V7.2 `ProjectExportSnapshot` remains the canonical persistent canvas snapshot. `.mooorf` wraps it with discriminator/version/app metadata and saved views; configuration reuses the same settings fields plus ID-keyed layout and never replaces semantic space data.
+- One application-root `FileIntakeProvider` owns drag-depth, the maximum-five ephemeral queue, browse input, truthful local progress, retry/remove, and one-at-a-time apply lock. One File Intake WidgetFrame renders all project/config/table variants; no per-format widget or store-owned upload queue exists.
+- Parsing/validation is pure and local: size gates run before allocation; JSON discriminators and unsafe keys/future versions/non-finite data are rejected; PapaParse preserves CSV quoting; XLSX is dynamically imported and formula evaluation is disabled; table apply plans target the existing `SpaceCell[]` model.
+- Every destructive apply captures the full current recovery state, validates before mutation, commits via one Zustand `setState`, restores fully on error, and exposes toast Undo. No remote upload, eval, HTML injection, Blob URL, or temporary export state enters a project/config file.
+- `getNucleusColor` is the one canvas/export resolver. Explicit valid color wins, then category/active-palette mapping, stable-ID fallback, and neutral. Generated cells carry no fake explicit color, so palette changes update them live; voids stay subtractive unless explicitly colored.
+- The orbit/selection arc, halo/influence state and controls, Classic outer ring/tick, SVG selection arc, and dead CSS/export filter target are removed. MovingBorder + metadata/command/edit remain; Classic has only an on-body keyline.
+- Widget launchers use `openWidget`: closed widgets mount once; already-open widgets only reorder within the widget band. Stable `WidgetId` keys and AnimatePresence remain. Canonical z tokens cap focused widgets below shell controls.
+- Dock magnification adapts the existing independent-island Dock with `motion/react` distance transforms/springs; the 1.34× cap, 120px influence, keyboard focus, reduced motion, and mouse-only pointer tracking preserve tablet/touch behavior and the no-slab visual lock.
+
 ## V7.2 export architecture
 
 - **One capture bridge, two providers.** `src/canvas/exportCapture.ts` is a

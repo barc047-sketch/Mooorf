@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 - [x] V6K Premium Visual System + Full Control Migration
 - [x] V6L Multi-Color Organism Shader + Negative Nuclei
 - [x] V6M Codex Workflow OS
@@ -19,6 +20,21 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## V7.3 — File Intake + Canvas Interaction System  ✅ COMPLETE
+- [x] selection orbit/arc, halo/influence state/control/CSS/export marks removed; moving keyline + metadata/edit preserved
+- [x] real readiness numeral milestones 00→16→34→58→82→96→100, reduced motion, no replay
+- [x] canonical explicit/category/palette/stable-ID resolver shared by ORG/CLS/SVG/export
+- [x] global file drag-depth overlay + one five-item File Intake widget/queue
+- [x] `.mooorf` and `.mooorf-config.json` download/validate/preview/atomic apply/recovery/Undo
+- [x] V7.2 project JSON recognition; future schema/unsafe key/non-finite/binary/presentation rejection
+- [x] CSV/XLS/XLSX worksheets, header detection, aliases, manual mapping, preview, diagnostics, replace/merge/append
+- [x] truthful queued/reading/parsing/validating/review/applying/complete/failed progress semantics
+- [x] restrained Motion dock magnification with adjacent/focus response and touch/reduced-motion safety
+- [x] canonical canvas/widget/shell/popover/tooltip/drop/dialog/toast/loader z-layer tokens
+- [x] all launchers focus already-open widgets without duplicate/remount/entrance replay
+- [x] V7.2 capture/export architecture preserved; CSV adds explicit color column
+- [x] contracts + build + 1440/1024/768 live QA green; browser harness cannot attach local files
 
 ## V7.2 — Export & Presentation Pack  ✅ COMPLETE
 - [x] activate existing Dock Export placeholder → Export widget (no duplicate launcher)

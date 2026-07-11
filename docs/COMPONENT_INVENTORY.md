@@ -17,7 +17,7 @@ This is the first place to check before creating UI or control logic.
 
 V6N.1 makes the shared visual primitives mandatory for production UI.
 
-- Use `src/styles/tokens.css` for glass, chrome, radius, HUD text, muted text, dot grid, selection arc, and warning colors.
+- Use `src/styles/tokens.css` for glass, chrome, radius, HUD text, muted text, dot grid, selection keyline, warning colors, and canonical z layers.
 - Use `.glass`, `.wframe`, `.dock-*`, `.rail-*`, `.org-*`, `.pop-*`, `.saved-*`, `.pal-*`, and `.selection-*` classes before inventing new chrome.
 - Use `src/ui/primitives/MovingBorder.tsx` for selected/active organism or future instrument borders that need subtle motion. It is not a generic wrapper for every card or every cell.
 - Sliders, switches, segmented chips, choice rows, metadata pills, micro cards, saved-view rows, palette rows, and canvas edit popovers should inherit the shared premium language.
@@ -133,8 +133,16 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 ## Canvas Label / Selection Systems
 
 - Files: `src/canvas/OrganismCanvasView.tsx`, `src/canvas/organismCanvas.css`.
-- Role: HTML label overlay, label modes, selection ring size/display.
-- Reuse: selection arc and moving cell border should extend this carefully instead of creating independent DOM overlays.
+- Role: HTML label overlay, label modes, selected MovingBorder, metadata, command menu, and direct edit surface. The former orbit/arc system was removed in V7.3.
+- Reuse: selected feedback should extend this carefully instead of creating independent DOM overlays.
+
+## File Intake System (V7.3)
+
+- `FileIntakeProvider`: application-root file drag-depth overlay and the only ephemeral queue (maximum five).
+- `FileIntakeWidget`: one WidgetFrame body for project/config/table review, mapping, modes, diagnostics, and apply.
+- `projectFiles.ts` / `tableImport.ts`: pure versioned validation and import planning; parsing never lives in components.
+- `projectTransfer.ts`: automatic recovery snapshot, one atomic store mutation, full restore/Undo; extends V7.2 project snapshot rather than creating another project model.
+- Do not duplicate: per-format upload widgets, parser state in the store, a second table model, a second saved-view system, or a second export launcher.
 - V7.1B: editorial/technical labels are unbounded text; only Pill mode and the
   selected metadata/edit surfaces may use glass.
 

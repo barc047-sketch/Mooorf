@@ -9,7 +9,6 @@ import type {
   LayoutPresetId,
   MorphMode,
   PaletteMode,
-  SelectionDisplay,
 } from "../types";
 
 export const MORPH_DESCRIPTIONS: Record<MorphMode, string> = {
@@ -94,17 +93,6 @@ export const LABEL_POSITIONS: readonly { id: LabelPosition; label: string }[] = 
   { id: "above", label: "Above" },
   { id: "below", label: "Below" },
 ];
-
-export const SELECTIONS: readonly { id: SelectionDisplay; label: string; desc: string }[] = [
-  { id: "tight", label: "Tight", desc: "Small crisp default ring" },
-  { id: "halo", label: "Halo", desc: "Soft medium focus halo" },
-];
-
-export const INFLUENCE_SELECTION: { id: SelectionDisplay; label: string; desc: string } = {
-  id: "influence",
-  label: "Influence",
-  desc: "Large field / measurement circle",
-};
 
 export const LAYOUT_CODES: Record<LayoutPresetId, string> = {
   organic: "OG",

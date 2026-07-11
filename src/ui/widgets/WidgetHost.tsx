@@ -15,6 +15,7 @@ import SavedViewsWidget from "./SavedViewsWidget";
 import DisplayWidget from "./DisplayWidget";
 import AdvancedWidget from "./AdvancedWidget";
 import ExportWidget from "./ExportWidget";
+import FileIntakeWidget from "./FileIntakeWidget";
 import ProjectPulseWidget from "./stats/ProjectPulseWidget";
 import CategoryMixWidget from "./stats/CategoryMixWidget";
 import PrivacyBalanceWidget from "./stats/PrivacyBalanceWidget";
@@ -37,6 +38,7 @@ const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
   "area-leaders": () => <AreaLeadersWidget />,
   "data-health": () => <DataHealthWidget />,
   export: () => <ExportWidget />,
+  import: () => <FileIntakeWidget />,
 };
 
 export default function WidgetHost() {

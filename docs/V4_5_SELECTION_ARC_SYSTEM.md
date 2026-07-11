@@ -1,8 +1,10 @@
-# V4.5A — Selection Arc System (spec only, do not build yet)
+# V4.5A — Selection Arc System (historical only; removed V7.3)
+
+> V7.3 intentionally removed this orbit/arc and all halo/influence modes from runtime, exports, controls, and current planning. Keep this file only as historical design context; do not reimplement it. Current selection uses the subtle MovingBorder/keyline plus metadata/command/edit affordance.
 
 Directly inspired by the dark-scan UI reference's curved orbit/arc selection control around an anchor point (glowing anchor dots + thin arc path) — translated from a body-scan anchor to a selected space-cell anchor.
 
-When a space cell is selected, a future premium orbital/arc control appears around it (replacing any bulky bounding box):
+The historical concept proposed a premium orbital/arc control around a selected space-cell. It is not a future feature after V7.3:
 
 - Curved arc near the selected circle's edge.
 - Small handle dots on the arc.

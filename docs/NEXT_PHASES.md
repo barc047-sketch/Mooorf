@@ -19,7 +19,7 @@ Codex only: yes. This is QA/bugfix work.
 
 Do not use Claude unless visual design direction changes, which this phase should not do.
 
-## V6.5 — Selection Arc + Canvas Rename
+## V6.5 — Selection Arc + Canvas Rename (historical; arc removed V7.3)
 
 Status: complete.
 

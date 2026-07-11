@@ -1,5 +1,16 @@
 # Handoff
 
+## V7.3 — File Intake + Canvas Interaction System (desktop/laptop/iPad)
+
+- **Selection:** removed the organism SVG orbit/arc, halo/influence modes, Classic outer selection ring/tick, related store/snapshot state, controls, export filter target, CSS, and active documentation. Selection now uses the existing subtle moving keyline plus metadata/command/edit surface; Classic uses only an on-body boundary keyline. No removed arc appears in exports.
+- **Readiness:** the editorial loader now rolls from visible `00` through real shell/store/font/canvas/renderer/first-frame milestones (00/16/34/58/82/96/100). It reaches 100 before the readiness-gated exit, skips rolling for reduced motion, and cannot regress/replay after first load.
+- **Palette:** `getNucleusColor` is the canonical resolver for explicit color → category/active palette → stable-ID fallback → neutral. Organism, Classic, labels/table, PNG/PDF capture, and Classic SVG share it; palette changes update non-explicit cells immediately and CSV now preserves explicit color.
+- **File intake:** one global canvas-root drop layer and one File Intake WidgetFrame own a five-file local queue, byte reading progress, parsing/validation/review/apply states, retry/remove, browse, worksheet choice, mapping preview, diagnostics, and table modes. Supported: `.mooorf`, recognized V7.2 project JSON, `.mooorf-config.json`, CSV, XLS, XLSX; presentation/binary/future-schema files are rejected.
+- **Safety:** project/config envelopes extend the V7.2 snapshot, reject unsafe keys/future versions/non-finite data, bound file/row counts, and apply through one Zustand transaction with automatic recovery and toast Undo. Config never replaces semantic space data; matching IDs receive layout only.
+- **Interaction:** Dock uses restrained pointer-distance Motion springs (1.34× cap, adjacent response, focus support, reduced-motion/touch safety). Canonical z tokens keep shell 100 above widgets 40–59; popovers/tooltips/drop/dialog/toast/loader own higher bands. Launchers call `openWidget`, so reselection focuses without close/remount/animation replay.
+- **Verification:** pure readiness/palette/project/config/CSV/worksheet/widget contracts and all existing relevant contracts pass; build green with known chunk warning. In-app QA covered 1440/1024/768, no horizontal overflow, no console errors, loader exit, ORG/CLS palette parity, arc removal, layering, dock response, and reselection. Harness cannot attach local files, so picker/drop transport remains manually confirmable; parsing/apply contracts are automated.
+- **Next:** Relationship Health / Floor Summary still await live relationship/floor data.
+
 ## V7.2 — Export & Presentation Pack (desktop/laptop/iPad)
 
 - **Export widget:** activates the existing Dock Export placeholder; opens a
