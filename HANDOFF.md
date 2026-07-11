@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- V8.1 Spatial Colour Field + Minimal Direct Editing
 - V6F.0 Organism Production Integration Audit
 - V6F.0B Production Canvas UI / Control Architecture
 - V6F.0C Reference Folder Patch
@@ -48,6 +49,8 @@ Not started:
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+V8.1 makes Editorial Aurora the default colorful palette, persists one Category/Privacy color source through project formats, feeds stable per-nucleus RGB into the existing one-pass organism shader, and guarantees selection geometry invariance. Single click/tap selects; deliberate double activation opens one shared Name/Area editor. Automatic selection metadata and command UI no longer render.
 
 V7.3 removes the orbit/selection arc and halo modes while retaining the MovingBorder, compact metadata/command menu, and direct rename/area edit flow. It adds real readiness-numeral milestones, one canonical explicit/category/palette/stable-ID color resolver shared by both renderers/exports, one local-only File Intake widget/queue for `.mooorf`/config/CSV/XLS/XLSX, atomic recovery+Undo, restrained dock magnification, canonical shell/widget z layers, and focus-only widget reselection. Build and 1440/1024/768 live QA are green; the browser harness could not attach a local file, while parsing/apply behavior is contract-tested. Full detail: `docs/HANDOFF.md`.
 

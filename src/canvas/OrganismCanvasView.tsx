@@ -4,10 +4,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type FocusEvent,
-  type FormEvent,
-  type KeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useLab } from "../state/store";
 import { clamp } from "../lib/geometry";
@@ -41,9 +37,10 @@ import {
   type ProductionNucleus,
 } from "./organismAdapter";
 import { resolveOrganism } from "./organismProductionSettings";
-import SelectedCellCommandMenu from "./SelectedCellCommandMenu";
 import MovingBorder from "../ui/primitives/MovingBorder";
-import type { SpaceCell, SpaceKind } from "../types";
+import InlineCellEditor, { type InlineEditorPosition } from "./InlineCellEditor";
+import { CELL_DRAG_THRESHOLD_PX, createCellActivationState, registerCellActivation } from "./cellActivation";
+import type { SpaceKind } from "../types";
 import { registerCanvasCapture, type CaptureRequestOptions } from "./exportCapture";
 import "./organismCanvas.css";
 
@@ -53,14 +50,6 @@ const DPR_MAX = 2;
 const Z_MIN = 0.25;
 const Z_MAX = 4;
 const DRAG_COMMIT_MS = 90;
-const MIN_AREA = 1;
-
-interface EditDraft {
-  id: string;
-  name: string;
-  area: string;
-  focus: "name" | "area";
-}
 
 interface SmoothFrame {
   mass: number;
@@ -97,123 +86,10 @@ export default function OrganismCanvasView() {
   const annotationDetail = useLab((s) => s.settings.annotationDetail);
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
+  const colorSource = useLab((s) => s.settings.colorSource);
   const showGrid = useLab((s) => s.settings.showGrid);
-  const updateSpace = useLab((s) => s.updateSpace);
-  const addSpace = useLab((s) => s.addSpace);
-  const removeSpace = useLab((s) => s.removeSpace);
-  const setCamera = useLab((s) => s.setCamera);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
-  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
-  const [commandMenuOpen, setCommandMenuOpen] = useState(false);
-  const commandMenuOpenRef = useRef(false);
-  useEffect(() => {
-    commandMenuOpenRef.current = commandMenuOpen;
-  }, [commandMenuOpen]);
-
-  useEffect(() => {
-    setCommandMenuOpen(false);
-    setEditDraft((draft) => (draft && draft.id !== selectedId ? null : draft));
-  }, [selectedId]);
-
-  useEffect(() => {
-    if (!commandMenuOpen) return;
-    const onKey = (event: globalThis.KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      const target = event.target as HTMLElement | null;
-      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-      event.preventDefault();
-      setCommandMenuOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [commandMenuOpen]);
-
-  const stopEditPointer = (event: ReactPointerEvent<HTMLElement>) => {
-    event.stopPropagation();
-  };
-
-  const beginEdit = (space: SpaceCell | null, focus: "name" | "area" = "name") => {
-    if (!space) return;
-    setCommandMenuOpen(false);
-    setEditDraft({
-      id: space.id,
-      name: space.name,
-      area: String(space.area),
-      focus,
-    });
-  };
-
-  const cancelEdit = () => setEditDraft(null);
-
-  const commitEdit = () => {
-    if (!editDraft) return;
-    const current = spaces.find((space) => space.id === editDraft.id);
-    const parsedArea = Number.parseFloat(editDraft.area);
-    const patch = {
-      name: editDraft.name.trim() || "Untitled Space",
-      area: Number.isFinite(parsedArea)
-        ? Math.max(MIN_AREA, parsedArea)
-        : current?.area ?? MIN_AREA,
-    };
-    updateSpace(editDraft.id, patch);
-    setEditDraft(null);
-  };
-
-  const duplicateSpace = (space: SpaceCell, kind: SpaceKind) => {
-    setCommandMenuOpen(false);
-    addSpace({
-      name: `${space.name} Copy`,
-      kind,
-      area: space.area,
-      category: space.category,
-      privacy: space.privacy,
-      color: space.color,
-      x: space.x + 28,
-      y: space.y + 22,
-      born: Date.now(),
-    });
-  };
-
-  const convertSpaceKind = (space: SpaceCell, kind: SpaceKind) => {
-    setCommandMenuOpen(false);
-    updateSpace(space.id, {
-      kind: kind === "void" ? "space" : "void",
-      category: kind === "void" ? (space.category === "Void" ? "Uncategorized" : space.category) : "Void",
-    });
-  };
-
-  const focusSpace = (space: SpaceCell) => {
-    setCommandMenuOpen(false);
-    const current = useLab.getState().camera;
-    setCamera({
-      x: space.x,
-      y: space.y,
-      zoom: Math.min(2.2, Math.max(current.zoom, 1.35)),
-    });
-  };
-
-  const deleteSpace = (space: SpaceCell) => {
-    setCommandMenuOpen(false);
-    removeSpace(space.id);
-  };
-
-  const onEditSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    commitEdit();
-  };
-
-  const onEditKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
-    if (event.key !== "Escape") return;
-    event.preventDefault();
-    event.stopPropagation();
-    cancelEdit();
-  };
-
-  const onEditBlur = (event: FocusEvent<HTMLFormElement>) => {
-    const nextFocus = event.relatedTarget;
-    if (nextFocus instanceof Node && event.currentTarget.contains(nextFocus)) return;
-    commitEdit();
-  };
+  const [editorTarget, setEditorTarget] = useState<{ id: string; position: InlineEditorPosition } | null>(null);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -260,9 +136,13 @@ export default function OrganismCanvasView() {
     let pendingCapture: { resolve: (canvas: HTMLCanvasElement) => void; reject: (err: Error) => void } | null = null;
 
     const nucleiBuf = new Float32Array(MAX_NUCLEI * 4);
+    const nucleusColorsBuf = new Float32Array(MAX_NUCLEI * 3);
+    const smoothNucleusColors = new Map<string, { r: number; g: number; b: number; seen: number }>();
+    let colorGeneration = 0;
     const frame: OrganismRenderFrame = {
       count: 0,
       nuclei: nucleiBuf,
+      nucleusColors: nucleusColorsBuf,
       mass: 1,
       iso: 1,
       softness: 0.02,
@@ -399,7 +279,8 @@ export default function OrganismCanvasView() {
         resolved.adapter,
         motionState,
         settings.paletteMode,
-        settings.nucleusPaletteId
+        settings.nucleusPaletteId,
+        settings.colorSource
       );
 
     /* camera-synced technical grid — cheap CSS background, render-loop offsets */
@@ -440,7 +321,10 @@ export default function OrganismCanvasView() {
       });
     };
 
-    let mode: "none" | "drag" | "pan" = "none";
+    let mode: "none" | "press" | "drag" | "pan" = "none";
+    const activation = createCellActivationState();
+    let pressSX = 0;
+    let pressSY = 0;
     let dragLastWX = 0;
     let dragLastWY = 0;
     let panSX = 0;
@@ -451,7 +335,6 @@ export default function OrganismCanvasView() {
 
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
-      if (commandMenuOpenRef.current) setCommandMenuOpen(false);
       camTarget = null;
       const { sx, sy } = local(e);
       const hit = hitTestNuclei(currentNuclei(), sx, sy);
@@ -464,7 +347,9 @@ export default function OrganismCanvasView() {
         const world = screenToWorld(sx, sy, cam, w, h);
         const source = spaces.find((space) => space.id === hit.id);
         if (!source) return;
-        mode = "drag";
+        mode = "press";
+        pressSX = sx;
+        pressSY = sy;
         drag = { id: hit.id, x: source.x, y: source.y };
         dragLastWX = world.x;
         dragLastWY = world.y;
@@ -487,6 +372,10 @@ export default function OrganismCanvasView() {
       if (mode === "none") {
         canvas.style.cursor = hitTestNuclei(currentNuclei(), sx, sy) ? "grab" : "default";
         return;
+      }
+      if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
+        mode = "drag";
+        setEditorTarget(null);
       }
       if (mode === "drag" && drag) {
         const world = screenToWorld(sx, sy, cam, w, h);
@@ -513,9 +402,17 @@ export default function OrganismCanvasView() {
       dirty = true;
     };
 
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
+      const { sx, sy } = local(e);
+      if (mode === "press" && drag) {
+        if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
+          setEditorTarget({ id: drag.id, position: { x: sx + 14, y: sy + 18 } });
+        }
+        drag = null;
+      } else
       if (mode === "drag" && drag) {
         useLab.getState().moveSpace(drag.id, drag.x, drag.y);
+        registerCellActivation(activation, drag.id, sx, sy, performance.now(), true);
         drag = null;
       } else if (mode === "pan") {
         commitCamera();
@@ -583,6 +480,7 @@ export default function OrganismCanvasView() {
           spaces: spaces.slice(0, MAX_NUCLEI),
           areaRange: getAreaRange(spaces),
           nucleusPaletteId: settings.nucleusPaletteId,
+          colorSource: settings.colorSource,
         }
       );
       const params = resolved.params;
@@ -656,7 +554,9 @@ export default function OrganismCanvasView() {
       syncGrid();
 
       nucleiBuf.fill(0);
+      nucleusColorsBuf.fill(0);
       const count = Math.min(nuclei.length, MAX_NUCLEI);
+      colorGeneration += 1;
       for (let i = 0; i < count; i++) {
         const n = nuclei[i];
         const o = i * 4;
@@ -664,7 +564,29 @@ export default function OrganismCanvasView() {
         nucleiBuf[o + 1] = n.fy;
         nucleiBuf[o + 2] = n.r;
         nucleiBuf[o + 3] = n.strength;
+        if (n.kind === "space") {
+          const parsed = /^#[0-9a-f]{6}$/i.test(n.color) ? Number.parseInt(n.color.slice(1), 16) : 0x777a79;
+          const tr = ((parsed >> 16) & 255) / 255;
+          const tg = ((parsed >> 8) & 255) / 255;
+          const tb = (parsed & 255) / 255;
+          let sm = smoothNucleusColors.get(n.id);
+          if (!sm) {
+            sm = { r: tr, g: tg, b: tb, seen: colorGeneration };
+            smoothNucleusColors.set(n.id, sm);
+          } else {
+            sm.seen = colorGeneration;
+            sm.r += (tr - sm.r) * kCol;
+            sm.g += (tg - sm.g) * kCol;
+            sm.b += (tb - sm.b) * kCol;
+            settling = settling || Math.abs(tr - sm.r) + Math.abs(tg - sm.g) + Math.abs(tb - sm.b) > 0.004;
+          }
+          const co = i * 3;
+          nucleusColorsBuf[co] = sm.r;
+          nucleusColorsBuf[co + 1] = sm.g;
+          nucleusColorsBuf[co + 2] = sm.b;
+        }
       }
+      for (const [id, color] of smoothNucleusColors) if (color.seen !== colorGeneration) smoothNucleusColors.delete(id);
       frame.count = count;
       frame.mass = smooth.mass;
       frame.iso = smooth.iso;
@@ -767,10 +689,10 @@ export default function OrganismCanvasView() {
         style={{ "--label-scale": annotationDetail.textScale } as CSSProperties}
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
-          const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId);
+          const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
           const kind: SpaceKind = space.kind === "void" ? "void" : "space";
           const selected = space.id === selectedId;
-          const editing = editDraft?.id === space.id;
+          const editing = editorTarget?.id === space.id;
           const labelStyle = {
             "--nucleus-color": mappedColor.fill,
             "--nucleus-ring": mappedColor.ring,
@@ -817,77 +739,6 @@ export default function OrganismCanvasView() {
                   }
                 />
               )}
-              {selected && (
-                <span className="organism-selection-details" data-editing={editing ? "true" : undefined}>
-                  <span className="selection-metadata">
-                    <span className="selection-type">
-                      {kind === "void" ? "Void" : mappedColor.token.label}
-                    </span>
-                    <span className="selection-title">{space.name}</span>
-                    <span className="selection-detail">
-                      {Math.round(space.area)} m² · {kind === "void" ? "subtractive" : space.category}
-                    </span>
-                    <SelectedCellCommandMenu
-                      kind={kind}
-                      open={commandMenuOpen}
-                      onToggle={() => setCommandMenuOpen((open) => !open)}
-                      onRename={() => beginEdit(space, "name")}
-                      onEditArea={() => beginEdit(space, "area")}
-                      onDuplicate={() => duplicateSpace(space, kind)}
-                      onConvertKind={() => convertSpaceKind(space, kind)}
-                      onFocus={() => focusSpace(space)}
-                      onDelete={() => deleteSpace(space)}
-                    />
-                  </span>
-                  {editing && (
-                    <form
-                      className="selection-edit-popover glass"
-                      onSubmit={onEditSubmit}
-                      onKeyDown={onEditKeyDown}
-                      onBlur={onEditBlur}
-                      onPointerDown={stopEditPointer}
-                    >
-                      <label>
-                        <span>Name</span>
-                        <input
-                          value={editDraft.name}
-                          onChange={(event) =>
-                            setEditDraft((draft) =>
-                              draft ? { ...draft, name: event.target.value } : draft
-                            )
-                          }
-                          autoFocus={editDraft.focus === "name"}
-                          aria-label="Canvas nucleus name"
-                        />
-                      </label>
-                      <label>
-                        <span>Area</span>
-                        <input
-                          type="number"
-                          min={MIN_AREA}
-                          inputMode="decimal"
-                          value={editDraft.area}
-                          onChange={(event) =>
-                            setEditDraft((draft) =>
-                              draft ? { ...draft, area: event.target.value } : draft
-                            )
-                          }
-                          autoFocus={editDraft.focus === "area"}
-                          aria-label="Canvas nucleus area"
-                        />
-                      </label>
-                      <div className="selection-edit-actions">
-                        <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={cancelEdit}>
-                          Cancel
-                        </button>
-                        <button type="submit" onMouseDown={(event) => event.preventDefault()}>
-                          Save
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </span>
-              )}
               <span className="organism-label">
                 {annotationMode === "pill" ? (
                   annotationDetail.showName ? space.name : meta || space.name
@@ -904,6 +755,10 @@ export default function OrganismCanvasView() {
           );
         })}
       </div>
+      {editorTarget && (() => {
+        const space = spaces.find((candidate) => candidate.id === editorTarget.id);
+        return space ? <InlineCellEditor space={space} position={editorTarget.position} onClose={() => setEditorTarget(null)} /> : null;
+      })()}
     </div>
   );
 }

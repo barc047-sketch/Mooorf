@@ -123,6 +123,7 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
     morphMode: oneOf(value.morphMode, ["cellular-reverse", "plain-black", "plain-white", "graphite", "wine", "auto"] as const, "Morph mode"),
     attachMode: oneOf(value.attachMode, ["tight", "soft", "long", "extreme"] as const, "Attachment mode"),
     paletteMode: oneOf(value.paletteMode, ["core", "surreal", "architecture", "auto"] as const, "Palette mode"),
+    colorSource: value.colorSource === "privacy" ? "privacy" : "category",
     layoutPreset: oneOf(value.layoutPreset, ["organic", "random", "core", "colony", "division", "tendril", "orbit", "asymmetry"] as const, "Layout preset"),
     annotationMode: oneOf(value.annotationMode, ["editorial", "pill", "technical", "hidden"] as const, "Annotation mode"),
     mergeDistance: finite(value.mergeDistance, "Merge distance"),
@@ -190,6 +191,7 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     rendererMode,
     uiScale: normalizeUiScale(value.uiScale),
     widgetScale: normalizeWidgetScale(value.widgetScale),
+    colorSource: value.colorSource === "privacy" ? "privacy" : "category",
     organism: { ...(value.organism as unknown as SavedCanvasSnapshot["organism"]) },
   };
 };

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { AreaRange } from "../design/colorMapping";
-import type { PaletteMode, Privacy, SpaceCell } from "../types";
+import type { ColorSource, PaletteMode, Privacy, SpaceCell } from "../types";
 import { areaToRadius } from "../lib/geometry";
 import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { Button } from "@/components/ui/button";
@@ -74,16 +74,18 @@ function Row({
   paletteMode,
   areaRange,
   nucleusPaletteId,
+  colorSource,
 }: {
   cell: SpaceCell;
   index: number;
   paletteMode: PaletteMode;
   areaRange: AreaRange;
   nucleusPaletteId: string;
+  colorSource: ColorSource;
 }) {
   const updateSpace = useLab((s) => s.updateSpace);
   const removeSpace = useLab((s) => s.removeSpace);
-  const mappedColor = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId);
+  const mappedColor = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId, colorSource);
   const kind = cell.kind === "void" ? "void" : "space";
 
   return (
@@ -188,6 +190,7 @@ export default function TableView() {
   const addSpace = useLab((s) => s.addSpace);
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
+  const colorSource = useLab((s) => s.settings.colorSource);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
 
   return (
@@ -230,6 +233,7 @@ export default function TableView() {
                   paletteMode={paletteMode}
                   areaRange={areaRange}
                   nucleusPaletteId={nucleusPaletteId}
+                  colorSource={colorSource}
                 />
               ))}
               {spaces.length === 0 && (

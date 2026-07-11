@@ -11,6 +11,8 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V8.1 Spatial Colour Field + Minimal Direct Editing: exact Editorial Aurora palette; persistent Category/Privacy source; deterministic per-cell colors; one-pass spatial WebGL field; selection-invariant geometry; shared double-activation Name/Area editor; automatic metadata/menu removed; export/project parity retained
+
 - V7.3 File Intake + Canvas Interaction System: selection orbit/halo removed; real 00-100 readiness; canonical canvas/export colors; one global drop queue + File Intake widget; `.mooorf`/config/table validation, preview, atomic apply, recovery and Undo; dock magnification; canonical z layers; no-remount widget focus; contracts/build/desktop+iPad QA green
 - V7.2 Export & Presentation Pack: activates the existing Dock Export placeholder; PNG/PDF/CSV/JSON/ZIP + true-vector Classic SVG; one renderer-aware capture bridge (Classic pure re-render, Organism synchronous same-tick WebGL capture + html-to-image labels); Interface/Widget Scale verified to never affect export dimensions; heavy libs dynamically imported; verified 1440/1024/768px
 - V7.1D Independent Widget Scale: second Display section (same format as Interface Scale) writes canonical `settings.widgetScale`; outer frame = uiScale×widgetScale once, internal content = widgetScale only; rail/dock/canvas/tooltips unaffected; verified 1440/1280/1024/768px

@@ -12,16 +12,25 @@ import {
 } from "../../design/palettes";
 import { CATEGORY_TOKENS, getCategoryColor } from "../../design/colorMapping";
 import { PALETTE_DESCRIPTIONS, PALETTE_MODES } from "../controlMeta";
-import { ChoiceRow, WidgetSection } from "./controls";
+import { ChipRow, ChoiceRow, WidgetSection } from "./controls";
 
 export default function PaletteWidget() {
   const paletteMode = useLab((s) => s.settings.paletteMode);
+  const colorSource = useLab((s) => s.settings.colorSource);
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const organismPaletteId = useLab((s) => s.settings.organismPaletteId);
   const setSettings = useLab((s) => s.setSettings);
 
   return (
     <>
+      <WidgetSection title="Color By" hint="field source" defaultOpen>
+        <ChipRow
+          ariaLabel="Color source"
+          options={[{ id: "category", label: "Category" }, { id: "privacy", label: "Privacy" }] as const}
+          value={colorSource}
+          onChange={(value) => setSettings({ colorSource: value })}
+        />
+      </WidgetSection>
       <WidgetSection title="Mode" hint="semantic base" defaultOpen>
         {PALETTE_MODES.map((p) => (
           <ChoiceRow

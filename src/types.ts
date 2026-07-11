@@ -8,6 +8,8 @@ export type { StartupMilestone as CanvasReadiness } from "./ui/readiness";
 
 export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
+export type ColorSource = "category" | "privacy";
+
 export type LayoutPresetId =
   | "organic"
   | "random"
@@ -149,6 +151,7 @@ export interface SavedCanvasSnapshot {
   mergeDistance: number;
   blobOn: boolean;
   paletteMode: PaletteMode;
+  colorSource?: ColorSource;
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
   organism: OrganismSettings;

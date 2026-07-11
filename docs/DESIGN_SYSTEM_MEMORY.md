@@ -22,6 +22,8 @@ glass; treat the current in-app look as the baseline to extend, not restyle.
 
 V7.3 intentionally removes the orbit/selection arc and halo/influence modes. Current selection language is the subtle MovingBorder/keyline plus compact metadata/command/edit affordance; do not reintroduce a large orbit, curved progress mark, or halo. V7.3 also locks shell controls above widgets through canonical z tokens and adds restrained distance-based Dock magnification without restoring an outer slab.
 
+V8.1 replaces the remaining automatic metadata/command/edit affordance with selection-only keylines and one tiny double-activation `InlineCellEditor`. Editorial Aurora is the default colorful palette: exact restrained lavender, lilac, blush, peach, sand, gold, rose, and dark-neutral swatches. Organism color must originate spatially at positive nuclei and blend through one continuous membrane; voids subtract geometry and contribute zero color.
+
 - No red UI chrome. Red/wine is product or palette material only.
 - UI chrome is neutral graphite / pearl / smoke / bone / black / warm stone.
 - Color belongs to spatial data, category mapping, palette material, organism material, selected content, and true warnings.

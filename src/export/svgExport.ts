@@ -1,6 +1,6 @@
 import { areaToRadius } from "../lib/geometry";
 import { getAreaRange, getNucleusColor } from "../design/colorMapping";
-import type { Camera, PaletteMode, SpaceCell } from "../types";
+import type { Camera, ColorSource, PaletteMode, SpaceCell } from "../types";
 
 const FONT =
   '"Inter Tight","Neue Haas Grotesk Display Pro","Helvetica Neue",Helvetica,Arial,sans-serif';
@@ -20,6 +20,7 @@ export interface ClassicSvgOptions {
   cssHeight: number;
   paletteMode: PaletteMode;
   nucleusPaletteId: string;
+  colorSource?: ColorSource;
   /** Resolved background color, or null for a transparent SVG. */
   background: string | null;
   includeLabels: boolean;
@@ -34,7 +35,7 @@ export interface ClassicSvgOptions {
  * keeps this a truthful vector export rather than silently rasterizing it.
  * See docs/DECISIONS.md V7.2 SVG truthfulness note. */
 export const buildClassicSvg = (options: ClassicSvgOptions): string => {
-  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, background, includeLabels, paddingPx } =
+  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, colorSource = "category", background, includeLabels, paddingPx } =
     options;
   const w = Math.max(1, Math.round(cssWidth));
   const h = Math.max(1, Math.round(cssHeight));
@@ -59,7 +60,7 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
     if (!Number.isFinite(r) || r <= 0) continue;
     const cx = toX(cell.x);
     const cy = toY(cell.y);
-    const color = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId);
+    const color = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId, colorSource);
     const isVoid = cell.kind === "void";
 
     if (isVoid) {

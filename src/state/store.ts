@@ -5,6 +5,7 @@ import type {
   AttachMode,
   Camera,
   CanvasReadiness,
+  ColorSource,
   LayoutPresetId,
   MorphMode,
   OrganismSettings,
@@ -40,6 +41,7 @@ export interface LabSettings {
   morphMode: MorphMode;
   attachMode: AttachMode;
   paletteMode: PaletteMode;
+  colorSource: ColorSource;
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
   annotationDetail: AnnotationDetail;
@@ -119,6 +121,7 @@ const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...or
 
 const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
   ...snapshot,
+  colorSource: snapshot.colorSource === "privacy" ? "privacy" : "category",
   uiScale: normalizeUiScale(snapshot.uiScale),
   widgetScale: normalizeWidgetScale(snapshot.widgetScale),
   spaces: snapshot.spaces.map(cloneSpace),
@@ -210,6 +213,7 @@ const makeSnapshot = (
   mergeDistance: state.settings.mergeDistance,
   blobOn: state.settings.blobOn,
   paletteMode: state.settings.paletteMode,
+  colorSource: state.settings.colorSource,
   layoutPreset: state.settings.layoutPreset,
   annotationMode: state.settings.annotationMode,
   organism: cloneOrganism(state.settings.organism),
@@ -254,12 +258,13 @@ export const useLab = create<LabState>((set) => ({
     morphMode: "cellular-reverse",
     attachMode: "soft",
     paletteMode: "core",
+    colorSource: "category",
     layoutPreset: "organic",
     annotationMode: "editorial",
     annotationDetail: { ...DEFAULT_ANNOTATION_DETAIL },
     rendererMode: "organism",
     showGrid: false,
-    nucleusPaletteId: "auto",
+    nucleusPaletteId: "editorial-aurora",
     organismPaletteId: "mode",
     organism: { ...DEFAULT_ORGANISM_SETTINGS },
   },
@@ -456,6 +461,7 @@ export const useLab = create<LabState>((set) => ({
           morphMode: snapshot.morphMode ?? s.settings.morphMode,
           attachMode: snapshot.attachMode ?? s.settings.attachMode,
           paletteMode: snapshot.paletteMode,
+          colorSource: snapshot.colorSource === "privacy" ? "privacy" : "category",
           layoutPreset: snapshot.layoutPreset,
           annotationMode: snapshot.annotationMode,
           annotationDetail: {

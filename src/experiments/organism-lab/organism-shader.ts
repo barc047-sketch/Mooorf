@@ -27,6 +27,7 @@ uniform vec2 uResolution;
 uniform int uCount;
 /* xy = position (field units), z = radius, w = signed strength */
 uniform vec4 uNuclei[MAX_NUCLEI];
+uniform vec3 uNucleusColors[MAX_NUCLEI];
 
 uniform float uMass;
 uniform float uIso;
@@ -73,6 +74,26 @@ float fieldAt(vec2 p) {
   return clamp(f * uMass, -24.0, 48.0);
 }
 
+vec3 spatialColorAt(vec2 p, out float totalWeight) {
+  vec3 accumulated = vec3(0.0);
+  totalWeight = 0.0;
+  for (int i = 0; i < MAX_NUCLEI; i++) {
+    if (i >= uCount) break;
+    vec4 n = uNuclei[i];
+    if (n.w <= 0.0) continue;
+    vec2 d = p - n.xy;
+    float r2 = n.z * n.z;
+    float d2 = dot(d, d) + KEPS * r2;
+    float core = r2 / d2;
+    float tail = n.z * inversesqrt(d2);
+    float weight = n.w * (pow(core, max(uTension * 0.78, 0.45)) + uBias * 0.18 * tail);
+    weight = clamp(weight, 0.0, 18.0);
+    accumulated += uNucleusColors[i] * weight;
+    totalWeight += weight;
+  }
+  return totalWeight > 0.0001 ? accumulated / totalWeight : uBodyColor;
+}
+
 void main() {
   vec2 p = (gl_FragCoord.xy - 0.5 * uResolution) / (0.5 * min(uResolution.x, uResolution.y));
   float f = fieldAt(p);
@@ -95,11 +116,14 @@ void main() {
   float colorMix = clamp(uColorMix, 0.0, 1.0);
   vec3 bodyMix = mix(uBodyColor, uBodyColorB, colorMix * (0.28 * screenBlend + 0.72 * depth));
   bodyMix = mix(bodyMix, uAccentColor, colorMix * edge * 0.22);
+  float spatialWeight = 0.0;
+  vec3 spatialColor = spatialColorAt(p, spatialWeight);
+  float spatialDominance = spatialWeight > 0.0001 ? 0.88 : 0.0;
+  bodyMix = mix(bodyMix, spatialColor, spatialDominance);
   vec3 col = mix(uBgColor, bodyMix, organism);
 
   /* nuclei rendered as embedded reverse-tone dots (skipped for void nuclei) */
   if (uNucleusDots > 0.001) {
-    float dots = 0.0;
     for (int i = 0; i < MAX_NUCLEI; i++) {
       if (i >= uCount) break;
       vec4 n = uNuclei[i];
@@ -107,10 +131,9 @@ void main() {
       float dN = length(p - n.xy);
       float rr = n.z * 0.34;
       float w = max(fwidth(dN) * 1.2, 0.0035);
-      dots = max(dots, 1.0 - smoothstep(rr - w, rr + w, dN));
+      float dot = 1.0 - smoothstep(rr - w, rr + w, dN);
+      col = mix(col, uNucleusColors[i], dot * uNucleusDots * 0.92);
     }
-    vec3 dotCol = mix(bodyMix, uBgColor, organism);
-    col = mix(col, dotCol, dots * uNucleusDots * 0.9);
   }
 
   if (uFieldDebug > 0.5) {
@@ -148,6 +171,8 @@ export interface OrganismRenderFrame {
   count: number;
   /** packed [x, y, r, signedStrength] × MAX_NUCLEI */
   nuclei: Float32Array;
+  /** packed [r, g, b] × MAX_NUCLEI; void entries are zero */
+  nucleusColors: Float32Array;
   mass: number;
   iso: number;
   softness: number;
@@ -178,6 +203,7 @@ const UNIFORM_NAMES = [
   "uResolution",
   "uCount",
   "uNuclei[0]",
+  "uNucleusColors[0]",
   "uMass",
   "uIso",
   "uSoftness",
@@ -273,6 +299,7 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform2f(loc["uResolution"] ?? null, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.uniform1i(loc["uCount"] ?? null, Math.min(frame.count, MAX_NUCLEI));
       gl.uniform4fv(loc["uNuclei[0]"] ?? null, frame.nuclei);
+      gl.uniform3fv(loc["uNucleusColors[0]"] ?? null, frame.nucleusColors);
       gl.uniform1f(loc["uMass"] ?? null, frame.mass);
       gl.uniform1f(loc["uIso"] ?? null, frame.iso);
       gl.uniform1f(loc["uSoftness"] ?? null, frame.softness);

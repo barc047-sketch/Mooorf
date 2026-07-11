@@ -1,4 +1,4 @@
-import type { Camera, PaletteMode, SpaceCell } from "../types";
+import type { Camera, ColorSource, PaletteMode, SpaceCell } from "../types";
 import { areaToRadius } from "../lib/geometry";
 import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { drawBlobLayer, type BlobBody } from "./blob";
@@ -13,6 +13,7 @@ export interface BlobSettings {
   attachMode: AttachMode;
   paletteMode: PaletteMode;
   nucleusPaletteId: string;
+  colorSource: ColorSource;
 }
 
 export interface Tokens {
@@ -139,7 +140,7 @@ export function drawScene(
 
     const r = areaToRadius(c.area) * z * spawn * (lifted ? 1.03 : 1);
     if (r <= 0 || sx < -r - 60 || sx > w + r + 60 || sy < -r - 60 || sy > h + r + 60) continue;
-    const mappedColor = getNucleusColor(c, blob.paletteMode, areaRange, blob.nucleusPaletteId);
+    const mappedColor = getNucleusColor(c, blob.paletteMode, areaRange, blob.nucleusPaletteId, blob.colorSource);
     const isVoid = c.kind === "void";
 
     ctx.globalAlpha = Math.min(1, Math.max(0, spawn));

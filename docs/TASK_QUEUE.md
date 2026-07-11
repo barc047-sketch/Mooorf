@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] V8.1 Spatial Colour Field + Minimal Direct Editing
 - [x] Tooling: compact audit stack (impact/dependency/dead-code/performance/summary contracts)
 - [x] V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 - [x] V6K Premium Visual System + Full Control Migration

@@ -99,6 +99,13 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 
 ## Shell Components
 
+### InlineCellEditor
+
+- File: `src/canvas/InlineCellEditor.tsx`
+- Role: the only canvas Name/Area edit surface for Organism and Classic; Enter/outside commits once, Escape cancels, Tab stays inside the form.
+- Reuse: renderer views supply only the selected space and screen-clamped anchor position.
+- Do not duplicate: renderer-specific forms, save buttons, command menus, or edit state in the product store.
+
 ### `Dock`
 
 - File: `src/ui/Dock.tsx`

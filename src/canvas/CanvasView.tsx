@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLab } from "../state/store";
 import { hitTest, clamp } from "../lib/geometry";
 import { drawScene, readTokens, SPAWN_MS, type DragOverride } from "./renderer";
 import { registerCanvasCapture } from "./exportCapture";
+import InlineCellEditor, { type InlineEditorPosition } from "./InlineCellEditor";
+import { CELL_DRAG_THRESHOLD_PX, createCellActivationState, registerCellActivation } from "./cellActivation";
 import "./canvas.css";
 
 const DPR_MAX = 2;
@@ -15,6 +17,8 @@ const DRAG_COMMIT_MS = 90; // throttled mid-drag store commits (table liveness)
 export default function CanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [editorTarget, setEditorTarget] = useState<{ id: string; position: InlineEditorPosition } | null>(null);
+  const spacesForEditor = useLab((state) => state.spaces);
 
   useEffect(() => {
     const host = hostRef.current!;
@@ -118,7 +122,10 @@ export default function CanvasView() {
     };
 
     // ---- pointer: drag cell vs pan (decided once at pointerdown) ----
-    let mode: "none" | "drag" | "pan" = "none";
+    let mode: "none" | "press" | "drag" | "pan" = "none";
+    const activation = createCellActivationState();
+    let pressSX = 0;
+    let pressSY = 0;
     let grabDX = 0;
     let grabDY = 0;
     let panSX = 0;
@@ -145,7 +152,9 @@ export default function CanvasView() {
         // synthetic/stale pointerId — gesture still works without capture
       }
       if (hit) {
-        mode = "drag";
+        mode = "press";
+        pressSX = sx;
+        pressSY = sy;
         drag = { id: hit.id, x: hit.x, y: hit.y };
         grabDX = hit.x - p.x;
         grabDY = hit.y - p.y;
@@ -166,6 +175,10 @@ export default function CanvasView() {
     const onMove = (e: PointerEvent) => {
       if (mode === "none") return;
       const { sx, sy } = local(e);
+      if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
+        mode = "drag";
+        setEditorTarget(null);
+      }
       if (mode === "drag" && drag) {
         const p = toWorld(sx, sy);
         drag.x = p.x + grabDX;
@@ -182,9 +195,16 @@ export default function CanvasView() {
       dirty = true;
     };
 
-    const onUp = () => {
-      if (mode === "drag" && drag) {
+    const onUp = (e: PointerEvent) => {
+      const { sx, sy } = local(e);
+      if (mode === "press" && drag) {
+        if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
+          setEditorTarget({ id: drag.id, position: { x: sx + 14, y: sy + 18 } });
+        }
+        drag = null;
+      } else if (mode === "drag" && drag) {
         useLab.getState().moveSpace(drag.id, drag.x, drag.y);
+        registerCellActivation(activation, drag.id, sx, sy, performance.now(), true);
         drag = null;
       } else if (mode === "pan") {
         commitCamera();
@@ -270,6 +290,10 @@ export default function CanvasView() {
   return (
     <div ref={hostRef} className="canvas-host">
       <canvas ref={canvasRef} data-testid="space-canvas" />
+      {editorTarget && (() => {
+        const space = spacesForEditor.find((candidate) => candidate.id === editorTarget.id);
+        return space ? <InlineCellEditor space={space} position={editorTarget.position} onClose={() => setEditorTarget(null)} /> : null;
+      })()}
     </div>
   );
 }

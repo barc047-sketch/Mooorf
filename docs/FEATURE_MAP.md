@@ -13,7 +13,7 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 
 ## Organism Shader
 
-- Purpose: WebGL2 implicit-field renderer for production organism canvas and lab route.
+- Purpose: WebGL2 implicit-field renderer with one-pass per-nucleus spatial color weighting for production organism canvas and lab route.
 - Main files: `src/experiments/organism-lab/organism-shader.ts`, `src/experiments/organism-lab/organism-types.ts`, `src/canvas/OrganismCanvasView.tsx`.
 - Related docs: `docs/ORGANISM_ENGINE_LIMITS.md`, `docs/HANDOFF.md`.
 - Risk: high; build can pass while visual behavior regresses.
@@ -27,10 +27,16 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 
 ## Palette Mapping
 
-- Purpose: category/privacy/area-informed color language for nuclei and organism.
+- Purpose: canonical Category/Privacy color source, Editorial Aurora categorical swatches, and shared nucleus/organism/export color language.
 - Main files: `src/design/palettes.ts`, `src/design/colorMapping.ts`, `src/canvas/OrganismCanvasView.tsx`, `src/canvas/organismAdapter.ts`, `src/views/TableView.tsx`.
 - Related docs: `docs/PALETTE_SYSTEM_SPEC.md`, `docs/DESIGN_UI_UPGRADE_V6K.md`.
 - Risk: medium; avoid rainbow/random color drift.
+
+## Direct Cell Editing (V8.1)
+
+- Purpose: single activation selects without geometry changes; deliberate double activation opens one shared Name/Area editor for both renderers.
+- Main files: `src/canvas/InlineCellEditor.tsx`, `src/canvas/cellActivation.ts`, `src/canvas/CanvasView.tsx`, `src/canvas/OrganismCanvasView.tsx`.
+- Risk: high for drag-vs-double-tap arbitration and duplicate commit races.
 
 ## Saved Views
 

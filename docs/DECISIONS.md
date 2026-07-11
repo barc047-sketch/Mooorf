@@ -353,3 +353,9 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
   title, and metadata toggles are export-run-scoped preferences, not project
   data — consistent with the existing rule that ephemeral UI state never
   enters the master graph/store or saved-view snapshot.
+# V8.1 — Spatial color and direct editing ownership
+
+- `settings.colorSource` is the one persisted Category/Privacy switch and migrates missing legacy values to `category`.
+- `getNucleusColor` remains the canonical explicit override → source mapping → deterministic fallback resolver across renderers, labels, table, and exports.
+- WebGL receives a reused `MAX_NUCLEI * 3` RGB buffer; positive nucleus influence weights spatial color in the existing one-draw fragment pass, while void RGB entries remain zero.
+- Selection never enters radius, strength, position, camera, or membrane geometry. One shared `InlineCellEditor` replaces automatic metadata and command UI in both renderers.

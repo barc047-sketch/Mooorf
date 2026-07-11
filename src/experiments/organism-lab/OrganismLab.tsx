@@ -153,9 +153,11 @@ export default function OrganismLab() {
     rendererRef.current = renderer;
 
     const buf = new Float32Array(MAX_NUCLEI * 4);
+    const colorBuf = new Float32Array(MAX_NUCLEI * 3);
     const frame: OrganismRenderFrame = {
       count: 0,
       nuclei: buf,
+      nucleusColors: colorBuf,
       mass: 1,
       iso: 1,
       softness: 0.06,
@@ -255,6 +257,14 @@ export default function OrganismLab() {
       frame.colorMix = smooth.colorMix;
       frame.fieldDebug = p.showFieldDebug;
       frame.nucleiDebug = p.showNucleiDebug;
+
+      colorBuf.fill(0);
+      for (let i = 0; i < frame.count; i += 1) {
+        if (buf[i * 4 + 3] <= 0) continue;
+        colorBuf[i * 3] = smooth.body[0];
+        colorBuf[i * 3 + 1] = smooth.body[1];
+        colorBuf[i * 3 + 2] = smooth.body[2];
+      }
 
       renderer.render(frame);
     };

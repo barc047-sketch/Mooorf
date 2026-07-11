@@ -3,6 +3,7 @@ import type {
   AnnotationMode,
   AttachMode,
   Camera,
+  ColorSource,
   LayoutPresetId,
   MorphMode,
   OrganismSettings,
@@ -24,6 +25,7 @@ export interface ProjectExportSettings {
   mergeDistance: number;
   blobOn: boolean;
   paletteMode: PaletteMode;
+  colorSource: ColorSource;
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
   annotationDetail: AnnotationDetail;

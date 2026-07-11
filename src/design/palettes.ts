@@ -56,6 +56,13 @@ export const NUCLEUS_PALETTE_AUTO_ID = "auto";
 
 export const NUCLEUS_PALETTES: readonly NucleusPalette[] = [
   {
+    id: "editorial-aurora",
+    group: "editorial",
+    label: "Editorial Aurora",
+    use: "Soft lavender, blush, peach, sand, and restrained gold categorical field.",
+    shades: ["#E0D0F3", "#DEC1EF", "#CBAFD4", "#F5DECD", "#F3CFB6", "#E1BC92", "#EFC981", "#D3B7C1", "#342D2B"],
+  },
+  {
     id: "black-bone",
     group: "core",
     label: "Black Bone",

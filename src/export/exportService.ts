@@ -31,6 +31,7 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
     mergeDistance: s.mergeDistance,
     blobOn: s.blobOn,
     paletteMode: s.paletteMode,
+    colorSource: s.colorSource,
     layoutPreset: s.layoutPreset,
     annotationMode: s.annotationMode,
     annotationDetail: { ...s.annotationDetail },
@@ -80,6 +81,7 @@ export const exportSvg = async (project: string): Promise<void> => {
     cssHeight,
     paletteMode: state.settings.paletteMode,
     nucleusPaletteId: state.settings.nucleusPaletteId,
+    colorSource: state.settings.colorSource,
     background: (cs.getPropertyValue("--bg").trim() || "#ffffff"),
     includeLabels: true,
     paddingPx: 0,
@@ -173,6 +175,7 @@ export const buildPresentationPack = async (
     project,
     files: files.map((f) => f.name),
     renderer: state.settings.rendererMode,
+    colorSource: state.settings.colorSource,
     dimensions: { width: composite.width, height: composite.height },
     visual,
     summary: {

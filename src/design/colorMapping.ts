@@ -1,4 +1,4 @@
-import type { PaletteMode, Privacy, SpaceCell, Theme } from "../types";
+import type { ColorSource, PaletteMode, Privacy, SpaceCell, Theme } from "../types";
 import {
   getNucleusPalette,
   getOrganismPaletteChoice,
@@ -49,6 +49,11 @@ const NIGHT = "#070707";
 const WINE = "#8f1424";
 const VOID_FILL = "#070707";
 const VOID_RING = "#8c877e";
+export const PRIVACY_COLORS: Record<Privacy, string> = {
+  public: "#e0d0f3",
+  shared: "#f5decd",
+  private: "#e2b36b",
+};
 
 export const CATEGORY_TOKENS: readonly CategoryToken[] = [
   {
@@ -301,7 +306,8 @@ export function getNucleusColor(
     Partial<Pick<SpaceCell, "id" | "color">>,
   paletteMode: PaletteMode,
   range?: AreaRange,
-  nucleusPaletteId?: string
+  nucleusPaletteId?: string,
+  colorSource: ColorSource = "category"
 ): NucleusColor {
   const explicit = canonicalHex(space.color);
   const token = getCategoryToken(space.category);
@@ -319,20 +325,33 @@ export function getNucleusColor(
       areaDepth: areaT,
     };
   }
-  const mapped = getCategoryColor(space.category, space.privacy, space.area, paletteMode, range, nucleusPaletteId);
-  if (space.category.trim() || !nucleusPaletteId || nucleusPaletteId === NUCLEUS_PALETTE_AUTO_ID) {
-    return mapped;
+  if (colorSource === "privacy") {
+    return nucleusColorFromFill(PRIVACY_COLORS[space.privacy], token, areaT);
   }
-  const ramp = getNucleusPalette(nucleusPaletteId);
-  if (!ramp) return mapped;
-  const assigned = ramp.shades[stableIndex(space.id ?? "", ramp.shades.length)];
-  return nucleusColorFromFill(mixHex(mapped.fill, assigned, 0.72), mapped.token, mapped.areaDepth);
+  const mapped = getCategoryColor(space.category, space.privacy, space.area, paletteMode, range, nucleusPaletteId);
+  const ramp = nucleusPaletteId ? getNucleusPalette(nucleusPaletteId) : null;
+  const normalized = normalizeCategory(space.category);
+  const uncategorized = !normalized || normalized === "uncategorized" || normalized === "unknown" || normalized === "other";
+  if (ramp) {
+    const tokenIndex = token.id === "uncategorized"
+      ? -1
+      : CATEGORY_TOKENS.findIndex((candidate) => candidate.id === token.id);
+    const index = tokenIndex >= 0
+      ? tokenIndex % ramp.shades.length
+      : stableIndex(uncategorized ? `id:${space.id ?? ""}` : `category:${normalized}`, ramp.shades.length);
+    return nucleusColorFromFill(ramp.shades[index].toLowerCase(), token, areaT);
+  }
+  if (!uncategorized) return mapped;
+  const fallback = CATEGORY_TOKENS.filter((candidate) => candidate.id !== "uncategorized");
+  const assigned = fallback[stableIndex(space.id ?? "", fallback.length)]?.base ?? mapped.fill;
+  return nucleusColorFromFill(assigned, token, areaT);
 }
 
 interface OrganismColorContext {
   spaces: readonly SpaceCell[];
   areaRange?: AreaRange;
   nucleusPaletteId?: string;
+  colorSource?: ColorSource;
 }
 
 const colorAverage = (colors: readonly string[]): string => {
@@ -358,7 +377,7 @@ function programAccent(
     .filter((space) => !isVoidSpace(space))
     .slice(0, 24)
     .map((space) =>
-      getNucleusColor(space, paletteMode, context.areaRange, context.nucleusPaletteId).fill
+      getNucleusColor(space, paletteMode, context.areaRange, context.nucleusPaletteId, context.colorSource).fill
     );
   return colors.length ? colorAverage(colors) : WINE;
 }

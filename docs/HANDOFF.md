@@ -1,5 +1,12 @@
 # Handoff
 
+## V8.1 — Spatial Colour Field + Minimal Direct Editing
+
+- Added exact Editorial Aurora swatches and made it the default colorful nucleus palette; `settings.colorSource` persistently selects deterministic Category or exact-family Privacy mapping across saved views, project/config JSON, manifests, table, both renderers, and SVG.
+- The one-pass WebGL shader now blends a reused per-nucleus RGB buffer with the same bounded influence family as geometry. Positive nuclei own color; void entries are zero; stable ID maps smooth palette changes without reordering swaps.
+- Removed selection strength multipliers and automatic metadata/menu markup. Single activation selects only; a 6px movement threshold preserves drag; deliberate double click/tap opens the shared, screen-clamped Name/Area `InlineCellEditor`.
+- Enter/outside commits one normalized update, Escape cancels, and Tab does not commit. Canvas/editor chrome remains excluded from PNG/PDF/pack captures; Classic SVG uses the same source-aware cell colors.
+
 ## Tooling — Compact Audit Stack
 
 - Added isolated `audit:impact`, `audit:deps`, `audit:dead`, `audit:perf`, `audit:summary`, and `audit:test` commands. Each writes compact machine-readable artifacts under ignored `.audit/`; the summary is capped at 120 Markdown lines.

@@ -1,4 +1,4 @@
-import type { RendererMode } from "../types";
+import type { ColorSource, RendererMode } from "../types";
 import { MANIFEST_SCHEMA_VERSION, type ExportVisualOptions } from "./types";
 
 export interface PresentationManifest {
@@ -7,6 +7,7 @@ export interface PresentationManifest {
   createdAt: string;
   files: string[];
   renderer: RendererMode;
+  colorSource: ColorSource;
   dimensions: { width: number; height: number };
   visual: ExportVisualOptions;
   summary: { spaceCount: number; voidCount: number; programmedAreaM2: number };
@@ -16,6 +17,7 @@ export interface ManifestInput {
   project: string;
   files: string[];
   renderer: RendererMode;
+  colorSource: ColorSource;
   dimensions: { width: number; height: number };
   visual: ExportVisualOptions;
   summary: { spaceCount: number; voidCount: number; programmedAreaM2: number };
@@ -29,6 +31,7 @@ export const buildManifest = (input: ManifestInput, now: Date = new Date()): Pre
   createdAt: now.toISOString(),
   files: [...input.files],
   renderer: input.renderer,
+  colorSource: input.colorSource,
   dimensions: { ...input.dimensions },
   visual: { ...input.visual },
   summary: { ...input.summary },

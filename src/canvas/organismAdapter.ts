@@ -1,4 +1,4 @@
-import type { Camera, PaletteMode, Privacy, SpaceCell } from "../types";
+import type { Camera, ColorSource, PaletteMode, Privacy, SpaceCell } from "../types";
 import { areaToRadius, clamp } from "../lib/geometry";
 import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { MAX_NUCLEI } from "../experiments/organism-lab/organism-types";
@@ -173,12 +173,13 @@ export function spacesToNuclei(
   camera: Camera,
   width: number,
   height: number,
-  selectedId: string | null,
+  _selectedId: string | null,
   drag?: DragPosition | null,
   opts: OrganismAdapterOptions = DEFAULT_ADAPTER_OPTIONS,
   motion?: OrganismMotionState,
   paletteMode: PaletteMode = "core",
-  nucleusPaletteId?: string
+  nucleusPaletteId?: string,
+  colorSource: ColorSource = "category"
 ): ProductionNucleus[] {
   const halfMin = Math.max(1, Math.min(width, height) / 2);
   const visible = spaces.slice(0, MAX_NUCLEI);
@@ -258,7 +259,7 @@ export function spacesToNuclei(
 
   /* — 3. camera map + idle motion + field offsets — */
   return eff.map(({ space, x, y, r }) => {
-    const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId);
+    const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
     const isVoid = space.kind === "void";
     let wx = x;
     let wy = y;
@@ -313,10 +314,8 @@ export function spacesToNuclei(
       fy,
       r: rf,
       strength: isVoid
-        ? -0.86 * (space.id === selectedId ? 1.08 : 1) * opts.nucleusStrength
-        : privacyStrength[space.privacy] *
-          (space.id === selectedId ? 1.16 : 1) *
-          opts.nucleusStrength,
+        ? -0.86 * opts.nucleusStrength
+        : privacyStrength[space.privacy] * opts.nucleusStrength,
       sx: screen.sx,
       sy: screen.sy,
       screenR: rf * halfMin,
