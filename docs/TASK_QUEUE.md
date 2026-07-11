@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] Tooling: compact audit stack (impact/dependency/dead-code/performance/summary contracts)
 - [x] V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 - [x] V6K Premium Visual System + Full Control Migration
 - [x] V6L Multi-Color Organism Shader + Negative Nuclei
@@ -20,6 +21,14 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## Tooling — Compact Audit Stack  ✅ COMPLETE
+- [x] compact impact grouping with safe base-revision validation
+- [x] dependency-cruiser circular/orphan capture and Knip production dead-code capture
+- [x] production entry-size budget capture from the final Vite build
+- [x] JSON artifacts plus Markdown summary capped at 120 lines
+- [x] focused tooling contracts, one production build, and `git diff --check` green
+- [x] exhaustive findings/regression/deployment/performance/security audit handed to Antigravity
 
 ## V7.3 — File Intake + Canvas Interaction System  ✅ COMPLETE
 - [x] selection orbit/arc, halo/influence state/control/CSS/export marks removed; moving keyline + metadata/edit preserved

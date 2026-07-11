@@ -1,5 +1,12 @@
 # Handoff
 
+## Tooling — Compact Audit Stack
+
+- Added isolated `audit:impact`, `audit:deps`, `audit:dead`, `audit:perf`, `audit:summary`, and `audit:test` commands. Each writes compact machine-readable artifacts under ignored `.audit/`; the summary is capped at 120 Markdown lines.
+- Dependency analysis uses dependency-cruiser with circular/orphan rules; dead-code analysis uses Knip production mode; performance checks the built entry asset against a documented 900 kB review budget. Audit findings are captured for review rather than mutating product code.
+- Tooling contracts pass (4/4), production build passes with the known chunk warning, entry asset is 845.2 kB, `git diff --check` passes, and the compact summary reports four existing orphan candidates for Antigravity review.
+- No product runtime, canvas, graph, store, import/export, or browser behavior changed. Antigravity owns exhaustive branch audit and broad regression QA.
+
 ## V7.3 — File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 - **Selection:** removed the organism SVG orbit/arc, halo/influence modes, Classic outer selection ring/tick, related store/snapshot state, controls, export filter target, CSS, and active documentation. Selection now uses the existing subtle moving keyline plus metadata/command/edit surface; Classic uses only an on-body boundary keyline. No removed arc appears in exports.
