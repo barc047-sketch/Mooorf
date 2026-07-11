@@ -26,6 +26,6 @@ const report = {
   nextCommand: "Antigravity audit the pushed tooling branch",
 };
 mkdirSync(AUDIT_DIR, { recursive: true });
-writeFileSync(new URL("summary.json", AUDIT_DIR), `${JSON.stringify(report, null, 2)}\n`);
-writeFileSync(new URL("summary.md", AUDIT_DIR), renderMarkdown(report));
-console.log(`audit:summary OK — ${checks.length} checks, ${report.failures.length} review items, .audit/summary.md`);
+writeFileSync(new URL("AUDIT_SUMMARY.json", AUDIT_DIR), `${JSON.stringify(report, null, 2)}\n`);
+writeFileSync(new URL("AUDIT_SUMMARY.md", AUDIT_DIR), renderMarkdown(report));
+console.log(`audit:summary OK — ${checks.length} checks, ${report.failures.length} review items, .audit/AUDIT_SUMMARY.md`);
