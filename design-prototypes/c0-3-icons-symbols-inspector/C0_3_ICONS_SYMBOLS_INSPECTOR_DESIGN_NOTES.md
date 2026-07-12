@@ -15,7 +15,8 @@ This document captures the visual, structural, and behavioral design decisions i
 ### Browsing & Search Flow
 1. **Search Input:** Typing in the search bar dynamically filters the icon library grid using name and tags.
 2. **Category Chips:** Horizontally scrollable chips (All, Architecture, Landscape, Diagram, Annotation, Navigation, Custom, Recent, Favourites) allow quick set narrowing.
-3. **Favourites & Recents:** Quick lists populate based on user interactions.
+3. **Recents:** Applying an icon promotes it to the front of the Recent set (newest-first, capped at 8). The Recent chip renders in true recency order, not library order.
+4. **Favourites:** Right-click on any library card toggles it as a favourite (the V1 material-shelf convention). Favourited cards carry a small `--chrome-accent` corner dot — a non-colour-only signal that also survives day/night.
 
 ### Hover Preview & Applying Flow
 1. **Hover Preview:** Moving the pointer over any icon in the library grid temporarily previews that icon on the selected cell(s) in real-time.
@@ -46,5 +47,13 @@ From top to bottom:
 
 - **None:** The icon path is rendered directly over the cell fill color. Useful for dark cells or high-contrast icons.
 - **Circle (Default):** A solid white circular shield is placed behind the icon. This ensures that the icon remains perfectly readable regardless of the cell's background color or texture.
-- **Auto Contrast Circle:** In day mode, the backing circle is white. In night mode, the backing circle shifts to dark gallery ink (`#222222`), maintaining high contrast with night-themed background states.
+- **Auto Contrast Circle:** In day mode, the backing circle is white. In night mode, the backing circle shifts to dark gallery ink (`#222222`), maintaining high contrast with night-themed background states. Verified live: switching night mode with an override cell selected renders the backing at `rgb(34,34,34)`.
 - **Boundary Outline:** A thin outline surrounding the backing circle. The thickness can be adjusted dynamically via a slider (0.5px to 3.0px), mirroring industrial draft layouts.
+- **Backing Offset X/Y:** The backing can be nudged ±24px independently of the icon glyph (both still ride the shared anchor), so a glyph can sit asymmetrically on its shield without detaching from it.
+
+## 3b. Placement engine
+
+- **Anchor presets** (Centre / Above / Below / Top-Left / Top-Right) resolve to a base offset from the cell centre, scaled from the live cell radius (72% of radius for cardinal anchors), so anchors track cell size.
+- **Custom Offset X/Y** adds on top of the anchor base; **Scale/Rotation/Opacity/Tint** compose in the same transform.
+- **Label clearance:** at the Centre anchor the cell label translates below the backing (`--label-shift` = backing radius × scale + 10px) so text never strikes through the glyph. Other anchors leave the label centred. Stacking order is unchanged.
+- **Drag:** cells drag freely with no implicit snap (matching V8.2C0 production drag); the applied icon and backing travel with the cell because they are children of the cell element.

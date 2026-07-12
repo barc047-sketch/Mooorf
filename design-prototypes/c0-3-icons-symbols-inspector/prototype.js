@@ -21,6 +21,8 @@
       backingType: "circle",
       backingSize: 32,
       backingOpacity: 100,
+      backingOffsetX: 0,
+      backingOffsetY: 0,
       backingBoundary: true,
       boundaryWidth: 10,
       hideZoom: 45,
@@ -46,6 +48,8 @@
           backingType: "circle",
           backingSize: 36,
           backingOpacity: 100,
+          backingOffsetX: 0,
+          backingOffsetY: 0,
           backingBoundary: true,
           boundaryWidth: 15,
           hideZoom: 45,
@@ -140,6 +144,8 @@
     optBackingType: document.getElementById("opt-backing-type"),
     optBackingSize: document.getElementById("opt-backing-size"),
     optBackingOpacity: document.getElementById("opt-backing-opacity"),
+    optBackingOffsetX: document.getElementById("opt-backing-offset-x"),
+    optBackingOffsetY: document.getElementById("opt-backing-offset-y"),
     optBackingBoundary: document.getElementById("opt-backing-boundary"),
     optBoundaryWidth: document.getElementById("opt-boundary-width"),
     optDefaultsToggle: document.getElementById("opt-defaults-toggle"),
@@ -154,6 +160,8 @@
     valOpacity: document.getElementById("val-opacity"),
     valBackingSize: document.getElementById("val-backing-size"),
     valBackingOpacity: document.getElementById("val-backing-opacity"),
+    valBackingOffsetX: document.getElementById("val-backing-offset-x"),
+    valBackingOffsetY: document.getElementById("val-backing-offset-y"),
     valBackingBoundary: document.getElementById("val-backing-boundary"),
     valBoundaryWidth: document.getElementById("val-boundary-width"),
     valHideZoom: document.getElementById("val-hide-zoom"),
@@ -305,16 +313,8 @@
         if (!isDragging) return;
         isDragging = false;
         cell.releasePointerCapture(e.pointerId);
-        
-        // Final position snap (V1 matching logic)
-        const snap = S.projectDefaults.backingBoundary; // snap trigger check
-        if (snap) {
-          const step = 28; // spacing multiple
-          const x = parseInt(cell.style.left) || 0;
-          const y = parseInt(cell.style.top) || 0;
-          cell.style.left = `${Math.round(x / step) * step}px`;
-          cell.style.top = `${Math.round(y / step) * step}px`;
-        }
+        // Free placement on release — production V8.2C0 drag has no
+        // implicit grid snap; the applied icon travels with its cell.
       });
     });
   }
@@ -351,13 +351,13 @@
       D.removeBtn.disabled = true;
       D.optDefaultsToggle.disabled = true;
     } else if (count === 1) {
+      D.selBadge.textContent = "Selection";
       const id = Array.from(S.selected)[0];
       const data = S.cellsData[id];
-      D.selBadge.textContent = `Space: ${data.name}`;
       D.removeBtn.disabled = !data.iconId;
       D.optDefaultsToggle.disabled = false;
     } else {
-      D.selBadge.textContent = `${count} Cells Selected`;
+      D.selBadge.textContent = `${count} Cells`;
       D.removeBtn.disabled = false;
       D.optDefaultsToggle.disabled = false;
     }
@@ -372,11 +372,11 @@
     
     let filtered = GLYPHS;
     
-    // Category filter
+    // Category filter — recents keep true newest-first insertion order
     if (category === "recent") {
-      filtered = GLYPHS.filter(g => recents.has(g.id));
+      filtered = [...recents].map(id => GLYPHS.find(g => g.id === id)).filter(Boolean);
     } else if (category === "favourites") {
-      filtered = GLYPHS.filter(g => favourites.has(g.id));
+      filtered = [...favourites].map(id => GLYPHS.find(g => g.id === id)).filter(Boolean);
     } else if (category !== "all") {
       filtered = GLYPHS.filter(g => g.cat === category);
     }
@@ -396,8 +396,8 @@
       const item = document.createElement("div");
       item.className = "ic-item";
       item.dataset.glyphId = glyph.id;
-      item.setAttribute("data-tip", `${glyph.name} Glyph`);
-      
+      item.setAttribute("data-tip", `${glyph.name} · right-click to favourite`);
+
       // Retrieve path fromdefs
       item.innerHTML = `
         <svg><use href="#${glyph.id}"/></svg>
@@ -409,11 +409,28 @@
       if (appliedIconId === glyph.id) {
         item.classList.add("active");
       }
+      if (favourites.has(glyph.id)) {
+        item.classList.add("fav");
+      }
 
       // Bind events for hover preview & click apply
       item.addEventListener("pointerenter", () => triggerHoverPreview(glyph.id));
       item.addEventListener("pointerleave", () => cancelHoverPreview());
       item.addEventListener("click", () => applyIconToSelection(glyph.id));
+
+      // Right-click toggles favourite (V1 material-shelf convention)
+      item.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        if (favourites.has(glyph.id)) {
+          favourites.delete(glyph.id);
+          toast(`Removed ${glyph.name} from favourites`);
+        } else {
+          favourites.add(glyph.id);
+          toast(`Added ${glyph.name} to favourites`);
+        }
+        const activeCat = document.querySelector(".set-chip.active").dataset.cat;
+        renderGrid(activeCat, D.icSearch.value);
+      });
 
       D.icGrid.appendChild(item);
     });
@@ -486,14 +503,20 @@
     S.selected.forEach(cellId => {
       const data = S.cellsData[cellId];
       data.iconId = glyphId;
-      
+
       // Initialize local configuration if overrides active
       if (!data.localConfig) {
         data.localConfig = Object.assign({}, S.projectDefaults);
       }
-      
+
       renderCellIcon(cellId, glyphId);
     });
+
+    // Recents populate from real use: newest first, capped at 8.
+    recents.delete(glyphId);
+    const recentList = [glyphId, ...recents];
+    recents.clear();
+    recentList.slice(0, 8).forEach(id => recents.add(id));
 
     toast(`Applied icon: ${glyphId.replace("a-", "").replace("l-", "").replace("d-", "").replace("i-", "").toUpperCase()}`);
     updateInspectorState();
@@ -530,34 +553,57 @@
   function renderCellIcon(cellId, iconId, isPreview = false) {
     const wrap = document.getElementById(`${cellId}-icon`);
     if (!wrap) return;
-    
+
     wrap.innerHTML = "";
-    if (!iconId) return;
+    const hostCell = document.getElementById(cellId);
+    if (!iconId) {
+      if (hostCell) {
+        hostCell.classList.remove("has-icon");
+        hostCell.style.removeProperty("--label-shift");
+      }
+      return;
+    }
 
     const cellData = S.cellsData[cellId];
-    
+
     // Resolve configurations: local vs global default
     const config = cellData.useDefaults ? S.projectDefaults : (cellData.localConfig || S.projectDefaults);
-    
+
     const size = config.backingSize;
     const opacityVal = config.opacity / 100;
     const scaleVal = config.scale / 100;
     const rotationVal = config.rotation;
     const tintVal = config.tint;
-    
+
+    // Anchor preset → base offset from cell centre, before custom offsets.
+    // Cell radius comes from the live DOM so the anchor tracks cell size.
+    const cellEl = document.getElementById(cellId);
+    const radius = cellEl ? cellEl.offsetWidth / 2 : 50;
+    const edge = radius * 0.72; // keep anchored icons inside the boundary
+    const ANCHORS = {
+      "centre":    [0, 0],
+      "above":     [0, -edge],
+      "below":     [0, edge],
+      "top-left":  [-edge * 0.72, -edge * 0.72],
+      "top-right": [edge * 0.72, -edge * 0.72]
+    };
+    const [ax, ay] = ANCHORS[config.anchor] || ANCHORS.centre;
+    const tx = ax + config.offsetX;
+    const ty = ay + config.offsetY;
+
     // Create elements
     if (config.backingType !== "none") {
       const backing = document.createElement("div");
       backing.className = "icon-backing";
-      
+
       // Set dimensions & styling
       backing.style.width = `${size}px`;
       backing.style.height = `${size}px`;
-      
+
       const backColor = config.backingType === "auto" ? (S.theme === "night" ? "#222222" : "#ffffff") : "#ffffff";
       backing.style.backgroundColor = backColor;
-      backing.style.opacity = config.backingOpacity / 100;
-      
+      backing.style.opacity = (isPreview ? 0.5 : 1) * config.backingOpacity / 100;
+
       if (config.backingBoundary) {
         const borderCol = S.theme === "night" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)";
         backing.style.border = `${config.boundaryWidth / 10}px solid ${borderCol}`;
@@ -565,22 +611,23 @@
         backing.style.border = "none";
       }
 
+      // Backing follows the anchored icon position plus its own offset,
+      // and scales with the icon so the pair stays one visual unit.
+      backing.style.transform =
+        `translate(${tx + config.backingOffsetX}px, ${ty + config.backingOffsetY}px) scale(${scaleVal})`;
+
       wrap.appendChild(backing);
     }
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("class", "icon-svg");
     svg.innerHTML = `<use href="#${iconId}"/>`;
-    
+
     // Apply styling transforms
     svg.style.width = `${size * 0.65}px`;
     svg.style.height = `${size * 0.65}px`;
     svg.style.color = tintVal;
-    
-    // Custom offsets & transforms
-    const tx = config.offsetX;
-    const ty = config.offsetY;
-    
+
     let transformStr = `translate(${tx}px, ${ty}px) scale(${scaleVal}) rotate(${rotationVal}deg)`;
     svg.style.transform = transformStr;
     svg.style.opacity = isPreview ? 0.5 : opacityVal;
@@ -591,6 +638,16 @@
     }
 
     wrap.appendChild(svg);
+
+    // Centre-anchored icons push the label below the backing so text never
+    // strikes through the glyph; other anchors leave the label centred.
+    if (hostCell) {
+      hostCell.classList.add("has-icon");
+      const shift = config.anchor === "centre"
+        ? (size / 2) * scaleVal + 10 + ty
+        : 0;
+      hostCell.style.setProperty("--label-shift", `${shift}px`);
+    }
   }
 
   // --- INSPECTOR CONTROLS SYNCING ---
@@ -643,6 +700,14 @@
     bindSlider("opt-backing-opacity", val => {
       D.valBackingOpacity.textContent = `${val}%`;
       updateActiveConfig("backingOpacity", parseInt(val));
+    });
+    bindSlider("opt-backing-offset-x", val => {
+      D.valBackingOffsetX.textContent = `${val}px`;
+      updateActiveConfig("backingOffsetX", parseInt(val));
+    });
+    bindSlider("opt-backing-offset-y", val => {
+      D.valBackingOffsetY.textContent = `${val}px`;
+      updateActiveConfig("backingOffsetY", parseInt(val));
     });
     bindSlider("opt-boundary-width", val => {
       D.valBoundaryWidth.textContent = `${(val / 10).toFixed(1)}px`;
@@ -751,11 +816,12 @@
       
       D.optDefaultsToggle.classList.toggle("on", !isOverride);
     } else if (S.selected.size > 1) {
-      // Multiple selection defaults
+      // Multiple selection: controls unlock when any member holds overrides
       let allUseDefaults = true;
       S.selected.forEach(cellId => {
         if (!S.cellsData[cellId].useDefaults) allUseDefaults = false;
       });
+      isOverride = !allUseDefaults;
       D.optDefaultsToggle.classList.toggle("on", allUseDefaults);
     } else {
       D.optDefaultsToggle.classList.remove("on");
@@ -773,6 +839,8 @@
     setSliderValue("opt-opacity", D.valOpacity, `${config.opacity}%`, config.opacity);
     setSliderValue("opt-backing-size", D.valBackingSize, `${config.backingSize}px`, config.backingSize);
     setSliderValue("opt-backing-opacity", D.valBackingOpacity, `${config.backingOpacity}%`, config.backingOpacity);
+    setSliderValue("opt-backing-offset-x", D.valBackingOffsetX, `${config.backingOffsetX || 0}px`, config.backingOffsetX || 0);
+    setSliderValue("opt-backing-offset-y", D.valBackingOffsetY, `${config.backingOffsetY || 0}px`, config.backingOffsetY || 0);
     setSliderValue("opt-boundary-width", D.valBoundaryWidth, `${(config.boundaryWidth / 10).toFixed(1)}px`, config.boundaryWidth);
     setSliderValue("opt-hide-zoom", D.valHideZoom, `${(config.hideZoom / 100).toFixed(2)}x`, config.hideZoom);
 
