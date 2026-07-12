@@ -6,7 +6,8 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 - Antigravity: audit the pushed V8.2B resource-foundation branch
 - Claude: review visual prototypes before any Material Browser, circular shelf, Grid Shelf, Icon Library, Annotation Studio, or Tools UI
-- Interaction follow-ons remain deferred: marquee, iPad context gesture, and future tool actions
+- Antigravity: audit the pushed V8.2A.1 group-drag branch
+- Interaction follow-ons remain deferred: marquee, group scale/rotation, iPad context gesture, and future tool actions
 - Relationship Health / Floor Summary await live relationship/floor data
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
@@ -15,6 +16,8 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 ## Current Feature Complete
 
 - V8.2B Expandable Resource Registry Foundation: serializable materials/grid/annotation/icon registries; palette-preserving adapter; safe parameter/binding validation; resource catalogue; nested project/config/saved-view migration; export fallback/manifest metadata; no visual UI or packages
+
+- V8.2A.1 Multi-Selection Group Drag Foundation: shared initial-position delta contract across Classic/Organism; one coordinated preview and one undo/redo transaction per released group drag; relative positions and geometry/material inputs remain unchanged; transform tools remain deferred
 
 - V8.2A Interaction Foundation: canonical tool/context/multi-selection state; synchronized legacy selection; Base UI blank dropdown; empty-centre object radial; registry-driven Edit/Materials/Duplicate/Delete; shared root editor/context host; no packages or organism geometry changes
 

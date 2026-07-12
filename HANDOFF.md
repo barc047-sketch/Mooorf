@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- V8.2A.1 Multi-Selection Group Drag Foundation
 - V8.2B Expandable Resource Registry Foundation
 - V8.2A Interaction Foundation
 - V8.1 Spatial Colour Field + Minimal Direct Editing
@@ -58,7 +59,7 @@ Not started:
 
 V8.2B establishes immutable material/grid/annotation/icon registries and one read-only catalogue. Existing palettes are adapted into material collections while `getNucleusColor` remains the render authority. Project/config/saved-view persistence stores only resource IDs, sparse safe overrides, normalized grid settings, and future annotation/icon references; manifests record active resource metadata. No visual resource UI, renderer placement, package, or third-party asset was added pending Claude prototype review.
 
-V8.2A establishes the permanent interaction foundation without changing canvas geometry: one store-owned tool/context/multi-selection contract, one root context host, one action registry, and one tool registry. Blank right-click uses a conventional Base UI dropdown; object right-click uses eight individual circular actions around a transparent empty centre. Edit/Materials/Duplicate/Delete are wired through the existing editor/widget/store paths; future actions stay disabled. Marquee, iPad long-press/two-finger activation, material shelf, and the detailed Tools page remain deferred for later phases.
+V8.2A.1 extends that interaction foundation with one shared group-translation contract: the dragged primary object's original-anchor delta moves every valid selected member in Classic and Organism, preserving relative offsets and geometry/material invariants. The store previews one batch and commits one ephemeral undo/redo transform record on release; group scale/rotate/marquee remain deferred. V8.2A otherwise retains its store-owned tool/context/multi-selection contract, root context host, action registry, and tool registry.
 
 V8.1 makes Editorial Aurora the default colorful palette, persists one Category/Privacy color source through project formats, feeds stable per-nucleus RGB into the existing one-pass organism shader, and guarantees selection geometry invariance. Single click/tap selects; deliberate double activation opens one shared Name/Area editor. Automatic selection metadata and command UI no longer render.
 

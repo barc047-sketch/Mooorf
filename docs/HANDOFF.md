@@ -1,5 +1,11 @@
 # Handoff
 
+## V8.2A.1 — Multi-Selection Group Drag Foundation
+
+- Classic and Organism now capture one selected group's original finite positions and apply the dragged primary object's one world-space delta to every live member. Unselected drags replace selection and move alone; selected members become primary while secondary selection ordering remains stable.
+- The central store batches drag previews and commits one bounded, ephemeral `{ before, after }` undo/redo record on release. Zero/non-finite movement and stale/deleted IDs are ignored safely; saved views/project/export persistence continues to store final space positions only.
+- Group movement preserves relative offsets, area, category, privacy, colour/material inputs, nucleus radius/strength, and organism shader/membrane semantics. Marquee/lasso, scale/rotation, alignment, persistent groups, transform UI, keyboard movement, and new snapping remain deferred.
+
 ## V8.2B — Expandable Resource Registry Foundation
 
 - Added canonical static registries for materials, eight grid presets, 18 truthful future annotation definitions, and icon asset metadata. One read-only resource catalogue provides ID/category/target/search/status discovery plus favourites/recent-ready ID filtering without creating a mixed mutable store.

@@ -11,6 +11,12 @@ import {
   resetCellActivation,
 } from "./cellActivation";
 import { resolveSelectionIntent } from "../interaction/selection";
+import {
+  createGroupTranslation,
+  resolveGroupTranslationPositions,
+  type GroupTranslation,
+  type SpacePosition,
+} from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import "./canvas.css";
 
@@ -141,6 +147,8 @@ export default function CanvasView() {
     let panCY = 0;
     let lastCommit = 0;
     let pressIntent: "replace" | "toggle" = "replace";
+    let groupTranslation: GroupTranslation | null = null;
+    let translatedPositions: SpacePosition[] = [];
 
     const commitCamera = () => {
       const snapshot = { ...cam };
@@ -172,10 +180,19 @@ export default function CanvasView() {
         drag = { id: hit.id, x: hit.x, y: hit.y };
         grabDX = hit.x - p.x;
         grabDY = hit.y - p.y;
+        lastCommit = 0;
         if (pressIntent === "replace") {
           if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
           else state.replaceSelection(hit.id);
+          const selected = useLab.getState();
+          groupTranslation = createGroupTranslation(spaces, selected.selectedIds, hit.id);
+        } else {
+          const selectedIds = state.selectedIds.includes(hit.id)
+            ? state.selectedIds.filter((id) => id !== hit.id)
+            : [...state.selectedIds, hit.id];
+          groupTranslation = createGroupTranslation(spaces, selectedIds, hit.id);
         }
+        translatedPositions = [];
         canvas.style.cursor = "grabbing";
       } else {
         resetCellActivation(activation);
@@ -184,6 +201,7 @@ export default function CanvasView() {
         panSY = sy;
         panCX = cam.x;
         panCY = cam.y;
+        lastCommit = 0;
         if (selectedIds.length > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
@@ -196,16 +214,29 @@ export default function CanvasView() {
       if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
         mode = "drag";
         useLab.getState().closeContextSurface();
-        if (drag) useLab.getState().addToSelection(drag.id);
+        if (drag && pressIntent === "toggle") {
+          const state = useLab.getState();
+          state.toggleSelection(drag.id);
+          const selected = useLab.getState();
+          if (!selected.selectedIds.includes(drag.id)) state.replaceSelection(drag.id);
+        }
       }
       if (mode === "drag" && drag) {
+        const dragId = drag.id;
         const p = toWorld(sx, sy);
-        drag.x = p.x + grabDX;
-        drag.y = p.y + grabDY;
+        const translation = groupTranslation;
+        const origin = translation?.before.find((position) => position.id === dragId);
+        if (!translation || !origin) return;
+        const delta = { x: p.x + grabDX - origin.x, y: p.y + grabDY - origin.y };
+        translatedPositions = resolveGroupTranslationPositions(translation, delta);
+        const primary = translatedPositions.find((position) => position.id === dragId);
+        if (!primary) return;
+        drag.x = primary.x;
+        drag.y = primary.y;
         const now = performance.now();
         if (now - lastCommit > DRAG_COMMIT_MS) {
           lastCommit = now;
-          useLab.getState().moveSpace(drag.id, drag.x, drag.y);
+          useLab.getState().previewSpaceTransform(translatedPositions);
         }
       } else if (mode === "pan") {
         cam.x = panCX - (sx - panSX) / cam.zoom;
@@ -229,12 +260,18 @@ export default function CanvasView() {
         }
         drag = null;
       } else if (mode === "drag" && drag) {
-        useLab.getState().moveSpace(drag.id, drag.x, drag.y);
+        if (groupTranslation && translatedPositions.length > 0) {
+          useLab.getState().commitSpaceTransform(groupTranslation.before, translatedPositions);
+        }
         registerCellActivation(activation, drag.id, sx, sy, performance.now(), true);
         drag = null;
+        groupTranslation = null;
+        translatedPositions = [];
       } else if (mode === "pan") {
         commitCamera();
       }
+      groupTranslation = null;
+      translatedPositions = [];
       mode = "none";
       canvas.style.cursor = "grab";
       dirty = true;
@@ -246,6 +283,8 @@ export default function CanvasView() {
       if (!shouldOpenContextFromGesture(secondaryButton, mode === "drag")) return;
       mode = "none";
       drag = null;
+      groupTranslation = null;
+      translatedPositions = [];
       resetCellActivation(activation);
       const { sx, sy } = local(e);
       const p = toWorld(sx, sy);

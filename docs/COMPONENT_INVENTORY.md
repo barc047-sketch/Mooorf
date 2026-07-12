@@ -164,9 +164,9 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 
 ## Canvas Label / Selection Systems
 
-- Files: `src/state/store.ts`, `src/interaction/selection.ts`, `src/canvas/OrganismCanvasView.tsx`, `src/canvas/CanvasView.tsx`, `src/canvas/renderer.ts`, `src/canvas/organismCanvas.css`.
-- Role: central multi-selection contract plus renderer-native visual feedback. Organism labels render selected MovingBorders; Classic draws selected on-body keylines. The former orbit/arc and automatic metadata command surfaces remain removed.
-- Reuse: hit testing stays renderer-specific; selection mutations always use the shared store actions and never feed organism geometry.
+- Files: `src/state/store.ts`, `src/interaction/selection.ts`, `src/interaction/groupDrag.ts`, `src/canvas/OrganismCanvasView.tsx`, `src/canvas/CanvasView.tsx`, `src/canvas/renderer.ts`, `src/canvas/organismCanvas.css`.
+- Role: central multi-selection contract, shared group translation, and renderer-native visual feedback. Organism labels render selected MovingBorders; Classic draws selected on-body keylines. The former orbit/arc and automatic metadata command surfaces remain removed.
+- Reuse: hit testing and world conversion stay renderer-specific; `groupDrag.ts` captures original positions and provides one exact delta for both renderers. The store batches preview updates and owns one ephemeral undo/redo transform record; selection never feeds organism geometry.
 
 ## File Intake System (V7.3)
 

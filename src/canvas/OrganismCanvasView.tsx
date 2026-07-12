@@ -48,6 +48,12 @@ import {
 import type { SpaceKind } from "../types";
 import { registerCanvasCapture, type CaptureRequestOptions } from "./exportCapture";
 import { resolveSelectionIntent } from "../interaction/selection";
+import {
+  createGroupTranslation,
+  resolveGroupTranslationPositions,
+  type GroupTranslation,
+  type SpacePosition,
+} from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import "./organismCanvas.css";
 
@@ -336,14 +342,16 @@ export default function OrganismCanvasView() {
     const activation = createCellActivationState();
     let pressSX = 0;
     let pressSY = 0;
-    let dragLastWX = 0;
-    let dragLastWY = 0;
+    let dragAnchorWX = 0;
+    let dragAnchorWY = 0;
     let panSX = 0;
     let panSY = 0;
     let panCX = 0;
     let panCY = 0;
     let lastDragCommit = 0;
     let pressIntent: "replace" | "toggle" = "replace";
+    let groupTranslation: GroupTranslation | null = null;
+    let translatedPositions: SpacePosition[] = [];
 
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0 || (e.ctrlKey && e.pointerType === "mouse")) return;
@@ -369,12 +377,21 @@ export default function OrganismCanvasView() {
         pressSX = sx;
         pressSY = sy;
         drag = { id: hit.id, x: source.x, y: source.y };
-        dragLastWX = world.x;
-        dragLastWY = world.y;
+        dragAnchorWX = world.x;
+        dragAnchorWY = world.y;
+        lastDragCommit = 0;
         if (pressIntent === "replace") {
           if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
           else state.replaceSelection(hit.id);
+          const selected = useLab.getState();
+          groupTranslation = createGroupTranslation(spaces, selected.selectedIds, hit.id);
+        } else {
+          const selectedIds = state.selectedIds.includes(hit.id)
+            ? state.selectedIds.filter((id) => id !== hit.id)
+            : [...state.selectedIds, hit.id];
+          groupTranslation = createGroupTranslation(spaces, selectedIds, hit.id);
         }
+        translatedPositions = [];
         canvas.style.cursor = "grabbing";
       } else {
         resetCellActivation(activation);
@@ -383,6 +400,7 @@ export default function OrganismCanvasView() {
         panSY = sy;
         panCX = cam.x;
         panCY = cam.y;
+        lastDragCommit = 0;
         if (selectedIdSet.size > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
@@ -398,25 +416,35 @@ export default function OrganismCanvasView() {
       if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
         mode = "drag";
         useLab.getState().closeContextSurface();
-        if (drag) useLab.getState().addToSelection(drag.id);
+        if (drag && pressIntent === "toggle") {
+          const state = useLab.getState();
+          state.toggleSelection(drag.id);
+          const selected = useLab.getState();
+          if (!selected.selectedIds.includes(drag.id)) state.replaceSelection(drag.id);
+        }
       }
       if (mode === "drag" && drag) {
+        const dragId = drag.id;
         const world = screenToWorld(sx, sy, cam, w, h);
-        /* delta-based with layout-transform inverse — pointer tracks 1:1 even
-           while global/angular offsets are active */
-        const d = dragDeltaWorldToStore(
-          world.x - dragLastWX,
-          world.y - dragLastWY,
+        const translation = groupTranslation;
+        const origin = translation?.before.find((position) => position.id === dragId);
+        if (!translation || !origin) return;
+        /* One anchor-to-pointer delta avoids drift and is inverted once for
+           the visual organism layout transform before every member moves. */
+        const delta = dragDeltaWorldToStore(
+          world.x - dragAnchorWX,
+          world.y - dragAnchorWY,
           resolved.adapter
         );
-        drag.x += d.x;
-        drag.y += d.y;
-        dragLastWX = world.x;
-        dragLastWY = world.y;
+        translatedPositions = resolveGroupTranslationPositions(translation, delta);
+        const primary = translatedPositions.find((position) => position.id === dragId);
+        if (!primary) return;
+        drag.x = primary.x;
+        drag.y = primary.y;
         const now = performance.now();
         if (now - lastDragCommit > DRAG_COMMIT_MS) {
           lastDragCommit = now;
-          useLab.getState().moveSpace(drag.id, drag.x, drag.y);
+          useLab.getState().previewSpaceTransform(translatedPositions);
         }
       } else if (mode === "pan") {
         cam.x = panCX - (sx - panSX) / cam.zoom;
@@ -441,12 +469,18 @@ export default function OrganismCanvasView() {
         drag = null;
       } else
       if (mode === "drag" && drag) {
-        useLab.getState().moveSpace(drag.id, drag.x, drag.y);
+        if (groupTranslation && translatedPositions.length > 0) {
+          useLab.getState().commitSpaceTransform(groupTranslation.before, translatedPositions);
+        }
         registerCellActivation(activation, drag.id, sx, sy, performance.now(), true);
         drag = null;
+        groupTranslation = null;
+        translatedPositions = [];
       } else if (mode === "pan") {
         commitCamera();
       }
+      groupTranslation = null;
+      translatedPositions = [];
       mode = "none";
       canvas.style.cursor = "default";
       dirty = true;
@@ -458,6 +492,8 @@ export default function OrganismCanvasView() {
       if (!shouldOpenContextFromGesture(secondaryButton, mode === "drag")) return;
       mode = "none";
       drag = null;
+      groupTranslation = null;
+      translatedPositions = [];
       resetCellActivation(activation);
       const { sx, sy } = local(e);
       const hit = hitTestNuclei(currentNuclei(), sx, sy);
