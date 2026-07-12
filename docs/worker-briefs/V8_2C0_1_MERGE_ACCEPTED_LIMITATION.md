@@ -50,6 +50,22 @@ Do not integrate the later worker-brief-only commits from the governance branch 
 7. Do not delete archive, prototype or audit branches.
 8. Stop on any unexpected conflict.
 
+## Temporary branch cleanup
+
+The Project Manager accidentally created these empty temporary branches while preparing worker briefs:
+
+- `tmp-ignore`
+- `tmp-ignore-2`
+- `tmp-ignore-3`
+- `tmp-ignore-4`
+- `tmp-ignore-5`
+- `tmp-ignore-6`
+
+Before deleting any of them, verify each still points exactly to the old main commit:
+`70f593dffc38b8f37160567a4a18238f32fcf8ee`
+
+If and only if each branch has no unique commit and still points to that SHA, delete those six remote branches after the verified main update. Do not delete any other branch. Report the cleanup explicitly.
+
 ## Integration sequence
 
 Use an isolated integration branch from `origin/main`:
@@ -118,6 +134,7 @@ CONFLICTS:
 MAIN UPDATED:
 MAIN AFTER:
 SOURCE BRANCHES PRESERVED:
+TEMP BRANCHES CLEANED:
 UNSTAGED LEFT:
 NEXT:
 
