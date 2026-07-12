@@ -20,17 +20,21 @@ Use only these worker slots:
 - `HOLD`
 - `ABORTED`
 
-## Required status file
+## GitHub-visible status branches
 
-Each worker must maintain one local status artifact outside production code:
+Each worker owns one dedicated status branch:
 
-`/Users/tanisxq/Documents/ZONU0-AG-ARTIFACTS/WORKER_STATUS_<WORKER>.json`
+- `status/codex`
+- `status/claude`
+- `status/antigravity`
 
-Examples:
+Each branch contains one file:
 
-- `WORKER_STATUS_CODEX.json`
-- `WORKER_STATUS_CLAUDE.json`
-- `WORKER_STATUS_ANTIGRAVITY.json`
+- `worker-status/CODEX.json`
+- `worker-status/CLAUDE.json`
+- `worker-status/ANTIGRAVITY.json`
+
+Status branches are operational metadata only. They must never be merged into `main`.
 
 Use this schema:
 
@@ -53,7 +57,7 @@ Use this schema:
 
 ## Update timing
 
-Update the file:
+Update and push the status branch:
 
 1. immediately before work starts,
 2. after source/branch verification,
@@ -62,11 +66,16 @@ Update the file:
 5. before commit/push,
 6. after completion.
 
-## GitHub visibility
+A status update may be a small commit because these branches exist only for worker telemetry. Do not place product code, screenshots, reports, or generated assets on a status branch.
 
-When the task creates or uses a GitHub branch, push a lightweight checkpoint commit only when the brief permits commits. Do not create empty commits solely for status.
+## Safety
 
-Read-only workers may remain invisible on GitHub while running, so their local status JSON is authoritative. Their final report must state the exact status file path.
+- Create the status branch from the latest `origin/main` only when it does not already exist.
+- When it exists, fetch and update only the worker's own status branch and file.
+- Never force-push.
+- Never rewrite another worker's status.
+- Never merge a status branch.
+- Status updates do not authorize product work, merging, or branch changes.
 
 ## Final response requirement
 
@@ -81,7 +90,9 @@ SOURCE SHA:
 WORK BRANCH:
 LAST CHECKPOINT:
 BLOCKED:
+STATUS BRANCH:
 STATUS FILE:
+STATUS COMMIT:
 ```
 
-Never describe a worker as `RUNNING` unless its latest status file or branch activity confirms it.
+Never describe a worker as `RUNNING` unless its latest status branch confirms `RUNNING` or new task-branch activity clearly proves execution.
