@@ -191,4 +191,8 @@ Undo/Redo ownership. Morph visibly controls the optional Membrane. Primary and
 secondary selection use separate external keylines. ORG/CLS and Dock
 magnification are removed. Focused contracts and exact 1440/1280 QA are recorded
 in `docs/V8_2C0_1_CANVAS_STABILIZATION_REPORT.md` and the external artifact
-directory. Next remains C0.2 asset registry, then C0.3 Icons & Symbols Inspector.
+directory. The Owner accepted the visible Morph/Membrane result and this stage
+for progression. Dense-scene interaction slowdown at approximately 50+ Cells is
+an accepted known limitation; deeper optimization is deferred and is not
+claimed fixed. Next is C0.2 Icon and Grid Asset Registry, then C0.3 Icons &
+Symbols Inspector.

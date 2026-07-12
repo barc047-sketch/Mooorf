@@ -20,6 +20,8 @@ Foundation: `c141ed79da5674248cc71b9602effcb6293c883f`
   removes the Membrane. Motion remains store-owned organism motion data.
 - Organism and Classic use the same primary, secondary, and hover selection
   language. Bottom controls no longer magnify, shift, or bounce.
+- The Owner accepted the visible Morph/Membrane result and the current stage for
+  progression to C0.2 Icon and Grid Asset Registry.
 
 ## Proven root causes and corrections
 
@@ -108,6 +110,9 @@ Undo/Redo transaction restores the group.
 
 ## Limitations
 
+- Dense-scene interaction slowdown at approximately 50+ Cells is accepted for
+  this stage. Deeper 50-60 Cell optimization is deferred and is not claimed
+  fixed by this milestone.
 - Exact-size headless Chrome throttles background animation; no absolute FPS or
   GPU-timing claim is made. Foreground lifecycle and visual Motion were checked
   separately.

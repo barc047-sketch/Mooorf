@@ -711,4 +711,5 @@ Current bundle: ~147 kB js / 47 kB gzip.
 - Motion-Off idle rendering is demand-driven; Motion On uses one scheduler. Organism stable derivations are cached by dependency.
 - Shared inline Name/Area editor now selects Name, isolates Canvas events, commits once, and uses existing Undo/Redo.
 - Morph/Membrane, Motion, external primary/secondary selection, Auto Contrast, resources, migration, and exports are covered by focused contracts and exact-size QA.
-- Visible ORG/CLS and Dock magnification are removed. Future C0.2 asset registry and C0.3 Icons & Symbols Inspector remain deferred.
+- The Owner accepted the visible Morph/Membrane result and this stage for progression. Dense-scene interaction slowdown at approximately 50+ Cells remains a known limitation; deeper optimization is deferred and is not claimed fixed.
+- Visible ORG/CLS and Dock magnification are removed. Next is C0.2 Icon and Grid Asset Registry, followed by C0.3 Icons & Symbols Inspector.

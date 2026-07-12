@@ -211,5 +211,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 - [x] V8.2C0.1 single Canvas runtime, demand scheduling, editing, Morph/Membrane, Motion, selection, and stable Dock feedback
 - [x] internal Classic fallback, Auto Contrast, resources, migration, history, and export preserved
-- [ ] V8.2C0.2 asset registry
+- [x] Owner accepted visible Morph/Membrane and the current stage for progression
+- [ ] accepted limitation: deeper interaction optimization at approximately 50+ Cells is deferred; performance is not claimed fixed
+- [ ] V8.2C0.2 Icon and Grid Asset Registry
 - [ ] V8.2C0.3 Icons & Symbols Inspector (shortcut `I` remains unassigned)

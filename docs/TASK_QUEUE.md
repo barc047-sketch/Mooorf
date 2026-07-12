@@ -800,5 +800,7 @@
 - [x] bottom hover magnification removed
 - [x] Auto Contrast, resources, icons, grids, import/export, migration preserved
 - [x] exact 1440/1280 screenshot and focused contract evidence recorded
-- [ ] next: V8.2C0.2 asset registry
+- [x] Owner accepted visible Morph/Membrane and the current stage for progression
+- [ ] known limitation: deeper interaction optimization at approximately 50+ Cells is deferred; performance is not claimed fixed
+- [ ] next: V8.2C0.2 Icon and Grid Asset Registry
 - [ ] after: V8.2C0.3 Icons & Symbols Inspector
