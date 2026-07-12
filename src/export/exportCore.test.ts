@@ -28,8 +28,8 @@ ok(sanitizeFilename("A".repeat(500)).length <= 80, "very long project titles are
 ok(!sanitizeFilename("A".repeat(500) + " " + "B".repeat(50)).endsWith("-"), "length cap never leaves a trailing dash");
 equal(exportTimestamp(new Date(2026, 6, 10, 9, 5, 3)), "20260710-090503", "timestamp format");
 equal(
-  buildCanvasFilename("Zonuert Lab", "organism", "png", new Date(2026, 0, 1, 0, 0, 0)),
-  "zonuert-lab-canvas-organism-20260101-000000.png",
+  buildCanvasFilename("Zonuert Lab", "png", new Date(2026, 0, 1, 0, 0, 0)),
+  "zonuert-lab-canvas-20260101-000000.png",
   "canvas filename convention"
 );
 equal(

@@ -150,6 +150,7 @@
 .dock-btn,
 .rail-btn,
 .zoom-btn {
+  position: relative;
   display: grid;
   place-items: center;
   width: calc(30px * var(--ui-scale));
@@ -167,8 +168,15 @@
     border-color 180ms ease;
 }
 
-/* Mac-dock-like lift — soft rise, no bounce */
-.dock-btn:hover,
+.dock-btn:hover {
+  color: var(--accent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 28%, transparent), transparent),
+    color-mix(in srgb, var(--glass-light) 62%, transparent);
+  border-color: color-mix(in srgb, var(--glass-border) 72%, transparent);
+  box-shadow: none;
+}
+
 .zoom-btn:hover {
   color: var(--accent);
   background:
@@ -189,11 +197,16 @@
   box-shadow: none;
 }
 
-.dock-btn:active,
 .rail-btn:active,
 .zoom-btn:active {
   transform: scale(0.94);
   box-shadow: none;
+}
+
+.dock-btn:active {
+  border-color: color-mix(in srgb, var(--chrome-accent) 40%, var(--glass-border));
+  outline: 1px solid color-mix(in srgb, var(--glass-highlight) 26%, transparent);
+  outline-offset: -2px;
 }
 
 .dock-btn[data-active="true"],
@@ -203,6 +216,18 @@
     linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 32%, transparent), transparent),
     color-mix(in srgb, var(--glass-light) 72%, var(--surface));
   border-color: color-mix(in srgb, var(--glass-border) 72%, transparent);
+}
+
+.dock-btn[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  translate: -50% 0;
+  background: var(--chrome-accent);
 }
 
 .dock-btn:disabled,
@@ -253,41 +278,6 @@
   display: none;
 }
 
-.renderer-mode-btn {
-  width: calc(42px * var(--ui-scale));
-  color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 62%, transparent);
-}
-
-.renderer-mode-btn[data-active="true"] {
-  color: var(--surface);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--ink) 88%, var(--chrome-accent) 12%),
-    var(--ink)
-  );
-}
-
-.renderer-mode-btn:hover {
-  color: var(--accent);
-  background: var(--surface);
-}
-
-.renderer-mode-btn[data-active="true"]:hover {
-  color: var(--surface);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--ink) 80%, var(--chrome-accent) 20%),
-    var(--ink)
-  );
-}
-
-.dock-renderer-code {
-  font-size: 9px;
-  line-height: 1;
-  pointer-events: none;
-}
-
 .nucleus-orb,
 .cluster-orb,
 .void-btn {
@@ -303,24 +293,21 @@
   color: #ffffff;
   background: #080808;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow:
-    0 14px 28px -17px rgba(0, 0, 0, 0.72),
-    0 2px 7px -4px rgba(0, 0, 0, 0.48);
+  box-shadow: none;
   cursor: pointer;
   transition:
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 220ms ease;
+    background 140ms ease,
+    border-color 140ms ease;
 }
 
 .nucleus-orb:hover {
-  transform: translateY(-1.5px) scale(1.04);
-  box-shadow:
-    0 18px 36px -18px rgba(0, 0, 0, 0.8),
-    0 3px 9px -5px rgba(0, 0, 0, 0.56);
+  background: color-mix(in srgb, #080808 88%, var(--chrome-accent));
+  border-color: color-mix(in srgb, #ffffff 34%, var(--chrome-accent));
+  box-shadow: none;
 }
 
 .nucleus-orb:active {
-  transform: scale(0.96);
+  border-color: var(--chrome-accent);
 }
 
 .cluster-orb {
@@ -330,24 +317,21 @@
   color: #ffffff;
   background: #080808;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow:
-    0 12px 24px -17px rgba(0, 0, 0, 0.68),
-    0 2px 7px -4px rgba(0, 0, 0, 0.44);
+  box-shadow: none;
   cursor: pointer;
   transition:
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 200ms ease;
+    background 140ms ease,
+    border-color 140ms ease;
 }
 
 .cluster-orb:hover {
-  transform: translateY(-1.5px) scale(1.05);
-  box-shadow:
-    0 17px 32px -19px rgba(0, 0, 0, 0.78),
-    0 3px 8px -5px rgba(0, 0, 0, 0.52);
+  background: color-mix(in srgb, #080808 88%, var(--chrome-accent));
+  border-color: color-mix(in srgb, #ffffff 34%, var(--chrome-accent));
+  box-shadow: none;
 }
 
 .cluster-orb:active {
-  transform: scale(0.95);
+  border-color: var(--chrome-accent);
 }
 
 .cluster-dot {
@@ -356,10 +340,7 @@
   height: 5px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.28);
-  transition:
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 180ms ease;
+  box-shadow: none;
 }
 
 .cluster-dot-center {
@@ -392,22 +373,6 @@
   transform: translateY(-50%);
 }
 
-.cluster-orb:hover .cluster-dot-n {
-  transform: translate(-50%, -1.5px);
-}
-
-.cluster-orb:hover .cluster-dot-e {
-  transform: translate(1.5px, -50%);
-}
-
-.cluster-orb:hover .cluster-dot-s {
-  transform: translate(-50%, 1.5px);
-}
-
-.cluster-orb:hover .cluster-dot-w {
-  transform: translate(-1.5px, -50%);
-}
-
 .void-btn {
   width: calc(32px * var(--ui-scale));
   height: calc(32px * var(--ui-scale));
@@ -419,22 +384,19 @@
     color-mix(in srgb, var(--surface) 38%, transparent) 68%
   );
   border: 1px dashed color-mix(in srgb, var(--hairline) 72%, transparent);
-  box-shadow: inset 0 0 8px -3px rgba(0, 0, 0, 0.14);
+  box-shadow: none;
   cursor: pointer;
   transition:
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 180ms ease,
     color 180ms ease,
-    box-shadow 180ms ease;
+    background 180ms ease;
 }
 
 .void-btn:hover {
   color: var(--chrome-accent);
   border-color: color-mix(in srgb, var(--chrome-accent) 52%, var(--hairline));
-  transform: translateY(-1px) scale(1.04);
-  box-shadow:
-    inset 0 0 10px -3px rgba(0, 0, 0, 0.18),
-    0 0 0 4px color-mix(in srgb, var(--chrome-accent) 6%, transparent);
+  background: color-mix(in srgb, var(--surface) 44%, transparent);
+  box-shadow: none;
 }
 
 .morph-color-swatch {
@@ -1089,12 +1051,16 @@
   transition: box-shadow 160ms ease, transform 160ms var(--ease-out);
 }
 
-.dock-merge input[type="range"]:hover::-webkit-slider-thumb,
 .org-slider input[type="range"]:hover::-webkit-slider-thumb {
   transform: scale(1.22);
   box-shadow:
     0 3px 10px -3px rgba(0, 0, 0, 0.46),
     0 0 0 4px var(--instrument-halo);
+}
+
+.dock-merge input[type="range"]:hover::-webkit-slider-thumb {
+  transform: none;
+  box-shadow: none;
 }
 
 .dock-merge input[type="range"]:active::-webkit-slider-thumb,
@@ -2196,15 +2162,6 @@
 
 /* Respect reduced-motion: keep state changes, drop lifts and liquid wobble. */
 @media (prefers-reduced-motion: reduce) {
-  .nucleus-orb:hover {
-    transform: none;
-  }
-
-  .cluster-orb:hover {
-    transform: none;
-  }
-
-  .dock-btn:hover,
   .rail-btn:hover,
   .zoom-btn:hover {
     transform: none;

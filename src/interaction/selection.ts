@@ -73,3 +73,13 @@ export const shouldCloseFromOutsidePointer = (
   contextOpen: boolean,
   pointerInsideSurface: boolean
 ): boolean => contextOpen && !pointerInsideSurface;
+
+export type SelectionRingState = "none" | "hover" | "primary" | "secondary";
+
+/** Presentation-only selection language. Selected state always wins over
+ * hover so a Cell can never show two competing external rings. */
+export const resolveSelectionRingState = (
+  selected: boolean,
+  primary: boolean,
+  hovered: boolean
+): SelectionRingState => selected ? (primary ? "primary" : "secondary") : hovered ? "hover" : "none";

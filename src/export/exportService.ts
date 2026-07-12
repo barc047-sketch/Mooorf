@@ -5,7 +5,7 @@ import { spacesToCsv } from "./csv";
 import { buildProjectSnapshot, computeProgrammedArea, type ProjectExportSettings } from "./projectSnapshot";
 import { buildManifest } from "./manifest";
 import { buildPresentationPdf } from "./pdfExport";
-import { buildClassicSvg, organismSvgAvailability } from "./svgExport";
+import { buildClassicSvg } from "./svgExport";
 import {
   buildCanvasFilename,
   buildDataFilename,
@@ -66,18 +66,14 @@ export const buildCurrentProjectSnapshot = (project: string) => {
 
 export const exportPng = async (project: string, visual: ExportVisualOptions): Promise<void> => {
   const composite = await captureAndComposite(visual);
-  const renderer = useLab.getState().settings.rendererMode;
   const blob: Blob | null = await new Promise((resolve) => composite.canvas.toBlob(resolve, "image/png"));
   if (!blob) throw new Error("Could not encode the canvas as PNG.");
-  await download(blob, buildCanvasFilename(project, renderer, "png"));
+  await download(blob, buildCanvasFilename(project, "png"));
 };
 
 export const exportSvg = async (project: string): Promise<void> => {
   const state = useLab.getState();
-  if (state.settings.rendererMode !== "classic") {
-    throw new Error(organismSvgAvailability().reason);
-  }
-  const host = document.querySelector<HTMLElement>(".canvas-host");
+  const host = document.querySelector<HTMLElement>(".canvas-host, .organism-canvas-host");
   const cssWidth = host?.clientWidth ?? window.innerWidth;
   const cssHeight = host?.clientHeight ?? window.innerHeight;
   const cs = getComputedStyle(document.documentElement);
@@ -101,7 +97,7 @@ export const exportSvg = async (project: string): Promise<void> => {
     paddingPx: 0,
   });
   const blob = new Blob([svg], { type: "image/svg+xml" });
-  await download(blob, buildCanvasFilename(project, "classic", "svg"));
+  await download(blob, buildCanvasFilename(project, "svg"));
 };
 
 export const exportCsv = async (project: string): Promise<void> => {

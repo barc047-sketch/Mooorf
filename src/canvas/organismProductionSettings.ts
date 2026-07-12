@@ -90,7 +90,7 @@ export interface ResolvedOrganism {
   motionActive: boolean;
 }
 
-export function resolveOrganism(settings: LabSettings): ResolvedOrganism {
+export function resolveOrganism(settings: LabSettings, reducedMotion = false): ResolvedOrganism {
   const o = settings.organism;
   const fast = settings.performanceQuality === "fast";
   const reach = clamp(settings.mergeDistance / 300, 0, 1);
@@ -126,9 +126,9 @@ export function resolveOrganism(settings: LabSettings): ResolvedOrganism {
     angularOffset: clamp(o.angularOffset, -180, 180),
     timeScale: clamp(o.timeScale, 0, 2.5),
     response: clamp(o.response, 1, 18),
-    drift: fast ? 0 : clamp(o.drift, 0, 1),
-    breathing: fast ? 0 : clamp(o.breathing, 0, 1),
-    wobble: fast ? 0 : clamp(o.wobble, 0, 1),
+    drift: fast || reducedMotion ? 0 : clamp(o.drift, 0, 1),
+    breathing: fast || reducedMotion ? 0 : clamp(o.breathing, 0, 1),
+    wobble: fast || reducedMotion ? 0 : clamp(o.wobble, 0, 1),
     phaseVariation: clamp(o.phaseVariation, 0, 1),
     cameraAwareMorph: o.cameraAwareMorph ?? true,
   };

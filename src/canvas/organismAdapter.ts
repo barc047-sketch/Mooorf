@@ -1,6 +1,6 @@
 import type { Camera, ColorSource, PaletteMode, Privacy, SpaceCell } from "../types";
 import { areaToRadius, clamp } from "../lib/geometry";
-import { getAreaRange, getNucleusColor } from "../design/colorMapping";
+import { getAreaRange, getNucleusColor, type AreaRange } from "../design/colorMapping";
 import { MAX_NUCLEI } from "../experiments/organism-lab/organism-types";
 import {
   DEFAULT_ORGANISM_SETTINGS,
@@ -179,14 +179,16 @@ export function spacesToNuclei(
   motion?: OrganismMotionState,
   paletteMode: PaletteMode = "core",
   nucleusPaletteId?: string,
-  colorSource: ColorSource = "category"
+  colorSource: ColorSource = "category",
+  areaRangeOverride?: AreaRange,
+  resolvedColors?: ReadonlyMap<string, string>
 ): ProductionNucleus[] {
   const halfMin = Math.max(1, Math.min(width, height) / 2);
   const dragPositions = new Map(
     (Array.isArray(drag) ? drag : drag ? [drag] : []).map((position) => [position.id, position])
   );
   const visible = spaces.slice(0, MAX_NUCLEI);
-  const areaRange = getAreaRange(visible);
+  const areaRange = areaRangeOverride ?? getAreaRange(visible);
 
   /* — 1. world targets + response smoothing (consume pendingDt at most once) — */
   const dt = motion ? motion.pendingDt : 0;
@@ -263,7 +265,8 @@ export function spacesToNuclei(
 
   /* — 3. camera map + idle motion + field offsets — */
   return eff.map(({ space, x, y, r }) => {
-    const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
+    const color = resolvedColors?.get(space.id)
+      ?? getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource).fill;
     const isVoid = space.kind === "void";
     let wx = x;
     let wy = y;
@@ -323,7 +326,7 @@ export function spacesToNuclei(
       sx: screen.sx,
       sy: screen.sy,
       screenR: rf * halfMin,
-      color: mappedColor.fill,
+      color,
       category: space.category,
       privacy: space.privacy,
       kind: isVoid ? "void" : "space",

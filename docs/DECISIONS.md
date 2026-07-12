@@ -397,3 +397,12 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - `store.ts` owns coordinated preview updates and a bounded ephemeral transform undo/redo stack. Pointer movement never records history; release commits one `{ before, after }` transform only when a finite position changed. Deleted/stale IDs are ignored and never recreated.
 - Classic uses its existing world conversion; Organism applies `dragDeltaWorldToStore` once to the original anchor delta before sharing it with every selected member. No selection value enters organism radius, strength, colour/material, shader, or membrane inputs.
 - This decision deliberately excludes marquee/lasso, scale, rotation, alignment, persistent groups, transform controls, keyboard movement, and a new snapping system.
+
+# V8.2C0.1 — Single Canvas stabilization ownership
+
+- Production presents one Canvas and mounts only one renderer strategy. WebGL is normal; Classic is automatic fallback/recovery and remains available internally with `organism-lab`.
+- The shared demand loop is the sole scheduling contract: Motion Off sleeps after invalidation work; Motion On requests one continuous scheduler. Raw pointer events remain coalesced and never write persistent graph/history state.
+- Organism caches area range, resolved Cell colours, palette, style, field, shadow, and selection derivations until their dependencies change. Morph Off and Shadow Off skip their optional work.
+- Inline Name/Area edits reuse central graph ownership and the existing bounded Undo/Redo history as an edit variant; no second history or editor state system exists.
+- ORG/CLS and renderer names are internal. SVG uses the existing Classic vector adapter for Cells/labels regardless of the live renderer; Membrane remains raster-only.
+- V8.2C0.2 asset registry and V8.2C0.3 Icons & Symbols Inspector remain deferred; shortcut `I` remains unassigned here.

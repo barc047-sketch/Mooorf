@@ -19,7 +19,7 @@ import {
   type SpacePosition,
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
-import { createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
+import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
 import { projectCanvasPoint, projectClientPoint } from "./labelPresentation";
 import "./canvas.css";
 
@@ -59,6 +59,11 @@ export default function CanvasView() {
     let tokens = readTokens();
     let drag: DragOverride | null = null;
     let dirty = true;
+    let renderLoop: ReturnType<typeof createDemandFrameLoop> | null = null;
+    const invalidate = () => {
+      dirty = true;
+      renderLoop?.invalidate();
+    };
     let dpr = 1;
     let w = 0;
     let h = 0;
@@ -76,13 +81,13 @@ export default function CanvasView() {
         lastCommitted = s.camera;
         camTarget = s.camera; // adopt external change (eased in loop)
       }
-      dirty = true;
+      invalidate();
     });
 
     // Tokens change with data-theme (set by App effect) — observe the attribute.
     const mo = new MutationObserver(() => {
       tokens = readTokens();
-      dirty = true;
+      invalidate();
     });
     mo.observe(document.documentElement, { attributeFilter: ["data-theme"] });
 
@@ -92,7 +97,7 @@ export default function CanvasView() {
       h = host.clientHeight;
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
-      dirty = true;
+      invalidate();
     };
     resize();
     const ro = new ResizeObserver(resize);
@@ -149,6 +154,7 @@ export default function CanvasView() {
     let pressIntent: "replace" | "toggle" = "replace";
     let groupTranslation: GroupTranslation | null = null;
     let translatedPositions: SpacePosition[] = [];
+    let hoveredId: string | null = null;
 
     const commitCamera = () => {
       const snapshot = { ...cam };
@@ -203,12 +209,22 @@ export default function CanvasView() {
         if (selectedIds.length > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
-      dirty = true;
+      hoveredId = hit?.id ?? null;
+      invalidate();
     };
 
     const processMove = (e: PointerEvent) => {
-      if (mode === "none") return;
       const { sx, sy } = local(e);
+      if (mode === "none") {
+        const pointerWorld = toWorld(sx, sy);
+        const nextHoveredId = hitTest(spaces, pointerWorld.x, pointerWorld.y)?.id ?? null;
+        if (nextHoveredId !== hoveredId) {
+          hoveredId = nextHoveredId;
+          invalidate();
+        }
+        canvas.style.cursor = nextHoveredId ? "grab" : "default";
+        return;
+      }
       if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
         mode = "drag";
         useLab.getState().closeContextSurface();
@@ -235,7 +251,7 @@ export default function CanvasView() {
         cam.x = panCX - (sx - panSX) / cam.zoom;
         cam.y = panCY - (sy - panSY) / cam.zoom;
       }
-      dirty = true;
+      invalidate();
     };
 
     const moveScheduler = createFrameScheduler<PointerEvent>({
@@ -245,7 +261,6 @@ export default function CanvasView() {
     });
 
     const onMove = (e: PointerEvent) => {
-      if (mode === "none") return;
       moveScheduler.push(latestCoalescedPointerEvent(e));
     };
 
@@ -284,7 +299,7 @@ export default function CanvasView() {
       translatedPositions = [];
       mode = "none";
       canvas.style.cursor = "grab";
-      dirty = true;
+      invalidate();
     };
 
     const onContextMenu = (e: MouseEvent) => {
@@ -310,7 +325,7 @@ export default function CanvasView() {
         state.openContextSurface(resolveContextSurface(null), { x: e.clientX, y: e.clientY }, null);
       }
       canvas.style.cursor = "grab";
-      dirty = true;
+      invalidate();
     };
 
     // ---- wheel: zoom around cursor ----
@@ -322,7 +337,7 @@ export default function CanvasView() {
       cam.zoom = clamp(cam.zoom * Math.exp(-deltaY * 0.0016), Z_MIN, Z_MAX);
       cam.x = before.x - (sx - w / 2) / cam.zoom;
       cam.y = before.y - (sy - h / 2) / cam.zoom;
-      dirty = true;
+      invalidate();
       window.clearTimeout(camCommit);
       camCommit = window.setTimeout(commitCamera, 160);
     };
@@ -345,11 +360,12 @@ export default function CanvasView() {
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("contextmenu", onContextMenu);
 
-    // ---- paint loop ----
-    let raf = 0;
+    // ---- demand-driven paint loop ----
     let firstUsableFrame = false;
-    const loop = () => {
-      raf = requestAnimationFrame(loop);
+    renderLoop = createDemandFrameLoop({
+      schedule: (callback) => requestAnimationFrame(callback),
+      cancel: (id) => cancelAnimationFrame(id),
+      render: () => {
       // Ease toward externally-set camera (fit/reset/zoom buttons).
       if (camTarget) {
         const t = camTarget;
@@ -368,25 +384,27 @@ export default function CanvasView() {
       }
       const now = Date.now();
       const spawning = spaces.some((c) => c.born && now - c.born < SPAWN_MS + 100);
-      if (!dirty && !spawning) return;
+      if (!dirty && !spawning) return false;
       dirty = false;
       // Organism style/attachment transitions keep settling for a few frames.
       if (!firstUsableFrame) announceReadiness("render-requested");
       const renderSpaces = translatedPositions.length > 0
         ? applySpacePositionsPreview(spaces, translatedPositions)
         : spaces;
-      if (drawScene(ctx, w, h, dpr, cam, renderSpaces, selectedId, drag, tokens, now, settings, { selectedIds })) {
+      if (drawScene(ctx, w, h, dpr, cam, renderSpaces, selectedId, drag, tokens, now, settings, { selectedIds, hoveredId })) {
         dirty = true;
       }
       if (!firstUsableFrame) {
         firstUsableFrame = true;
         announceReadiness("ready");
       }
-    };
-    raf = requestAnimationFrame(loop);
+      return dirty || spawning || !!camTarget;
+      },
+    });
+    renderLoop.invalidate();
 
     return () => {
-      cancelAnimationFrame(raf);
+      renderLoop?.cancel();
       window.clearTimeout(camCommit);
       moveScheduler.cancel();
       wheelScheduler.cancel();

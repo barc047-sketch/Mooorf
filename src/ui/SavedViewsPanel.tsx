@@ -26,7 +26,7 @@ function formatTimestamp(timestamp: number): string {
 }
 
 function metaLabel(view: SavedCanvasSnapshot): string {
-  return `${view.rendererMode === "organism" ? "ORG" : "CLS"} · ${view.paletteMode} · ${view.spaces.length}`;
+  return `${view.paletteMode} · ${view.spaces.length} Cells`;
 }
 
 export default function SavedViewsPanel({ embedded = false }: { embedded?: boolean }) {

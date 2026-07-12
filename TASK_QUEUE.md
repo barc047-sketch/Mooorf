@@ -206,3 +206,10 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - Project JSON import (export schema is import-ready; import UI not built)
 - Multi-frame/batch export; Organism vector SVG (true membrane path)
 - Gallery/templates later
+
+## Current stabilization status
+
+- [x] V8.2C0.1 single Canvas runtime, demand scheduling, editing, Morph/Membrane, Motion, selection, and stable Dock feedback
+- [x] internal Classic fallback, Auto Contrast, resources, migration, history, and export preserved
+- [ ] V8.2C0.2 asset registry
+- [ ] V8.2C0.3 Icons & Symbols Inspector (shortcut `I` remains unassigned)

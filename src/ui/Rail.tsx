@@ -98,9 +98,9 @@ export default function Rail() {
         <button
           type="button"
           className="rail-btn"
-          data-tooltip="Add nucleus"
-          title="Add nucleus shortcut"
-          aria-label="Add nucleus shortcut"
+          data-tooltip="Add Space"
+          title="Add Space shortcut"
+          aria-label="Add Space shortcut"
           onClick={() => addSpace()}
         >
           <Plus size={14} strokeWidth={1.6} />
@@ -108,9 +108,9 @@ export default function Rail() {
         <button
           type="button"
           className="rail-btn rail-btn-disabled"
-          data-tooltip="Void nucleus — dock"
-          title="Void nucleus placeholder"
-          aria-label="Void nucleus placeholder"
+          data-tooltip="Add Void — dock"
+          title="Add Void shortcut"
+          aria-label="Add Void shortcut"
           disabled
         >
           <Minus size={14} strokeWidth={1.5} />

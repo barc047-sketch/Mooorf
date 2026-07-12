@@ -1,4 +1,4 @@
-/* V6K organism widget — all organism render behavior in one movable home:
+/* V6K Morph and Motion widget — all membrane render behavior in one movable home:
    style, attachment/reach, field, nuclei, offsets, motion master, and pockets. */
 
 import { useLab } from "../../state/store";
@@ -22,7 +22,6 @@ export default function OrganismWidget() {
   const morphMode = useLab((s) => s.settings.morphMode);
   const attachMode = useLab((s) => s.settings.attachMode);
   const mergeDistance = useLab((s) => s.settings.mergeDistance);
-  const rendererMode = useLab((s) => s.settings.rendererMode);
   const spaceCount = useLab((s) => s.spaces.length);
   const setSettings = useLab((s) => s.setSettings);
   const setOrganism = useLab((s) => s.setOrganism);
@@ -47,11 +46,7 @@ export default function OrganismWidget() {
 
   return (
     <>
-      {rendererMode === "classic" && (
-        <p className="org-note">Classic fallback active — these settings drive the ORG renderer.</p>
-      )}
-
-      <WidgetSection title="Style" hint="render behavior" defaultOpen>
+      <WidgetSection title="Morph Style" hint="Membrane appearance" defaultOpen>
         {MORPHS.map((m) => (
           <ChoiceRow
             key={m.id}
@@ -95,7 +90,7 @@ export default function OrganismWidget() {
         ))}
       </WidgetSection>
 
-      <WidgetSection title="Field" hint="body + smoothing">
+      <WidgetSection title="Membrane" hint="body + smoothing">
         <SwitchRow
           label="Camera-aware morph"
           on={organism.cameraAwareMorph}
@@ -115,7 +110,7 @@ export default function OrganismWidget() {
         ))}
       </WidgetSection>
 
-      <WidgetSection title="Nuclei" hint="per-space bodies">
+      <WidgetSection title="Cells" hint="per-space bodies">
         <div className="org-readout">
           <span>Count</span>
           <span className="org-readout-val">
@@ -176,7 +171,7 @@ export default function OrganismWidget() {
           className="org-reset"
           onClick={() => setOrganism({ ...DEFAULT_ORGANISM_SETTINGS })}
         >
-          Reset organism
+          Reset Morph
         </button>
         <button type="button" className="org-reset" onClick={() => setOrganism({ ...MOTION_DEFAULTS })}>
           Reset motion

@@ -66,6 +66,15 @@ const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 export const SAVED_VIEWS_LIMIT = 20;
 const TRANSFORM_HISTORY_LIMIT = 50;
 
+interface SpaceEditSnapshot {
+  name: string;
+  area: number;
+}
+
+type SpaceHistoryEntry =
+  | { kind: "transform"; before: SpacePosition[]; after: SpacePosition[] }
+  | { kind: "edit"; id: string; before: SpaceEditSnapshot; after: SpaceEditSnapshot };
+
 export interface LabSettings {
   uiScale: number;
   /** V7.1D — widget windows + internal widget content only; never rail/dock/canvas. */
@@ -123,8 +132,8 @@ interface LabState {
   camera: Camera;
   savedViews: SavedCanvasSnapshot[];
   /** Ephemeral canvas translation history. Saved project/view data stores final positions only. */
-  transformUndoStack: SpaceTransform[];
-  transformRedoStack: SpaceTransform[];
+  transformUndoStack: SpaceHistoryEntry[];
+  transformRedoStack: SpaceHistoryEntry[];
   /** V6K widget system — array order is stacking order (last = front) */
   openWidgets: WidgetId[];
 
@@ -167,6 +176,7 @@ interface LabState {
   duplicateSpace: (id: string) => string | null;
   addDemo: (n?: number) => void;
   updateSpace: (id: string, patch: Partial<SpaceCell>) => void;
+  commitSpaceEdit: (id: string, patch: SpaceEditSnapshot) => void;
   moveSpace: (id: string, x: number, y: number) => void;
   commitSpaceTransform: (before: readonly SpacePosition[], after: readonly SpacePosition[]) => void;
   undoSpaceTransform: () => void;
@@ -232,6 +242,16 @@ const normalizeLiveTransform = (
     return next ? [{ before: { ...position }, after: { ...next } }] : [];
   });
   return { before: pairs.map((pair) => pair.before), after: pairs.map((pair) => pair.after) };
+};
+
+const applyHistoryEntry = (
+  spaces: readonly SpaceCell[],
+  entry: SpaceHistoryEntry,
+  direction: "before" | "after"
+): SpaceCell[] => {
+  if (entry.kind === "transform") return applySpacePositions(spaces, entry[direction]);
+  const value = entry[direction];
+  return spaces.map((space) => space.id === entry.id ? { ...space, ...value } : space);
 };
 
 const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
@@ -630,6 +650,24 @@ export const useLab = create<LabState>((set) => ({
       spaces: s.spaces.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     })),
 
+  commitSpaceEdit: (id, patch) =>
+    set((s) => {
+      const current = s.spaces.find((space) => space.id === id);
+      if (!current) return {};
+      const after = {
+        name: patch.name.trim() || current.name,
+        area: Number.isFinite(patch.area) && patch.area > 0 ? patch.area : current.area,
+      };
+      const before = { name: current.name, area: current.area };
+      if (before.name === after.name && before.area === after.area) return {};
+      const entry: SpaceHistoryEntry = { kind: "edit", id, before, after };
+      return {
+        spaces: applyHistoryEntry(s.spaces, entry, "after"),
+        transformUndoStack: [...s.transformUndoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
+        transformRedoStack: [],
+      };
+    }),
+
   moveSpace: (id, x, y) =>
     set((s) => ({
       spaces: s.spaces.map((c) => (c.id === id ? { ...c, x, y } : c)),
@@ -639,31 +677,32 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const transform = normalizeLiveTransform(s.spaces, before, after);
       if (!isMeaningfulSpaceTransform(transform.before, transform.after)) return {};
+      const entry: SpaceHistoryEntry = { kind: "transform", ...transform };
       return {
-        spaces: applySpacePositions(s.spaces, transform.after),
-        transformUndoStack: [...s.transformUndoStack, transform].slice(-TRANSFORM_HISTORY_LIMIT),
+        spaces: applyHistoryEntry(s.spaces, entry, "after"),
+        transformUndoStack: [...s.transformUndoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
         transformRedoStack: [],
       };
     }),
 
   undoSpaceTransform: () =>
     set((s) => {
-      const transform = s.transformUndoStack[s.transformUndoStack.length - 1];
-      if (!transform) return {};
+      const entry = s.transformUndoStack[s.transformUndoStack.length - 1];
+      if (!entry) return {};
       return {
-        spaces: applySpacePositions(s.spaces, transform.before),
+        spaces: applyHistoryEntry(s.spaces, entry, "before"),
         transformUndoStack: s.transformUndoStack.slice(0, -1),
-        transformRedoStack: [...s.transformRedoStack, transform].slice(-TRANSFORM_HISTORY_LIMIT),
+        transformRedoStack: [...s.transformRedoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
       };
     }),
 
   redoSpaceTransform: () =>
     set((s) => {
-      const transform = s.transformRedoStack[s.transformRedoStack.length - 1];
-      if (!transform) return {};
+      const entry = s.transformRedoStack[s.transformRedoStack.length - 1];
+      if (!entry) return {};
       return {
-        spaces: applySpacePositions(s.spaces, transform.after),
-        transformUndoStack: [...s.transformUndoStack, transform].slice(-TRANSFORM_HISTORY_LIMIT),
+        spaces: applyHistoryEntry(s.spaces, entry, "after"),
+        transformUndoStack: [...s.transformUndoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
         transformRedoStack: s.transformRedoStack.slice(0, -1),
       };
     }),

@@ -68,8 +68,8 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   },
   organism: {
     id: "organism",
-    label: "Organism",
-    responsibility: "Style, attachment/reach, field, nuclei, motion, pockets, selection.",
+    label: "Morph & Motion",
+    responsibility: "Morph style, Membrane reach, Cells, Motion, pockets, and selection.",
     launcher: "both",
     status: "live",
     icon: SlidersHorizontal,
@@ -87,7 +87,7 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   palette: {
     id: "palette",
     label: "Palette",
-    responsibility: "Palette mode, nucleus family ramps, organism membrane palettes, program mapping.",
+    responsibility: "Palette mode, Cell family ramps, Membrane palettes, and program mapping.",
     launcher: "both",
     status: "live",
     icon: Palette,
@@ -105,7 +105,7 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   display: {
     id: "display",
     label: "Display",
-    responsibility: "Theme, technical grid, label/nuclei visibility, and persistent interface scale.",
+    responsibility: "Theme, technical grid, label/Cell visibility, and persistent interface scale.",
     launcher: "rail",
     status: "live",
     icon: Eye,
@@ -194,7 +194,7 @@ export const WIDGET_PANEL_DEFINITIONS: readonly WidgetPanelDefinition[] = [
   {
     id: "selected-space",
     label: "Selected Space",
-    responsibility: "Future selected nucleus property editor.",
+    responsibility: "Future selected Cell property editor.",
     launcher: "rail",
     status: "future",
   },

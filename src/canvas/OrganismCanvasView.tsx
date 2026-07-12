@@ -2,7 +2,6 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
   type CSSProperties,
 } from "react";
 import { useLab } from "../state/store";
@@ -38,7 +37,6 @@ import {
   type ProductionNucleus,
 } from "./organismAdapter";
 import { resolveOrganism } from "./organismProductionSettings";
-import MovingBorder from "../ui/primitives/MovingBorder";
 import {
   CELL_DRAG_THRESHOLD_PX,
   createCellActivationState,
@@ -48,7 +46,7 @@ import {
 } from "./cellActivation";
 import type { SpaceKind } from "../types";
 import { registerCanvasCapture, type CaptureRequestOptions } from "./exportCapture";
-import { resolveSelectionIntent } from "../interaction/selection";
+import { resolveSelectionIntent, resolveSelectionRingState } from "../interaction/selection";
 import {
   applySpacePositionsPreview,
   createGroupTranslation,
@@ -57,7 +55,7 @@ import {
   type SpacePosition,
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
-import { createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
+import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
 import { projectClientPoint } from "./labelPresentation";
 import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
@@ -97,7 +95,6 @@ export default function OrganismCanvasView() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const labelLayerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const [glOk, setGlOk] = useState(true);
   const spaces = useLab((s) => s.spaces);
   const selectedId = useLab((s) => s.selectedId);
   const selectedIds = useLab((s) => s.selectedIds);
@@ -134,14 +131,12 @@ export default function OrganismCanvasView() {
       renderer = null;
     }
     if (!renderer) {
-      setGlOk(false);
       announceReadiness("renderer-ready");
       // The intro sits above the shell, so a failed WebGL mount cannot wait
       // for a hidden manual button. Reuse the existing Classic canvas.
       queueMicrotask(() => useLab.getState().setSettings({ rendererMode: "classic" }));
       return;
     }
-    setGlOk(true);
     announceReadiness("renderer-ready");
 
     const cam = { ...useLab.getState().camera };
@@ -149,17 +144,74 @@ export default function OrganismCanvasView() {
     let selectedId = useLab.getState().selectedId;
     let selectedIdSet = new Set(useLab.getState().selectedIds);
     let settings = useLab.getState().settings;
-    let resolved = resolveOrganism(settings);
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reducedMotion = reducedMotionQuery.matches;
+    let resolved = resolveOrganism(settings, reducedMotion);
     const motionState = createMotionState();
     let theme = readTheme();
     let drag: DragPosition | null = null;
     let dirty = true;
+    let renderLoop: ReturnType<typeof createDemandFrameLoop> | null = null;
+    const invalidate = () => {
+      dirty = true;
+      renderLoop?.invalidate();
+    };
     let dpr = 1;
     let w = 0;
     let h = 0;
     let lastCommitted = useLab.getState().camera;
     let camTarget: typeof cam | null = null;
     let pendingCapture: { resolve: (canvas: HTMLCanvasElement) => void; reject: (err: Error) => void } | null = null;
+    let derivedDirty = true;
+    let cachedAreaRange = getAreaRange(spaces.slice(0, MAX_NUCLEI));
+    let cachedCellColors = new Map<string, string>();
+    let cachedStyle = styleColors(settings.morphMode, theme);
+    let cachedPalette = getOrganismPalette(
+      settings.paletteMode,
+      theme,
+      { bodyHex: cachedStyle.bodyHex, bgHex: cachedStyle.bgHex },
+      settings.organismPaletteId,
+      {
+        spaces: spaces.slice(0, MAX_NUCLEI),
+        areaRange: cachedAreaRange,
+        nucleusPaletteId: settings.nucleusPaletteId,
+        colorSource: settings.colorSource,
+      }
+    );
+    let cachedField = effectiveField(resolved.params);
+    let cachedShadow = resolveCellShadow(settings.cellShadow, settings.performanceQuality, theme);
+
+    const refreshDerived = () => {
+      cachedAreaRange = getAreaRange(spaces.slice(0, MAX_NUCLEI));
+      cachedCellColors = new Map(
+        spaces.slice(0, MAX_NUCLEI).map((space) => [
+          space.id,
+          getNucleusColor(
+            space,
+            settings.paletteMode,
+            cachedAreaRange,
+            settings.nucleusPaletteId,
+            settings.colorSource
+          ).fill,
+        ])
+      );
+      cachedStyle = styleColors(settings.morphMode, theme);
+      cachedPalette = getOrganismPalette(
+        settings.paletteMode,
+        theme,
+        { bodyHex: cachedStyle.bodyHex, bgHex: cachedStyle.bgHex },
+        settings.organismPaletteId,
+        {
+          spaces: spaces.slice(0, MAX_NUCLEI),
+          areaRange: cachedAreaRange,
+          nucleusPaletteId: settings.nucleusPaletteId,
+          colorSource: settings.colorSource,
+        }
+      );
+      cachedField = effectiveField(resolved.params);
+      cachedShadow = resolveCellShadow(settings.cellShadow, settings.performanceQuality, theme);
+      derivedDirty = false;
+    };
 
     const nucleiBuf = new Float32Array(MAX_NUCLEI * 4);
     const nucleusColorsBuf = new Float32Array(MAX_NUCLEI * 3);
@@ -196,23 +248,28 @@ export default function OrganismCanvasView() {
     let smooth: SmoothFrame | null = null;
 
     const unsub = useLab.subscribe((s) => {
+      const spacesChanged = s.spaces !== spaces;
       spaces = s.spaces;
       selectedId = s.selectedId;
       selectedIdSet = new Set(s.selectedIds);
       if (s.settings !== settings) {
         settings = s.settings;
-        resolved = resolveOrganism(settings);
+        resolved = resolveOrganism(settings, reducedMotion);
+        derivedDirty = true;
+        renderLoop?.setContinuous(resolved.motionActive);
       }
+      if (spacesChanged) derivedDirty = true;
       if (s.camera !== lastCommitted) {
         lastCommitted = s.camera;
         camTarget = s.camera;
       }
-      dirty = true;
+      invalidate();
     });
 
     const mo = new MutationObserver(() => {
       theme = readTheme();
-      dirty = true;
+      derivedDirty = true;
+      invalidate();
     });
     mo.observe(document.documentElement, { attributeFilter: ["data-theme"] });
 
@@ -221,11 +278,20 @@ export default function OrganismCanvasView() {
       w = host.clientWidth;
       h = host.clientHeight;
       renderer?.resize(w, h, dpr);
-      dirty = true;
+      invalidate();
     };
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(host);
+
+    const onReducedMotion = () => {
+      reducedMotion = reducedMotionQuery.matches;
+      resolved = resolveOrganism(settings, reducedMotion);
+      derivedDirty = true;
+      renderLoop?.setContinuous(resolved.motionActive);
+      invalidate();
+    };
+    reducedMotionQuery.addEventListener("change", onReducedMotion);
 
     /* V7.2 export adapter — WebGL requires preserveDrawingBuffer:false-safe
      * capture: request a render at the export scale, clone the buffer
@@ -246,7 +312,6 @@ export default function OrganismCanvasView() {
           }
         }, CAPTURE_TIMEOUT_MS);
         renderer.resize(w, h, scale);
-        dirty = true;
         pendingCapture = {
           resolve: (frameCanvas) => {
             window.clearTimeout(timeout);
@@ -257,6 +322,7 @@ export default function OrganismCanvasView() {
             reject(err);
           },
         };
+        invalidate();
       });
 
     const unregisterCapture = registerCanvasCapture(
@@ -265,7 +331,7 @@ export default function OrganismCanvasView() {
         const cssH = h;
         const webglCanvas = await captureWebglFrame(scale);
         renderer?.resize(cssW, cssH, dpr);
-        dirty = true;
+        invalidate();
 
         let labelLayerCanvas: HTMLCanvasElement | undefined;
         const layer = labelLayerRef.current;
@@ -279,7 +345,7 @@ export default function OrganismCanvasView() {
               if (node.classList.contains("selection-command-wrap")) return false;
               if (node.classList.contains("selection-edit-popover")) return false;
               if (!includeSelection) {
-                if (node.classList.contains("organism-moving-border")) return false;
+                if (node.classList.contains("organism-cell-keyline")) return false;
                 if (node.classList.contains("organism-selection-details")) return false;
               }
               return true;
@@ -317,9 +383,12 @@ export default function OrganismCanvasView() {
         motionState,
         settings.paletteMode,
         settings.nucleusPaletteId,
-        settings.colorSource
+        settings.colorSource,
+        cachedAreaRange,
+        cachedCellColors
       );
     };
+    let lastNuclei: ProductionNucleus[] = [];
 
     /* camera-synced technical grid — cheap CSS background, render-loop offsets */
     const syncGrid = () => {
@@ -349,16 +418,20 @@ export default function OrganismCanvasView() {
         }
         anchor.style.opacity = "1";
         anchor.style.transform = `translate(${nucleus.sx}px, ${nucleus.sy}px)`;
-        anchor.dataset.selected = selectedIdSet.has(nucleus.id) ? "true" : "false";
-        const movingBorder = anchor.querySelector<HTMLElement>(".organism-moving-border");
-        if (movingBorder) {
+        const selected = selectedIdSet.has(nucleus.id);
+        anchor.dataset.selected = selected ? "true" : "false";
+        anchor.dataset.primary = selectedId === nucleus.id ? "true" : "false";
+        anchor.dataset.ring = resolveSelectionRingState(
+          selected,
+          selectedId === nucleus.id,
+          hoveredId === nucleus.id
+        );
+        const keyline = anchor.querySelector<HTMLElement>(".organism-cell-keyline");
+        if (keyline) {
           const editing = anchor.dataset.editing === "true";
-          const borderSize = Math.max(
-            editing ? 24 : 18,
-            nucleus.screenR * 1.28 + (editing ? 10 : 4)
-          );
-          movingBorder.style.width = `${borderSize}px`;
-          movingBorder.style.height = `${borderSize}px`;
+          const keylineSize = Math.max(24, nucleus.screenR * 2 + (editing ? 14 : 10));
+          keyline.style.width = `${keylineSize}px`;
+          keyline.style.height = `${keylineSize}px`;
         }
       });
     };
@@ -376,6 +449,7 @@ export default function OrganismCanvasView() {
     let pressIntent: "replace" | "toggle" = "replace";
     let groupTranslation: GroupTranslation | null = null;
     let translatedPositions: SpacePosition[] = [];
+    let hoveredId: string | null = null;
 
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0 || (e.ctrlKey && e.pointerType === "mouse")) return;
@@ -385,7 +459,7 @@ export default function OrganismCanvasView() {
       }
       camTarget = null;
       const { sx, sy } = local(e);
-      const hit = hitTestNuclei(currentNuclei(), sx, sy);
+      const hit = hitTestNuclei(lastNuclei, sx, sy);
       try {
         canvas.setPointerCapture(e.pointerId);
       } catch {
@@ -426,13 +500,19 @@ export default function OrganismCanvasView() {
         if (selectedIdSet.size > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
-      dirty = true;
+      hoveredId = hit?.id ?? null;
+      invalidate();
     };
 
     const processMove = (e: PointerEvent) => {
       const { sx, sy } = local(e);
       if (mode === "none") {
-        canvas.style.cursor = hitTestNuclei(currentNuclei(), sx, sy) ? "grab" : "default";
+        const nextHoveredId = hitTestNuclei(lastNuclei, sx, sy)?.id ?? null;
+        if (nextHoveredId !== hoveredId) {
+          hoveredId = nextHoveredId;
+          invalidate();
+        }
+        canvas.style.cursor = nextHoveredId ? "grab" : "default";
         return;
       }
       if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
@@ -467,7 +547,7 @@ export default function OrganismCanvasView() {
         cam.x = panCX - (sx - panSX) / cam.zoom;
         cam.y = panCY - (sy - panSY) / cam.zoom;
       }
-      dirty = true;
+      invalidate();
     };
 
     const moveScheduler = createFrameScheduler<PointerEvent>({
@@ -477,11 +557,6 @@ export default function OrganismCanvasView() {
     });
 
     const onMove = (e: PointerEvent) => {
-      if (mode === "none") {
-        const { sx, sy } = local(e);
-        canvas.style.cursor = hitTestNuclei(currentNuclei(), sx, sy) ? "grab" : "default";
-        return;
-      }
       moveScheduler.push(latestCoalescedPointerEvent(e));
     };
 
@@ -499,7 +574,7 @@ export default function OrganismCanvasView() {
         } else {
           state.replaceSelection(drag.id);
           if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
-            const nucleus = currentNuclei().find((candidate) => candidate.id === drag?.id);
+            const nucleus = lastNuclei.find((candidate) => candidate.id === drag?.id);
             const client = projectClientPoint(
               nucleus ? { x: nucleus.sx, y: nucleus.sy } : { x: sx, y: sy },
               canvas.getBoundingClientRect()
@@ -524,7 +599,7 @@ export default function OrganismCanvasView() {
       translatedPositions = [];
       mode = "none";
       canvas.style.cursor = "default";
-      dirty = true;
+      invalidate();
     };
 
     const onContextMenu = (e: MouseEvent) => {
@@ -537,7 +612,7 @@ export default function OrganismCanvasView() {
       translatedPositions = [];
       resetCellActivation(activation);
       const { sx, sy } = local(e);
-      const hit = hitTestNuclei(currentNuclei(), sx, sy);
+      const hit = hitTestNuclei(lastNuclei, sx, sy);
       const state = useLab.getState();
       if (hit) {
         if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
@@ -551,7 +626,7 @@ export default function OrganismCanvasView() {
         state.openContextSurface(resolveContextSurface(null), { x: e.clientX, y: e.clientY }, null);
       }
       canvas.style.cursor = "default";
-      dirty = true;
+      invalidate();
     };
 
     let camCommit = 0;
@@ -562,7 +637,7 @@ export default function OrganismCanvasView() {
       cam.zoom = clamp(cam.zoom * Math.exp(-deltaY * 0.0016), Z_MIN, Z_MAX);
       cam.x = before.x - (sx - w / 2) / cam.zoom;
       cam.y = before.y - (sy - h / 2) / cam.zoom;
-      dirty = true;
+      invalidate();
       window.clearTimeout(camCommit);
       camCommit = window.setTimeout(commitCamera, 160);
     };
@@ -585,13 +660,14 @@ export default function OrganismCanvasView() {
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("contextmenu", onContextMenu);
 
-    let raf = 0;
     let firstUsableFrame = false;
     let rendererFailed = false;
     let last = performance.now();
-    const render = (now: number) => {
-      raf = requestAnimationFrame(render);
-      if (rendererFailed) return;
+    renderLoop = createDemandFrameLoop({
+      schedule: (callback) => requestAnimationFrame(callback),
+      cancel: (id) => cancelAnimationFrame(id),
+      render: (now) => {
+      if (rendererFailed) return false;
       const dt = Math.min(Math.max((now - last) / 1000, 0), 0.05);
       last = now;
 
@@ -611,23 +687,14 @@ export default function OrganismCanvasView() {
         dirty = true;
       }
 
+      if (derivedDirty) refreshDerived();
       advanceMotion(motionState, dt, resolved.adapter.timeScale);
       const nuclei = currentNuclei();
-      const sc = styleColors(settings.morphMode, theme);
-      const palette = getOrganismPalette(
-        settings.paletteMode,
-        theme,
-        { bodyHex: sc.bodyHex, bgHex: sc.bgHex },
-        settings.organismPaletteId,
-        {
-          spaces: spaces.slice(0, MAX_NUCLEI),
-          areaRange: getAreaRange(spaces),
-          nucleusPaletteId: settings.nucleusPaletteId,
-          colorSource: settings.colorSource,
-        }
-      );
+      lastNuclei = nuclei;
+      const sc = cachedStyle;
+      const palette = cachedPalette;
       const params = resolved.params;
-      const eff = effectiveField(params);
+      const eff = cachedField;
 
       if (!smooth) {
         smooth = {
@@ -684,14 +751,6 @@ export default function OrganismCanvasView() {
         Math.abs(params.pocketSoftness - smooth.pocketSoft) > 0.002 ||
         Math.abs(dotsTarget - smooth.dots) > 0.002;
 
-      const shouldRender =
-        dirty ||
-        !!drag ||
-        settling ||
-        !!camTarget ||
-        resolved.motionActive ||
-        motionState.settling;
-      if (!shouldRender) return;
       dirty = false;
       syncLabels(nuclei);
       syncGrid();
@@ -747,7 +806,7 @@ export default function OrganismCanvasView() {
       frame.nucleusDots = smooth.dots;
       frame.fieldDebug = params.showFieldDebug;
       frame.nucleiDebug = params.showNucleiDebug;
-      const shadow = resolveCellShadow(settings.cellShadow, settings.performanceQuality, theme);
+      const shadow = cachedShadow;
       frame.morphEnabled = settings.blobOn;
       frame.shadowEnabled = shadow.enabled && (!pendingCapture || shadow.includeInExport);
       frame.shadowColor = hexToRgb01(
@@ -787,7 +846,6 @@ export default function OrganismCanvasView() {
         }
       } catch {
         rendererFailed = true;
-        setGlOk(false);
         announceReadiness("renderer-ready");
         if (pendingCapture) {
           pendingCapture.reject(new Error("Organism renderer failed during export."));
@@ -795,17 +853,28 @@ export default function OrganismCanvasView() {
         }
         queueMicrotask(() => useLab.getState().setSettings({ rendererMode: "classic" }));
       }
-    };
-    raf = requestAnimationFrame(render);
+      return !rendererFailed && (
+        dirty ||
+        settling ||
+        !!camTarget ||
+        resolved.motionActive ||
+        motionState.settling ||
+        !!pendingCapture
+      );
+      },
+    });
+    renderLoop.setContinuous(resolved.motionActive);
+    renderLoop.invalidate();
 
     return () => {
-      cancelAnimationFrame(raf);
+      renderLoop?.cancel();
       window.clearTimeout(camCommit);
       moveScheduler.cancel();
       wheelScheduler.cancel();
       unsub();
       mo.disconnect();
       ro.disconnect();
+      reducedMotionQuery.removeEventListener("change", onReducedMotion);
       unregisterCapture();
       if (pendingCapture) {
         pendingCapture.reject(new Error("Organism canvas unmounted during export."));
@@ -825,18 +894,6 @@ export default function OrganismCanvasView() {
     <div ref={hostRef} className="organism-canvas-host">
       <canvas ref={canvasRef} className="organism-canvas" data-testid="organism-canvas" />
       {showGrid && <div ref={gridRef} className="organism-grid" aria-hidden="true" />}
-      {!glOk && (
-        <div className="organism-fallback glass">
-          <p className="eyebrow">WEBGL2 UNAVAILABLE</p>
-          <p>Switch to Classic canvas from the dock to continue editing.</p>
-          <button
-            type="button"
-            onClick={() => useLab.getState().setSettings({ rendererMode: "classic" })}
-          >
-            Classic
-          </button>
-        </div>
-      )}
       <div
         ref={labelLayerRef}
         className="organism-label-layer"
@@ -882,33 +939,13 @@ export default function OrganismCanvasView() {
               data-nucleus-id={space.id}
               data-category-token={mappedColor.token.id}
               data-kind={kind}
-              data-selected={selected}
+              data-selected={selected ? "true" : "false"}
               data-primary={space.id === selectedId ? "true" : undefined}
+              data-ring={resolveSelectionRingState(selected, space.id === selectedId, false)}
               data-editing={editing ? "true" : undefined}
               style={labelStyle}
             >
-              {selected && (
-                <MovingBorder
-                  isCircle
-                  className="organism-moving-border"
-                  borderWidth={editing ? 1.35 : 1}
-                  gradientWidth={kind === "void" ? 68 : 54}
-                  duration={editing ? 4.8 : 7.2}
-                  colors={
-                    kind === "void"
-                      ? [
-                          "color-mix(in srgb, var(--bg) 72%, var(--selection-keyline-neutral))",
-                          "color-mix(in srgb, var(--chrome-accent) 58%, transparent)",
-                          "color-mix(in srgb, var(--nucleus-ring) 28%, transparent)",
-                        ]
-                      : [
-                          "color-mix(in srgb, var(--nucleus-ring) 62%, var(--selection-keyline-neutral))",
-                          "color-mix(in srgb, var(--selection-keyline-neutral) 64%, transparent)",
-                          "color-mix(in srgb, var(--glass-highlight) 54%, transparent)",
-                        ]
-                  }
-                />
-              )}
+              <span className="organism-cell-keyline" aria-hidden="true" />
               <span className="organism-label">
                 {annotationMode === "pill" ? (
                   annotationDetail.showName ? space.name : meta || space.name

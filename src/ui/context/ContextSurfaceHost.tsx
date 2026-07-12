@@ -48,6 +48,9 @@ export default function ContextSurfaceHost() {
   useEffect(() => {
     if (!contextSurface) return;
     const onPointer = (event: PointerEvent) => {
+      // The editor owns outside-pointer commit. Closing it here in the parent
+      // can unmount the form before its capture listener records the draft.
+      if (useLab.getState().contextSurface === "inline-editor") return;
       const element = event.target instanceof Element ? event.target : null;
       const inside = Boolean(element?.closest("[data-context-surface]"));
       if (shouldCloseFromOutsidePointer(true, inside)) closeContextSurface();
@@ -65,6 +68,13 @@ export default function ContextSurfaceHost() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const state = useLab.getState();
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z" && !editableTarget(event.target)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (event.shiftKey) state.redoSpaceTransform();
+        else state.undoSpaceTransform();
+        return;
+      }
       if (event.key === "Escape") {
         const action = resolveEscapeAction(state.contextSurface, state.selectedIds);
         if (action === "close-context") {

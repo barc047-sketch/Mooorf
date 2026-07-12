@@ -1,12 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, useTransform, type HTMLMotionProps, type MotionValue } from "motion/react";
+import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Bookmark,
   ChevronLeft,
@@ -22,7 +15,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useLab } from "../state/store";
-import type { AttachMode, MorphMode, PaletteMode, RendererMode } from "../types";
+import type { AttachMode, MorphMode, PaletteMode } from "../types";
 import {
   ATTACH_HINTS,
   ATTACH_LABELS,
@@ -33,7 +26,7 @@ import {
 } from "./controlMeta";
 import "./shell.css";
 
-/* V6K bottom dock — quick actions only. Left: renderer/style/attachment/
+/* V6K bottom dock — quick actions only. Left: Morph style/attachment/
    density quick switches. Center: creation cluster. Right: palette, saved
    views, import/export, widget launcher, random arrangement. Detailed
    settings live in the floating widgets. */
@@ -60,8 +53,6 @@ const PALETTE_MODES = [
   "architecture",
   "auto",
 ] as const satisfies readonly PaletteMode[];
-const RENDERER_MODES = ["organism", "classic"] as const satisfies readonly RendererMode[];
-
 const MORPH_CODES: Record<MorphMode, string> = {
   "cellular-reverse": "CEL",
   "plain-black": "BLK",
@@ -74,11 +65,9 @@ const MORPH_CODES: Record<MorphMode, string> = {
 type PanelId = "style" | "attach" | "palette" | null;
 type PopAlign = "left" | "center" | "right";
 
-interface DockButtonProps extends HTMLMotionProps<"button"> {
+interface DockButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
 }
-
-const DockPointerContext = createContext<MotionValue<number> | null>(null);
 
 function DockGroup({
   side,
@@ -100,39 +89,16 @@ function DockGroup({
   );
 }
 
-function DockButton({ active, className = "", children, onFocus, onBlur, ...props }: DockButtonProps) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const contextX = useContext(DockPointerContext);
-  const fallbackX = useMotionValue(Number.POSITIVE_INFINITY);
-  const mouseX = contextX ?? fallbackX;
-  const reduced = useReducedMotion();
-  const targetScale = useTransform(mouseX, (x) => {
-    if (reduced || !Number.isFinite(x) || !ref.current) return 1;
-    const rect = ref.current.getBoundingClientRect();
-    const distance = Math.abs(x - (rect.left + rect.width / 2));
-    return distance >= 120 ? 1 : 1 + (1 - distance / 120) * 0.34;
-  });
-  const scale = useSpring(targetScale, { stiffness: 520, damping: 34, mass: 0.34 });
+function DockButton({ active, className = "", children, ...props }: DockButtonProps) {
   return (
-    <motion.button
-      ref={ref}
+    <button
       type="button"
       className={["dock-btn", className].filter(Boolean).join(" ")}
       data-active={active ? "true" : undefined}
-      style={{ scale }}
-      onFocus={(event) => {
-        onFocus?.(event);
-        const rect = ref.current?.getBoundingClientRect();
-        if (rect) mouseX.set(rect.left + rect.width / 2);
-      }}
-      onBlur={(event) => {
-        onBlur?.(event);
-        mouseX.set(Number.POSITIVE_INFINITY);
-      }}
       {...props}
     >
       {children}
-    </motion.button>
+    </button>
   );
 }
 
@@ -180,7 +146,6 @@ export default function Dock() {
   const morphMode = useLab((s) => s.settings.morphMode);
   const attachMode = useLab((s) => s.settings.attachMode);
   const paletteMode = useLab((s) => s.settings.paletteMode);
-  const rendererMode = useLab((s) => s.settings.rendererMode);
   const setSettings = useLab((s) => s.setSettings);
   const openWidgets = useLab((s) => s.openWidgets);
   const openWidget = useLab((s) => s.openWidget);
@@ -188,7 +153,6 @@ export default function Dock() {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const dockRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(Number.POSITIVE_INFINITY);
 
   useEffect(() => {
     if (!panel) return;
@@ -232,7 +196,6 @@ export default function Dock() {
   );
 
   return (
-    <DockPointerContext.Provider value={mouseX}>
     <motion.div
       ref={dockRef}
       className="dock"
@@ -241,10 +204,6 @@ export default function Dock() {
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
       role="toolbar"
       aria-label="Canvas tools"
-      onPointerMove={(event) => {
-        if (event.pointerType === "mouse") mouseX.set(event.clientX);
-      }}
-      onPointerLeave={() => mouseX.set(Number.POSITIVE_INFINITY)}
     >
       <DockGroup side="left" collapsed={!leftOpen}>
         <DockButton
@@ -261,26 +220,8 @@ export default function Dock() {
 
         {leftOpen && (
           <div className="dock-group-items" data-side="left">
-            <DockButton
-              className="dock-mode-btn renderer-mode-btn"
-              active={rendererMode === "organism"}
-              title={`Renderer: ${rendererMode === "organism" ? "Organism" : "Classic"}`}
-              aria-label={`Renderer: ${rendererMode === "organism" ? "Organism" : "Classic"}`}
-              onClick={() => {
-                const next =
-                  RENDERER_MODES[
-                    (RENDERER_MODES.indexOf(rendererMode) + 1) % RENDERER_MODES.length
-                  ];
-                setSettings({ rendererMode: next });
-              }}
-            >
-              <span className="dock-renderer-code">
-                {rendererMode === "organism" ? "ORG" : "CLS"}
-              </span>
-            </DockButton>
-
             <div className="dock-pop-anchor">
-              <DockPopover open={panel === "style"} label="Organism style" align="left">
+              <DockPopover open={panel === "style"} label="Morph style" align="left">
                 {MAIN_MORPHS.map(morphRow)}
                 <span className="pop-divider" role="separator" />
                 {EXTRA_MORPHS.map(morphRow)}
@@ -288,8 +229,8 @@ export default function Dock() {
               <DockButton
                 className="dock-mode-btn style-mode-btn"
                 active={panel === "style"}
-                title={`Organism style: ${MORPH_LABELS[morphMode]}`}
-                aria-label={`Organism style: ${MORPH_LABELS[morphMode]}`}
+                title={`Morph style: ${MORPH_LABELS[morphMode]}`}
+                aria-label={`Morph style: ${MORPH_LABELS[morphMode]}`}
                 aria-haspopup="menu"
                 aria-expanded={panel === "style"}
                 data-mode={morphMode}
@@ -360,16 +301,16 @@ export default function Dock() {
       <DockGroup side="center">
         <DockButton
           className="nucleus-orb"
-          title="Add nucleus"
-          aria-label="Add nucleus"
+          title="Add Space"
+          aria-label="Add Space"
           onClick={() => addSpace()}
         >
           <Plus size={21} strokeWidth={1.75} />
         </DockButton>
         <DockButton
           className="cluster-orb"
-          title="Add 5 nuclei"
-          aria-label="Add 5 nuclei"
+          title="Add 5 Spaces"
+          aria-label="Add 5 Spaces"
           onClick={() => addSpaces(5)}
         >
           <span className="cluster-dot cluster-dot-center" />
@@ -380,8 +321,8 @@ export default function Dock() {
         </DockButton>
         <DockButton
           className="void-btn"
-          title="Add void nucleus"
-          aria-label="Add void nucleus"
+          title="Add Void"
+          aria-label="Add Void"
           onClick={() => addVoid()}
         >
           <Minus size={16} strokeWidth={1.7} />
@@ -482,8 +423,8 @@ export default function Dock() {
             </DockButton>
             <DockButton
               active={openWidgets.includes("organism")}
-              title="Organism widget"
-              aria-label="Organism widget"
+              title="Morph and Motion"
+              aria-label="Morph and Motion"
               aria-haspopup="dialog"
               aria-expanded={openWidgets.includes("organism")}
               onClick={() => openWidget("organism")}
@@ -505,6 +446,5 @@ export default function Dock() {
         </DockButton>
       </DockGroup>
     </motion.div>
-    </DockPointerContext.Provider>
   );
 }

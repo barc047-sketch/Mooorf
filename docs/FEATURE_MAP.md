@@ -160,7 +160,7 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 ## Selection Feedback (V7.3)
 
 - Status: the former partial orbit/selection arc and halo/influence modes were intentionally removed in V7.3. They are neither active nor planned.
-- Current ownership: selected IDs live in the central store; Organism renders a MovingBorder per selected nucleus, Classic renders on-body keylines, and the root context host owns explicit right-click actions plus the shared editor. No automatic metadata/command panel renders on selection.
+- Current ownership: selected IDs live in the central store; both active renderer strategies project one external keyline (solid primary, dashed secondary, subtle unselected hover), and the root context host owns explicit right-click actions plus the shared editor. No automatic metadata/command panel renders on selection.
 - Export rule: the removed arc is never captured or emitted. Clean selection omits the selected keylines; root context/editor chrome is outside renderer capture layers.
 - Risk: selection must remain absent from organism radius/strength/position inputs; contextual action leaves alone may receive pointer events so canvas drag/pan/zoom remain available.
 
@@ -170,3 +170,12 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 - Main files: `src/import/*`, `src/ui/widgets/FileIntakeWidget.tsx`, `src/ui/widgets/WidgetHost.tsx`, `src/ui/Dock.tsx`, `src/export/projectSnapshot.ts`.
 - Ownership: one global drop queue, one import service, one File Intake WidgetFrame, central Zustand product data, V7.2 snapshot extension.
 - Risk: high for destructive replacement; schema validation, recovery snapshot, one transaction, and Undo are mandatory.
+
+## Canvas Stabilization (V8.2C0.1)
+
+- Status: complete on `feature/v8-2c0-1-canvas-stabilization` for 1440 desktop and 1280 laptop.
+- One user-facing Canvas mounts one active renderer strategy. WebGL remains normal; Classic and `organism-lab` remain internal fallback/experiment paths.
+- Shared demand scheduling sleeps with Motion Off, while Motion On owns one continuous scheduler. Stable Organism derivations are dependency-cached.
+- Inline Name/Area editing uses the existing graph store and Undo/Redo stack. Morph creates the optional Membrane; selection remains an external visual layer.
+- Ordinary UI has no ORG/CLS choice and Dock hover keeps stable geometry.
+- Next architecture-only phases: V8.2C0.2 asset registry, then V8.2C0.3 Icons & Symbols Inspector.

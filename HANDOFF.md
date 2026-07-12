@@ -179,3 +179,16 @@ GitHub is the source of truth for code. Do not use Google Drive as the code work
 - Remote: `origin`
 - Repo: https://github.com/barc047-sketch/Mooorf
 - Branch: `main`
+
+## V8.2C0.1 — Canvas stabilization handoff
+
+The child branch `feature/v8-2c0-1-canvas-stabilization` stabilizes the frozen
+`c141ed7` performance foundation without merging. Production now exposes one
+Canvas with one mounted renderer strategy; Classic stays automatic/internal.
+Motion-Off rendering sleeps, Motion On owns one scheduler, stable Organism work
+is cached, and inline Name/Area editing commits once through existing graph and
+Undo/Redo ownership. Morph visibly controls the optional Membrane. Primary and
+secondary selection use separate external keylines. ORG/CLS and Dock
+magnification are removed. Focused contracts and exact 1440/1280 QA are recorded
+in `docs/V8_2C0_1_CANVAS_STABILIZATION_REPORT.md` and the external artifact
+directory. Next remains C0.2 asset registry, then C0.3 Icons & Symbols Inspector.

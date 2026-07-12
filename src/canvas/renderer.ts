@@ -16,6 +16,7 @@ import type { AttachMode, MorphMode } from "../types";
 import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
 import { resolveCellShadow } from "./cellShadow";
+import { resolveSelectionRingState } from "../interaction/selection";
 
 // Pure canvas draw layer — no React, no store. CanvasView feeds it snapshots.
 
@@ -86,6 +87,7 @@ export interface DrawSceneOptions {
   includeLabels?: boolean;
   /** V8.2A — selected object keylines; primarySelectedId remains selectedId. */
   selectedIds?: readonly string[];
+  hoveredId?: string | null;
   isExport?: boolean;
 }
 
@@ -227,16 +229,21 @@ export function drawScene(
       ctx.fill();
     }
 
-    /* Selection uses only subtle on-body keylines. Multi-selection never
-       enters radius, position, blob geometry, or any field calculation. */
-    if (selectedSet.has(c.id)) {
+    /* Selection is one external presentation-only ring. It never enters
+       radius, position, Morph geometry, material, or field calculations. */
+    const ringState = resolveSelectionRingState(
+      selectedSet.has(c.id),
+      selectedId === c.id,
+      options?.hoveredId === c.id
+    );
+    if (ringState !== "none") {
       ctx.save();
-      ctx.globalAlpha = 0.72;
-      ctx.strokeStyle = mappedColor.ring;
-      ctx.lineWidth = Math.max(1, 1.15 * z);
-      ctx.setLineDash([]);
+      ctx.globalAlpha = ringState === "hover" ? 0.34 : ringState === "secondary" ? 0.58 : 0.86;
+      ctx.strokeStyle = ringState === "hover" ? tokens.hairline : mappedColor.ring;
+      ctx.lineWidth = ringState === "primary" ? 1.6 : 1.1;
+      ctx.setLineDash(ringState === "secondary" ? [5, 4] : []);
       ctx.beginPath();
-      ctx.arc(sx, sy, Math.max(1, r - 0.75), 0, Math.PI * 2);
+      ctx.arc(sx, sy, Math.max(1, r + 6), 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }

@@ -787,3 +787,18 @@
 - [ ] Playwright test
 - [ ] build pass
 - [ ] HANDOFF update
+
+## V8.2C0.1 — Canvas stabilization ✅ COMPLETE
+
+- [x] one user-facing Canvas; inactive fallback unmounted and listener/rAF-free
+- [x] demand-driven idle rendering with one Motion scheduler
+- [x] cached Organism derivations and scheduled hover/labels
+- [x] inline Name/Area edit with one Undo/Redo transaction
+- [x] visible Morph/Membrane and working Motion control
+- [x] no ORG/CLS or user renderer switch; automatic Classic fallback retained
+- [x] external solid primary / dashed secondary selection language
+- [x] bottom hover magnification removed
+- [x] Auto Contrast, resources, icons, grids, import/export, migration preserved
+- [x] exact 1440/1280 screenshot and focused contract evidence recorded
+- [ ] next: V8.2C0.2 asset registry
+- [ ] after: V8.2C0.3 Icons & Symbols Inspector

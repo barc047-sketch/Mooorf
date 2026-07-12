@@ -5,7 +5,6 @@
 import { useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useLab } from "../../state/store";
 import {
   buildPresentationPack,
   defaultProjectTitle,
@@ -86,7 +85,6 @@ const PRIMARY_LABEL: Record<ExportFormatChoice, string> = {
 };
 
 export default function ExportWidget() {
-  const rendererMode = useLab((s) => s.settings.rendererMode);
   const [format, setFormat] = useState<ExportFormatChoice>("png");
   const [visual, setVisual] = useState(DEFAULT_VISUAL_OPTIONS);
   const [presentation, setPresentation] = useState(DEFAULT_PRESENTATION_OPTIONS);
@@ -101,7 +99,6 @@ export default function ExportWidget() {
 
   const busy = stage === "preparing";
   const project = defaultProjectTitle();
-  const svgAvailable = rendererMode === "classic";
 
   const runExport = async () => {
     if (runningRef.current) return;
@@ -144,8 +141,8 @@ export default function ExportWidget() {
 
   return (
     <>
-      <WidgetSection title="Export" hint={rendererMode === "organism" ? "Organism" : "Classic"} defaultOpen>
-        <span className="org-subcap">Current view · {rendererMode === "organism" ? "Organism" : "Classic"}</span>
+      <WidgetSection title="Export" hint="Current Canvas" defaultOpen>
+        <span className="org-subcap">Current view · one Canvas</span>
       </WidgetSection>
 
       <WidgetSection title="Format" defaultOpen>
@@ -157,16 +154,13 @@ export default function ExportWidget() {
         />
         {format === "png" && (
           <>
-            {svgAvailable ? (
-              <SwitchRow
-                label="Vector (SVG)"
-                on={useVectorSvg}
-                onToggle={() => setUseVectorSvg((v) => !v)}
-              />
-            ) : (
-              <p className="wexport-unavailable">
-                Vector SVG needs Classic mode — Organism has no true vector membrane path.
-              </p>
+            <SwitchRow
+              label="Vector (SVG)"
+              on={useVectorSvg}
+              onToggle={() => setUseVectorSvg((v) => !v)}
+            />
+            {useVectorSvg && (
+              <p className="wexport-unavailable">Vector export includes Cells and labels; the Membrane remains raster-only.</p>
             )}
           </>
         )}

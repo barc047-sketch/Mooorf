@@ -31,11 +31,10 @@ export const exportTimestamp = (date: Date = new Date()): string => {
 
 export const buildCanvasFilename = (
   project: string,
-  renderer: "organism" | "classic",
   ext: "png" | "svg",
   date?: Date
 ): string =>
-  `${sanitizeFilename(project)}-canvas-${renderer}-${exportTimestamp(date)}.${ext}`;
+  `${sanitizeFilename(project)}-canvas-${exportTimestamp(date)}.${ext}`;
 
 export const buildPresentationFilename = (
   project: string,

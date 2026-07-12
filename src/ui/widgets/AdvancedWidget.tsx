@@ -7,21 +7,16 @@ import { SwitchRow, WidgetSection } from "./controls";
 
 export default function AdvancedWidget() {
   const organism = useLab((s) => s.settings.organism);
-  const rendererMode = useLab((s) => s.settings.rendererMode);
   const spaceCount = useLab((s) => s.spaces.length);
   const setOrganism = useLab((s) => s.setOrganism);
 
   return (
     <>
-      <WidgetSection title="Renderer" hint="diagnostics" defaultOpen>
+      <WidgetSection title="Canvas" hint="diagnostics" defaultOpen>
         <div className="org-readout">
-          <span>Mode</span>
-          <span className="org-readout-val">{rendererMode === "organism" ? "Organism · WebGL2" : "Classic · 2D"}</span>
-        </div>
-        <div className="org-readout">
-          <span>Nuclei</span>
+          <span>Cells</span>
           <span className="org-readout-val">
-            {spaceCount} <i>/{MAX_NUCLEI} rendered</i>
+            {spaceCount} <i>/{MAX_NUCLEI} visible</i>
           </span>
         </div>
       </WidgetSection>
@@ -33,7 +28,7 @@ export default function AdvancedWidget() {
           onToggle={() => setOrganism({ showFieldDebug: !organism.showFieldDebug })}
         />
         <SwitchRow
-          label="Nuclei debug"
+          label="Cell field debug"
           on={organism.showNucleiDebug}
           onToggle={() => setOrganism({ showNucleiDebug: !organism.showNucleiDebug })}
         />
@@ -51,7 +46,7 @@ export default function AdvancedWidget() {
           Dual-layer organism editing — staged
         </button>
         <button type="button" className="pal-custom" disabled>
-          Per-nucleus color texture — staged
+          Per-Cell colour texture — staged
         </button>
       </WidgetSection>
     </>

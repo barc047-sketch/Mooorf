@@ -257,3 +257,12 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - Canvas = direct editing.
 - Store = product data.
 - Adapters/renderers = derived visuals.
+
+## V8.2C0.1 Canvas runtime ownership
+
+- `src/interaction/frameScheduler.ts`: shared demand loop plus existing coalesced pointer scheduler; no permanent idle rAF.
+- `src/canvas/OrganismCanvasView.tsx`: normal WebGL renderer, one pointer/camera/label/capture owner, dependency-cached derived visual data, external selection keyline.
+- `src/canvas/CanvasView.tsx`: automatic Classic fallback using the same demand-loop contract.
+- `src/canvas/InlineCellEditor.tsx` + `src/ui/context/ContextSurfaceHost.tsx`: one editor and one event-isolation owner; commits through `commitSpaceEdit` into existing history.
+- `src/export/exportService.ts`: active raster capture plus internal Classic vector adapter for SVG Cells/labels; no user renderer choice.
+- Do not duplicate: camera, pointer owner, render loop, label projector, selection store, editor, Morph/Motion state, contrast resolver, history, or resource registry.

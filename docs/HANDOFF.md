@@ -704,3 +704,11 @@ Current bundle: ~147 kB js / 47 kB gzip.
 
 ## Next task
 **Phase 5 — Table sync:** `views/TableView.tsx` (TanStack + shadcn table/input/select), inline edit name/area/category/privacy, add/delete rows, same store (edits ripple to canvas automatically), switch-no-reset verification. CSV import comes with it or in P7 per queue.
+
+## V8.2C0.1 — Canvas stabilization
+
+- One production Canvas now mounts one active renderer and one interaction/camera/label/capture owner. Classic remains automatic internal fallback.
+- Motion-Off idle rendering is demand-driven; Motion On uses one scheduler. Organism stable derivations are cached by dependency.
+- Shared inline Name/Area editor now selects Name, isolates Canvas events, commits once, and uses existing Undo/Redo.
+- Morph/Membrane, Motion, external primary/secondary selection, Auto Contrast, resources, migration, and exports are covered by focused contracts and exact-size QA.
+- Visible ORG/CLS and Dock magnification are removed. Future C0.2 asset registry and C0.3 Icons & Symbols Inspector remain deferred.
