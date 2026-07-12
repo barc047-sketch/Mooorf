@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] V8.2A.1 Multi-Selection Group Drag Foundation
 - [x] V8.2B Expandable Resource Registry Foundation
 - [x] V8.2A Interaction Foundation
 - [x] V8.1 Spatial Colour Field + Minimal Direct Editing
@@ -24,6 +25,17 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## V8.2A.1 — Multi-Selection Group Drag Foundation  ✅ IMPLEMENTED
+
+- [x] shared original-position group translation contract for Classic and Organism
+- [x] unselected drag replaces selection; selected-member drag preserves the group and makes that member primary
+- [x] one primary-derived delta preserves every valid member's relative offset without resize/re-layout
+- [x] coordinated store preview plus one bounded undo/redo transform transaction at pointer-up
+- [x] stale, duplicate, deleted, zero-motion, and non-finite transform inputs are safe
+- [x] focused group/selection/context/editor/geometry/palette/resource contracts
+- [ ] Antigravity broad browser and performance audit of the pushed branch
+- [ ] deferred: marquee/lasso, scale, rotate, alignment, persistent grouping, transform UI, keyboard movement, iPad context gestures
 
 ## V8.2B — Expandable Resource Registry Foundation  ✅ IMPLEMENTED
 

@@ -379,3 +379,10 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Object actions use only individual circular buttons around a transparent empty centre—no centre object, backdrop disc, enclosing ring, or large panel. Boundary, Lock, Group, and More remain truthfully disabled until real product state exists.
 - Materials reuses `openWidget("palette")`, which focuses an existing stable widget key without remounting. Import reuses `FileIntakeProvider.browse`; View reuses the Display widget; duplicate/delete reuse central store mutations.
 - Blank dropdown and object radial are desktop/laptop/iPad pointer foundations. iPad long-press/two-finger activation, the material shelf, detailed Tools page, and future sub-rails remain deferred.
+
+# V8.2A.1 — Group translation ownership
+
+- `groupDrag.ts` is the one shared, pure translation contract: it normalizes live selected IDs, captures original finite positions, and resolves every frame from the initial anchor delta to avoid drift. A dragged selected member becomes primary without reordering secondary IDs; an unselected drag resolves to that object alone.
+- `store.ts` owns coordinated preview updates and a bounded ephemeral transform undo/redo stack. Pointer movement never records history; release commits one `{ before, after }` transform only when a finite position changed. Deleted/stale IDs are ignored and never recreated.
+- Classic uses its existing world conversion; Organism applies `dragDeltaWorldToStore` once to the original anchor delta before sharing it with every selected member. No selection value enters organism radius, strength, colour/material, shader, or membrane inputs.
+- This decision deliberately excludes marquee/lasso, scale, rotation, alignment, persistent groups, transform controls, keyboard movement, and a new snapping system.

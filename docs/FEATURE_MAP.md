@@ -58,6 +58,14 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 - Deferred: marquee selection, iPad long-press/two-finger context activation, material shelf, detailed Tools page, line/relationship/text/paragraph/frame behavior, Boundary/Lock/Group/More.
 - Risk: high for modifier-click/drag arbitration, Escape/outside-click ordering, context target invalidation, and selection geometry invariance.
 
+## Multi-Selection Group Drag (V8.2A.1)
+
+- Purpose: translate a selected group as one world-space delta without introducing a grouping model, resize, rotation, or canvas UI.
+- Main files: `src/interaction/groupDrag.ts`, `src/state/store.ts`, `src/canvas/CanvasView.tsx`, `src/canvas/OrganismCanvasView.tsx`.
+- Ownership: the shared utility captures finite live positions; the store batches preview positions and owns one ephemeral transform undo/redo entry on release. Saved views and project exports continue to persist final `spaces` positions only.
+- Compatibility: Classic and Organism retain their renderer-specific hit testing and world conversion; Organism inverts its existing layout transform once from the drag anchor. Selection remains outside radius, strength, colour, material, and membrane inputs.
+- Deferred: marquee/lasso, resize, rotation, alignment, persistent group data, transform UI, keyboard movement, iPad context gestures, and snapping work where no existing snapping contract exists.
+
 ## Saved Views
 
 - Purpose: architecture design iterations stored locally.
