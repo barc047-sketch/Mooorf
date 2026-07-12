@@ -13,6 +13,8 @@ import type {
   Theme,
 } from "../types";
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION } from "./types";
+import type { ResourceSettings } from "../resources/types";
+import { cloneResourceSettings } from "../resources/resourcePersistence";
 
 /* Mirrors the existing SavedCanvasSnapshot field set (src/types.ts) so the
    JSON project export reuses one canonical project-state shape instead of
@@ -35,6 +37,7 @@ export interface ProjectExportSettings {
   organism: OrganismSettings;
   uiScale: number;
   widgetScale: number;
+  resources: ResourceSettings;
 }
 
 export interface ProjectExportSummary {
@@ -82,7 +85,7 @@ export const buildProjectSnapshot = (
     spaces: input.spaces.map((s) => ({ ...s })),
     camera: { ...input.camera },
     theme: input.theme,
-    settings: { ...input.settings, organism: { ...input.settings.organism } },
+    settings: { ...input.settings, organism: { ...input.settings.organism }, resources: cloneResourceSettings(input.settings.resources) },
     summary: {
       spaceCount: input.spaces.length,
       voidCount,

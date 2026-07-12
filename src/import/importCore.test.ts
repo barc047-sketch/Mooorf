@@ -14,6 +14,7 @@ import {
 } from "./tableImport";
 import type { ProjectExportSnapshot } from "../export/projectSnapshot";
 import type { SavedCanvasSnapshot, SpaceCell } from "../types";
+import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
   if (!Object.is(actual, expected)) throw new Error(`${message}: ${String(actual)} !== ${String(expected)}`);
@@ -48,6 +49,7 @@ const settings = {
   organism: {} as import("../types").OrganismSettings,
   uiScale: 1.03,
   widgetScale: 0.96,
+  resources: DEFAULT_RESOURCE_SETTINGS,
 };
 const spaces: SpaceCell[] = [
   { id: "a", name: "Studio", area: 80, category: "Work", privacy: "shared", color: "#123456", x: 10, y: 20 },
@@ -68,7 +70,7 @@ const project = buildProjectEnvelope(snapshot, savedViews, new Date("2026-07-11T
 equal(project.kind, "mooorf-project", "project discriminator");
 equal(project.schemaVersion, PROJECT_FILE_VERSION, "project schema version");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].color, "#123456", "complete project preserves explicit colors");
-const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", createdAt: 1, spaces, camera: snapshot.camera, rendererMode: settings.rendererMode, morphMode: settings.morphMode, attachMode: settings.attachMode, mergeDistance: settings.mergeDistance, blobOn: settings.blobOn, paletteMode: settings.paletteMode, colorSource: settings.colorSource, layoutPreset: settings.layoutPreset, annotationMode: settings.annotationMode, organism: settings.organism, theme: "day", uiScale: settings.uiScale, widgetScale: settings.widgetScale, annotationDetail: settings.annotationDetail, showGrid: settings.showGrid, nucleusPaletteId: settings.nucleusPaletteId, organismPaletteId: settings.organismPaletteId };
+const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", createdAt: 1, spaces, camera: snapshot.camera, rendererMode: settings.rendererMode, morphMode: settings.morphMode, attachMode: settings.attachMode, mergeDistance: settings.mergeDistance, blobOn: settings.blobOn, paletteMode: settings.paletteMode, colorSource: settings.colorSource, layoutPreset: settings.layoutPreset, annotationMode: settings.annotationMode, organism: settings.organism, theme: "day", uiScale: settings.uiScale, widgetScale: settings.widgetScale, annotationDetail: settings.annotationDetail, showGrid: settings.showGrid, nucleusPaletteId: settings.nucleusPaletteId, organismPaletteId: settings.organismPaletteId, resources: settings.resources };
 equal(parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [savedView]))).savedViews.length, 1, "saved views validate and round-trip");
 equal(parseProjectEnvelope(JSON.stringify(snapshot)).snapshot.project.title, "Test", "V7.2 JSON snapshot is recognized");
 throws(() => parseProjectEnvelope('{"kind":"wrong","schemaVersion":1}'), "kind", "invalid project kind rejected");

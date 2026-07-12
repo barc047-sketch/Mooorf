@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] V8.2B Expandable Resource Registry Foundation
 - [x] V8.2A Interaction Foundation
 - [x] V8.1 Spatial Colour Field + Minimal Direct Editing
 - [x] Tooling: compact audit stack (impact/dependency/dead-code/performance/summary contracts)
@@ -23,6 +24,22 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## V8.2B — Expandable Resource Registry Foundation  ✅ IMPLEMENTED
+
+- [x] canonical serializable material registry and palette-backed collections; Editorial Aurora preserved
+- [x] 14 material targets, renderer/performance/source/licence metadata, and explicit export fallback policy
+- [x] parameter schema/normalization for colour, number/range/angle/percentage, boolean, enum, gradient, and texture references
+- [x] compatibility adapter preserves current Category/Privacy/explicit/uncategorized/void colour output
+- [x] dotted/fine-line/technical/architectural/major-minor/isometric/radial/none grid registry and legacy boolean migration
+- [x] 18 truthful future annotation definitions; no fake canvas tools
+- [x] icon metadata and placement contracts; uploaded assets remain `asset:` references, never raw data
+- [x] read-only resource catalogue for ID/category/target/search/status and favourites/recent-ready IDs
+- [x] nested project/config/saved-view persistence with safe defaults, future-version rejection, and no registry-object duplication
+- [x] export manifest resource metadata plus per-material fallback declarations; existing export rendering unchanged
+- [x] focused material/grid/annotation/icon/resource/palette/project/config/export contracts
+- [ ] Antigravity broad audit of the pushed V8.2B branch
+- [ ] Claude prototype review before Material Browser, circular shelf, Grid Shelf, Icon Library, Annotation Studio, or Tools UI
 
 ## V8.2A — Interaction Foundation  ✅ IMPLEMENTED
 

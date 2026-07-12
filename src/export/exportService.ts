@@ -14,6 +14,7 @@ import {
   sanitizeFilename,
 } from "./filenames";
 import type { ExportPresentationOptions, ExportVisualOptions } from "./types";
+import { cloneResourceSettings } from "../resources/resourcePersistence";
 
 export type PackProgressStage =
   | "Capturing canvas"
@@ -41,6 +42,7 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
     organism: { ...s.organism },
     uiScale: s.uiScale,
     widgetScale: s.widgetScale,
+    resources: cloneResourceSettings(s.resources),
   };
 };
 
@@ -178,6 +180,9 @@ export const buildPresentationPack = async (
     colorSource: state.settings.colorSource,
     dimensions: { width: composite.width, height: composite.height },
     visual,
+    resourceSchemaVersion: state.settings.resources.schemaVersion,
+    activeMaterialIds: [...new Set(Object.values(state.settings.resources.materialBindings).filter((binding) => binding.enabled).map((binding) => binding.materialId))],
+    activeGridPresetId: state.settings.resources.grid.presetId,
     summary: {
       spaceCount: state.spaces.length,
       voidCount: state.spaces.filter((s) => s.kind === "void").length,

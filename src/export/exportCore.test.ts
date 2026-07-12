@@ -6,6 +6,7 @@ import { resolvePageSize, fitRect } from "./pageLayout";
 import { validateExportDimensions, resolvePaddingPx } from "./resolution";
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION, MANIFEST_SCHEMA_VERSION, DEFAULT_VISUAL_OPTIONS } from "./types";
 import type { SpaceCell } from "../types";
+import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
   if (!Object.is(actual, expected)) {
@@ -83,6 +84,7 @@ const settings = {
   organism: {} as import("../types").OrganismSettings,
   uiScale: 1.03,
   widgetScale: 0.96,
+  resources: DEFAULT_RESOURCE_SETTINGS,
 };
 equal(computeProgrammedArea(spaces), 20, "programmed area excludes voids and NaN-safe");
 const snapshot = buildProjectSnapshot(
@@ -115,6 +117,8 @@ const manifest = buildManifest(
 equal(manifest.manifestVersion, MANIFEST_SCHEMA_VERSION, "manifest schema version stamped");
 equal(manifest.files.length, 4, "manifest lists only provided files");
 ok(!manifest.files.includes("manifest.json"), "manifest never lists itself as a content file");
+equal(manifest.resourceSchemaVersion, 1, "manifest records resource schema version");
+equal(manifest.activeGridPresetId, "none", "legacy manifest input receives safe grid fallback");
 
 // ---- page layout ----
 const a4Landscape = resolvePageSize("a4", "landscape");

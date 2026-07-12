@@ -2,6 +2,7 @@ import type { ProjectExportSettings, ProjectExportSnapshot } from "../export/pro
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION } from "../export/types";
 import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme } from "../types";
+import { cloneResourceSettings, normalizeResourceSettings } from "../resources/resourcePersistence";
 
 export const PROJECT_FILE_VERSION = 1;
 export const CONFIG_FILE_VERSION = 1;
@@ -134,6 +135,11 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
       position: oneOf(annotation.position, ["auto", "center", "above", "below"] as const, "Label position"),
     },
     organism: { ...(value.organism as unknown as ProjectExportSettings["organism"]) },
+    resources: normalizeResourceSettings(value.resources, {
+      showGrid: value.showGrid === true,
+      nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
+      organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
+    }),
   };
 };
 
@@ -193,6 +199,11 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     widgetScale: normalizeWidgetScale(value.widgetScale),
     colorSource: value.colorSource === "privacy" ? "privacy" : "category",
     organism: { ...(value.organism as unknown as SavedCanvasSnapshot["organism"]) },
+    resources: normalizeResourceSettings(value.resources, {
+      showGrid: value.showGrid === true,
+      nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
+      organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
+    }),
   };
 };
 
@@ -221,9 +232,9 @@ export const buildProjectEnvelope = (
     ...snapshot,
     spaces: snapshot.spaces.map((space) => ({ ...space })),
     camera: { ...snapshot.camera },
-    settings: { ...snapshot.settings, annotationDetail: { ...snapshot.settings.annotationDetail }, organism: { ...snapshot.settings.organism } },
+    settings: { ...snapshot.settings, annotationDetail: { ...snapshot.settings.annotationDetail }, organism: { ...snapshot.settings.organism }, resources: cloneResourceSettings(snapshot.settings.resources) },
   },
-  savedViews: savedViews.map((view) => ({ ...view, spaces: view.spaces.map((space) => ({ ...space })), camera: { ...view.camera }, organism: { ...view.organism } })),
+  savedViews: savedViews.map((view) => ({ ...view, spaces: view.spaces.map((space) => ({ ...space })), camera: { ...view.camera }, organism: { ...view.organism }, resources: view.resources ? cloneResourceSettings(view.resources) : undefined })),
 });
 
 export const parseProjectEnvelope = (text: string): MooorfProjectEnvelope => {
@@ -260,7 +271,7 @@ export const buildConfigEnvelope = (
   kind: "mooorf-config",
   schemaVersion: CONFIG_FILE_VERSION,
   savedAt: now.toISOString(),
-  settings: { ...snapshot.settings, theme: snapshot.theme, annotationDetail: { ...snapshot.settings.annotationDetail }, organism: { ...snapshot.settings.organism } },
+  settings: { ...snapshot.settings, theme: snapshot.theme, annotationDetail: { ...snapshot.settings.annotationDetail }, organism: { ...snapshot.settings.organism }, resources: cloneResourceSettings(snapshot.settings.resources) },
   workspace: {
     camera: { ...snapshot.camera },
     spaceLayoutById: Object.fromEntries(snapshot.spaces.map((space) => [space.id, { x: space.x, y: space.y }])),

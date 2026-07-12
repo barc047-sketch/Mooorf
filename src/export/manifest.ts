@@ -1,4 +1,5 @@
 import type { ColorSource, RendererMode } from "../types";
+import type { GridPresetId } from "../grid/types";
 import { MANIFEST_SCHEMA_VERSION, type ExportVisualOptions } from "./types";
 
 export interface PresentationManifest {
@@ -11,6 +12,9 @@ export interface PresentationManifest {
   dimensions: { width: number; height: number };
   visual: ExportVisualOptions;
   summary: { spaceCount: number; voidCount: number; programmedAreaM2: number };
+  resourceSchemaVersion: number;
+  activeMaterialIds: string[];
+  activeGridPresetId: GridPresetId;
 }
 
 export interface ManifestInput {
@@ -21,6 +25,9 @@ export interface ManifestInput {
   dimensions: { width: number; height: number };
   visual: ExportVisualOptions;
   summary: { spaceCount: number; voidCount: number; programmedAreaM2: number };
+  resourceSchemaVersion?: number;
+  activeMaterialIds?: string[];
+  activeGridPresetId?: GridPresetId;
 }
 
 /** Manifest lists only files that were actually produced — callers must
@@ -35,4 +42,7 @@ export const buildManifest = (input: ManifestInput, now: Date = new Date()): Pre
   dimensions: { ...input.dimensions },
   visual: { ...input.visual },
   summary: { ...input.summary },
+  resourceSchemaVersion: input.resourceSchemaVersion ?? 1,
+  activeMaterialIds: [...(input.activeMaterialIds ?? [])],
+  activeGridPresetId: input.activeGridPresetId ?? "none",
 });

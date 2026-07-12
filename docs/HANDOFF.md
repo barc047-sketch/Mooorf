@@ -1,5 +1,14 @@
 # Handoff
 
+## V8.2B — Expandable Resource Registry Foundation
+
+- Added canonical static registries for materials, eight grid presets, 18 truthful future annotation definitions, and icon asset metadata. One read-only resource catalogue provides ID/category/target/search/status discovery plus favourites/recent-ready ID filtering without creating a mixed mutable store.
+- Material definitions are serializable and declare targets, parameter schemas, renderer support, performance tier, source/licence/attribution, and explicit export fallback. Validation clamps finite values and rejects unsafe keys, executable shader strings, external/Blob/data URLs, and raw uploaded assets.
+- Adapted every existing nucleus and organism palette into built-in material collections; Editorial Aurora remains present. The compatibility resolver delegates to `getNucleusColor`, preserving Category/Privacy output, explicit `space.color` priority, deterministic fallback, and void semantics.
+- Added nested `settings.resources` persistence with IDs/sparse overrides only. Existing schema major versions stay unchanged; legacy palette-only, V8.1 colour-source, and boolean-grid snapshots receive safe resource defaults. Project/config recovery and saved-view cloning preserve the nested contract.
+- Export snapshots and manifests may record resource schema version, active material IDs, and active grid preset. Existing Classic SVG and Organism PNG/PDF/pack generation are unchanged; unsupported material behavior remains truthful through per-definition fallbacks.
+- No visual browser, shelf, picker, panel, renderer placement, package, product redesign, or third-party asset was added. Claude prototype review owns the future UI direction; Antigravity owns broad verification.
+
 ## V8.2A — Interaction Foundation
 
 - Added one central interaction contract: `activeTool`/`temporaryTool`, ephemeral context surface/point/target, ordered `selectedIds`, and `primarySelectedId`; legacy `selectedId` remains synchronized for existing consumers.

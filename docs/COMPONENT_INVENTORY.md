@@ -24,6 +24,16 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - New widget/card/control CSS is acceptable only when it extends these primitives or covers a genuinely new interaction.
 - Future stats/data widgets should use compact micro-card patterns, tabular numerals, and glass surfaces from the existing widget system.
 
+## Resource Registry Foundation (V8.2B)
+
+- `src/materials/materialRegistry.ts` owns canonical serializable material definitions; `builtInMaterials.ts` adapts the existing palette library into collections and `materialResolver.ts` preserves current colour output.
+- Material targets cover space/core/boundary, organism/edge, void/edge, canvas/grid, line/relationship, text/background, and frame. Parameter metadata supports colour, numeric/range/angle/percentage, boolean, enum, gradient, and project-asset texture references.
+- `src/grid/gridRegistry.ts` owns dotted, fine-line, technical, architectural, major-minor, isometric, radial, and none presets. Current `showGrid` remains the render switch through a legacy migration adapter.
+- `src/annotations/annotationRegistry.ts` owns 18 truthful future annotation definitions. It does not claim canvas tools are live.
+- `src/icons/iconRegistry.ts` owns small Lucide/local/uploaded metadata contracts only. Uploaded icons must use `asset:` references; raw/base64 assets are forbidden.
+- `src/resources/resourceCatalogue.ts` is the read-only cross-resource discovery API for get/list/category/target/search/status and favourites/recent-ready ID normalization. Static registries must never become one giant mutable store.
+- Future resource UI must consume these registries and reuse `WidgetFrame`, `WidgetHost`, shared controls, and the V8.2A context host rather than duplicating definitions or product state.
+
 ## Widget System
 
 ### `WidgetHost`

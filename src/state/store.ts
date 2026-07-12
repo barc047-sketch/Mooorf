@@ -37,6 +37,9 @@ import {
   visibleSelectableIds,
   type SelectionStateSlice,
 } from "../interaction/selection";
+import { cloneResourceSettings, defaultMaterialBindings, DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
+import type { ResourceSettings } from "../resources/types";
+import { migrateLegacyGridSettings } from "../grid/gridValidation";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -64,6 +67,7 @@ export interface LabSettings {
   /** "mode" = style + palette mode derive body/ground (pre-V6K behavior) */
   organismPaletteId: string;
   organism: OrganismSettings;
+  resources: ResourceSettings;
 }
 
 export const DEFAULT_ANNOTATION_DETAIL: AnnotationDetail = {
@@ -176,6 +180,7 @@ const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
   spaces: snapshot.spaces.map(cloneSpace),
   camera: cloneCamera(snapshot.camera),
   organism: cloneOrganism(snapshot.organism),
+  resources: snapshot.resources ? cloneResourceSettings(snapshot.resources) : undefined,
 });
 
 const safeStorage = () => {
@@ -273,6 +278,7 @@ const makeSnapshot = (
   showGrid: state.settings.showGrid,
   nucleusPaletteId: state.settings.nucleusPaletteId,
   organismPaletteId: state.settings.organismPaletteId,
+  resources: cloneResourceSettings(state.settings.resources),
 });
 
 const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
@@ -316,6 +322,7 @@ export const useLab = create<LabState>((set) => ({
     nucleusPaletteId: "editorial-aurora",
     organismPaletteId: "mode",
     organism: { ...DEFAULT_ORGANISM_SETTINGS },
+    resources: cloneResourceSettings(DEFAULT_RESOURCE_SETTINGS),
   },
   activeTool: "select",
   temporaryTool: null,
@@ -344,7 +351,22 @@ export const useLab = create<LabState>((set) => ({
     ),
 
   setSettings: (patch) =>
-    set((s) => ({ settings: { ...s.settings, ...patch } })),
+    set((s) => {
+      const nucleusPaletteId = patch.nucleusPaletteId ?? s.settings.nucleusPaletteId;
+      const organismPaletteId = patch.organismPaletteId ?? s.settings.organismPaletteId;
+      const resources = patch.resources
+        ? cloneResourceSettings(patch.resources)
+        : {
+            ...cloneResourceSettings(s.settings.resources),
+            materialBindings: patch.nucleusPaletteId || patch.organismPaletteId
+              ? defaultMaterialBindings(nucleusPaletteId, organismPaletteId)
+              : cloneResourceSettings(s.settings.resources).materialBindings,
+            grid: typeof patch.showGrid === "boolean"
+              ? migrateLegacyGridSettings(patch.showGrid)
+              : cloneResourceSettings(s.settings.resources).grid,
+          };
+      return { settings: { ...s.settings, ...patch, resources } };
+    }),
 
   setWidgetScale: (value) =>
     set((s) => ({
@@ -602,6 +624,18 @@ export const useLab = create<LabState>((set) => ({
           nucleusPaletteId: snapshot.nucleusPaletteId ?? s.settings.nucleusPaletteId,
           organismPaletteId: snapshot.organismPaletteId ?? s.settings.organismPaletteId,
           organism: { ...DEFAULT_ORGANISM_SETTINGS, ...cloneOrganism(snapshot.organism) },
+          resources: snapshot.resources
+            ? cloneResourceSettings(snapshot.resources)
+            : {
+                ...cloneResourceSettings(s.settings.resources),
+                materialBindings: defaultMaterialBindings(
+                  snapshot.nucleusPaletteId ?? s.settings.nucleusPaletteId,
+                  snapshot.organismPaletteId ?? s.settings.organismPaletteId
+                ),
+                grid: migrateLegacyGridSettings(snapshot.showGrid ?? s.settings.showGrid),
+                annotationInstances: [],
+                iconPlacements: [],
+              },
         },
       };
     }),

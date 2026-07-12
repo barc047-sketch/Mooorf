@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- V8.2B Expandable Resource Registry Foundation
 - V8.2A Interaction Foundation
 - V8.1 Spatial Colour Field + Minimal Direct Editing
 - V6F.0 Organism Production Integration Audit
@@ -44,14 +45,18 @@ Complete:
 - V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 Next:
-- Antigravity independent V8.2A audit on the pushed feature branch
+- Antigravity independent V8.2B audit on the pushed feature branch
+- Claude prototype review before resource browsers, shelves, or panels
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 Not started:
-- V8.2B material shelf / detailed Tools page / marquee / iPad context gesture
+- V8.2C visual Material Browser / shelf / Grid Shelf / Icon Library / Annotation Studio / Tools page
+- V8.2A follow-ons: marquee and iPad context gesture
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+V8.2B establishes immutable material/grid/annotation/icon registries and one read-only catalogue. Existing palettes are adapted into material collections while `getNucleusColor` remains the render authority. Project/config/saved-view persistence stores only resource IDs, sparse safe overrides, normalized grid settings, and future annotation/icon references; manifests record active resource metadata. No visual resource UI, renderer placement, package, or third-party asset was added pending Claude prototype review.
 
 V8.2A establishes the permanent interaction foundation without changing canvas geometry: one store-owned tool/context/multi-selection contract, one root context host, one action registry, and one tool registry. Blank right-click uses a conventional Base UI dropdown; object right-click uses eight individual circular actions around a transparent empty centre. Edit/Materials/Duplicate/Delete are wired through the existing editor/widget/store paths; future actions stay disabled. Marquee, iPad long-press/two-finger activation, material shelf, and the detailed Tools page remain deferred for later phases.
 

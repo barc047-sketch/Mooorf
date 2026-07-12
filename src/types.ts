@@ -1,3 +1,5 @@
+import type { ResourceSettings } from "./resources/types";
+
 export type Theme = "day" | "night";
 
 export type ViewMode = "canvas" | "table";
@@ -189,4 +191,6 @@ export interface SavedCanvasSnapshot {
   showGrid?: boolean;
   nucleusPaletteId?: string;
   organismPaletteId?: string;
+  /** V8.2B — IDs/overrides only; static registry definitions are never persisted. */
+  resources?: ResourceSettings;
 }

@@ -4,6 +4,16 @@ Purpose: map features to files, docs, and risk level for faster future phases.
 
 Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implementation reuses existing ownership instead of creating duplicate controls or state.
 
+## Resource Registry Foundation (V8.2B)
+
+- Purpose: one serializable, read-only catalogue foundation for materials, grid presets, annotation metadata, and icon asset metadata without shipping their visual browsers.
+- Main files: `src/materials/*`, `src/grid/*`, `src/annotations/*`, `src/icons/*`, `src/resources/*`, `src/types.ts`, `src/state/store.ts`, `src/export/projectSnapshot.ts`, `src/export/manifest.ts`, `src/import/projectFiles.ts`, `src/import/projectTransfer.ts`.
+- Ownership: registries own immutable definitions; `settings.resources` stores only resource schema version, material IDs/sparse overrides, normalized grid settings, and future annotation/icon references. No React nodes, renderer objects, functions, binary data, Blob URLs, or duplicated palette arrays enter snapshots.
+- Compatibility: `materialResolver.ts` delegates current cell colour output to `getNucleusColor`; palette collections adapt every existing nucleus/organism palette, including Editorial Aurora. Legacy `paletteMode`, `nucleusPaletteId`, `colorSource`, explicit `space.color`, `showGrid`, and current renderer/export paths remain authoritative.
+- Export policy: each material declares `preserve`, `rasterize`, `approximate-solid`, `omit`, or `unsupported`; manifests record active material IDs, grid preset ID, and resource schema version while Classic SVG and Organism PNG/PDF behavior remain unchanged.
+- Deferred UI: Material Browser, circular shelf, Grid Shelf, Icon Library, Annotation Studio, Tools page, and renderer placement are deferred until Claude prototype review.
+- Risk: high for project/config migration and palette parity; never persist registry objects or arbitrary shader source.
+
 ## Dock / Rail / Widgets
 
 - Purpose: command surfaces for quick actions and detailed controls.

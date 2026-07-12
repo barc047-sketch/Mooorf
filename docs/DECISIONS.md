@@ -10,6 +10,15 @@
 - Organism blob remains under cells.
 - No backend/auth/cloud/payment in lab.
 
+## V8.2B expandable resource foundation
+
+- Resource definitions are immutable serializable registries split by domain (`materials`, `grid`, `annotations`, `icons`). The aggregate catalogue is read-only discovery, not a mixed mutable state store.
+- Persistent state is one nested `settings.resources` contract containing schema version, material binding IDs/sparse normalized overrides, grid settings, and future annotation/icon references. Registry definitions, palette arrays, functions, React nodes, renderer objects, binary data, Blob URLs, external URLs, and arbitrary shader source are never saved.
+- Existing palettes are adapted, not replaced. Every nucleus/organism palette becomes a built-in material collection; `getNucleusColor` remains the current render authority so Category/Privacy modes, explicit colour precedence, deterministic uncategorized variation, void semantics, and V8.1 geometry remain unchanged.
+- Material definitions declare compatible targets, renderer support, performance tier, licence/attribution, and an explicit export fallback. Manifest metadata may record active material IDs, active grid preset, and resource schema version without changing Classic SVG or Organism raster capture.
+- The nested resource schema is version 1 inside existing project/config schema version 1. Missing fields migrate from `nucleusPaletteId`, `organismPaletteId`, and `showGrid`; future resource versions reject truthfully. A project major-version bump is unnecessary.
+- Isometric/radial grids and all annotation creation tools remain metadata/future. Material Browser, circular shelf, Icon Library, Annotation Studio, Grid Shelf, Tools page, placement/rendering, and visual styling wait for Claude prototype review.
+
 ## Setup decisions (Prompt 01)
 - **React upgraded 18 → 19.** `@pixi/react@8` peer-requires React ≥19; greenfield lab, no legacy constraint. All UI libs (motion/vaul/cmdk/floating-ui) support 19.
 - **Full core stack installed now** (Prompt 01 directive), not deferred per-phase. 43 runtime + 16 dev deps.
