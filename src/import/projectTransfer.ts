@@ -2,6 +2,7 @@ import { buildCurrentProjectSnapshot, download } from "../export/exportService";
 import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import { useLab, type LabSettings } from "../state/store";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme, ViewMode } from "../types";
+import { normalizeSelectionState, replaceSelectionState } from "../interaction/selection";
 import {
   buildConfigEnvelope,
   buildProjectEnvelope,
@@ -18,6 +19,8 @@ export interface RecoverySnapshot {
   camera: Camera;
   settings: LabSettings;
   selectedId: string | null;
+  primarySelectedId: string | null;
+  selectedIds: string[];
   savedViews: SavedCanvasSnapshot[];
 }
 
@@ -33,6 +36,8 @@ export const captureRecoverySnapshot = (): RecoverySnapshot => {
     camera: { ...state.camera },
     settings: { ...state.settings, organism: { ...state.settings.organism }, annotationDetail: { ...state.settings.annotationDetail } },
     selectedId: state.selectedId,
+    primarySelectedId: state.primarySelectedId,
+    selectedIds: [...state.selectedIds],
     savedViews: cloneViews(state.savedViews),
   };
 };
@@ -53,7 +58,14 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     spaces: cloneSpaces(snapshot.spaces),
     camera: { ...snapshot.camera },
     settings: { ...snapshot.settings, organism: { ...snapshot.settings.organism }, annotationDetail: { ...snapshot.settings.annotationDetail } },
-    selectedId: snapshot.selectedId,
+    ...normalizeSelectionState({
+      selectedId: snapshot.selectedId,
+      primarySelectedId: snapshot.primarySelectedId,
+      selectedIds: snapshot.selectedIds,
+    }, new Set(snapshot.spaces.map((space) => space.id))),
+    contextSurface: null,
+    contextPoint: null,
+    contextTargetId: null,
     savedViews: cloneViews(snapshot.savedViews),
   });
 };
@@ -70,7 +82,10 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
       view: "canvas",
       spaces: cloneSpaces(snapshot.spaces),
       camera: { ...snapshot.camera },
-      selectedId: null,
+      ...replaceSelectionState(null),
+      contextSurface: null,
+      contextPoint: null,
+      contextTargetId: null,
       savedViews,
       settings: {
         ...current.settings,
@@ -106,7 +121,10 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
         annotationDetail: { ...current.settings.annotationDetail, ...config.settings.annotationDetail },
         organism: { ...current.settings.organism, ...config.settings.organism },
       },
-      selectedId: null,
+      ...replaceSelectionState(null),
+      contextSurface: null,
+      contextPoint: null,
+      contextTargetId: null,
     });
     return recovery;
   } catch (error) {
@@ -118,7 +136,13 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
 export const applySpaceSchedule = (spaces: readonly SpaceCell[]): RecoverySnapshot => {
   const recovery = captureRecoverySnapshot();
   try {
-    useLab.setState({ spaces: cloneSpaces(spaces), selectedId: null });
+    useLab.setState({
+      spaces: cloneSpaces(spaces),
+      ...replaceSelectionState(null),
+      contextSurface: null,
+      contextPoint: null,
+      contextTargetId: null,
+    });
     return recovery;
   } catch (error) {
     restoreRecoverySnapshot(recovery);

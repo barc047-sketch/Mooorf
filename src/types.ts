@@ -10,6 +10,30 @@ export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
 export type ColorSource = "category" | "privacy";
 
+export type ToolId =
+  | "select"
+  | "space"
+  | "void"
+  | "line"
+  | "relationship"
+  | "text"
+  | "paragraph"
+  | "frame"
+  | "pan";
+
+export type ContextSurface =
+  | "blank-menu"
+  | "object-radial"
+  | "inline-editor"
+  | "material-shelf"
+  | "sub-rail"
+  | null;
+
+export interface ContextPoint {
+  x: number;
+  y: number;
+}
+
 export type LayoutPresetId =
   | "organic"
   | "random"

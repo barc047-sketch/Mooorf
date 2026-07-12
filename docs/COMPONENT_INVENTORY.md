@@ -103,8 +103,23 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 
 - File: `src/canvas/InlineCellEditor.tsx`
 - Role: the only canvas Name/Area edit surface for Organism and Classic; Enter/outside commits once, Escape cancels, Tab stays inside the form.
-- Reuse: renderer views supply only the selected space and screen-clamped anchor position.
+- Reuse: renderer views request `inline-editor` through the canonical context state; `ContextSurfaceHost` supplies the target space and screen-clamped anchor position.
 - Do not duplicate: renderer-specific forms, save buttons, command menus, or edit state in the product store.
+
+### ContextSurfaceHost
+
+- Files: `src/ui/context/ContextSurfaceHost.tsx`, `src/ui/context/contextSurfaces.css`, `src/canvas/SelectedCellCommandMenu.tsx`.
+- Role: one root owner for the blank dropdown, empty-centre object radial actions, shared inline editor, Escape/outside dismissal, select-all, and temporary pan-key state.
+- Reuse: both renderers contribute only their native hit target and viewport point through `openContextSurface`; product commands delegate through `contextCommands.ts`.
+- Layer: `--z-context` sits above shell/widgets and below tooltips/dialogs/toasts/loader. Do not add local z-index managers or mount contextual menus inside renderer label layers.
+- Do not duplicate: renderer-local context menus, editor host state, radial command definitions, or new Palette/Import/View launch paths.
+
+### Interaction Registries
+
+- Files: `src/interaction/toolRegistry.ts`, `src/interaction/contextActionRegistry.ts`, `src/interaction/contextCommands.ts`, `src/interaction/selection.ts`, `src/interaction/radialLayout.ts`.
+- Role: canonical tool metadata, context action metadata/availability, product command execution, selection invariants, and adaptive 6/7/8-node radial geometry.
+- Reuse: future Tools page, material shelf, keyboard shortcut layer, and sub-rails consume these definitions rather than inventing labels/icons/actions.
+- Do not duplicate: mutable `Set` selection state, command switch statements in UI components, or per-renderer shortcut/action registries.
 
 ### `Dock`
 
@@ -139,9 +154,9 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 
 ## Canvas Label / Selection Systems
 
-- Files: `src/canvas/OrganismCanvasView.tsx`, `src/canvas/organismCanvas.css`.
-- Role: HTML label overlay, label modes, selected MovingBorder, metadata, command menu, and direct edit surface. The former orbit/arc system was removed in V7.3.
-- Reuse: selected feedback should extend this carefully instead of creating independent DOM overlays.
+- Files: `src/state/store.ts`, `src/interaction/selection.ts`, `src/canvas/OrganismCanvasView.tsx`, `src/canvas/CanvasView.tsx`, `src/canvas/renderer.ts`, `src/canvas/organismCanvas.css`.
+- Role: central multi-selection contract plus renderer-native visual feedback. Organism labels render selected MovingBorders; Classic draws selected on-body keylines. The former orbit/arc and automatic metadata command surfaces remain removed.
+- Reuse: hit testing stays renderer-specific; selection mutations always use the shared store actions and never feed organism geometry.
 
 ## File Intake System (V7.3)
 

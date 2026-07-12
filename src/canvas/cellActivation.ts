@@ -9,7 +9,23 @@ export interface CellActivationState {
   y: number;
 }
 
+const inlineEditorCommitPointers = new WeakSet<object>();
+
 export const createCellActivationState = (): CellActivationState => ({ id: null, at: 0, x: 0, y: 0 });
+
+export const resetCellActivation = (state: CellActivationState): void => {
+  state.id = null;
+  state.at = 0;
+  state.x = 0;
+  state.y = 0;
+};
+
+export const markInlineEditorCommitPointer = (event: PointerEvent): void => {
+  inlineEditorCommitPointers.add(event);
+};
+
+export const isInlineEditorCommitPointer = (event: PointerEvent): boolean =>
+  inlineEditorCommitPointers.has(event);
 
 export const normalizeInlineCellDraft = (name: string, area: string, fallbackArea: number) => {
   const parsed = Number.parseFloat(area);
@@ -28,7 +44,7 @@ export const registerCellActivation = (
   dragged: boolean
 ): boolean => {
   if (dragged) {
-    state.id = null;
+    resetCellActivation(state);
     return false;
   }
   const double = state.id === id && at - state.at <= CELL_DOUBLE_ACTIVATION_MS && Math.hypot(x - state.x, y - state.y) <= CELL_DOUBLE_ACTIVATION_PX;

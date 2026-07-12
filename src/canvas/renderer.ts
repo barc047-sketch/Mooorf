@@ -65,6 +65,8 @@ export const SPAWN_MS = 450;
 export interface DrawSceneOptions {
   /** V7.2 export adapter — omit to keep the live canvas's existing behavior. */
   includeLabels?: boolean;
+  /** V8.2A — selected object keylines; primarySelectedId remains selectedId. */
+  selectedIds?: readonly string[];
 }
 
 // Returns true while the organism layer is mid-transition (caller repaints).
@@ -83,6 +85,8 @@ export function drawScene(
   options?: DrawSceneOptions
 ): boolean {
   const includeLabels = options?.includeLabels ?? true;
+  const selectedIds = options?.selectedIds ?? (selectedId ? [selectedId] : []);
+  const selectedSet = new Set(selectedIds);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h); // body token bg shows through
   let blobSettling = false;
@@ -191,9 +195,9 @@ export function drawScene(
       ctx.fill();
     }
 
-    /* Selection uses only a subtle boundary keyline in Classic. The removed
-       orbit/arc/halo geometry is not recreated, and export adapters pass null. */
-    if (c.id === selectedId) {
+    /* Selection uses only subtle on-body keylines. Multi-selection never
+       enters radius, position, blob geometry, or any field calculation. */
+    if (selectedSet.has(c.id)) {
       ctx.save();
       ctx.globalAlpha = 0.72;
       ctx.strokeStyle = mappedColor.ring;

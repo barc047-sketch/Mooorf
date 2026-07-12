@@ -6,6 +6,8 @@ import type {
   Camera,
   CanvasReadiness,
   ColorSource,
+  ContextPoint,
+  ContextSurface,
   LayoutPresetId,
   MorphMode,
   OrganismSettings,
@@ -15,6 +17,7 @@ import type {
   SpaceCell,
   SpaceKind,
   Theme,
+  ToolId,
   ViewMode,
   WidgetId,
 } from "../types";
@@ -25,6 +28,15 @@ import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings"
 import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPresets";
 import { normalizeUiScale, normalizeWidgetScale } from "./uiScale";
 import { readinessCanAdvance } from "../ui/readiness";
+import {
+  addSelectionState,
+  normalizeSelectionState,
+  removeSelectionState,
+  replaceSelectionState,
+  toggleSelectionState,
+  visibleSelectableIds,
+  type SelectionStateSlice,
+} from "../interaction/selection";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -71,6 +83,14 @@ interface LabState {
   loaderDone: boolean;
   canvasReadiness: CanvasReadiness;
   settings: LabSettings;
+  activeTool: ToolId;
+  temporaryTool: ToolId | null;
+  contextSurface: ContextSurface;
+  contextPoint: ContextPoint | null;
+  contextTargetId: string | null;
+  primarySelectedId: string | null;
+  selectedIds: string[];
+  /** Compatibility mirror for pre-V8.2 consumers. Always equals primarySelectedId. */
   selectedId: string | null;
   camera: Camera;
   savedViews: SavedCanvasSnapshot[];
@@ -88,6 +108,22 @@ interface LabState {
   openWidget: (id: WidgetId) => void;
   closeWidget: (id: WidgetId) => void;
   focusWidget: (id: WidgetId) => void;
+  setActiveTool: (id: ToolId) => void;
+  setTemporaryTool: (id: ToolId) => void;
+  clearTemporaryTool: () => void;
+  replaceSelection: (id: string | null) => void;
+  toggleSelection: (id: string) => void;
+  addToSelection: (id: string) => void;
+  removeFromSelection: (id: string) => void;
+  clearSelection: () => void;
+  selectAllVisible: () => void;
+  openContextSurface: (
+    surface: Exclude<ContextSurface, null>,
+    point: ContextPoint,
+    targetId?: string | null
+  ) => void;
+  closeContextSurface: () => void;
+  /** @deprecated V8.2A — use replaceSelection/clearSelection. */
   select: (id: string | null) => void;
   setCamera: (camera: Camera) => void;
   zoomBy: (factor: number) => void;
@@ -97,6 +133,7 @@ interface LabState {
   addSpace: (partial?: Partial<SpaceCell>) => void;
   addVoid: () => void;
   addSpaces: (count: number) => void;
+  duplicateSpace: (id: string) => string | null;
   addDemo: (n?: number) => void;
   updateSpace: (id: string, patch: Partial<SpaceCell>) => void;
   moveSpace: (id: string, x: number, y: number) => void;
@@ -111,6 +148,18 @@ interface LabState {
 
 const normalizeSpaceKind = (kind: unknown): SpaceKind =>
   kind === "void" ? "void" : "space";
+
+const selectionFromState = (state: SelectionStateSlice): SelectionStateSlice => ({
+  selectedId: state.selectedId,
+  primarySelectedId: state.primarySelectedId,
+  selectedIds: state.selectedIds,
+});
+
+const closedContext = {
+  contextSurface: null,
+  contextPoint: null,
+  contextTargetId: null,
+} as const;
 
 const cloneSpace = (space: SpaceCell): SpaceCell => ({
   ...space,
@@ -268,6 +317,13 @@ export const useLab = create<LabState>((set) => ({
     organismPaletteId: "mode",
     organism: { ...DEFAULT_ORGANISM_SETTINGS },
   },
+  activeTool: "select",
+  temporaryTool: null,
+  contextSurface: null,
+  contextPoint: null,
+  contextTargetId: null,
+  primarySelectedId: null,
+  selectedIds: [],
   selectedId: null,
   camera: { x: 0, y: 0, zoom: 1 },
   savedViews: loadSavedViews(),
@@ -276,7 +332,7 @@ export const useLab = create<LabState>((set) => ({
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "day" ? "night" : "day" })),
 
-  setView: (view) => set({ view }),
+  setView: (view) => set(view === "canvas" ? { view } : { view, ...closedContext }),
 
   setLoaderDone: () => set({ loaderDone: true }),
 
@@ -325,7 +381,46 @@ export const useLab = create<LabState>((set) => ({
         : { openWidgets: [...s.openWidgets.filter((w) => w !== id), id] }
     ),
 
-  select: (id) => set({ selectedId: id }),
+  setActiveTool: (activeTool) => set({ activeTool }),
+
+  setTemporaryTool: (temporaryTool) => set({ temporaryTool }),
+
+  clearTemporaryTool: () => set({ temporaryTool: null }),
+
+  replaceSelection: (id) =>
+    set((s) => id && !s.spaces.some((space) => space.id === id) ? {} : replaceSelectionState(id)),
+
+  toggleSelection: (id) =>
+    set((s) => s.spaces.some((space) => space.id === id)
+      ? toggleSelectionState(selectionFromState(s), id)
+      : {}),
+
+  addToSelection: (id) =>
+    set((s) => s.spaces.some((space) => space.id === id)
+      ? addSelectionState(selectionFromState(s), id)
+      : {}),
+
+  removeFromSelection: (id) =>
+    set((s) => removeSelectionState(selectionFromState(s), id)),
+
+  clearSelection: () => set(replaceSelectionState(null)),
+
+  selectAllVisible: () =>
+    set((s) => {
+      const selectedIds = visibleSelectableIds(s.spaces, s.settings.rendererMode);
+      return normalizeSelectionState({
+        selectedIds,
+        primarySelectedId: selectedIds[selectedIds.length - 1] ?? null,
+      });
+    }),
+
+  openContextSurface: (contextSurface, contextPoint, contextTargetId = null) =>
+    set({ contextSurface, contextPoint: { ...contextPoint }, contextTargetId }),
+
+  closeContextSurface: () => set(closedContext),
+
+  select: (id) =>
+    set((s) => id && !s.spaces.some((space) => space.id === id) ? {} : replaceSelectionState(id)),
 
   setCamera: (camera) => set({ camera }),
 
@@ -349,7 +444,7 @@ export const useLab = create<LabState>((set) => ({
       const cell = makeCell(s.spaces.length, partial);
       return {
         spaces: [...s.spaces, cell],
-        selectedId: cell.id,
+        ...replaceSelectionState(cell.id),
       };
     }),
 
@@ -362,7 +457,7 @@ export const useLab = create<LabState>((set) => ({
       });
       return {
         spaces: [...s.spaces, cell],
-        selectedId: cell.id,
+        ...replaceSelectionState(cell.id),
       };
     }),
 
@@ -384,9 +479,33 @@ export const useLab = create<LabState>((set) => ({
       });
       return {
         spaces: [...s.spaces, ...added],
-        selectedId: added[added.length - 1]?.id ?? s.selectedId,
+        ...(added.length > 0 ? replaceSelectionState(added[added.length - 1].id) : selectionFromState(s)),
       };
     }),
+
+  duplicateSpace: (id) => {
+    let duplicateId: string | null = null;
+    set((s) => {
+      const source = s.spaces.find((space) => space.id === id);
+      if (!source) return {};
+      const duplicate = makeCell(s.spaces.length, {
+        name: `${source.name} Copy`,
+        kind: source.kind,
+        area: source.area,
+        category: source.category,
+        privacy: source.privacy,
+        color: source.color,
+        x: source.x + 18,
+        y: source.y + 18,
+      });
+      duplicateId = duplicate.id;
+      return {
+        spaces: [...s.spaces, duplicate],
+        ...replaceSelectionState(duplicate.id),
+      };
+    });
+    return duplicateId;
+  },
 
   addDemo: (n = 10) =>
     set((s) => {
@@ -409,22 +528,31 @@ export const useLab = create<LabState>((set) => ({
     })),
 
   removeSpace: (id) =>
-    set((s) => ({
-      spaces: s.spaces.filter((c) => c.id !== id),
-      selectedId: s.selectedId === id ? null : s.selectedId,
-    })),
+    set((s) => {
+      const spaces = s.spaces.filter((c) => c.id !== id);
+      const selection = normalizeSelectionState(
+        selectionFromState(s),
+        new Set(spaces.map((space) => space.id))
+      );
+      return {
+        spaces,
+        ...selection,
+        ...(s.contextTargetId === id ? closedContext : {}),
+      };
+    }),
 
   applyLayoutPreset: (presetId) =>
-    set((s) => ({
-      spaces: arrangeLayoutPreset(s.spaces, presetId, {
+    set((s) => {
+      const spaces = arrangeLayoutPreset(s.spaces, presetId, {
         centerX: s.camera.x,
         centerY: s.camera.y,
-      }),
-      settings: { ...s.settings, layoutPreset: presetId },
-      selectedId: s.selectedId && s.spaces.some((space) => space.id === s.selectedId)
-        ? s.selectedId
-        : null,
-    })),
+      });
+      return {
+        spaces,
+        settings: { ...s.settings, layoutPreset: presetId },
+        ...normalizeSelectionState(selectionFromState(s), new Set(spaces.map((space) => space.id))),
+      };
+    }),
 
   saveCurrentView: (name) => {
     let id: string | null = null;
@@ -451,7 +579,8 @@ export const useLab = create<LabState>((set) => ({
         theme: snapshot.theme,
         spaces,
         camera: cloneCamera(snapshot.camera),
-        selectedId: null,
+        ...replaceSelectionState(null),
+        ...closedContext,
         settings: {
           ...s.settings,
           uiScale: normalizeUiScale(snapshot.uiScale),
@@ -516,6 +645,6 @@ export const useLab = create<LabState>((set) => ({
 }));
 
 // Dev-only handle for Playwright/preview QA.
-if (import.meta.env.DEV) {
+if (typeof window !== "undefined" && import.meta.env.DEV) {
   (window as unknown as { lab: typeof useLab }).lab = useLab;
 }

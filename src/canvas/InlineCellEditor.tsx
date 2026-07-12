@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import type { SpaceCell } from "../types";
 import { useLab } from "../state/store";
-import { normalizeInlineCellDraft } from "./cellActivation";
+import { markInlineEditorCommitPointer, normalizeInlineCellDraft } from "./cellActivation";
 import "./inlineCellEditor.css";
 
 export interface InlineEditorPosition { x: number; y: number }
@@ -32,7 +32,10 @@ export default function InlineCellEditor({ space, position, onClose }: {
 
   useEffect(() => {
     const outside = (event: PointerEvent) => {
-      if (!formRef.current?.contains(event.target as Node)) commit();
+      if (!formRef.current?.contains(event.target as Node)) {
+        if (event.button === 0) markInlineEditorCommitPointer(event);
+        commit();
+      }
     };
     document.addEventListener("pointerdown", outside, true);
     return () => document.removeEventListener("pointerdown", outside, true);

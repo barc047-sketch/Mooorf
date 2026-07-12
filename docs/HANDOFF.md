@@ -1,5 +1,14 @@
 # Handoff
 
+## V8.2A — Interaction Foundation
+
+- Added one central interaction contract: `activeTool`/`temporaryTool`, ephemeral context surface/point/target, ordered `selectedIds`, and `primarySelectedId`; legacy `selectedId` remains synchronized for existing consumers.
+- Classic and Organism now share replace/toggle/add/remove/clear/select-all semantics. Normal click replaces, Alt/Option and Shift toggle, blank click clears, Cmd/Ctrl+A selects renderer-visible cells, and dragging a selected object preserves the group while moving only the primary object.
+- Right-clicking blank canvas opens a clamped Base UI dropdown from the canonical action registry. Add Space/Void, Import File, and View are wired to existing store/provider/widget paths; unavailable Line/Relationship/Text/Paragraph/Paste/Tools entries are labelled Future and disabled.
+- Right-clicking a space/void opens eight individual 40px actions around a transparent empty centre—no centre object, disc, ring, or panel. Edit, Materials, Duplicate, and multi-delete work; Boundary/Lock/Group/More remain truthful future actions.
+- One root `ContextSurfaceHost` owns dropdown, radial actions, Escape/outside dismissal, and the existing `InlineCellEditor`. The tool registry and context action registry are reusable future Tools/material-shelf/sub-rail sources; no Dock/widget registry or product data model was duplicated.
+- Focused interaction and directly affected V8.1 contracts pass. Production build passes with the known chunk warning; the main entry is 886.89 kB, below the 900 kB audit budget. Broad multi-viewport/browser/export/performance QA remains assigned to Antigravity; iPad long-press/two-finger activation, marquee selection, material shelf, and detailed Tools page are deferred.
+
 ## V8.1 — Spatial Colour Field + Minimal Direct Editing
 
 - Added exact Editorial Aurora swatches and made it the default colorful nucleus palette; `settings.colorSource` persistently selects deterministic Category or exact-family Privacy mapping across saved views, project/config JSON, manifests, table, both renderers, and SVG.

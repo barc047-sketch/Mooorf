@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- V8.2A Interaction Foundation
 - V8.1 Spatial Colour Field + Minimal Direct Editing
 - V6F.0 Organism Production Integration Audit
 - V6F.0B Production Canvas UI / Control Architecture
@@ -43,12 +44,16 @@ Complete:
 - V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 Next:
+- Antigravity independent V8.2A audit on the pushed feature branch
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 Not started:
+- V8.2B material shelf / detailed Tools page / marquee / iPad context gesture
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+V8.2A establishes the permanent interaction foundation without changing canvas geometry: one store-owned tool/context/multi-selection contract, one root context host, one action registry, and one tool registry. Blank right-click uses a conventional Base UI dropdown; object right-click uses eight individual circular actions around a transparent empty centre. Edit/Materials/Duplicate/Delete are wired through the existing editor/widget/store paths; future actions stay disabled. Marquee, iPad long-press/two-finger activation, material shelf, and the detailed Tools page remain deferred for later phases.
 
 V8.1 makes Editorial Aurora the default colorful palette, persists one Category/Privacy color source through project formats, feeds stable per-nucleus RGB into the existing one-pass organism shader, and guarantees selection geometry invariance. Single click/tap selects; deliberate double activation opens one shared Name/Area editor. Automatic selection metadata and command UI no longer render.
 

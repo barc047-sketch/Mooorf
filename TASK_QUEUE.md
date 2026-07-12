@@ -4,12 +4,16 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
+- Antigravity: audit V8.2A multi-selection/context surfaces across 1440/1280/1024/768–834px and both renderers
+- V8.2B candidates remain deferred: marquee, iPad context gesture, material shelf, detailed Tools page, future tool actions
 - Relationship Health / Floor Summary await live relationship/floor data
 - Keep V6L shader/void behavior stable; do not start per-nucleus color textures unless explicitly requested
 - Future prompts should reference `docs/PROJECT_MEMORY_INDEX.md` and `docs/FEATURE_MAP.md`
 - Future prompts must include the Ponytail checklist
 
 ## Current Feature Complete
+
+- V8.2A Interaction Foundation: canonical tool/context/multi-selection state; synchronized legacy selection; Base UI blank dropdown; empty-centre object radial; registry-driven Edit/Materials/Duplicate/Delete; shared root editor/context host; no packages or organism geometry changes
 
 - V8.1 Spatial Colour Field + Minimal Direct Editing: exact Editorial Aurora palette; persistent Category/Privacy source; deterministic per-cell colors; one-pass spatial WebGL field; selection-invariant geometry; shared double-activation Name/Area editor; automatic metadata/menu removed; export/project parity retained
 

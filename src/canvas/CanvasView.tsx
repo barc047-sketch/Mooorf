@@ -1,10 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useLab } from "../state/store";
 import { hitTest, clamp } from "../lib/geometry";
 import { drawScene, readTokens, SPAWN_MS, type DragOverride } from "./renderer";
 import { registerCanvasCapture } from "./exportCapture";
-import InlineCellEditor, { type InlineEditorPosition } from "./InlineCellEditor";
-import { CELL_DRAG_THRESHOLD_PX, createCellActivationState, registerCellActivation } from "./cellActivation";
+import {
+  CELL_DRAG_THRESHOLD_PX,
+  createCellActivationState,
+  isInlineEditorCommitPointer,
+  registerCellActivation,
+  resetCellActivation,
+} from "./cellActivation";
+import { resolveSelectionIntent } from "../interaction/selection";
+import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import "./canvas.css";
 
 const DPR_MAX = 2;
@@ -17,8 +24,6 @@ const DRAG_COMMIT_MS = 90; // throttled mid-drag store commits (table liveness)
 export default function CanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [editorTarget, setEditorTarget] = useState<{ id: string; position: InlineEditorPosition } | null>(null);
-  const spacesForEditor = useLab((state) => state.spaces);
 
   useEffect(() => {
     const host = hostRef.current!;
@@ -42,6 +47,7 @@ export default function CanvasView() {
     const cam = { ...st.camera };
     let spaces = st.spaces;
     let selectedId = st.selectedId;
+    let selectedIds = st.selectedIds;
     let settings = st.settings; // blobOn + mergeDistance drive the blob layer
     let tokens = readTokens();
     let drag: DragOverride | null = null;
@@ -57,6 +63,7 @@ export default function CanvasView() {
     const unsub = useLab.subscribe((s) => {
       spaces = s.spaces;
       selectedId = s.selectedId;
+      selectedIds = s.selectedIds;
       settings = s.settings;
       if (s.camera !== lastCommitted) {
         lastCommitted = s.camera;
@@ -107,7 +114,7 @@ export default function CanvasView() {
         tokens,
         Date.now(),
         settings,
-        { includeLabels }
+        { includeLabels, selectedIds: includeSelection ? selectedIds : [] }
       );
       return { canvas: off, cssWidth: cssW, cssHeight: cssH };
     });
@@ -116,7 +123,7 @@ export default function CanvasView() {
       x: (sx - w / 2) / cam.zoom + cam.x,
       y: (sy - h / 2) / cam.zoom + cam.y,
     });
-    const local = (e: PointerEvent | WheelEvent) => {
+    const local = (e: PointerEvent | WheelEvent | MouseEvent) => {
       const r = canvas.getBoundingClientRect();
       return { sx: e.clientX - r.left, sy: e.clientY - r.top };
     };
@@ -133,6 +140,7 @@ export default function CanvasView() {
     let panCX = 0;
     let panCY = 0;
     let lastCommit = 0;
+    let pressIntent: "replace" | "toggle" = "replace";
 
     const commitCamera = () => {
       const snapshot = { ...cam };
@@ -141,7 +149,11 @@ export default function CanvasView() {
     };
 
     const onDown = (e: PointerEvent) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || (e.ctrlKey && e.pointerType === "mouse")) return;
+      if (isInlineEditorCommitPointer(e)) {
+        resetCellActivation(activation);
+        return;
+      }
       camTarget = null; // user gesture takes over any eased transition
       const { sx, sy } = local(e);
       const p = toWorld(sx, sy);
@@ -152,21 +164,27 @@ export default function CanvasView() {
         // synthetic/stale pointerId — gesture still works without capture
       }
       if (hit) {
+        const state = useLab.getState();
+        pressIntent = resolveSelectionIntent(e);
         mode = "press";
         pressSX = sx;
         pressSY = sy;
         drag = { id: hit.id, x: hit.x, y: hit.y };
         grabDX = hit.x - p.x;
         grabDY = hit.y - p.y;
-        useLab.getState().select(hit.id);
+        if (pressIntent === "replace") {
+          if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
+          else state.replaceSelection(hit.id);
+        }
         canvas.style.cursor = "grabbing";
       } else {
+        resetCellActivation(activation);
         mode = "pan";
         panSX = sx;
         panSY = sy;
         panCX = cam.x;
         panCY = cam.y;
-        if (selectedId) useLab.getState().select(null);
+        if (selectedIds.length > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
       dirty = true;
@@ -177,7 +195,8 @@ export default function CanvasView() {
       const { sx, sy } = local(e);
       if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
         mode = "drag";
-        setEditorTarget(null);
+        useLab.getState().closeContextSurface();
+        if (drag) useLab.getState().addToSelection(drag.id);
       }
       if (mode === "drag" && drag) {
         const p = toWorld(sx, sy);
@@ -198,8 +217,15 @@ export default function CanvasView() {
     const onUp = (e: PointerEvent) => {
       const { sx, sy } = local(e);
       if (mode === "press" && drag) {
-        if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
-          setEditorTarget({ id: drag.id, position: { x: sx + 14, y: sy + 18 } });
+        const state = useLab.getState();
+        if (pressIntent === "toggle") {
+          state.toggleSelection(drag.id);
+          resetCellActivation(activation);
+        } else {
+          state.replaceSelection(drag.id);
+          if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
+            state.openContextSurface("inline-editor", { x: sx + 14, y: sy + 18 }, drag.id);
+          }
         }
         drag = null;
       } else if (mode === "drag" && drag) {
@@ -210,6 +236,28 @@ export default function CanvasView() {
         commitCamera();
       }
       mode = "none";
+      canvas.style.cursor = "grab";
+      dirty = true;
+    };
+
+    const onContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      const secondaryButton = e.ctrlKey ? 2 : e.button;
+      if (!shouldOpenContextFromGesture(secondaryButton, mode === "drag")) return;
+      mode = "none";
+      drag = null;
+      resetCellActivation(activation);
+      const { sx, sy } = local(e);
+      const p = toWorld(sx, sy);
+      const hit = hitTest(spaces, p.x, p.y);
+      const state = useLab.getState();
+      if (hit) {
+        if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
+        else state.replaceSelection(hit.id);
+        state.openContextSurface(resolveContextSurface(hit.id), { x: e.clientX, y: e.clientY }, hit.id);
+      } else {
+        state.openContextSurface(resolveContextSurface(null), { x: e.clientX, y: e.clientY }, null);
+      }
       canvas.style.cursor = "grab";
       dirty = true;
     };
@@ -234,6 +282,7 @@ export default function CanvasView() {
     canvas.addEventListener("pointerup", onUp);
     canvas.addEventListener("pointercancel", onUp);
     canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.addEventListener("contextmenu", onContextMenu);
 
     // ---- paint loop ----
     let raf = 0;
@@ -262,7 +311,7 @@ export default function CanvasView() {
       dirty = false;
       // Organism style/attachment transitions keep settling for a few frames.
       if (!firstUsableFrame) announceReadiness("render-requested");
-      if (drawScene(ctx, w, h, dpr, cam, spaces, selectedId, drag, tokens, now, settings)) {
+      if (drawScene(ctx, w, h, dpr, cam, spaces, selectedId, drag, tokens, now, settings, { selectedIds })) {
         dirty = true;
       }
       if (!firstUsableFrame) {
@@ -284,16 +333,13 @@ export default function CanvasView() {
       canvas.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointercancel", onUp);
       canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("contextmenu", onContextMenu);
     };
   }, []);
 
   return (
     <div ref={hostRef} className="canvas-host">
       <canvas ref={canvasRef} data-testid="space-canvas" />
-      {editorTarget && (() => {
-        const space = spacesForEditor.find((candidate) => candidate.id === editorTarget.id);
-        return space ? <InlineCellEditor space={space} position={editorTarget.position} onClose={() => setEditorTarget(null)} /> : null;
-      })()}
     </div>
   );
 }

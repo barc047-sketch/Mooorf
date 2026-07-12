@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] V8.2A Interaction Foundation
 - [x] V8.1 Spatial Colour Field + Minimal Direct Editing
 - [x] Tooling: compact audit stack (impact/dependency/dead-code/performance/summary contracts)
 - [x] V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
@@ -22,6 +23,22 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## V8.2A — Interaction Foundation  ✅ IMPLEMENTED
+
+- [x] canonical store-owned tool, temporary-tool, context, primary-selection, and ordered multi-selection state
+- [x] synchronized `selectedId` compatibility plus delete/import/load recovery invariants
+- [x] normal replace, Alt/Option/Shift toggle, blank clear, Escape ordering, and Cmd/Ctrl+A visible select-all
+- [x] shared selection contract in Classic and Organism; selected drag preserves the group and moves one primary object
+- [x] registry-driven blank Base UI dropdown with working Space/Void/Import/View and truthful disabled future entries
+- [x] eight-button object radial with adaptive viewport-clamped geometry and a transparent empty centre
+- [x] working Edit/Materials/Duplicate/Delete commands through existing editor/widget/store paths
+- [x] canonical context action registry, tool registry, command executor, radial layout, and root context-surface host
+- [x] focused interaction contracts and directly affected V8.1 contracts
+- [x] compact audit summary and one final production build (886.89 kB main entry; known chunk warning only)
+- [x] `git diff --check`
+- [ ] Antigravity broad multi-viewport/browser/export/performance audit
+- [ ] deferred: marquee, iPad long-press/two-finger context, material shelf, detailed Tools page, future tool/product actions
 
 ## Tooling — Compact Audit Stack  ✅ COMPLETE
 - [x] compact impact grouping with safe base-revision validation

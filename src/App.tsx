@@ -12,6 +12,7 @@ import OrganismCanvasView from "./canvas/OrganismCanvasView";
 import TableView from "./views/TableView";
 import { Toaster } from "sonner";
 import FileIntakeProvider from "./import/FileIntakeProvider";
+import ContextSurfaceHost from "./ui/context/ContextSurfaceHost";
 import "./App.css";
 
 /* V6E experiment route — hidden URL, separate lazy chunk, zero cost to the
@@ -119,6 +120,7 @@ function MainApp() {
               <ZoomControls />
               <Hud />
               <WidgetHost />
+              <ContextSurfaceHost />
             </>
           )}
         </>

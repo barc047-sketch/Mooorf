@@ -27,8 +27,10 @@ ok(shader.includes("nucleusColors: Float32Array"), "render frame owns a reusable
 
 const organismView = readFileSync(new URL("./OrganismCanvasView.tsx", import.meta.url), "utf8");
 ok(!organismView.includes("SelectedCellCommandMenu"), "automatic selection command menu is removed");
-ok(organismView.includes("InlineCellEditor"), "organism renderer uses shared inline editor");
+ok(organismView.includes("openContextSurface(\"inline-editor\""), "organism renderer opens the shared inline editor host");
 const classicView = readFileSync(new URL("./CanvasView.tsx", import.meta.url), "utf8");
-ok(classicView.includes("InlineCellEditor"), "classic renderer uses shared inline editor");
+ok(classicView.includes("openContextSurface(\"inline-editor\""), "classic renderer opens the shared inline editor host");
+const contextHost = readFileSync(new URL("../ui/context/ContextSurfaceHost.tsx", import.meta.url), "utf8");
+ok(contextHost.includes("InlineCellEditor"), "one root host owns the shared inline editor instance");
 
 console.info("V8 geometry, shader, and editor contracts passed");

@@ -359,3 +359,14 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - `getNucleusColor` remains the canonical explicit override → source mapping → deterministic fallback resolver across renderers, labels, table, and exports.
 - WebGL receives a reused `MAX_NUCLEI * 3` RGB buffer; positive nucleus influence weights spatial color in the existing one-draw fragment pass, while void RGB entries remain zero.
 - Selection never enters radius, strength, position, camera, or membrane geometry. One shared `InlineCellEditor` replaces automatic metadata and command UI in both renderers.
+
+# V8.2A — Interaction foundation ownership
+
+- Canonical selection is an ordered `selectedIds: string[]` plus `primarySelectedId`; the deprecated `selectedId` field remains a synchronized compatibility mirror for existing canvas/table/widget consumers. Mutable Sets are never stored in Zustand or persistence.
+- `selectAllVisible` follows renderer truth: Classic selects every runtime space; Organism selects the first `MAX_NUCLEI` entries it can render/hit-test. Marquee and camera-frustum selection remain deferred.
+- Tool state (`activeTool`, `temporaryTool`) and context state (`contextSurface`, `contextPoint`, `contextTargetId`) are centralized session state. They are deliberately excluded from `LabSettings`, saved views, and project/export snapshots.
+- Renderer views own only hit testing and gesture arbitration. The root `ContextSurfaceHost` owns the blank Base UI dropdown, the object radial presentation, and the shared `InlineCellEditor`; only one is primary at a time.
+- `contextActionRegistry.ts` separates command metadata, icons, shortcuts, availability, danger, future status, and supported targets from `contextCommands.ts` product execution. `toolRegistry.ts` is the future Tools page source; the Dock/widget registries are unchanged.
+- Object actions use only individual circular buttons around a transparent empty centre—no centre object, backdrop disc, enclosing ring, or large panel. Boundary, Lock, Group, and More remain truthfully disabled until real product state exists.
+- Materials reuses `openWidget("palette")`, which focuses an existing stable widget key without remounting. Import reuses `FileIntakeProvider.browse`; View reuses the Display widget; duplicate/delete reuse central store mutations.
+- Blank dropdown and object radial are desktop/laptop/iPad pointer foundations. iPad long-press/two-finger activation, the material shelf, detailed Tools page, and future sub-rails remain deferred.

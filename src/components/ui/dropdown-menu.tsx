@@ -23,17 +23,18 @@ function DropdownMenuContent({
   alignOffset = 0,
   side = "bottom",
   sideOffset = 4,
+  positionerClassName,
   className,
   ...props
 }: MenuPrimitive.Popup.Props &
   Pick<
     MenuPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset"
-  >) {
+  > & { positionerClassName?: string }) {
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner
-        className="isolate z-50 outline-none"
+        className={cn("isolate z-50 outline-none", positionerClassName)}
         align={align}
         alignOffset={alignOffset}
         side={side}
@@ -130,6 +131,7 @@ function DropdownMenuSubContent({
   side = "right",
   sideOffset = 0,
   className,
+  positionerClassName,
   ...props
 }: React.ComponentProps<typeof DropdownMenuContent>) {
   return (
@@ -140,6 +142,7 @@ function DropdownMenuSubContent({
       alignOffset={alignOffset}
       side={side}
       sideOffset={sideOffset}
+      positionerClassName={positionerClassName}
       {...props}
     />
   )

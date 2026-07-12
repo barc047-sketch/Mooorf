@@ -34,9 +34,19 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 
 ## Direct Cell Editing (V8.1)
 
-- Purpose: single activation selects without geometry changes; deliberate double activation opens one shared Name/Area editor for both renderers.
-- Main files: `src/canvas/InlineCellEditor.tsx`, `src/canvas/cellActivation.ts`, `src/canvas/CanvasView.tsx`, `src/canvas/OrganismCanvasView.tsx`.
+- Purpose: single activation selects without geometry changes; deliberate double activation opens one root-hosted Name/Area editor shared by both renderers.
+- Main files: `src/canvas/InlineCellEditor.tsx`, `src/canvas/cellActivation.ts`, `src/ui/context/ContextSurfaceHost.tsx`, `src/canvas/CanvasView.tsx`, `src/canvas/OrganismCanvasView.tsx`.
 - Risk: high for drag-vs-double-tap arbitration and duplicate commit races.
+
+## Interaction Foundation (V8.2A)
+
+- Purpose: one canonical tool/selection/context contract, multi-selection, blank-canvas commands, and explicit object radial actions across Classic and Organism.
+- Main files: `src/types.ts`, `src/state/store.ts`, `src/interaction/*`, `src/ui/context/*`, `src/canvas/SelectedCellCommandMenu.tsx`, `src/canvas/CanvasView.tsx`, `src/canvas/OrganismCanvasView.tsx`, `src/App.tsx`.
+- Ownership: product selection is `selectedIds` + `primarySelectedId`; legacy `selectedId` mirrors the primary. Tool/context state is store-owned session state but excluded from saved views and project exports. Renderer code owns hit testing only.
+- Presentation: blank targets use the Base UI dropdown; space/void targets use 6–8 individual 40px action circles with a transparent empty centre. The root `ContextSurfaceHost` ensures only one primary contextual surface is open.
+- Registries: `toolRegistry.ts` owns tool metadata/status; `contextActionRegistry.ts` owns labels/icons/shortcuts/availability/target support; `contextCommands.ts` owns product command execution.
+- Deferred: marquee selection, iPad long-press/two-finger context activation, material shelf, detailed Tools page, line/relationship/text/paragraph/frame behavior, Boundary/Lock/Group/More.
+- Risk: high for modifier-click/drag arbitration, Escape/outside-click ordering, context target invalidation, and selection geometry invariance.
 
 ## Saved Views
 
@@ -123,9 +133,9 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 ## Selection Feedback (V7.3)
 
 - Status: the former partial orbit/selection arc and halo/influence modes were intentionally removed in V7.3. They are neither active nor planned.
-- Current ownership: `src/canvas/OrganismCanvasView.tsx` keeps the existing MovingBorder, selected metadata, command menu, and rename/area edit surface; Classic uses an on-body boundary keyline only.
-- Export rule: the removed arc is never captured or emitted. Clean selection still filters the moving keyline/details where applicable.
-- Risk: keep the details shell pointer-transparent and actions leaf-interactive so canvas drag/pan/zoom remain available.
+- Current ownership: selected IDs live in the central store; Organism renders a MovingBorder per selected nucleus, Classic renders on-body keylines, and the root context host owns explicit right-click actions plus the shared editor. No automatic metadata/command panel renders on selection.
+- Export rule: the removed arc is never captured or emitted. Clean selection omits the selected keylines; root context/editor chrome is outside renderer capture layers.
+- Risk: selection must remain absent from organism radius/strength/position inputs; contextual action leaves alone may receive pointer events so canvas drag/pan/zoom remain available.
 
 ## File Intake / Project Transfer (V7.3)
 

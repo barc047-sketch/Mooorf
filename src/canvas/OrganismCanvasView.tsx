@@ -38,10 +38,17 @@ import {
 } from "./organismAdapter";
 import { resolveOrganism } from "./organismProductionSettings";
 import MovingBorder from "../ui/primitives/MovingBorder";
-import InlineCellEditor, { type InlineEditorPosition } from "./InlineCellEditor";
-import { CELL_DRAG_THRESHOLD_PX, createCellActivationState, registerCellActivation } from "./cellActivation";
+import {
+  CELL_DRAG_THRESHOLD_PX,
+  createCellActivationState,
+  isInlineEditorCommitPointer,
+  registerCellActivation,
+  resetCellActivation,
+} from "./cellActivation";
 import type { SpaceKind } from "../types";
 import { registerCanvasCapture, type CaptureRequestOptions } from "./exportCapture";
+import { resolveSelectionIntent } from "../interaction/selection";
+import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import "./organismCanvas.css";
 
 const CAPTURE_TIMEOUT_MS = 5000;
@@ -81,6 +88,9 @@ export default function OrganismCanvasView() {
   const [glOk, setGlOk] = useState(true);
   const spaces = useLab((s) => s.spaces);
   const selectedId = useLab((s) => s.selectedId);
+  const selectedIds = useLab((s) => s.selectedIds);
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const editingTargetId = useLab((s) => s.contextSurface === "inline-editor" ? s.contextTargetId : null);
   const showLabels = useLab((s) => s.settings.organism.showLabels);
   const annotationMode = useLab((s) => s.settings.annotationMode);
   const annotationDetail = useLab((s) => s.settings.annotationDetail);
@@ -89,7 +99,6 @@ export default function OrganismCanvasView() {
   const colorSource = useLab((s) => s.settings.colorSource);
   const showGrid = useLab((s) => s.settings.showGrid);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
-  const [editorTarget, setEditorTarget] = useState<{ id: string; position: InlineEditorPosition } | null>(null);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -122,6 +131,7 @@ export default function OrganismCanvasView() {
     const cam = { ...useLab.getState().camera };
     let spaces = useLab.getState().spaces;
     let selectedId = useLab.getState().selectedId;
+    let selectedIdSet = new Set(useLab.getState().selectedIds);
     let settings = useLab.getState().settings;
     let resolved = resolveOrganism(settings);
     const motionState = createMotionState();
@@ -165,6 +175,7 @@ export default function OrganismCanvasView() {
     const unsub = useLab.subscribe((s) => {
       spaces = s.spaces;
       selectedId = s.selectedId;
+      selectedIdSet = new Set(s.selectedIds);
       if (s.settings !== settings) {
         settings = s.settings;
         resolved = resolveOrganism(settings);
@@ -257,7 +268,7 @@ export default function OrganismCanvasView() {
       }
     );
 
-    const local = (e: PointerEvent | WheelEvent) => {
+    const local = (e: PointerEvent | WheelEvent | MouseEvent) => {
       const r = canvas.getBoundingClientRect();
       return { sx: e.clientX - r.left, sy: e.clientY - r.top };
     };
@@ -307,7 +318,7 @@ export default function OrganismCanvasView() {
         }
         anchor.style.opacity = "1";
         anchor.style.transform = `translate(${nucleus.sx}px, ${nucleus.sy}px)`;
-        anchor.dataset.selected = nucleus.id === selectedId ? "true" : "false";
+        anchor.dataset.selected = selectedIdSet.has(nucleus.id) ? "true" : "false";
         const movingBorder = anchor.querySelector<HTMLElement>(".organism-moving-border");
         if (movingBorder) {
           const editing = anchor.dataset.editing === "true";
@@ -332,9 +343,14 @@ export default function OrganismCanvasView() {
     let panCX = 0;
     let panCY = 0;
     let lastDragCommit = 0;
+    let pressIntent: "replace" | "toggle" = "replace";
 
     const onDown = (e: PointerEvent) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || (e.ctrlKey && e.pointerType === "mouse")) return;
+      if (isInlineEditorCommitPointer(e)) {
+        resetCellActivation(activation);
+        return;
+      }
       camTarget = null;
       const { sx, sy } = local(e);
       const hit = hitTestNuclei(currentNuclei(), sx, sy);
@@ -344,6 +360,8 @@ export default function OrganismCanvasView() {
         // Synthetic/stale pointer ids still work without capture.
       }
       if (hit) {
+        const state = useLab.getState();
+        pressIntent = resolveSelectionIntent(e);
         const world = screenToWorld(sx, sy, cam, w, h);
         const source = spaces.find((space) => space.id === hit.id);
         if (!source) return;
@@ -353,15 +371,19 @@ export default function OrganismCanvasView() {
         drag = { id: hit.id, x: source.x, y: source.y };
         dragLastWX = world.x;
         dragLastWY = world.y;
-        useLab.getState().select(hit.id);
+        if (pressIntent === "replace") {
+          if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
+          else state.replaceSelection(hit.id);
+        }
         canvas.style.cursor = "grabbing";
       } else {
+        resetCellActivation(activation);
         mode = "pan";
         panSX = sx;
         panSY = sy;
         panCX = cam.x;
         panCY = cam.y;
-        if (selectedId) useLab.getState().select(null);
+        if (selectedIdSet.size > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
       dirty = true;
@@ -375,7 +397,8 @@ export default function OrganismCanvasView() {
       }
       if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
         mode = "drag";
-        setEditorTarget(null);
+        useLab.getState().closeContextSurface();
+        if (drag) useLab.getState().addToSelection(drag.id);
       }
       if (mode === "drag" && drag) {
         const world = screenToWorld(sx, sy, cam, w, h);
@@ -405,8 +428,15 @@ export default function OrganismCanvasView() {
     const onUp = (e: PointerEvent) => {
       const { sx, sy } = local(e);
       if (mode === "press" && drag) {
-        if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
-          setEditorTarget({ id: drag.id, position: { x: sx + 14, y: sy + 18 } });
+        const state = useLab.getState();
+        if (pressIntent === "toggle") {
+          state.toggleSelection(drag.id);
+          resetCellActivation(activation);
+        } else {
+          state.replaceSelection(drag.id);
+          if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
+            state.openContextSurface("inline-editor", { x: sx + 14, y: sy + 18 }, drag.id);
+          }
         }
         drag = null;
       } else
@@ -418,6 +448,27 @@ export default function OrganismCanvasView() {
         commitCamera();
       }
       mode = "none";
+      canvas.style.cursor = "default";
+      dirty = true;
+    };
+
+    const onContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      const secondaryButton = e.ctrlKey ? 2 : e.button;
+      if (!shouldOpenContextFromGesture(secondaryButton, mode === "drag")) return;
+      mode = "none";
+      drag = null;
+      resetCellActivation(activation);
+      const { sx, sy } = local(e);
+      const hit = hitTestNuclei(currentNuclei(), sx, sy);
+      const state = useLab.getState();
+      if (hit) {
+        if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
+        else state.replaceSelection(hit.id);
+        state.openContextSurface(resolveContextSurface(hit.id), { x: e.clientX, y: e.clientY }, hit.id);
+      } else {
+        state.openContextSurface(resolveContextSurface(null), { x: e.clientX, y: e.clientY }, null);
+      }
       canvas.style.cursor = "default";
       dirty = true;
     };
@@ -441,6 +492,7 @@ export default function OrganismCanvasView() {
     canvas.addEventListener("pointerup", onUp);
     canvas.addEventListener("pointercancel", onUp);
     canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.addEventListener("contextmenu", onContextMenu);
 
     let raf = 0;
     let firstUsableFrame = false;
@@ -659,6 +711,7 @@ export default function OrganismCanvasView() {
       canvas.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointercancel", onUp);
       canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("contextmenu", onContextMenu);
     };
   }, []);
 
@@ -691,8 +744,8 @@ export default function OrganismCanvasView() {
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
           const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
           const kind: SpaceKind = space.kind === "void" ? "void" : "space";
-          const selected = space.id === selectedId;
-          const editing = editorTarget?.id === space.id;
+          const selected = selectedSet.has(space.id);
+          const editing = editingTargetId === space.id;
           const labelStyle = {
             "--nucleus-color": mappedColor.fill,
             "--nucleus-ring": mappedColor.ring,
@@ -714,6 +767,7 @@ export default function OrganismCanvasView() {
               data-category-token={mappedColor.token.id}
               data-kind={kind}
               data-selected={selected}
+              data-primary={space.id === selectedId ? "true" : undefined}
               data-editing={editing ? "true" : undefined}
               style={labelStyle}
             >
@@ -755,10 +809,6 @@ export default function OrganismCanvasView() {
           );
         })}
       </div>
-      {editorTarget && (() => {
-        const space = spaces.find((candidate) => candidate.id === editorTarget.id);
-        return space ? <InlineCellEditor space={space} position={editorTarget.position} onClose={() => setEditorTarget(null)} /> : null;
-      })()}
     </div>
   );
 }
