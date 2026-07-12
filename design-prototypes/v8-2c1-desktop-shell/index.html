@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MOOORF — V8.2C1 Desktop Studio Shell</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body data-mode="day" data-workspace="canvas" data-dock="collapsed" data-inspector-pinned="true" data-rail-context="">
+
+<!-- ═══ ICON SPRITE ═══ -->
+<svg style="display:none" aria-hidden="true">
+<defs>
+  <!-- shell -->
+  <symbol id="i-drawer" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7 10h10M7 14h6"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M8 7 4 11l4 4M4 11h10a6 6 0 0 1 0 12h-2"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M16 7l4 4-4 4M20 11H10a6 6 0 0 0 0 12h2"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M8 3l-2 2M18 5l-2-2"/></symbol>
+  <symbol id="i-morph" viewBox="0 0 24 24"><circle cx="9" cy="12" r="5"/><circle cx="16" cy="12" r="4"/></symbol>
+  <symbol id="i-motion" viewBox="0 0 24 24"><path d="M4 12c2-5 5-5 8 0s6 5 8 0"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M9 4v16M15 4v16"/></symbol>
+  <symbol id="i-labels" viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h13"/></symbol>
+  <symbol id="i-fullscreen" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v11M8 8l4-4 4 4M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 12h4l2 3h4l2-3h4M4 12l1.5-6h13L20 12M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/></symbol>
+  <symbol id="i-account" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.4-4 4-6 7-6s5.6 2 7 6"/></symbol>
+  <symbol id="i-floor-prev" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></symbol>
+  <symbol id="i-floor-next" viewBox="0 0 24 24"><path d="M10 6l6 6-6 6"/></symbol>
+  <symbol id="i-add-floor" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <!-- rail -->
+  <symbol id="i-canvas" viewBox="0 0 24 24"><circle cx="9" cy="9" r="3"/><circle cx="16" cy="15" r="4"/></symbol>
+  <symbol id="i-data" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-dashboard" viewBox="0 0 24 24"><path d="M4 18V10M11 18V5M18 18v-7"/></symbol>
+  <symbol id="i-templates" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-floors" viewBox="0 0 24 24"><path d="M4 8l8-4 8 4-8 4-8-4Z"/><path d="M4 14l8 4 8-4"/></symbol>
+  <symbol id="i-scenes" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1"/><path d="M8 20h8"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 4l8 4-8 4-8-4 8-4Z"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/></symbol>
+  <symbol id="i-files" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/></symbol>
+  <symbol id="i-commands" viewBox="0 0 24 24"><path d="M6 4l12 8-12 8"/></symbol>
+  <symbol id="i-shortcuts" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="10" rx="2"/><path d="M8 12h.01M12 12h.01M16 12h.01"/></symbol>
+  <symbol id="i-learn" viewBox="0 0 24 24"><path d="M4 6l8-3 8 3-8 3-8-3Z"/><path d="M8 8v6c0 1.5 2 2.5 4 2.5s4-1 4-2.5V8"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.9.5-1.2 1-1.2 2M12 17h.01"/></symbol>
+  <symbol id="i-feedback" viewBox="0 0 24 24"><path d="M5 5h14v11H9l-4 4V5Z"/></symbol>
+  <!-- add tray -->
+  <symbol id="i-space" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+  <symbol id="i-void" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke-dasharray="2.5 3.2"/></symbol>
+  <symbol id="i-label" viewBox="0 0 24 24"><path d="M4 9h16M4 15h10"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 12h8M8 15h5"/></symbol>
+  <symbol id="i-datatag" viewBox="0 0 24 24"><path d="M4 12l7-7h9v9l-7 7-9-9Z"/><circle cx="9" cy="9" r="1.2"/></symbol>
+  <symbol id="i-symbol" viewBox="0 0 24 24"><path d="M12 3l3 6 6 1-4.5 4 1 6-5.5-3-5.5 3 1-6L3 10l6-1 3-6Z"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/></symbol>
+  <symbol id="i-frame" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><rect x="7" y="7" width="10" height="10"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M8 9l4-4 4 4M4 19h16"/></symbol>
+  <!-- select/materials/arrange/connect/markup/present -->
+  <symbol id="i-select" viewBox="0 0 24 24"><path d="M5 3l5 15 2.2-6.2L18 9.5 5 3Z"/></symbol>
+  <symbol id="i-materials" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.4"/></symbol>
+  <symbol id="i-arrange" viewBox="0 0 24 24"><circle cx="6" cy="6" r="1.5"/><circle cx="12" cy="6" r="1.5"/><circle cx="18" cy="6" r="1.5"/><circle cx="6" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="18" cy="12" r="1.5"/><circle cx="6" cy="18" r="1.5"/><circle cx="12" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></symbol>
+  <symbol id="i-connect" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M8.5 12h7"/></symbol>
+  <symbol id="i-markup" viewBox="0 0 24 24"><path d="M4 20l3-1 10-10-2-2L5 17l-1 3Z"/></symbol>
+  <symbol id="i-present" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M9 20h6M12 16v4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="6" y="11" width="12" height="9" rx="1.5"/><path d="M8.5 11V7.5a3.5 3.5 0 0 1 7 0V11"/></symbol>
+  <symbol id="i-duplicate" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M5 16H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v1"/></symbol>
+  <symbol id="i-delete" viewBox="0 0 24 24"><path d="M5 7h14M9 7V5h6v2M7 7l1 13h8l1-13"/></symbol>
+  <symbol id="i-boundary" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke-dasharray="1.5 3"/></symbol>
+  <symbol id="i-group" viewBox="0 0 24 24"><circle cx="9" cy="10" r="4"/><circle cx="15" cy="14" r="4"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20l1-4L15 6l3 3L8 19l-4 1Z"/></symbol>
+  <!-- misc -->
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.5-4.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l14 8-14 8V4Z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 4h4v16H7zM13 4h4v16h-4z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M9 3h6l-1 6 4 4v2h-6v6l-1 1-1-1v-6H4v-2l4-4-1-6Z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M5 16H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v1"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4.5 4.5 0 0 1-1-8.9A5.5 5.5 0 0 1 16.9 9 4 4 0 0 1 18 17H7Z"/></symbol>
+  <symbol id="i-local" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 10h16"/></symbol>
+  <symbol id="i-favourite" viewBox="0 0 24 24"><path d="M12 4l2.4 5.5 6 .6-4.5 4 1.3 5.9L12 17l-5.2 3 1.3-5.9-4.5-4 6-.6L12 4Z"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4l9 16H3L12 4Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-zip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="1.5"/><path d="M12 4v3M12 9v2M12 13v2M12 17v3"/></symbol>
+</defs>
+</svg>
+
+<!-- ═══ CANVAS WORKSPACE ═══ -->
+<div id="stage">
+  <div id="grid-layer" class="g-dotted"></div>
+  <div id="world"></div>
+  <div id="upload-hint" class="ws-hint" hidden>Drop a project, table, or image anywhere to import it</div>
+</div>
+
+<!-- ═══ DATA WORKSPACE ═══ -->
+<section id="ws-data" class="workspace" data-open="false">
+  <div class="ws-body" id="data-body"></div>
+</section>
+
+<!-- ═══ DASHBOARD WORKSPACE ═══ -->
+<section id="ws-dashboard" class="workspace" data-open="false">
+  <div class="ws-body" id="dash-body"></div>
+</section>
+
+<!-- ═══ TOP CLUSTERS ═══ -->
+<div id="top">
+  <button id="drawer-launcher" class="launcher" data-tip="Project Drawer · ⌘K" aria-label="Open project drawer"><svg><use href="#i-drawer"/></svg></button>
+
+  <div class="cluster" id="cl-project">
+    <span class="cl-mark">MOOORF</span>
+    <button class="cl-name" id="project-name-btn" data-tip="Project menu">Untitled Programme<svg class="cl-chev"><use href="#i-chevron"/></svg></button>
+    <span class="cl-save mono">Saved</span>
+  </div>
+
+  <div class="cluster" id="cl-floor">
+    <button data-tip="Previous floor · [" id="floor-prev"><svg><use href="#i-floor-prev"/></svg></button>
+    <span class="cl-floor-name mono" id="cl-floor-name">Ground Floor</span>
+    <button data-tip="Next floor · ]" id="floor-next"><svg><use href="#i-floor-next"/></svg></button>
+    <span class="cl-sep"></span>
+    <button data-tip="Add floor" id="floor-add"><svg><use href="#i-add-floor"/></svg></button>
+  </div>
+
+  <div class="cluster" id="cl-history">
+    <button data-tip="Undo · ⌘Z" id="undo-btn"><svg><use href="#i-undo"/></svg></button>
+    <button data-tip="Redo · ⇧⌘Z" id="redo-btn"><svg><use href="#i-redo"/></svg></button>
+    <button data-tip="History" id="history-btn"><svg><use href="#i-history"/></svg></button>
+  </div>
+
+  <div class="cluster" id="cl-quick">
+    <button class="qv" data-qv="morph" data-tip="Morph · M"><svg><use href="#i-morph"/></svg></button>
+    <button class="qv" data-qv="motion" data-tip="Motion · ⇧M"><svg><use href="#i-motion"/></svg></button>
+    <button class="qv" data-qv="grid" data-tip="Grid · G"><svg><use href="#i-grid"/></svg></button>
+    <button class="qv on" data-qv="labels" data-tip="Labels · L"><svg><use href="#i-labels"/></svg></button>
+    <button class="qv" data-qv="fullscreen" data-tip="Full Screen · ⌘⇧F"><svg><use href="#i-fullscreen"/></svg></button>
+    <button id="qv-more" data-tip="More view options"><svg><use href="#i-more"/></svg></button>
+  </div>
+
+  <div class="cluster" id="cl-export">
+    <button id="export-btn" data-tip="Export · ⌘E"><svg><use href="#i-export"/></svg><span>Export</span></button>
+    <button id="inbox-btn" data-tip="Download Center"><svg><use href="#i-inbox"/></svg><i class="badge" id="inbox-badge" hidden>0</i></button>
+  </div>
+
+  <button id="mode-switch" class="cluster mode-switch" data-tip="Night mode · ⇧D"><svg><use href="#i-fullscreen"/></svg><span id="mode-label">Day</span></button>
+
+  <button id="account-btn" class="cluster account" data-tip="Account"><svg><use href="#i-account"/></svg></button>
+</div>
+
+<!-- ═══ LEFT RAIL ═══ -->
+<nav id="rail" aria-label="Workspace rail">
+  <button class="rw active" data-rail="canvas" data-tip="Canvas · 1"><svg><use href="#i-canvas"/></svg></button>
+  <button class="rw" data-rail="data" data-tip="Data / Table · 2"><svg><use href="#i-data"/></svg></button>
+  <button class="rw" data-rail="dashboard" data-tip="Dashboard · 3"><svg><use href="#i-dashboard"/></svg></button>
+  <div class="rail-sep"></div>
+  <button class="rw" data-rail="templates" data-tip="Templates · T"><svg><use href="#i-templates"/></svg></button>
+  <div class="rail-sep"></div>
+  <button class="rw" data-rail="floors" data-tip="Floors"><svg><use href="#i-floors"/></svg></button>
+  <button class="rw" data-rail="scenes" data-tip="Scenes"><svg><use href="#i-scenes"/></svg></button>
+  <button class="rw" data-rail="layers" data-tip="Layers"><svg><use href="#i-layers"/></svg></button>
+  <button class="rw" data-rail="history" data-tip="History"><svg><use href="#i-history"/></svg></button>
+  <div class="rail-sep"></div>
+  <button class="rw" data-rail="files" data-tip="Files"><svg><use href="#i-files"/></svg></button>
+  <button class="rw" data-rail="commands" data-tip="Commands · ⌘K"><svg><use href="#i-commands"/></svg></button>
+  <button class="rw" data-rail="shortcuts" data-tip="Shortcuts · ?"><svg><use href="#i-shortcuts"/></svg></button>
+  <div class="rail-spacer"></div>
+  <button class="rw" data-rail="learn" data-tip="Learn"><svg><use href="#i-learn"/></svg></button>
+  <button class="rw" data-rail="help" data-tip="Help"><svg><use href="#i-help"/></svg></button>
+  <button class="rw" data-rail="feedback" data-tip="Feedback"><svg><use href="#i-feedback"/></svg></button>
+</nav>
+
+<!-- ═══ CONTEXTUAL SUBRAIL ═══ -->
+<aside id="subrail" hidden>
+  <div class="sub-hd"><span class="sub-title mono" id="sub-title">CANVAS</span><button class="sub-close" id="subrail-close"><svg><use href="#i-close"/></svg></button></div>
+  <div class="sub-body" id="sub-body"></div>
+</aside>
+
+<!-- ═══ RIGHT MATERIAL RAIL ═══ -->
+<aside id="material-rail" hidden>
+  <div class="mr-target mono" id="mr-target">Space Fill</div>
+  <div class="mr-scroll" id="mr-scroll"></div>
+  <button id="mr-more" class="mr-more" data-tip="Open Material Browser"><svg><use href="#i-materials"/></svg></button>
+</aside>
+
+<!-- ═══ RIGHT INSPECTOR ═══ -->
+<aside id="inspector" hidden>
+  <div class="insp-hd2">
+    <span class="insp-obj mono" id="insp-obj-name">Space</span>
+    <div class="insp-hd-actions">
+      <button id="insp-pin" class="insp-icon-btn on" data-tip="Pinned"><svg><use href="#i-pin"/></svg></button>
+      <button id="insp-close" class="insp-icon-btn" data-tip="Close"><svg><use href="#i-close"/></svg></button>
+    </div>
+  </div>
+  <div class="insp-body2" id="insp-body"></div>
+</aside>
+
+<!-- ═══ COMMON CONTEXT RAIL ═══ -->
+<div id="common-rail" hidden><div class="cr-inner" id="cr-inner"></div></div>
+
+<!-- ═══ BOTTOM DOCKS ═══ -->
+<div id="dock-left" class="dock">
+  <button class="dk active" data-dk="select" data-tip="Select · V"><svg><use href="#i-select"/></svg><span>Select</span></button>
+  <button class="dk" data-dk="materials" data-tip="Materials · B"><svg><use href="#i-materials"/></svg><span>Materials</span></button>
+  <button class="dk" data-dk="arrange" data-tip="Arrange · R"><svg><use href="#i-arrange"/></svg><span>Arrange</span></button>
+</div>
+
+<button id="add-space" data-tip="Add Space · A · hold for tray"><svg><use href="#i-space"/></svg></button>
+<div id="add-tray" hidden>
+  <button data-add="space"><svg><use href="#i-space"/></svg><span>Space</span><kbd class="key">A</kbd></button>
+  <button data-add="multi"><svg><use href="#i-group"/></svg><span>Multiple Spaces</span><kbd class="key">⇧A</kbd></button>
+  <button data-add="void"><svg><use href="#i-void"/></svg><span>Void</span><kbd class="key">⌥A</kbd></button>
+  <button data-add="upload"><svg><use href="#i-upload"/></svg><span>Upload</span></button>
+  <button data-add="template"><svg><use href="#i-templates"/></svg><span>From Template</span></button>
+  <div class="tray-sep"></div>
+  <button data-add="more" id="add-more"><svg><use href="#i-more"/></svg><span>More</span><svg class="chev"><use href="#i-chevron"/></svg></button>
+</div>
+<div id="add-more-tray" hidden>
+  <button data-add="label"><svg><use href="#i-label"/></svg><span>Label</span></button>
+  <button data-add="note"><svg><use href="#i-note"/></svg><span>Note</span></button>
+  <button data-add="datatag"><svg><use href="#i-datatag"/></svg><span>Data Tag</span></button>
+  <button data-add="symbol"><svg><use href="#i-symbol"/></svg><span>Symbol</span></button>
+  <button data-add="panel"><svg><use href="#i-panel"/></svg><span>Panel</span></button>
+  <button data-add="frame"><svg><use href="#i-frame"/></svg><span>Frame</span></button>
+</div>
+
+<div id="dock-right" class="dock">
+  <button class="dk" data-dk="connect" data-tip="Connect · C"><svg><use href="#i-connect"/></svg><span>Connect</span></button>
+  <button class="dk" data-dk="markup" data-tip="Markup · X"><svg><use href="#i-markup"/></svg><span>Markup</span></button>
+  <button class="dk active" data-dk="present" data-tip="Present · P"><svg><use href="#i-present"/></svg><span>Present</span></button>
+</div>
+
+<!-- ═══ PROJECT DRAWER ═══ -->
+<div id="drawer-scrim" hidden></div>
+<div id="project-drawer" hidden role="dialog" aria-modal="true" aria-label="Project Drawer">
+  <div class="drawer-inner">
+    <nav class="drawer-nav">
+      <div class="drawer-mark">MOOORF</div>
+      <button class="dn active" data-dsec="projects"><svg><use href="#i-templates"/></svg>Projects</button>
+      <button class="dn" data-dsec="templates"><svg><use href="#i-templates"/></svg>Templates</button>
+      <button class="dn" data-dsec="files"><svg><use href="#i-files"/></svg>Files</button>
+      <button class="dn" data-dsec="settings"><svg><use href="#i-help"/></svg>Settings</button>
+      <button class="dn" data-dsec="account"><svg><use href="#i-account"/></svg>Account</button>
+      <button class="dn" data-dsec="help"><svg><use href="#i-help"/></svg>Help</button>
+      <button class="dn" data-dsec="shortcuts"><svg><use href="#i-shortcuts"/></svg>Shortcuts</button>
+      <button class="dn" data-dsec="commands"><svg><use href="#i-commands"/></svg>Commands</button>
+      <button id="drawer-upload"><svg><use href="#i-upload"/></svg>Open / Upload<kbd class="key">⌘O</kbd></button>
+    </nav>
+    <div class="drawer-content" id="drawer-content"></div>
+  </div>
+</div>
+
+<!-- ═══ TEMPLATE GALLERY ═══ -->
+<div id="template-gallery" class="overlay-panel">
+  <div class="op-hd"><span class="op-title mono">TEMPLATE GALLERY</span><button class="op-close" data-close="template-gallery"><svg><use href="#i-close"/></svg></button></div>
+  <div class="op-body" id="tg-body"></div>
+</div>
+
+<!-- ═══ MATERIAL BROWSER ═══ -->
+<div id="material-browser" class="overlay-panel">
+  <div class="op-hd"><span class="op-title mono">MATERIAL BROWSER</span><button class="op-close" data-close="material-browser"><svg><use href="#i-close"/></svg></button></div>
+  <div class="op-body" id="mb-body"></div>
+</div>
+
+<!-- ═══ EXPORT BUILDER ═══ -->
+<div id="export-builder" class="overlay-panel">
+  <div class="op-hd"><span class="op-title mono">EXPORT BUILDER</span><button class="op-close" data-close="export-builder"><svg><use href="#i-close"/></svg></button></div>
+  <div class="op-body" id="eb-body"></div>
+</div>
+
+<!-- ═══ DOWNLOAD CENTER ═══ -->
+<div id="download-center" class="overlay-panel small">
+  <div class="op-hd"><span class="op-title mono">DOWNLOAD CENTER</span><button class="op-close" data-close="download-center"><svg><use href="#i-close"/></svg></button></div>
+  <div class="op-body" id="dc-body"></div>
+</div>
+
+<!-- ═══ NOTIFICATION STACK ═══ -->
+<div id="notification-stack" aria-live="polite"></div>
+
+<!-- ═══ UPLOAD DROP OVERLAY ═══ -->
+<div id="upload-overlay" hidden>
+  <div class="uo-card">
+    <svg><use href="#i-upload"/></svg>
+    <div class="uo-title">Drop to import</div>
+    <div class="uo-sub mono" id="uo-detect">Detecting file type…</div>
+  </div>
+</div>
+
+<!-- ═══ BLANK CANVAS MENU ═══ -->
+<div id="ctx-blank" class="menu" hidden></div>
+
+<!-- ═══ OBJECT RADIAL ═══ -->
+<div id="radial"></div>
+
+<!-- ═══ CELL EDITOR ═══ -->
+<div id="cell-editor" hidden>
+  <input id="ce-name" class="ce-in" maxlength="40" />
+  <input id="ce-area" class="ce-in" inputmode="decimal" />
+  <span class="ce-unit mono">m²</span>
+  <button id="ce-ok"><svg><use href="#i-check"/></svg></button>
+</div>
+
+<div id="tip" role="tooltip"></div>
+<div id="toast-stack"></div>
+
+<!-- ═══ DESKTOP-REQUIRED GATE ═══ -->
+<div id="desktop-gate" hidden>
+  <div class="gate-card">
+    <div class="gate-title">Desktop viewport required</div>
+    <p>MOOORF requires a desktop viewport width of 1180px or higher to support precise architectural modelling. Please widen this window.</p>
+  </div>
+</div>
+
+<script src="prototype.js"></script>
+</body>
+</html>
