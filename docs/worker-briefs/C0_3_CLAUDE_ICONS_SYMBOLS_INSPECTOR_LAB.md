@@ -4,7 +4,7 @@ CODER: Claude Code
 MODEL: Claude Fable 5 / strongest available Claude design model
 EFFORT: High
 ROLE: Focused interaction and visual-prototype designer
-PARALLEL AGENT: Antigravity inventories icon/grid assets; GPT-5.6 Ultracode maps production architecture; Codex Luna may complete merge integration. Do not touch their branches or files.
+PARALLEL AGENT: Antigravity inventories icon/grid assets; GPT-5.6 Ultracode maps production architecture; Codex Luna completes merge integration. Do not touch their branches or files.
 
 ## Objective
 
@@ -12,14 +12,27 @@ Create one isolated, high-fidelity prototype for the future C0.3 **Icons & Symbo
 
 This is not a full application redesign. It is one focused component and its immediate Canvas interaction.
 
+## Critical rule: isolated Git, shared product identity
+
+Isolation means branch/worktree safety only. It does **not** mean visual or product isolation.
+
+The prototype must inherit the current production MOOORF identity, geometry, tokens, nomenclature and interaction language from the latest verified `origin/main` after the stabilization/governance merge.
+
+Do not start until Codex reports that the merge is complete and the Project Manager provides the exact new `origin/main` SHA.
+
+The old Claude V1/V2 branches are reference libraries only. Do not use either old prototype branch as the implementation base.
+
 ## Safe source and branch
 
 Repository: `/Users/tanisxq/Documents/ZONU0`
 
-Preferred prototype source branch:
-`design/v8-2c1-desktop-shell-lab`
+Required source branch:
+`origin/main`
 
-Create a new isolated branch:
+Required source SHA:
+To be supplied by the Project Manager after the current merge. Stop if it is not supplied or does not match remote main.
+
+Create a new isolated branch from that exact main SHA:
 `design/c0-3-icons-symbols-inspector-lab`
 
 Preferred isolated worktree:
@@ -28,24 +41,67 @@ Preferred isolated worktree:
 Before acting:
 
 - fetch all remotes,
-- verify the exact current SHA of `design/v8-2c1-desktop-shell-lab`,
-- inspect both `design/v8-2-ui-lab` and `design/v8-2c1-desktop-shell-lab`,
+- verify exact `origin/main` SHA against the Project Manager-provided SHA,
+- create the prototype branch from that exact SHA,
+- inspect `design/v8-2-ui-lab` and `design/v8-2c1-desktop-shell-lab` read-only,
+- inspect current production `src/styles/tokens.css`, shell geometry, WidgetFrame, right-side panels and Canvas controls,
 - preserve `.claude/launch.json`,
 - never switch or modify the primary ZONU0 worktree,
-- never modify production `src/`, package files, current stabilization branches, main, or integration branches.
+- never modify production `src/`, package files, stabilization branches, main, integration branches or another worker’s files.
 
 If the new branch/worktree already exists, inspect it and stop on unknown work.
 
 ## Required reading
 
+Read from the latest merged main unless explicitly noted:
+
 1. `docs/MOOORF_FINAL_SCOPE.md`
 2. `docs/MOOORF_MASTER_PRODUCT_SCOPE.md`
 3. `docs/MOOORF_DESKTOP_UI_REFERENCE_ADDENDUM.md`
 4. `docs/PROJECT_MEMORY_INDEX.md`
-5. `docs/MOOORF_AI_TEAM_OPERATING_PROTOCOL.md` from the governance branch
-6. existing production icon/resource types
-7. Claude V1 Material Browser implementation and interaction patterns
-8. Claude V2 right rail, material rail and contextual bottom layering
+5. `docs/MOOORF_AI_TEAM_OPERATING_PROTOCOL.md`
+6. `docs/FEATURE_MAP.md`
+7. `docs/COMPONENT_INVENTORY.md`
+8. current production design tokens and shared visual primitives
+9. current production right-panel and WidgetFrame geometry
+10. existing production icon/resource types
+11. Claude V1 Material Browser implementation and interaction patterns, read-only
+12. Claude V2 right rail, material rail and contextual bottom layering, read-only
+13. `/Users/tanisxq/Documents/ZONU0/.references/mooorf-desktop-v1/INDEX.md`
+
+## Style lock
+
+The prototype must look like the same product as the latest production Canvas.
+
+Required:
+
+- reuse current production CSS variables or mirror them exactly inside the prototype,
+- reuse current spacing, radius, typography, border/keyline, glass and signal-dot language,
+- match current day/night palette behaviour,
+- match current right-panel width logic and WidgetFrame density,
+- preserve the permanent left rail and existing Canvas visual context in any prototype shell framing,
+- use production names: Cell, Boundary, Membrane, Membrane Edge, Core, Void,
+- active state = signal dot + keyline + subtle tint,
+- no UI shadows,
+- no hover magnification,
+- no Mac Dock scaling,
+- stable blur only,
+- Canvas remains visible,
+- 1440 and 1280 desktop only.
+
+Before finalizing, create a short **Style Parity Checklist** comparing the prototype against current main:
+
+- typography
+- spacing
+- radii
+- keylines
+- glass/blur
+- active states
+- day/night colours
+- inspector density
+- Canvas visibility
+
+Any intentional deviation must be listed and justified. Unlisted deviations are defects.
 
 ## Locked interaction
 
@@ -67,7 +123,7 @@ The first production version supports one primary icon per Cell, but the visual 
 - Icons & Symbols
 - compact selected scope label: `Selection`, `3 Cells`, or `Project Defaults`
 - close button
-- pin only when it clearly improves the prototype; do not add complexity merely for decoration
+- pin only when it clearly improves the prototype
 
 ### Library
 
@@ -145,21 +201,7 @@ From top to bottom:
 
 The icon must not be confused with Core or selection.
 
-## Visual direction
-
-- Preserve the current MOOORF visual identity.
-- Premium, quiet, technical, editorial.
-- Right inspector remains compact; Canvas remains visible.
-- No cheap SaaS cards.
-- No UI shadows.
-- Stable blur only; no blur animation.
-- Circular icon previews and controls may reuse the strongest V1 Material Browser language.
-- Inspector geometry may reuse the strongest V2 right-rail structure.
-- Active state: signal dot + keyline + subtle tint.
-- No hover magnification or Mac Dock behaviour.
-- 1440 and 1280 desktop only.
-
-## Required prototype states
+## Prototype states
 
 1. One selected Cell, inspector closed.
 2. One selected Cell, inspector opened with `I`.
@@ -175,22 +217,24 @@ The icon must not be confused with Core or selection.
 
 Reuse/adapt:
 
-- V1 circular previews
-- search/categories/favourites/recents
-- pure hover preview/revert logic
-- SVG icon paths
-- compact sliders and exact value fields
-- V2 right inspector geometry
-- V2 target-aware layering
+- current production tokens and shared primitives first,
+- V1 circular previews,
+- search/categories/favourites/recents,
+- pure hover preview/revert logic,
+- original SVG icon paths,
+- compact sliders and exact value fields,
+- V2 right-inspector geometry only where it matches current production,
+- V2 target-aware layering only where it matches current production.
 
 Do not copy:
 
-- full prototype shell
-- duplicate state architecture
-- hard-coded production Cells as product data
-- raw prototype material arrays
-- hover magnification
-- simulated export or file system
+- full V1/V2 prototype shell,
+- old prototype colour/token systems over current production,
+- duplicate state architecture,
+- hard-coded production Cells as product data,
+- raw prototype material arrays,
+- hover magnification,
+- simulated export or file system.
 
 ## Deliverables
 
@@ -198,21 +242,24 @@ Keep all new prototype work outside production `src/`.
 
 Create:
 
-- focused interactive prototype files
-- `C0_3_ICONS_SYMBOLS_INSPECTOR_DESIGN_NOTES.md`
-- `C0_3_ICONS_SYMBOLS_INSPECTOR_PRODUCTION_HANDOFF.md`
+- focused interactive prototype files,
+- `C0_3_ICONS_SYMBOLS_INSPECTOR_DESIGN_NOTES.md`,
+- `C0_3_ICONS_SYMBOLS_INSPECTOR_PRODUCTION_HANDOFF.md`,
+- `C0_3_STYLE_PARITY_CHECKLIST.md`.
 
 The production handoff must identify:
 
-- approved component structure
-- states
-- controls
-- reusable SVG/pure logic
-- parts requiring React rebuild
-- accessibility labels
-- keyboard behaviour
-- responsive behaviour at 1440/1280
-- rejected ideas
+- approved component structure,
+- states,
+- controls,
+- exact production tokens/primitives reused,
+- reusable SVG/pure logic,
+- parts requiring React rebuild,
+- accessibility labels,
+- keyboard behaviour,
+- responsive behaviour at 1440/1280,
+- rejected ideas,
+- intentional style deviations, if any.
 
 Capture maximum four screenshots outside Git:
 
@@ -223,14 +270,17 @@ Capture maximum four screenshots outside Git:
 
 ## Validation
 
-- no production files changed
-- no package changes
-- no main/stabilization/integration branch changes
-- prototype opens locally
-- keyboard `I` works inside the prototype
-- Escape cancels preview
-- Canvas stays visible
-- no full shell redesign
+- source branch is exact latest merged main,
+- no production files changed,
+- no package changes,
+- no main/stabilization/integration branch changes,
+- prototype opens locally,
+- keyboard `I` works inside the prototype,
+- Escape cancels preview,
+- Canvas stays visible,
+- no full shell redesign,
+- Style Parity Checklist completed,
+- no unexplained visual drift from production.
 
 ## Commit and push
 
@@ -247,11 +297,14 @@ Do not merge.
 STATUS:
 CODER:
 MODEL:
+PRODUCTION MAIN SHA:
 SOURCE BRANCH:
 SOURCE SHA:
 NEW BRANCH:
 NEW HEAD:
 WORKTREE:
+STYLE PARITY:
+PRODUCTION TOKENS REUSED:
 INSPECTOR BUILT:
 KEYBOARD I:
 SEARCH:
