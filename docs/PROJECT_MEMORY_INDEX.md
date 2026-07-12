@@ -2,6 +2,12 @@
 
 Purpose: compact map of where project truth lives so future Codex phases read less.
 
+## Canonical Product Scope — read first
+
+- `docs/MOOORF_MASTER_PRODUCT_SCOPE.md` — authoritative product vision, final shell ownership, Canvas/Data/Dashboard structure, beginner and advanced flows, materials, Arrange, connections, markup, uploads, templates, exports, plans, and implementation roadmap.
+- Every future implementation prompt must read the master scope before changing product structure or terminology.
+- When a decision changes, update the master scope deliberately and record the reason in `docs/DECISIONS.md`; do not silently diverge.
+
 Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` to satisfy the Ponytail reuse rule.
 
 ## Core State Files
