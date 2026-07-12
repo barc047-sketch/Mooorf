@@ -174,7 +174,7 @@ export function spacesToNuclei(
   width: number,
   height: number,
   _selectedId: string | null,
-  drag?: DragPosition | null,
+  drag?: DragPosition | readonly DragPosition[] | null,
   opts: OrganismAdapterOptions = DEFAULT_ADAPTER_OPTIONS,
   motion?: OrganismMotionState,
   paletteMode: PaletteMode = "core",
@@ -182,6 +182,9 @@ export function spacesToNuclei(
   colorSource: ColorSource = "category"
 ): ProductionNucleus[] {
   const halfMin = Math.max(1, Math.min(width, height) / 2);
+  const dragPositions = new Map(
+    (Array.isArray(drag) ? drag : drag ? [drag] : []).map((position) => [position.id, position])
+  );
   const visible = spaces.slice(0, MAX_NUCLEI);
   const areaRange = getAreaRange(visible);
 
@@ -192,9 +195,10 @@ export function spacesToNuclei(
   let settling = false;
 
   const eff = visible.map((space) => {
-    const dragging = drag?.id === space.id;
-    const tx = dragging ? drag.x : space.x;
-    const ty = dragging ? drag.y : space.y;
+    const dragPosition = dragPositions.get(space.id);
+    const dragging = Boolean(dragPosition);
+    const tx = dragPosition?.x ?? space.x;
+    const ty = dragPosition?.y ?? space.y;
     const sizeVar = 1 + (hash01(space.id) * 2 - 1) * opts.sizeVariation * 0.4;
     const tr = areaToRadius(space.area) * sizeVar;
 
@@ -297,7 +301,7 @@ export function spacesToNuclei(
         1
       );
       const ms = 1.25 + (0.55 - 1.25) * rNorm; /* small nuclei livelier (lab) */
-      if (drag?.id !== space.id) {
+      if (!dragPositions.has(space.id)) {
         fx += opts.drift * 0.055 * ms * Math.sin(time * 0.26 + ph + s0);
         fy += opts.drift * 0.055 * ms * Math.cos(time * 0.21 + ph + s1);
         fx += opts.wobble * 0.016 * ms * Math.sin(time * 1.45 + s2);

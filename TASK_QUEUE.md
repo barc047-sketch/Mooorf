@@ -4,6 +4,8 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
+- Antigravity: audit pushed V8.2C0 Canvas performance/contrast/glass branch at 1440 and 1280
+
 - Antigravity: audit the pushed V8.2B resource-foundation branch
 - Claude: review visual prototypes before any Material Browser, circular shelf, Grid Shelf, Icon Library, Annotation Studio, or Tools UI
 - Antigravity: audit the pushed V8.2A.1 group-drag branch
@@ -14,6 +16,8 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - Future prompts must include the Ponytail checklist
 
 ## Current Feature Complete
+
+- V8.2C0 Canvas Performance + Contrast Reset: rAF/coalesced local input previews; one release transaction; screen/adaptive/world labels; deterministic Auto Contrast; optional Cell Shadow; stable shadow-free UI glass; instant widget refocus; plain startup; projected-centre radials; migration/export parity; future shell work deferred
 
 - V8.2B Expandable Resource Registry Foundation: serializable materials/grid/annotation/icon registries; palette-preserving adapter; safe parameter/binding validation; resource catalogue; nested project/config/saved-view migration; export fallback/manifest metadata; no visual UI or packages
 

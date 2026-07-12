@@ -4,6 +4,15 @@ Purpose: map features to files, docs, and risk level for faster future phases.
 
 Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implementation reuses existing ownership instead of creating duplicate controls or state.
 
+## Canvas Performance Reset (V8.2C0)
+
+- Purpose: one rAF-scheduled input boundary, renderer-local drag previews, fixed/adaptive/world label presentation, deterministic Auto Contrast, optional Cell Shadow, stable glass, immediate widget refocus, and projected-centre radials.
+- Main files: `src/interaction/frameScheduler.ts`, `src/interaction/groupDrag.ts`, `src/canvas/labelPresentation.ts`, `src/design/labelContrast.ts`, `src/canvas/cellShadow.ts`, both production canvas views/renderers, `src/state/store.ts`, `src/export/*`, `src/import/*`, and existing widget/context/token surfaces.
+- Ownership: raw pointer/wheel samples coalesce in the active renderer; canonical positions commit once through `commitSpaceTransform`. `labelScaleMode`, `labelColourMode`, `cellShadow`, and `performanceQuality` persist through the existing snapshot/config/recovery path.
+- Defaults: Morph (`blobOn`) off, motion amounts zero, screen labels, Auto Contrast, Cell Shadow off, Automatic quality. Legacy renderer-specific label/shadow behavior migrates conservatively.
+- Deferred: floating desktop shell, Project Drawer, Material Browser, Dashboard/Data redesign, export queue, background references, touch layouts, and 200+ Organism rendering.
+- Risk: high for input finalization, renderer parity, shader cost, and project migration; selection/history/material/resource ownership must remain invariant.
+
 ## Resource Registry Foundation (V8.2B)
 
 - Purpose: one serializable, read-only catalogue foundation for materials, grid presets, annotation metadata, and icon asset metadata without shipping their visual browsers.

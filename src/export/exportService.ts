@@ -43,6 +43,11 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
     uiScale: s.uiScale,
     widgetScale: s.widgetScale,
     resources: cloneResourceSettings(s.resources),
+    labelScaleMode: s.labelScaleMode,
+    labelColourMode: s.labelColourMode,
+    labelCustomColour: s.labelCustomColour,
+    cellShadow: { ...s.cellShadow },
+    performanceQuality: s.performanceQuality,
   };
 };
 
@@ -84,6 +89,13 @@ export const exportSvg = async (project: string): Promise<void> => {
     paletteMode: state.settings.paletteMode,
     nucleusPaletteId: state.settings.nucleusPaletteId,
     colorSource: state.settings.colorSource,
+    labelScaleMode: state.settings.labelScaleMode,
+    labelColourMode: state.settings.labelColourMode,
+    labelCustomColour: state.settings.labelCustomColour,
+    annotationDetail: state.settings.annotationDetail,
+    cellShadow: state.settings.cellShadow,
+    performanceQuality: state.settings.performanceQuality,
+    theme: state.theme,
     background: (cs.getPropertyValue("--bg").trim() || "#ffffff"),
     includeLabels: true,
     paddingPx: 0,

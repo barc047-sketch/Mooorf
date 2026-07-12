@@ -172,6 +172,13 @@ export default function OrganismLab() {
       accentColor: [0.55, 0.08, 0.14],
       colorMix: 0,
       nucleusDots: 1,
+      morphEnabled: true,
+      shadowEnabled: false,
+      shadowColor: [0, 0, 0],
+      shadowOpacity: 0,
+      shadowSoftness: 0,
+      shadowOffset: [0, 0],
+      shadowSpread: 0,
       fieldDebug: false,
       nucleiDebug: false,
     };

@@ -15,6 +15,7 @@ import {
 import type { ProjectExportSnapshot } from "../export/projectSnapshot";
 import type { SavedCanvasSnapshot, SpaceCell } from "../types";
 import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
+import { DEFAULT_CELL_SHADOW } from "../canvas/cellShadow";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
   if (!Object.is(actual, expected)) throw new Error(`${message}: ${String(actual)} !== ${String(expected)}`);
@@ -50,6 +51,11 @@ const settings = {
   uiScale: 1.03,
   widgetScale: 0.96,
   resources: DEFAULT_RESOURCE_SETTINGS,
+  labelScaleMode: "screen" as const,
+  labelColourMode: "auto" as const,
+  labelCustomColour: "#171719",
+  cellShadow: DEFAULT_CELL_SHADOW,
+  performanceQuality: "automatic" as const,
 };
 const spaces: SpaceCell[] = [
   { id: "a", name: "Studio", area: 80, category: "Work", privacy: "shared", color: "#123456", x: 10, y: 20 },

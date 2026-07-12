@@ -122,6 +122,13 @@
   --dot-grid-color: color-mix(in srgb, var(--ink) 26%, transparent);
   --selection-keyline-neutral: color-mix(in srgb, var(--chrome-accent) 64%, var(--ink));
   --warning-data: #c7cf42;
+  --text-primary: #222222;
+  --text-secondary: #5a5a56;
+  --text-muted: #8c8c88;
+  --text-disabled: #b8b8b4;
+  --text-on-light-glass: #171719;
+  --text-on-dark-glass: #f4f2e9;
+  --text-on-accent: #ffffff;
   color-scheme: light;
 }
 
@@ -164,6 +171,13 @@
   --dot-grid-color: color-mix(in srgb, var(--ink) 30%, transparent);
   --selection-keyline-neutral: color-mix(in srgb, var(--chrome-accent) 68%, var(--ink));
   --warning-data: #d7df58;
+  --text-primary: #f5f6ee;
+  --text-secondary: #a1a19c;
+  --text-muted: #83837e;
+  --text-disabled: #686864;
+  --text-on-light-glass: #171719;
+  --text-on-dark-glass: #f4f2e9;
+  --text-on-accent: #ffffff;
   color-scheme: dark;
 }
 

@@ -12,6 +12,27 @@ export type PaletteMode = "core" | "surreal" | "architecture" | "auto";
 
 export type ColorSource = "category" | "privacy";
 
+export type LabelScaleMode = "screen" | "adaptive" | "world";
+
+export type LabelColourMode = "auto" | "black" | "white" | "custom";
+
+export type PerformanceQuality = "automatic" | "high" | "balanced" | "fast";
+
+export type CellShadowMode = "off" | "soft" | "defined";
+
+export interface CellShadowSettings {
+  enabled: boolean;
+  mode: CellShadowMode;
+  opacity: number;
+  softness: number;
+  offsetX: number;
+  offsetY: number;
+  spread: number;
+  colorMode: "auto" | "custom";
+  color: string;
+  includeInExport: boolean;
+}
+
 export type ToolId =
   | "select"
   | "space"
@@ -193,4 +214,9 @@ export interface SavedCanvasSnapshot {
   organismPaletteId?: string;
   /** V8.2B — IDs/overrides only; static registry definitions are never persisted. */
   resources?: ResourceSettings;
+  labelScaleMode?: LabelScaleMode;
+  labelColourMode?: LabelColourMode;
+  labelCustomColour?: string;
+  cellShadow?: CellShadowSettings;
+  performanceQuality?: PerformanceQuality;
 }

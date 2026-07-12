@@ -3,6 +3,7 @@ import { buildProjectEnvelope, parseProjectEnvelope } from "../import/projectFil
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
 import { DEFAULT_RESOURCE_SETTINGS, normalizeResourceSettings, RESOURCE_SCHEMA_VERSION } from "./resourcePersistence";
 import { resourceCatalogue } from "./resourceCatalogue";
+import { DEFAULT_CELL_SHADOW } from "../canvas/cellShadow";
 
 const ok = (value: unknown, message: string) => { if (!value) throw new Error(message); };
 const equal = (actual: unknown, expected: unknown, message: string) => { if (!Object.is(actual, expected)) throw new Error(`${message}: ${String(actual)} !== ${String(expected)}`); };
@@ -24,6 +25,8 @@ const settings = {
   annotationDetail: { textScale: 1, textShadow: true, showName: true, showArea: true, showCategory: true, position: "auto" as const, boundingBox: false },
   showGrid: true, nucleusPaletteId: "editorial-aurora", organismPaletteId: "mode", organism: DEFAULT_ORGANISM_SETTINGS,
   uiScale: 1, widgetScale: 1, resources: { ...DEFAULT_RESOURCE_SETTINGS, grid: { ...DEFAULT_RESOURCE_SETTINGS.grid, presetId: "technical" as const } },
+  labelScaleMode: "screen" as const, labelColourMode: "auto" as const, labelCustomColour: "#171719",
+  cellShadow: DEFAULT_CELL_SHADOW, performanceQuality: "automatic" as const,
 };
 const snapshot = buildProjectSnapshot({ spaces: [], camera: { x: 0, y: 0, zoom: 1 }, theme: "day", settings }, "Resources", new Date("2026-07-12T00:00:00.000Z"));
 const roundTrip = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, []))).snapshot.settings.resources;

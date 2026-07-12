@@ -1,5 +1,16 @@
 # Decisions
 
+## V8.2C0 canvas performance, contrast, and glass ownership
+
+- Raw pointer and wheel events are coalesced by one renderer-local rAF scheduler. Drag previews derive from original positions without Zustand writes; pointer-up flushes the last sample and creates one transform history entry. Camera persists only after pan/zoom gestures.
+- Screen/Adaptive/World label scale and canvas/client projection are pure shared contracts. Live Screen is the new default; legacy Classic maps to World and legacy Organism maps to Screen when the setting is absent.
+- `getNucleusColor` remains fill authority. A pure label resolver applies the documented 0.36 relative-luminance threshold, explicit modes, Morph/sample hooks, and deterministic theme fallback; selection never changes text contrast.
+- Cell Shadow is project appearance only, defaults off, persists as a normalized object, is disabled in Fast quality, and never affects area, radius, hit testing, selection, materials, relationships, Morph strength, or history. Classic draws a 2D visual layer; Organism keeps one shader draw.
+- Existing `blobOn` is the Morph-enabled contract. Existing zeroed Organism drift/breathing/wobble values are Motion-off. New projects start plain; legacy projects retain known renderer behavior through migration.
+- Stable glass is present at mount, retains both backdrop-filter prefixes, never animates blur, and uses borders/keylines instead of UI box/drop shadows. Stable widget keys preserve internal state/position; refocus changes only stack order.
+- Object radials use the rendered/projected cell centre as semantic origin. Near edges, radius/orientation adapt and only action leaves clamp.
+- Future shell, drawer, resource browsers, workspaces, export queue, background references, touch layouts, and high-density renderer remain deferred.
+
 - Use Palmer as interaction/style reference, not brand clone.
 - Build separate canvas lab, not V1 repo.
 - First-class loading intro is required.

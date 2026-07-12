@@ -3,6 +3,14 @@ import { PROJECT_SNAPSHOT_SCHEMA_VERSION } from "../export/types";
 import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme } from "../types";
 import { cloneResourceSettings, normalizeResourceSettings } from "../resources/resourcePersistence";
+import { normalizeCellShadow } from "../canvas/cellShadow";
+import {
+  normalizeLabelColourMode,
+  normalizeLabelCustomColour,
+  normalizeLabelScaleMode,
+  normalizeLegacyCellShadow,
+  normalizePerformanceQuality,
+} from "../state/visualSettings";
 
 export const PROJECT_FILE_VERSION = 1;
 export const CONFIG_FILE_VERSION = 1;
@@ -118,9 +126,10 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
     typeof annotation.showArea !== "boolean" || typeof annotation.showCategory !== "boolean" ||
     typeof annotation.boundingBox !== "boolean"
   ) throw new Error("Annotation settings are invalid.");
+  const rendererMode = oneOf(value.rendererMode, ["organism", "classic"] as const, "Renderer mode");
   return {
     ...(value as unknown as ProjectExportSettings),
-    rendererMode: oneOf(value.rendererMode, ["organism", "classic"] as const, "Renderer mode"),
+    rendererMode,
     morphMode: oneOf(value.morphMode, ["cellular-reverse", "plain-black", "plain-white", "graphite", "wine", "auto"] as const, "Morph mode"),
     attachMode: oneOf(value.attachMode, ["tight", "soft", "long", "extreme"] as const, "Attachment mode"),
     paletteMode: oneOf(value.paletteMode, ["core", "surreal", "architecture", "auto"] as const, "Palette mode"),
@@ -140,6 +149,13 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
       nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
       organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
     }),
+    labelScaleMode: normalizeLabelScaleMode(value.labelScaleMode, rendererMode),
+    labelColourMode: normalizeLabelColourMode(value.labelColourMode),
+    labelCustomColour: normalizeLabelCustomColour(value.labelCustomColour),
+    cellShadow: value.cellShadow && isRecord(value.cellShadow)
+      ? normalizeCellShadow(value.cellShadow)
+      : normalizeLegacyCellShadow(undefined, rendererMode),
+    performanceQuality: normalizePerformanceQuality(value.performanceQuality),
   };
 };
 
@@ -199,6 +215,13 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     widgetScale: normalizeWidgetScale(value.widgetScale),
     colorSource: value.colorSource === "privacy" ? "privacy" : "category",
     organism: { ...(value.organism as unknown as SavedCanvasSnapshot["organism"]) },
+    labelScaleMode: normalizeLabelScaleMode(value.labelScaleMode, rendererMode),
+    labelColourMode: normalizeLabelColourMode(value.labelColourMode),
+    labelCustomColour: normalizeLabelCustomColour(value.labelCustomColour),
+    cellShadow: value.cellShadow && isRecord(value.cellShadow)
+      ? normalizeCellShadow(value.cellShadow)
+      : normalizeLegacyCellShadow(undefined, rendererMode),
+    performanceQuality: normalizePerformanceQuality(value.performanceQuality),
     resources: normalizeResourceSettings(value.resources, {
       showGrid: value.showGrid === true,
       nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",

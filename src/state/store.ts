@@ -9,9 +9,12 @@ import type {
   ContextPoint,
   ContextSurface,
   LayoutPresetId,
+  LabelColourMode,
+  LabelScaleMode,
   MorphMode,
   OrganismSettings,
   PaletteMode,
+  PerformanceQuality,
   RendererMode,
   SavedCanvasSnapshot,
   SpaceCell,
@@ -20,6 +23,7 @@ import type {
   ToolId,
   ViewMode,
   WidgetId,
+  CellShadowSettings,
 } from "../types";
 import { clamp, scatterPoint } from "../lib/geometry";
 import { DEMO_PROGRAM } from "../lib/demo";
@@ -45,6 +49,15 @@ import {
 import { cloneResourceSettings, defaultMaterialBindings, DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 import type { ResourceSettings } from "../resources/types";
 import { migrateLegacyGridSettings } from "../grid/gridValidation";
+import { DEFAULT_CELL_SHADOW, normalizeCellShadow } from "../canvas/cellShadow";
+import {
+  normalizeLabelColourMode,
+  normalizeLabelCustomColour,
+  normalizeLabelScaleMode,
+  normalizeLegacyCellShadow,
+  normalizePerformanceQuality,
+} from "./visualSettings";
+import { resolveWidgetOpen } from "../ui/widgets/widgetLifecycle";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -66,6 +79,11 @@ export interface LabSettings {
   layoutPreset: LayoutPresetId;
   annotationMode: AnnotationMode;
   annotationDetail: AnnotationDetail;
+  labelScaleMode: LabelScaleMode;
+  labelColourMode: LabelColourMode;
+  labelCustomColour: string;
+  cellShadow: CellShadowSettings;
+  performanceQuality: PerformanceQuality;
   rendererMode: RendererMode;
   showGrid: boolean;
   /** "auto" = category mapping owns nucleus colors (pre-V6K behavior) */
@@ -78,7 +96,7 @@ export interface LabSettings {
 
 export const DEFAULT_ANNOTATION_DETAIL: AnnotationDetail = {
   textScale: 1,
-  textShadow: true,
+  textShadow: false,
   showName: true,
   showArea: true,
   showCategory: true,
@@ -150,7 +168,6 @@ interface LabState {
   addDemo: (n?: number) => void;
   updateSpace: (id: string, patch: Partial<SpaceCell>) => void;
   moveSpace: (id: string, x: number, y: number) => void;
-  previewSpaceTransform: (positions: readonly SpacePosition[]) => void;
   commitSpaceTransform: (before: readonly SpacePosition[], after: readonly SpacePosition[]) => void;
   undoSpaceTransform: () => void;
   redoSpaceTransform: () => void;
@@ -226,6 +243,11 @@ const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
   camera: cloneCamera(snapshot.camera),
   organism: cloneOrganism(snapshot.organism),
   resources: snapshot.resources ? cloneResourceSettings(snapshot.resources) : undefined,
+  labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
+  labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
+  labelCustomColour: normalizeLabelCustomColour(snapshot.labelCustomColour),
+  cellShadow: normalizeLegacyCellShadow(snapshot.cellShadow, snapshot.rendererMode),
+  performanceQuality: normalizePerformanceQuality(snapshot.performanceQuality),
 });
 
 const safeStorage = () => {
@@ -324,6 +346,11 @@ const makeSnapshot = (
   nucleusPaletteId: state.settings.nucleusPaletteId,
   organismPaletteId: state.settings.organismPaletteId,
   resources: cloneResourceSettings(state.settings.resources),
+  labelScaleMode: state.settings.labelScaleMode,
+  labelColourMode: state.settings.labelColourMode,
+  labelCustomColour: state.settings.labelCustomColour,
+  cellShadow: normalizeCellShadow(state.settings.cellShadow),
+  performanceQuality: state.settings.performanceQuality,
 });
 
 const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
@@ -354,7 +381,7 @@ export const useLab = create<LabState>((set) => ({
     uiScale: 1,
     widgetScale: 1,
     mergeDistance: 120,
-    blobOn: true,
+    blobOn: false,
     morphMode: "cellular-reverse",
     attachMode: "soft",
     paletteMode: "core",
@@ -362,6 +389,11 @@ export const useLab = create<LabState>((set) => ({
     layoutPreset: "organic",
     annotationMode: "editorial",
     annotationDetail: { ...DEFAULT_ANNOTATION_DETAIL },
+    labelScaleMode: "screen",
+    labelColourMode: "auto",
+    labelCustomColour: "#171719",
+    cellShadow: { ...DEFAULT_CELL_SHADOW },
+    performanceQuality: "automatic",
     rendererMode: "organism",
     showGrid: false,
     nucleusPaletteId: "editorial-aurora",
@@ -412,7 +444,18 @@ export const useLab = create<LabState>((set) => ({
               ? migrateLegacyGridSettings(patch.showGrid)
               : cloneResourceSettings(s.settings.resources).grid,
           };
-      return { settings: { ...s.settings, ...patch, resources } };
+      return {
+        settings: {
+          ...s.settings,
+          ...patch,
+          labelScaleMode: normalizeLabelScaleMode(patch.labelScaleMode ?? s.settings.labelScaleMode, s.settings.rendererMode),
+          labelColourMode: normalizeLabelColourMode(patch.labelColourMode ?? s.settings.labelColourMode),
+          labelCustomColour: normalizeLabelCustomColour(patch.labelCustomColour ?? s.settings.labelCustomColour),
+          cellShadow: patch.cellShadow ? normalizeCellShadow(patch.cellShadow) : normalizeCellShadow(s.settings.cellShadow),
+          performanceQuality: normalizePerformanceQuality(patch.performanceQuality ?? s.settings.performanceQuality),
+          resources,
+        },
+      };
     }),
 
   setWidgetScale: (value) =>
@@ -434,11 +477,7 @@ export const useLab = create<LabState>((set) => ({
     })),
 
   openWidget: (id) =>
-    set((s) => ({
-      openWidgets: s.openWidgets.includes(id)
-        ? [...s.openWidgets.filter((w) => w !== id), id]
-        : [...s.openWidgets, id],
-    })),
+    set((s) => ({ openWidgets: resolveWidgetOpen(s.openWidgets, id).stack })),
 
   closeWidget: (id) =>
     set((s) => ({ openWidgets: s.openWidgets.filter((w) => w !== id) })),
@@ -596,9 +635,6 @@ export const useLab = create<LabState>((set) => ({
       spaces: s.spaces.map((c) => (c.id === id ? { ...c, x, y } : c)),
     })),
 
-  previewSpaceTransform: (positions) =>
-    set((s) => ({ spaces: applySpacePositions(s.spaces, positions) })),
-
   commitSpaceTransform: (before, after) =>
     set((s) => {
       const transform = normalizeLiveTransform(s.spaces, before, after);
@@ -690,7 +726,7 @@ export const useLab = create<LabState>((set) => ({
           ...s.settings,
           uiScale: normalizeUiScale(snapshot.uiScale),
           widgetScale: normalizeWidgetScale(snapshot.widgetScale),
-          blobOn: snapshot.blobOn ?? s.settings.blobOn,
+          blobOn: snapshot.blobOn ?? true,
           mergeDistance: snapshot.mergeDistance ?? s.settings.mergeDistance,
           morphMode: snapshot.morphMode ?? s.settings.morphMode,
           attachMode: snapshot.attachMode ?? s.settings.attachMode,
@@ -719,6 +755,11 @@ export const useLab = create<LabState>((set) => ({
                 annotationInstances: [],
                 iconPlacements: [],
               },
+          labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
+          labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
+          labelCustomColour: normalizeLabelCustomColour(snapshot.labelCustomColour),
+          cellShadow: normalizeLegacyCellShadow(snapshot.cellShadow, snapshot.rendererMode),
+          performanceQuality: normalizePerformanceQuality(snapshot.performanceQuality),
         },
       };
     }),

@@ -12,21 +12,22 @@ import {
 } from "./cellActivation";
 import { resolveSelectionIntent } from "../interaction/selection";
 import {
+  applySpacePositionsPreview,
   createGroupTranslation,
   resolveGroupTranslationPositions,
   type GroupTranslation,
   type SpacePosition,
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
+import { createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
+import { projectCanvasPoint, projectClientPoint } from "./labelPresentation";
 import "./canvas.css";
 
 const DPR_MAX = 2;
 const Z_MIN = 0.25;
 const Z_MAX = 4;
-const DRAG_COMMIT_MS = 90; // throttled mid-drag store commits (table liveness)
-
-// Imperative canvas: one rAF loop, refs for live gestures,
-// store commits only on throttle/gesture-end. No React state per pointermove.
+// Imperative canvas: raw input is coalesced to one local update per rAF;
+// canonical spaces/camera commit only at gesture end.
 export default function CanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -120,7 +121,7 @@ export default function CanvasView() {
         tokens,
         Date.now(),
         settings,
-        { includeLabels, selectedIds: includeSelection ? selectedIds : [] }
+        { includeLabels, selectedIds: includeSelection ? selectedIds : [], isExport: true }
       );
       return { canvas: off, cssWidth: cssW, cssHeight: cssH };
     });
@@ -145,7 +146,6 @@ export default function CanvasView() {
     let panSY = 0;
     let panCX = 0;
     let panCY = 0;
-    let lastCommit = 0;
     let pressIntent: "replace" | "toggle" = "replace";
     let groupTranslation: GroupTranslation | null = null;
     let translatedPositions: SpacePosition[] = [];
@@ -180,7 +180,6 @@ export default function CanvasView() {
         drag = { id: hit.id, x: hit.x, y: hit.y };
         grabDX = hit.x - p.x;
         grabDY = hit.y - p.y;
-        lastCommit = 0;
         if (pressIntent === "replace") {
           if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
           else state.replaceSelection(hit.id);
@@ -201,14 +200,13 @@ export default function CanvasView() {
         panSY = sy;
         panCX = cam.x;
         panCY = cam.y;
-        lastCommit = 0;
         if (selectedIds.length > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
       dirty = true;
     };
 
-    const onMove = (e: PointerEvent) => {
+    const processMove = (e: PointerEvent) => {
       if (mode === "none") return;
       const { sx, sy } = local(e);
       if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
@@ -233,11 +231,6 @@ export default function CanvasView() {
         if (!primary) return;
         drag.x = primary.x;
         drag.y = primary.y;
-        const now = performance.now();
-        if (now - lastCommit > DRAG_COMMIT_MS) {
-          lastCommit = now;
-          useLab.getState().previewSpaceTransform(translatedPositions);
-        }
       } else if (mode === "pan") {
         cam.x = panCX - (sx - panSX) / cam.zoom;
         cam.y = panCY - (sy - panSY) / cam.zoom;
@@ -245,7 +238,22 @@ export default function CanvasView() {
       dirty = true;
     };
 
+    const moveScheduler = createFrameScheduler<PointerEvent>({
+      schedule: (callback) => requestAnimationFrame(callback),
+      cancel: (id) => cancelAnimationFrame(id),
+      process: processMove,
+    });
+
+    const onMove = (e: PointerEvent) => {
+      if (mode === "none") return;
+      moveScheduler.push(latestCoalescedPointerEvent(e));
+    };
+
     const onUp = (e: PointerEvent) => {
+      if (mode !== "none") {
+        moveScheduler.push(latestCoalescedPointerEvent(e));
+        moveScheduler.flush();
+      }
       const { sx, sy } = local(e);
       if (mode === "press" && drag) {
         const state = useLab.getState();
@@ -255,7 +263,9 @@ export default function CanvasView() {
         } else {
           state.replaceSelection(drag.id);
           if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
-            state.openContextSurface("inline-editor", { x: sx + 14, y: sy + 18 }, drag.id);
+            const projected = projectCanvasPoint(drag, cam, { width: w, height: h });
+            const client = projectClientPoint(projected, canvas.getBoundingClientRect());
+            state.openContextSurface("inline-editor", { x: client.x + 14, y: client.y + 18 }, drag.id);
           }
         }
         drag = null;
@@ -293,7 +303,9 @@ export default function CanvasView() {
       if (hit) {
         if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
         else state.replaceSelection(hit.id);
-        state.openContextSurface(resolveContextSurface(hit.id), { x: e.clientX, y: e.clientY }, hit.id);
+        const bounds = canvas.getBoundingClientRect();
+        const projected = projectCanvasPoint(hit, cam, { width: w, height: h });
+        state.openContextSurface(resolveContextSurface(hit.id), projectClientPoint(projected, bounds), hit.id);
       } else {
         state.openContextSurface(resolveContextSurface(null), { x: e.clientX, y: e.clientY }, null);
       }
@@ -303,17 +315,27 @@ export default function CanvasView() {
 
     // ---- wheel: zoom around cursor ----
     let camCommit = 0;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
+    type WheelFrame = { deltaY: number; sx: number; sy: number };
+    const processWheel = ({ deltaY, sx, sy }: WheelFrame) => {
       camTarget = null;
-      const { sx, sy } = local(e);
       const before = toWorld(sx, sy);
-      cam.zoom = clamp(cam.zoom * Math.exp(-e.deltaY * 0.0016), Z_MIN, Z_MAX);
+      cam.zoom = clamp(cam.zoom * Math.exp(-deltaY * 0.0016), Z_MIN, Z_MAX);
       cam.x = before.x - (sx - w / 2) / cam.zoom;
       cam.y = before.y - (sy - h / 2) / cam.zoom;
       dirty = true;
       window.clearTimeout(camCommit);
       camCommit = window.setTimeout(commitCamera, 160);
+    };
+    const wheelScheduler = createFrameScheduler<WheelFrame>({
+      schedule: (callback) => requestAnimationFrame(callback),
+      cancel: (id) => cancelAnimationFrame(id),
+      process: processWheel,
+      merge: (queued, incoming) => ({ ...incoming, deltaY: queued.deltaY + incoming.deltaY }),
+    });
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const { sx, sy } = local(e);
+      wheelScheduler.push({ deltaY: e.deltaY, sx, sy });
     };
 
     canvas.addEventListener("pointerdown", onDown);
@@ -350,7 +372,10 @@ export default function CanvasView() {
       dirty = false;
       // Organism style/attachment transitions keep settling for a few frames.
       if (!firstUsableFrame) announceReadiness("render-requested");
-      if (drawScene(ctx, w, h, dpr, cam, spaces, selectedId, drag, tokens, now, settings, { selectedIds })) {
+      const renderSpaces = translatedPositions.length > 0
+        ? applySpacePositionsPreview(spaces, translatedPositions)
+        : spaces;
+      if (drawScene(ctx, w, h, dpr, cam, renderSpaces, selectedId, drag, tokens, now, settings, { selectedIds })) {
         dirty = true;
       }
       if (!firstUsableFrame) {
@@ -363,6 +388,8 @@ export default function CanvasView() {
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(camCommit);
+      moveScheduler.cancel();
+      wheelScheduler.cancel();
       unsub();
       mo.disconnect();
       ro.disconnect();

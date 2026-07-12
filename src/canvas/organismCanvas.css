@@ -68,7 +68,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: var(--ink);
+  color: var(--label-ink, var(--ink));
   font-size: 10px;
   line-height: 1.1;
   letter-spacing: 0.03em;
@@ -88,7 +88,7 @@
 }
 
 .organism-label-meta {
-  color: var(--nucleus-muted);
+  color: color-mix(in srgb, var(--label-ink, var(--ink)) 70%, transparent);
   font-size: 8.5px;
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
@@ -99,7 +99,7 @@
   left: 10px;
   top: 9px;
   padding: 0;
-  color: var(--ink);
+  color: var(--label-ink, var(--ink));
 }
 
 .organism-label-layer[data-mode="pill"] .organism-label {
@@ -113,30 +113,21 @@
     color-mix(in srgb, var(--bg) 62%, transparent);
   backdrop-filter: blur(11px) saturate(138%);
   -webkit-backdrop-filter: blur(11px) saturate(138%);
-  box-shadow:
-    inset 2px 0 0 color-mix(in srgb, var(--nucleus-color) 72%, transparent),
-    0 10px 30px -22px rgba(0, 0, 0, 0.45);
+  box-shadow: none;
 }
 
-/* dense halo keeps ink type readable over the black organism body —
-   tight double halo, no smudgy wide glow */
+/* Optional one-pixel keyline only; Auto Contrast owns the primary colour. */
 .organism-label-layer[data-mode="editorial"] .organism-label-main {
-  color: var(--ink);
+  color: var(--label-ink, var(--ink));
   font-size: 10.5px;
   font-weight: 500;
   letter-spacing: 0.015em;
-  text-shadow:
-    0 0 2px var(--bg),
-    0 0 5px var(--bg),
-    0 0 12px color-mix(in srgb, var(--bg) 88%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--label-keyline, var(--bg)) 46%, transparent);
 }
 
 .organism-label-layer[data-mode="editorial"] .organism-label-meta {
   letter-spacing: 0.07em;
-  text-shadow:
-    0 0 2px var(--bg),
-    0 0 5px var(--bg),
-    0 0 9px color-mix(in srgb, var(--bg) 84%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--label-keyline, var(--bg)) 42%, transparent);
 }
 
 .organism-label-layer[data-shadow="false"] .organism-label-main,
@@ -148,7 +139,7 @@
   max-width: 168px;
   padding: 0;
   font-size: 9px;
-  color: var(--ink);
+  color: var(--label-ink, var(--ink));
 }
 
 .organism-label-layer[data-mode="technical"] .organism-label-meta {
@@ -187,7 +178,7 @@
   border: 1px solid color-mix(in srgb, var(--nucleus-color) 34%, var(--hairline));
   border-radius: 6px;
   background: color-mix(in srgb, var(--bg) 74%, transparent);
-  box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.45);
+  box-shadow: none;
 }
 
 .organism-label-layer[data-mode="pill"]
@@ -197,15 +188,15 @@
   color: var(--accent);
 }
 
-/* editorial stays boxless when selected — neutral ink accent only */
+/* Selection remains on the outer keyline; label contrast never changes. */
 .organism-label-layer[data-mode="editorial"] .organism-label-anchor[data-selected="true"] .organism-label {
-  color: var(--accent);
+  color: var(--label-ink, var(--ink));
 }
 
 .organism-label-layer[data-mode="editorial"]
   .organism-label-anchor[data-selected="true"]
   .organism-label-main {
-  color: var(--accent);
+  color: var(--label-ink, var(--ink));
 }
 
 .organism-label-anchor[data-kind="void"] .organism-label-main::before,
@@ -222,20 +213,14 @@
   width: 20px;
   height: 20px;
   opacity: 0.88;
-  filter:
-    drop-shadow(0 0 8px color-mix(in srgb, var(--selection-keyline-neutral) 12%, transparent))
-    drop-shadow(0 10px 18px color-mix(in srgb, var(--bg) 18%, transparent));
+  filter: none;
   transform: translate(-50%, -50%);
-  transition:
-    opacity 180ms ease,
-    filter 180ms ease;
+  transition: opacity 180ms ease;
 }
 
 .organism-label-anchor[data-editing="true"] .organism-moving-border {
   opacity: 1;
-  filter:
-    drop-shadow(0 0 10px color-mix(in srgb, var(--selection-keyline-neutral) 18%, transparent))
-    drop-shadow(0 12px 20px color-mix(in srgb, var(--bg) 20%, transparent));
+  filter: none;
 }
 
 .organism-label-anchor[data-kind="void"] .organism-moving-border .moving-border-track {

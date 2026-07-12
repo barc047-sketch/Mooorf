@@ -34,6 +34,16 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - `src/resources/resourceCatalogue.ts` is the read-only cross-resource discovery API for get/list/category/target/search/status and favourites/recent-ready ID normalization. Static registries must never become one giant mutable store.
 - Future resource UI must consume these registries and reuse `WidgetFrame`, `WidgetHost`, shared controls, and the V8.2A context host rather than duplicating definitions or product state.
 
+## V8.2C0 Shared Performance / Appearance Contracts
+
+- `frameScheduler.ts` is the one raw-input to rAF boundary; renderers keep previews local and flush the final sample before one pointer-up commit.
+- `groupDrag.ts` owns immutable preview projection plus the existing exact group-translation math; the store owns only final positions and one undo/redo transaction.
+- `labelPresentation.ts` owns Screen/Adaptive/World scale and shared canvas/client projection used by labels, inline editing, and context anchors.
+- `labelContrast.ts` adapts `getNucleusColor` output into deterministic Auto/Black/White/Custom text without framebuffer reads.
+- `cellShadow.ts` normalizes the project appearance contract and quality fallback. Renderers consume it visually; geometry/hit tests never do.
+- `widgetLifecycle.ts` makes focus-vs-mount explicit while `WidgetHost` retains stable keys and `WidgetFrame` retains session position/state.
+- Existing `AnnotationWidget`, `DisplayWidget`, snapshot/import/export services, `.glass`, and semantic tokens are extended; no parallel panel, history, camera, colour resolver, or settings store exists.
+
 ## Widget System
 
 ### `WidgetHost`

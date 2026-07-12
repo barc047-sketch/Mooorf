@@ -5,9 +5,25 @@ import { useLab } from "../../state/store";
 import { ANNOTATIONS, LABEL_POSITIONS } from "../controlMeta";
 import { ChipRow, ChoiceRow, SliderRow, SwitchRow, WidgetSection } from "./controls";
 
+const LABEL_SCALE_MODES = [
+  { id: "screen", label: "Screen" },
+  { id: "adaptive", label: "Adaptive" },
+  { id: "world", label: "World" },
+] as const;
+
+const LABEL_COLOUR_MODES = [
+  { id: "auto", label: "Auto" },
+  { id: "black", label: "Black" },
+  { id: "white", label: "White" },
+  { id: "custom", label: "Custom" },
+] as const;
+
 export default function AnnotationWidget() {
   const annotationMode = useLab((s) => s.settings.annotationMode);
   const detail = useLab((s) => s.settings.annotationDetail);
+  const labelScaleMode = useLab((s) => s.settings.labelScaleMode);
+  const labelColourMode = useLab((s) => s.settings.labelColourMode);
+  const labelCustomColour = useLab((s) => s.settings.labelCustomColour);
   const setSettings = useLab((s) => s.setSettings);
   const setAnnotationDetail = useLab((s) => s.setAnnotationDetail);
 
@@ -26,6 +42,29 @@ export default function AnnotationWidget() {
       </WidgetSection>
 
       <WidgetSection title="Typography" hint="scale + fields" defaultOpen>
+        <span className="org-subcap">scale behavior</span>
+        <ChipRow
+          options={LABEL_SCALE_MODES}
+          value={labelScaleMode}
+          onChange={(mode) => setSettings({ labelScaleMode: mode })}
+          ariaLabel="Label scale mode"
+        />
+        <span className="org-subcap">text colour</span>
+        <ChipRow
+          options={LABEL_COLOUR_MODES}
+          value={labelColourMode}
+          onChange={(mode) => setSettings({ labelColourMode: mode })}
+          ariaLabel="Label colour mode"
+        />
+        {labelColourMode === "custom" && (
+          <input
+            className="wexport-input"
+            type="color"
+            aria-label="Custom label colour"
+            value={labelCustomColour}
+            onChange={(event) => setSettings({ labelCustomColour: event.target.value })}
+          />
+        )}
         <SliderRow
           label="Text Scale"
           value={detail.textScale}
@@ -36,7 +75,7 @@ export default function AnnotationWidget() {
           onChange={(v) => setAnnotationDetail({ textScale: v })}
         />
         <SwitchRow
-          label="Text shadow"
+          label="One-pixel contrast keyline"
           on={detail.textShadow}
           onToggle={() => setAnnotationDetail({ textShadow: !detail.textShadow })}
         />

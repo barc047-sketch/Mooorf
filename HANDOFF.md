@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- V8.2C0 Canvas Performance + Contrast Reset
 - V8.2A.1 Multi-Selection Group Drag Foundation
 - V8.2B Expandable Resource Registry Foundation
 - V8.2A Interaction Foundation
@@ -46,6 +47,7 @@ Complete:
 - V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 Next:
+- Antigravity independent V8.2C0 reference/performance/migration audit on the pushed feature branch
 - Antigravity independent V8.2B audit on the pushed feature branch
 - Claude prototype review before resource browsers, shelves, or panels
 - Relationship Health / Floor Summary (await live relationship/floor data)
@@ -56,6 +58,8 @@ Not started:
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+V8.2C0 keeps raw Canvas movement renderer-local and rAF-coalesced, committing one final transform/history transaction at release. It adds shared Screen/Adaptive/World labels, deterministic Auto Contrast, optional quality-gated Cell Shadow, plain-cell startup, stable no-shadow glass, instant widget refocus, and projected-centre radials across Classic/Organism without adding another camera, history, colour resolver, settings store, or shell system. Full detail: `docs/HANDOFF.md`.
 
 V8.2B establishes immutable material/grid/annotation/icon registries and one read-only catalogue. Existing palettes are adapted into material collections while `getNucleusColor` remains the render authority. Project/config/saved-view persistence stores only resource IDs, sparse safe overrides, normalized grid settings, and future annotation/icon references; manifests record active resource metadata. No visual resource UI, renderer placement, package, or third-party asset was added pending Claude prototype review.
 

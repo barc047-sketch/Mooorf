@@ -3,11 +3,15 @@ import type {
   AnnotationMode,
   AttachMode,
   Camera,
+  CellShadowSettings,
   ColorSource,
+  LabelColourMode,
+  LabelScaleMode,
   LayoutPresetId,
   MorphMode,
   OrganismSettings,
   PaletteMode,
+  PerformanceQuality,
   RendererMode,
   SpaceCell,
   Theme,
@@ -38,6 +42,11 @@ export interface ProjectExportSettings {
   uiScale: number;
   widgetScale: number;
   resources: ResourceSettings;
+  labelScaleMode: LabelScaleMode;
+  labelColourMode: LabelColourMode;
+  labelCustomColour: string;
+  cellShadow: CellShadowSettings;
+  performanceQuality: PerformanceQuality;
 }
 
 export interface ProjectExportSummary {
@@ -85,7 +94,12 @@ export const buildProjectSnapshot = (
     spaces: input.spaces.map((s) => ({ ...s })),
     camera: { ...input.camera },
     theme: input.theme,
-    settings: { ...input.settings, organism: { ...input.settings.organism }, resources: cloneResourceSettings(input.settings.resources) },
+    settings: {
+      ...input.settings,
+      organism: { ...input.settings.organism },
+      cellShadow: { ...input.settings.cellShadow },
+      resources: cloneResourceSettings(input.settings.resources),
+    },
     summary: {
       spaceCount: input.spaces.length,
       voidCount,

@@ -23,7 +23,7 @@
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 20%, transparent), transparent 46%),
     color-mix(in srgb, var(--glass-panel-strong) 92%, var(--bg));
-  box-shadow: var(--shadow-glass);
+  box-shadow: none;
   backdrop-filter: blur(24px) saturate(var(--glass-saturate));
   -webkit-backdrop-filter: blur(24px) saturate(var(--glass-saturate));
 }
@@ -80,16 +80,14 @@
     linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 30%, transparent), transparent 58%),
     color-mix(in srgb, var(--glass-panel-strong) 88%, var(--bg));
   color: var(--hud-text);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent),
-    0 12px 26px -18px rgba(0, 0, 0, 0.48);
+  box-shadow: none;
   backdrop-filter: blur(18px) saturate(148%);
   -webkit-backdrop-filter: blur(18px) saturate(148%);
   transform: translate(-50%, -50%);
   pointer-events: auto;
   cursor: pointer;
   animation: object-radial-emerge 260ms var(--ease-out) var(--radial-delay) backwards;
-  transition: color 150ms ease, border-color 150ms ease, background 150ms ease, box-shadow 170ms ease;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
 }
 
 .object-radial-action:hover,
@@ -97,10 +95,7 @@
   outline: none;
   color: var(--ink);
   border-color: color-mix(in srgb, var(--chrome-accent) 46%, var(--glass-border));
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 66%, transparent),
-    0 14px 30px -18px rgba(0, 0, 0, 0.52),
-    0 0 0 3px color-mix(in srgb, var(--chrome-accent) 9%, transparent);
+  box-shadow: none;
 }
 
 .object-radial-action[data-danger="true"] {
@@ -123,7 +118,7 @@
   border-radius: 6px;
   background: color-mix(in srgb, var(--glass-panel-strong) 96%, var(--bg));
   color: var(--ink);
-  box-shadow: var(--shadow-soft);
+  box-shadow: none;
   font-size: 8px;
   letter-spacing: 0.04em;
   line-height: 1;

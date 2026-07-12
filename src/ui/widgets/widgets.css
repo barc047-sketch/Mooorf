@@ -24,42 +24,27 @@
     ),
     var(--wframe-surface);
   border-color: color-mix(in srgb, var(--glass-border) 72%, transparent);
-  box-shadow:
-    var(--glass-shadow),
-    0 10px 30px -20px rgba(0, 0, 0, 0.38),
-    0 0 0 1px color-mix(in srgb, var(--glass-edge) 12%, transparent),
-    inset 0 1px 0 var(--glass-inner-highlight);
+  box-shadow: none;
   overflow: hidden;
   transition:
-    background 220ms ease,
-    border-color 220ms ease,
-    box-shadow 240ms var(--ease-out);
+    background 60ms linear,
+    border-color 60ms linear;
 }
 
 .wframe[data-depth="back"] {
   --wframe-surface: var(--glass-panel-soft);
   border-color: color-mix(in srgb, var(--glass-border) 56%, transparent);
-  box-shadow:
-    var(--glass-shadow-back),
-    0 0 0 1px color-mix(in srgb, var(--glass-edge) 7%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-inner-highlight) 68%, transparent);
+  box-shadow: none;
 }
 
 .wframe[data-depth="front"] {
   --wframe-surface: var(--glass-panel-strong);
   border-color: color-mix(in srgb, var(--glass-border) 88%, transparent);
-  box-shadow:
-    var(--glass-shadow),
-    var(--glass-contact-shadow),
-    0 0 0 1px color-mix(in srgb, var(--glass-edge) 15%, transparent),
-    inset 0 1px 0 var(--glass-inner-highlight);
+  box-shadow: none;
 }
 
 .wframe[data-dragging="true"] {
-  box-shadow:
-    0 44px 92px -38px rgba(0, 0, 0, 0.64),
-    0 10px 28px -16px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 var(--glass-inner-highlight);
+  box-shadow: none;
   cursor: grabbing;
   user-select: none;
 }
@@ -278,9 +263,7 @@
 /* minimized: reads as a floating title chip */
 .wframe[data-min="true"] {
   border-radius: var(--r-micro-card);
-  box-shadow:
-    0 14px 34px -24px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 var(--glass-inner-highlight);
+  box-shadow: none;
 }
 
 .wframe[data-min="true"] .wframe-head {

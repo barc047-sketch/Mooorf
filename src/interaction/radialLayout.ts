@@ -29,24 +29,26 @@ export const layoutRadialActions = <T extends string>(
 ): RadialActionLayout<T> => {
   if (ids.length < 6 || ids.length > 8) throw new RangeError("Object radial actions require 6–8 nodes.");
   const buttonSize = 40;
-  const radius = clamp(Math.min(viewport.width, viewport.height) * 0.1, 58, 76);
-  const edge = radius + buttonSize / 2 + 8;
-  const center = {
-    x: clamp(point.x, edge, Math.max(edge, viewport.width - edge)),
-    y: clamp(point.y, edge, Math.max(edge, viewport.height - edge)),
-  };
-  const horizontalPressure = point.x < edge ? 0.16 : point.x > viewport.width - edge ? -0.16 : 0;
-  const verticalPressure = point.y < edge ? 0.12 : point.y > viewport.height - edge ? -0.12 : 0;
-  const rotation = -Math.PI / 2 + horizontalPressure + verticalPressure;
+  const baseRadius = clamp(Math.min(viewport.width, viewport.height) * 0.1, 58, 76);
+  const nearestEdge = Math.min(point.x, point.y, viewport.width - point.x, viewport.height - point.y);
+  const radius = nearestEdge < baseRadius + buttonSize / 2 + 8
+    ? clamp(baseRadius * 0.82, 46, 64)
+    : baseRadius;
+  /* The projected cell centre is semantic and never moves. Actions rotate
+     toward the viewport centre, then individual leaves clamp as a last resort. */
+  const center = { ...point };
+  const towardViewport = Math.atan2(viewport.height / 2 - point.y, viewport.width / 2 - point.x);
+  const rotation = towardViewport - Math.PI / 2;
   const step = Math.PI * 2 / ids.length;
+  const leafEdge = buttonSize / 2;
   const nodes = ids.map((id, index) => {
     const angle = rotation + step * index;
     return {
       id,
       index,
       angle,
-      x: center.x + Math.cos(angle) * radius,
-      y: center.y + Math.sin(angle) * radius,
+      x: clamp(center.x + Math.cos(angle) * radius, leafEdge, Math.max(leafEdge, viewport.width - leafEdge)),
+      y: clamp(center.y + Math.sin(angle) * radius, leafEdge, Math.max(leafEdge, viewport.height - leafEdge)),
     };
   });
   return { center, radius, buttonSize, nodes };

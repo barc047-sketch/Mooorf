@@ -1,5 +1,15 @@
 # Handoff
 
+## V8.2C0 — Canvas Performance + Contrast Reset
+
+- Both production renderers now coalesce pointer and wheel input to one local update per animation frame. Group previews never write canonical spaces; release commits the final original-anchor transform once, preserving single-step Undo/Redo and stale-ID safety.
+- Shared Screen/Adaptive/World label scale, canvas/client projection, and deterministic Auto/Black/White/Custom contrast now serve Classic, Organism, inline-editor/radial anchors, and deterministic exports. Screen + Auto are new-project defaults.
+- Cell Shadow is a normalized project appearance setting (Off/Soft/Defined, default Off) with opacity/softness/offset/spread/colour/export fields. Fast quality disables it; geometry, hit testing, selection, relationships, materials, and resources remain invariant.
+- Organism adds a plain-cell shader branch when Morph (`blobOn`) is off and retains a single draw call. Motion defaults remain zero and Fast suppresses idle motion without mutating project data.
+- Existing WidgetHost/Frame stable keys now use an explicit focus-vs-mount helper; first open is 140ms and refocus only reorders. Touched glass/context/dock/rail surfaces have first-frame blur, WebKit parity, keylines, and no UI box/drop shadow or blur transition.
+- Radials originate at the rendered cell centre in both renderers; action leaves adapt/clamp near edges without a centre or backing object.
+- New focused contracts live in `src/canvas/v8_2c0Contracts.test.ts`; manual desktop evidence is defined in `docs/V8_2C0_MANUAL_QA.md`. Future shell/drawer/workspaces/resource browsers/export queue/devices remain deferred.
+
 ## V8.2A.1 — Multi-Selection Group Drag Foundation
 
 - Classic and Organism now capture one selected group's original finite positions and apply the dragged primary object's one world-space delta to every live member. Unselected drags replace selection and move alone; selected members become primary while secondary selection ordering remains stable.

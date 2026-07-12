@@ -81,10 +81,10 @@ useLab.setState({
 });
 const storeDrag = createGroupTranslation(useLab.getState().spaces, useLab.getState().selectedIds, "b");
 const finalPositions = resolveGroupTranslationPositions(storeDrag, { x: 14, y: -6 });
-useLab.getState().previewSpaceTransform(finalPositions);
+assert.deepEqual(positions(useLab.getState().spaces), positions(initial), "pointermove preview leaves canonical spaces untouched");
 useLab.getState().commitSpaceTransform(storeDrag.before, finalPositions);
 assert.equal(useLab.getState().transformUndoStack.length, 1, "one group drag creates one undo entry");
-assert.deepEqual(positions(useLab.getState().spaces).slice(0, 2), [{ id: "a", x: 24, y: 14 }, { id: "b", x: 54, y: 59 }], "store batch preview preserves group geometry");
+assert.deepEqual(positions(useLab.getState().spaces).slice(0, 2), [{ id: "a", x: 24, y: 14 }, { id: "b", x: 54, y: 59 }], "pointer-up commit preserves group geometry");
 useLab.getState().undoSpaceTransform();
 assert.deepEqual(positions(useLab.getState().spaces), positions(initial), "undo restores every initial position");
 useLab.getState().redoSpaceTransform();
@@ -94,6 +94,7 @@ for (const rendererFile of ["../canvas/CanvasView.tsx", "../canvas/OrganismCanva
   const source = readFileSync(new URL(rendererFile, import.meta.url), "utf8");
   assert.equal(source.includes("createGroupTranslation"), true, `${rendererFile} uses the shared group translation contract`);
   assert.equal(source.includes("commitSpaceTransform"), true, `${rendererFile} commits one store transform`);
+  assert.equal(source.includes("previewSpaceTransform"), false, `${rendererFile} keeps pointermove preview renderer-local`);
 }
 
 console.info("group drag contracts passed");

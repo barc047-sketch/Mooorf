@@ -67,6 +67,23 @@ export const applyGroupTranslation = (
   });
 };
 
+/** Renderer-local preview adapter. It returns a derived array and never writes
+ * to the canonical store or mutates the original objects. */
+export const applySpacePositionsPreview = (
+  spaces: readonly SpaceCell[],
+  positions: readonly SpacePosition[]
+): SpaceCell[] => {
+  const byId = new Map(
+    positions
+      .filter((position) => Boolean(position.id) && Number.isFinite(position.x) && Number.isFinite(position.y))
+      .map((position) => [position.id, position])
+  );
+  return spaces.map((space) => {
+    const position = byId.get(space.id);
+    return position ? { ...space, x: position.x, y: position.y } : space;
+  });
+};
+
 export const isMeaningfulSpaceTransform = (
   before: readonly SpacePosition[],
   after: readonly SpacePosition[]

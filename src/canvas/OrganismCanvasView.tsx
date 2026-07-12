@@ -11,6 +11,7 @@ import {
   getAreaRange,
   getNucleusColor,
   getOrganismPalette,
+  hexToRgb01,
 } from "../design/colorMapping";
 import {
   type LabTheme,
@@ -49,12 +50,18 @@ import type { SpaceKind } from "../types";
 import { registerCanvasCapture, type CaptureRequestOptions } from "./exportCapture";
 import { resolveSelectionIntent } from "../interaction/selection";
 import {
+  applySpacePositionsPreview,
   createGroupTranslation,
   resolveGroupTranslationPositions,
   type GroupTranslation,
   type SpacePosition,
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
+import { createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
+import { projectClientPoint } from "./labelPresentation";
+import { resolveLabelScale } from "./labelPresentation";
+import { resolveLabelContrast } from "../design/labelContrast";
+import { resolveCellShadow } from "./cellShadow";
 import "./organismCanvas.css";
 
 const CAPTURE_TIMEOUT_MS = 5000;
@@ -62,7 +69,6 @@ const CAPTURE_TIMEOUT_MS = 5000;
 const DPR_MAX = 2;
 const Z_MIN = 0.25;
 const Z_MAX = 4;
-const DRAG_COMMIT_MS = 90;
 
 interface SmoothFrame {
   mass: number;
@@ -104,6 +110,10 @@ export default function OrganismCanvasView() {
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const colorSource = useLab((s) => s.settings.colorSource);
   const showGrid = useLab((s) => s.settings.showGrid);
+  const labelScaleMode = useLab((s) => s.settings.labelScaleMode);
+  const labelColourMode = useLab((s) => s.settings.labelColourMode);
+  const labelCustomColour = useLab((s) => s.settings.labelCustomColour);
+  const themeMode = useLab((s) => s.theme);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
 
   useEffect(() => {
@@ -173,6 +183,13 @@ export default function OrganismCanvasView() {
       accentColor: [0.55, 0.08, 0.14],
       colorMix: 0,
       nucleusDots: 1,
+      morphEnabled: false,
+      shadowEnabled: false,
+      shadowColor: [0, 0, 0],
+      shadowOpacity: 0,
+      shadowSoftness: 0,
+      shadowOffset: [0, 0],
+      shadowSpread: 0,
       fieldDebug: false,
       nucleiDebug: false,
     };
@@ -285,20 +302,24 @@ export default function OrganismCanvasView() {
       useLab.getState().setCamera(snapshot);
     };
 
-    const currentNuclei = () =>
-      spacesToNuclei(
-        spaces,
+    const currentNuclei = () => {
+      const renderSpaces = translatedPositions.length > 0
+        ? applySpacePositionsPreview(spaces, translatedPositions)
+        : spaces;
+      return spacesToNuclei(
+        renderSpaces,
         cam,
         w,
         h,
         selectedId,
-        drag,
+        translatedPositions.length > 0 ? translatedPositions : drag,
         resolved.adapter,
         motionState,
         settings.paletteMode,
         settings.nucleusPaletteId,
         settings.colorSource
       );
+    };
 
     /* camera-synced technical grid — cheap CSS background, render-loop offsets */
     const syncGrid = () => {
@@ -314,6 +335,10 @@ export default function OrganismCanvasView() {
       const layer = labelLayerRef.current;
       if (!layer) return;
       const byId = new Map(nuclei.map((n) => [n.id, n]));
+      layer.style.setProperty(
+        "--label-scale",
+        String(resolveLabelScale(settings.labelScaleMode, cam.zoom, settings.annotationDetail.textScale))
+      );
       layer.querySelectorAll<HTMLElement>(".organism-label-anchor").forEach((anchor) => {
         const id = anchor.dataset.nucleusId;
         const nucleus = id ? byId.get(id) : null;
@@ -348,7 +373,6 @@ export default function OrganismCanvasView() {
     let panSY = 0;
     let panCX = 0;
     let panCY = 0;
-    let lastDragCommit = 0;
     let pressIntent: "replace" | "toggle" = "replace";
     let groupTranslation: GroupTranslation | null = null;
     let translatedPositions: SpacePosition[] = [];
@@ -379,7 +403,6 @@ export default function OrganismCanvasView() {
         drag = { id: hit.id, x: source.x, y: source.y };
         dragAnchorWX = world.x;
         dragAnchorWY = world.y;
-        lastDragCommit = 0;
         if (pressIntent === "replace") {
           if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
           else state.replaceSelection(hit.id);
@@ -400,14 +423,13 @@ export default function OrganismCanvasView() {
         panSY = sy;
         panCX = cam.x;
         panCY = cam.y;
-        lastDragCommit = 0;
         if (selectedIdSet.size > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
       dirty = true;
     };
 
-    const onMove = (e: PointerEvent) => {
+    const processMove = (e: PointerEvent) => {
       const { sx, sy } = local(e);
       if (mode === "none") {
         canvas.style.cursor = hitTestNuclei(currentNuclei(), sx, sy) ? "grab" : "default";
@@ -441,11 +463,6 @@ export default function OrganismCanvasView() {
         if (!primary) return;
         drag.x = primary.x;
         drag.y = primary.y;
-        const now = performance.now();
-        if (now - lastDragCommit > DRAG_COMMIT_MS) {
-          lastDragCommit = now;
-          useLab.getState().previewSpaceTransform(translatedPositions);
-        }
       } else if (mode === "pan") {
         cam.x = panCX - (sx - panSX) / cam.zoom;
         cam.y = panCY - (sy - panSY) / cam.zoom;
@@ -453,7 +470,26 @@ export default function OrganismCanvasView() {
       dirty = true;
     };
 
+    const moveScheduler = createFrameScheduler<PointerEvent>({
+      schedule: (callback) => requestAnimationFrame(callback),
+      cancel: (id) => cancelAnimationFrame(id),
+      process: processMove,
+    });
+
+    const onMove = (e: PointerEvent) => {
+      if (mode === "none") {
+        const { sx, sy } = local(e);
+        canvas.style.cursor = hitTestNuclei(currentNuclei(), sx, sy) ? "grab" : "default";
+        return;
+      }
+      moveScheduler.push(latestCoalescedPointerEvent(e));
+    };
+
     const onUp = (e: PointerEvent) => {
+      if (mode !== "none") {
+        moveScheduler.push(latestCoalescedPointerEvent(e));
+        moveScheduler.flush();
+      }
       const { sx, sy } = local(e);
       if (mode === "press" && drag) {
         const state = useLab.getState();
@@ -463,7 +499,12 @@ export default function OrganismCanvasView() {
         } else {
           state.replaceSelection(drag.id);
           if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
-            state.openContextSurface("inline-editor", { x: sx + 14, y: sy + 18 }, drag.id);
+            const nucleus = currentNuclei().find((candidate) => candidate.id === drag?.id);
+            const client = projectClientPoint(
+              nucleus ? { x: nucleus.sx, y: nucleus.sy } : { x: sx, y: sy },
+              canvas.getBoundingClientRect()
+            );
+            state.openContextSurface("inline-editor", { x: client.x + 14, y: client.y + 18 }, drag.id);
           }
         }
         drag = null;
@@ -501,7 +542,11 @@ export default function OrganismCanvasView() {
       if (hit) {
         if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
         else state.replaceSelection(hit.id);
-        state.openContextSurface(resolveContextSurface(hit.id), { x: e.clientX, y: e.clientY }, hit.id);
+        state.openContextSurface(
+          resolveContextSurface(hit.id),
+          projectClientPoint({ x: hit.sx, y: hit.sy }, canvas.getBoundingClientRect()),
+          hit.id
+        );
       } else {
         state.openContextSurface(resolveContextSurface(null), { x: e.clientX, y: e.clientY }, null);
       }
@@ -510,17 +555,27 @@ export default function OrganismCanvasView() {
     };
 
     let camCommit = 0;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
+    type WheelFrame = { deltaY: number; sx: number; sy: number };
+    const processWheel = ({ deltaY, sx, sy }: WheelFrame) => {
       camTarget = null;
-      const { sx, sy } = local(e);
       const before = screenToWorld(sx, sy, cam, w, h);
-      cam.zoom = clamp(cam.zoom * Math.exp(-e.deltaY * 0.0016), Z_MIN, Z_MAX);
+      cam.zoom = clamp(cam.zoom * Math.exp(-deltaY * 0.0016), Z_MIN, Z_MAX);
       cam.x = before.x - (sx - w / 2) / cam.zoom;
       cam.y = before.y - (sy - h / 2) / cam.zoom;
       dirty = true;
       window.clearTimeout(camCommit);
       camCommit = window.setTimeout(commitCamera, 160);
+    };
+    const wheelScheduler = createFrameScheduler<WheelFrame>({
+      schedule: (callback) => requestAnimationFrame(callback),
+      cancel: (id) => cancelAnimationFrame(id),
+      process: processWheel,
+      merge: (queued, incoming) => ({ ...incoming, deltaY: queued.deltaY + incoming.deltaY }),
+    });
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const { sx, sy } = local(e);
+      wheelScheduler.push({ deltaY: e.deltaY, sx, sy });
     };
 
     canvas.addEventListener("pointerdown", onDown);
@@ -692,6 +747,19 @@ export default function OrganismCanvasView() {
       frame.nucleusDots = smooth.dots;
       frame.fieldDebug = params.showFieldDebug;
       frame.nucleiDebug = params.showNucleiDebug;
+      const shadow = resolveCellShadow(settings.cellShadow, settings.performanceQuality, theme);
+      frame.morphEnabled = settings.blobOn;
+      frame.shadowEnabled = shadow.enabled && (!pendingCapture || shadow.includeInExport);
+      frame.shadowColor = hexToRgb01(
+        shadow.colorMode === "custom" ? shadow.color : theme === "night" ? "#000000" : "#222222"
+      );
+      frame.shadowOpacity = shadow.opacity;
+      frame.shadowSoftness = shadow.softness / Math.max(1, Math.min(w, h) / 2);
+      frame.shadowOffset = [
+        shadow.offsetX / Math.max(1, Math.min(w, h) / 2),
+        -shadow.offsetY / Math.max(1, Math.min(w, h) / 2),
+      ];
+      frame.shadowSpread = shadow.spread / Math.max(1, Math.min(w, h) / 2);
       if (!firstUsableFrame) announceReadiness("render-requested");
       try {
         renderer?.render(frame);
@@ -733,6 +801,8 @@ export default function OrganismCanvasView() {
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(camCommit);
+      moveScheduler.cancel();
+      wheelScheduler.cancel();
       unsub();
       mo.disconnect();
       ro.disconnect();
@@ -775,17 +845,27 @@ export default function OrganismCanvasView() {
         data-position={annotationDetail.position}
         data-bbox={annotationDetail.boundingBox ? "true" : undefined}
         data-shadow={annotationDetail.textShadow ? "true" : "false"}
+        data-scale-mode={labelScaleMode}
         style={{ "--label-scale": annotationDetail.textScale } as CSSProperties}
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
           const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
           const kind: SpaceKind = space.kind === "void" ? "void" : "space";
+          const labelContrast = resolveLabelContrast({
+            mode: labelColourMode,
+            customColor: labelCustomColour,
+            backgroundColor: mappedColor.fill,
+            voidBackground: kind === "void",
+            theme: themeMode,
+          });
           const selected = selectedSet.has(space.id);
           const editing = editingTargetId === space.id;
           const labelStyle = {
             "--nucleus-color": mappedColor.fill,
             "--nucleus-ring": mappedColor.ring,
             "--nucleus-muted": mappedColor.muted,
+            "--label-ink": labelContrast.color,
+            "--label-keyline": labelContrast.keyline,
           } as CSSProperties;
           const meta = [
             annotationDetail.showArea ? `${Math.round(space.area)} m²` : null,

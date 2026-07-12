@@ -7,6 +7,7 @@ import { validateExportDimensions, resolvePaddingPx } from "./resolution";
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION, MANIFEST_SCHEMA_VERSION, DEFAULT_VISUAL_OPTIONS } from "./types";
 import type { SpaceCell } from "../types";
 import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
+import { DEFAULT_CELL_SHADOW } from "../canvas/cellShadow";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
   if (!Object.is(actual, expected)) {
@@ -85,6 +86,11 @@ const settings = {
   uiScale: 1.03,
   widgetScale: 0.96,
   resources: DEFAULT_RESOURCE_SETTINGS,
+  labelScaleMode: "screen" as const,
+  labelColourMode: "auto" as const,
+  labelCustomColour: "#171719",
+  cellShadow: DEFAULT_CELL_SHADOW,
+  performanceQuality: "automatic" as const,
 };
 equal(computeProgrammedArea(spaces), 20, "programmed area excludes voids and NaN-safe");
 const snapshot = buildProjectSnapshot(

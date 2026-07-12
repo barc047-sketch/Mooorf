@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] V8.2C0 Canvas Performance + Contrast Reset (implementation complete; final branch verification/audit handoff)
 - [x] V8.2A.1 Multi-Selection Group Drag Foundation
 - [x] V8.2B Expandable Resource Registry Foundation
 - [x] V8.2A Interaction Foundation
@@ -25,6 +26,23 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## V8.2C0 — Canvas Performance + Contrast Reset
+
+- [x] rAF/coalesced pointer scheduling for pan, wheel zoom, single drag, and group drag in Classic/Organism
+- [x] renderer-local preview; one pointer-up store/history transaction; zero/sub-threshold movement ignored
+- [x] Screen/Adaptive/World label scale and shared label/editor/radial projection
+- [x] deterministic Auto/Black/White/Custom contrast with 0.36 luminance threshold and export parity
+- [x] semantic UI text tokens on controlled light/dark glass surfaces
+- [x] project-level Cell Shadow Off/Soft/Defined contract, default Off, export inclusion, Fast fallback, geometry invariance
+- [x] stable first-frame glass, no blur animation, WebKit prefix, no UI shadow on touched surfaces
+- [x] focus-vs-mount widget lifecycle; 140ms first open and immediate refocus with stable position/state
+- [x] plain startup: Morph off, Motion off, screen labels, Auto Contrast, Cell Shadow off
+- [x] projected-cell-centre radial with adaptive edge layout and no centre/background object
+- [x] existing snapshots/project/config/recovery/export paths extended with safe legacy migration
+- [x] focused contract file and <=20-check 1440/1280 manual QA sheet
+- [ ] Antigravity broad reference delta, multi-viewport, performance, export, deployment, and security audit
+- [ ] deferred: future shell/drawer/docks/rails, resource browsers, Data/Dashboard, export queue, background references, touch layouts, 200+ renderer
 
 ## V8.2A.1 — Multi-Selection Group Drag Foundation  ✅ IMPLEMENTED
 

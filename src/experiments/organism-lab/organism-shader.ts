@@ -45,6 +45,13 @@ uniform vec3 uAccentColor;
 uniform vec3 uBgColor;
 uniform float uColorMix;
 uniform float uNucleusDots;
+uniform float uMorphEnabled;
+uniform float uShadowEnabled;
+uniform vec3 uShadowColor;
+uniform float uShadowOpacity;
+uniform float uShadowSoftness;
+uniform vec2 uShadowOffset;
+uniform float uShadowSpread;
 
 uniform float uFieldDebug;
 uniform float uNucleiDebug;
@@ -94,18 +101,53 @@ vec3 spatialColorAt(vec2 p, out float totalWeight) {
   return totalWeight > 0.0001 ? accumulated / totalWeight : uBodyColor;
 }
 
+float plainBodyAt(vec2 p, float spread, float softness) {
+  float mask = 0.0;
+  for (int i = 0; i < MAX_NUCLEI; i++) {
+    if (i >= uCount) break;
+    vec4 n = uNuclei[i];
+    if (n.w <= 0.0) continue;
+    float radius = max(n.z + spread, 0.001);
+    float d = length(p - n.xy);
+    float edge = max(softness, fwidth(d) * 1.2);
+    mask = max(mask, 1.0 - smoothstep(radius - edge, radius + edge, d));
+  }
+  return mask;
+}
+
+float plainVoidRingAt(vec2 p) {
+  float ring = 0.0;
+  for (int i = 0; i < MAX_NUCLEI; i++) {
+    if (i >= uCount) break;
+    vec4 n = uNuclei[i];
+    if (n.w >= 0.0) continue;
+    float d = length(p - n.xy);
+    float edge = max(fwidth(d) * 1.4, 0.003);
+    ring = max(ring, 1.0 - smoothstep(edge, edge * 2.2, abs(d - n.z)));
+  }
+  return ring;
+}
+
 void main() {
   vec2 p = (gl_FragCoord.xy - 0.5 * uResolution) / (0.5 * min(uResolution.x, uResolution.y));
-  float f = fieldAt(p);
-
-  /* pixel-exact anti-aliasing floor under the artistic softness */
-  float aa = fwidth(f);
-  float wBody = max(uSoftness, aa * 0.9);
-  float body = smoothstep(uIso - wBody, uIso + wBody, f);
-
-  /* inner field band opens controlled cellular voids where field energy stacks */
-  float wPocket = max(uPocketSoft, aa * 0.9);
-  float pocket = smoothstep(uPocketIso - wPocket, uPocketIso + wPocket, f) * uPocketAmount;
+  float f = 0.0;
+  float aa = 0.0;
+  float body = 0.0;
+  float pocket = 0.0;
+  if (uMorphEnabled > 0.5) {
+    f = fieldAt(p);
+    /* pixel-exact anti-aliasing floor under the artistic softness */
+    aa = fwidth(f);
+    float wBody = max(uSoftness, aa * 0.9);
+    body = smoothstep(uIso - wBody, uIso + wBody, f);
+    /* inner field band opens controlled cellular voids where field energy stacks */
+    float wPocket = max(uPocketSoft, aa * 0.9);
+    pocket = smoothstep(uPocketIso - wPocket, uPocketIso + wPocket, f) * uPocketAmount;
+  } else {
+    body = plainBodyAt(p, 0.0, 0.0025);
+    f = body;
+    aa = fwidth(body);
+  }
 
   float organism = body * (1.0 - pocket);
 
@@ -120,7 +162,23 @@ void main() {
   vec3 spatialColor = spatialColorAt(p, spatialWeight);
   float spatialDominance = spatialWeight > 0.0001 ? 0.88 : 0.0;
   bodyMix = mix(bodyMix, spatialColor, spatialDominance);
-  vec3 col = mix(uBgColor, bodyMix, organism);
+  vec3 col = uBgColor;
+  if (uShadowEnabled > 0.5) {
+    float shadowMask = 0.0;
+    if (uMorphEnabled > 0.5) {
+      float sf = fieldAt(p - uShadowOffset);
+      float sw = max(uSoftness + uShadowSoftness, fwidth(sf));
+      float spreadBias = uShadowSpread * 6.0;
+      shadowMask = smoothstep(uIso - spreadBias - sw, uIso - spreadBias + sw, sf);
+    } else {
+      shadowMask = plainBodyAt(p - uShadowOffset, uShadowSpread, max(uShadowSoftness, 0.0025));
+    }
+    col = mix(col, uShadowColor, shadowMask * uShadowOpacity * (1.0 - organism));
+  }
+  col = mix(col, bodyMix, organism);
+  if (uMorphEnabled < 0.5) {
+    col = mix(col, mix(uBgColor, uAccentColor, 0.62), plainVoidRingAt(p) * 0.82);
+  }
 
   /* nuclei rendered as embedded reverse-tone dots (skipped for void nuclei) */
   if (uNucleusDots > 0.001) {
@@ -188,6 +246,13 @@ export interface OrganismRenderFrame {
   colorMix: number;
   /** 0..1 embedded nucleus dot visibility */
   nucleusDots: number;
+  morphEnabled: boolean;
+  shadowEnabled: boolean;
+  shadowColor: RGB;
+  shadowOpacity: number;
+  shadowSoftness: number;
+  shadowOffset: [number, number];
+  shadowSpread: number;
   fieldDebug: boolean;
   nucleiDebug: boolean;
 }
@@ -218,6 +283,13 @@ const UNIFORM_NAMES = [
   "uBgColor",
   "uColorMix",
   "uNucleusDots",
+  "uMorphEnabled",
+  "uShadowEnabled",
+  "uShadowColor",
+  "uShadowOpacity",
+  "uShadowSoftness",
+  "uShadowOffset",
+  "uShadowSpread",
   "uFieldDebug",
   "uNucleiDebug",
 ] as const;
@@ -314,6 +386,13 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform3f(loc["uBgColor"] ?? null, frame.bgColor[0], frame.bgColor[1], frame.bgColor[2]);
       gl.uniform1f(loc["uColorMix"] ?? null, frame.colorMix);
       gl.uniform1f(loc["uNucleusDots"] ?? null, frame.nucleusDots);
+      gl.uniform1f(loc["uMorphEnabled"] ?? null, frame.morphEnabled ? 1 : 0);
+      gl.uniform1f(loc["uShadowEnabled"] ?? null, frame.shadowEnabled ? 1 : 0);
+      gl.uniform3f(loc["uShadowColor"] ?? null, frame.shadowColor[0], frame.shadowColor[1], frame.shadowColor[2]);
+      gl.uniform1f(loc["uShadowOpacity"] ?? null, frame.shadowOpacity);
+      gl.uniform1f(loc["uShadowSoftness"] ?? null, frame.shadowSoftness);
+      gl.uniform2f(loc["uShadowOffset"] ?? null, frame.shadowOffset[0], frame.shadowOffset[1]);
+      gl.uniform1f(loc["uShadowSpread"] ?? null, frame.shadowSpread);
       gl.uniform1f(loc["uFieldDebug"] ?? null, frame.fieldDebug ? 1 : 0);
       gl.uniform1f(loc["uNucleiDebug"] ?? null, frame.nucleiDebug ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);

@@ -1,8 +1,21 @@
-import type { Camera, ColorSource, PaletteMode, SpaceCell } from "../types";
+import type {
+  AnnotationDetail,
+  Camera,
+  CellShadowSettings,
+  ColorSource,
+  LabelColourMode,
+  LabelScaleMode,
+  PaletteMode,
+  PerformanceQuality,
+  SpaceCell,
+} from "../types";
 import { areaToRadius } from "../lib/geometry";
 import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { drawBlobLayer, type BlobBody } from "./blob";
 import type { AttachMode, MorphMode } from "../types";
+import { resolveLabelScale } from "./labelPresentation";
+import { resolveLabelContrast } from "../design/labelContrast";
+import { resolveCellShadow } from "./cellShadow";
 
 // Pure canvas draw layer — no React, no store. CanvasView feeds it snapshots.
 
@@ -14,6 +27,12 @@ export interface BlobSettings {
   paletteMode: PaletteMode;
   nucleusPaletteId: string;
   colorSource: ColorSource;
+  annotationDetail: AnnotationDetail;
+  labelScaleMode: LabelScaleMode;
+  labelColourMode: LabelColourMode;
+  labelCustomColour: string;
+  cellShadow: CellShadowSettings;
+  performanceQuality: PerformanceQuality;
 }
 
 export interface Tokens {
@@ -67,6 +86,7 @@ export interface DrawSceneOptions {
   includeLabels?: boolean;
   /** V8.2A — selected object keylines; primarySelectedId remains selectedId. */
   selectedIds?: readonly string[];
+  isExport?: boolean;
 }
 
 // Returns true while the organism layer is mid-transition (caller repaints).
@@ -95,6 +115,8 @@ export function drawScene(
   const toX = (x: number) => (x - cam.x) * z + w / 2;
   const toY = (y: number) => (y - cam.y) * z + h / 2;
   const areaRange = getAreaRange(spaces);
+  const theme = !isDark(tokens.ink) ? "night" : "day";
+  const cellShadow = resolveCellShadow(blob.cellShadow, blob.performanceQuality, theme);
 
   // Organism tissue underneath the cells. Bodies are world-space (no viewport
   // cull — the layer caches world geometry; the canvas clips it for free).
@@ -166,16 +188,26 @@ export function drawScene(
       ctx.stroke();
       ctx.restore();
     } else {
-      // Object shadow — soft, museum-floor.
-      ctx.save();
-      ctx.shadowColor = lifted ? "rgba(0,0,0,0.26)" : "rgba(0,0,0,0.16)";
-      ctx.shadowBlur = (lifted ? 34 : 22) * z;
-      ctx.shadowOffsetY = (lifted ? 14 : 9) * z;
+      if (cellShadow.enabled && (!options?.isExport || cellShadow.includeInExport)) {
+        ctx.save();
+        ctx.filter = `blur(${cellShadow.softness}px)`;
+        ctx.fillStyle = cellShadow.rgba;
+        ctx.beginPath();
+        ctx.arc(
+          sx + cellShadow.offsetX,
+          sy + cellShadow.offsetY,
+          Math.max(0, r + cellShadow.spread),
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+        ctx.restore();
+      }
+
       ctx.fillStyle = mappedColor.fill;
       ctx.beginPath();
       ctx.arc(sx, sy, r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
 
       // Ceramic shading — subtle top-light.
       const g = ctx.createRadialGradient(
@@ -210,17 +242,31 @@ export function drawScene(
     }
 
     // Label — only when legible.
-    if (r > 26 && includeLabels) {
-      const dark = isDark(mappedColor.fill);
-      const nameSize = Math.min(15, Math.max(10, r * 0.22));
+    if (includeLabels) {
+      const labelScale = resolveLabelScale(blob.labelScaleMode, z, blob.annotationDetail.textScale);
+      const contrast = resolveLabelContrast({
+        mode: blob.labelColourMode,
+        customColor: blob.labelCustomColour,
+        backgroundColor: mappedColor.fill,
+        voidBackground: isVoid,
+        theme,
+      });
+      const nameSize = 11 * labelScale;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = dark ? "rgba(255,255,255,0.92)" : "rgba(20,20,20,0.82)";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = Math.max(0.75, labelScale * 0.85);
+      ctx.strokeStyle = `${contrast.keyline}55`;
+      ctx.fillStyle = contrast.color;
       ctx.font = `500 ${nameSize}px ${FONT}`;
-      ctx.fillText(c.name, sx, sy - nameSize * 0.35, r * 1.7);
-      ctx.fillStyle = dark ? "rgba(255,255,255,0.55)" : "rgba(20,20,20,0.45)";
+      const labelWidth = Math.max(56, r * 1.7);
+      if (blob.annotationDetail.textShadow) ctx.strokeText(c.name, sx, sy - nameSize * 0.35, labelWidth);
+      ctx.fillText(c.name, sx, sy - nameSize * 0.35, labelWidth);
+      ctx.globalAlpha *= 0.68;
       ctx.font = `400 ${Math.max(9, nameSize * 0.72)}px ${FONT}`;
-      ctx.fillText(`${c.area} m²`, sx, sy + nameSize * 0.78, r * 1.7);
+      if (blob.annotationDetail.textShadow) ctx.strokeText(`${c.area} m²`, sx, sy + nameSize * 0.78, labelWidth);
+      ctx.fillText(`${c.area} m²`, sx, sy + nameSize * 0.78, labelWidth);
+      ctx.globalAlpha = 1;
     }
 
     ctx.globalAlpha = 1;

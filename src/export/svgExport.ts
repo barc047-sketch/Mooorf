@@ -1,6 +1,20 @@
 import { areaToRadius } from "../lib/geometry";
 import { getAreaRange, getNucleusColor } from "../design/colorMapping";
-import type { Camera, ColorSource, PaletteMode, SpaceCell } from "../types";
+import type {
+  AnnotationDetail,
+  Camera,
+  CellShadowSettings,
+  ColorSource,
+  LabelColourMode,
+  LabelScaleMode,
+  PaletteMode,
+  PerformanceQuality,
+  SpaceCell,
+  Theme,
+} from "../types";
+import { resolveLabelScale } from "../canvas/labelPresentation";
+import { resolveLabelContrast } from "../design/labelContrast";
+import { resolveCellShadow } from "../canvas/cellShadow";
 
 const FONT =
   '"Inter Tight","Neue Haas Grotesk Display Pro","Helvetica Neue",Helvetica,Arial,sans-serif';
@@ -21,6 +35,13 @@ export interface ClassicSvgOptions {
   paletteMode: PaletteMode;
   nucleusPaletteId: string;
   colorSource?: ColorSource;
+  labelScaleMode?: LabelScaleMode;
+  labelColourMode?: LabelColourMode;
+  labelCustomColour?: string;
+  annotationDetail?: AnnotationDetail;
+  cellShadow?: CellShadowSettings;
+  performanceQuality?: PerformanceQuality;
+  theme?: Theme;
   /** Resolved background color, or null for a transparent SVG. */
   background: string | null;
   includeLabels: boolean;
@@ -35,7 +56,7 @@ export interface ClassicSvgOptions {
  * keeps this a truthful vector export rather than silently rasterizing it.
  * See docs/DECISIONS.md V7.2 SVG truthfulness note. */
 export const buildClassicSvg = (options: ClassicSvgOptions): string => {
-  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, colorSource = "category", background, includeLabels, paddingPx } =
+  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, colorSource = "category", labelScaleMode = "screen", labelColourMode = "auto", labelCustomColour = "#171719", annotationDetail, cellShadow, performanceQuality = "automatic", theme = "day", background, includeLabels, paddingPx } =
     options;
   const w = Math.max(1, Math.round(cssWidth));
   const h = Math.max(1, Math.round(cssHeight));
@@ -54,6 +75,10 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
   if (background) {
     parts.push(`<rect x="0" y="0" width="${totalW}" height="${totalH}" fill="${background}" />`);
   }
+  const resolvedShadow = resolveCellShadow(cellShadow, performanceQuality, theme);
+  if (resolvedShadow.enabled && resolvedShadow.includeInExport) {
+    parts.push(`<defs><filter id="cell-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="${resolvedShadow.offsetX}" dy="${resolvedShadow.offsetY}" stdDeviation="${resolvedShadow.softness / 2}" flood-color="${resolvedShadow.color}" flood-opacity="${resolvedShadow.opacity}" /></filter></defs>`);
+  }
 
   for (const cell of spaces) {
     const r = areaToRadius(cell.area) * z;
@@ -68,31 +93,25 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
         `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(0,0,0,0.035)" stroke="${color.ring}" stroke-width="${Math.max(1.2, 1.5 * z)}" stroke-dasharray="${5 * z},${5 * z}" />`
       );
     } else {
-      parts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color.fill}" />`);
+      parts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color.fill}"${resolvedShadow.enabled && resolvedShadow.includeInExport ? ' filter="url(#cell-shadow)"' : ""} />`);
     }
 
-    if (includeLabels && r > 26) {
-      const dark = /^#/.test(color.fill) ? luminanceOf(color.fill) < 140 : false;
-      const nameSize = Math.min(15, Math.max(10, r * 0.22));
-      const nameFill = dark ? "rgba(255,255,255,0.92)" : "rgba(20,20,20,0.82)";
-      const metaFill = dark ? "rgba(255,255,255,0.55)" : "rgba(20,20,20,0.45)";
+    if (includeLabels) {
+      const contrast = resolveLabelContrast({ mode: labelColourMode, customColor: labelCustomColour, backgroundColor: color.fill, voidBackground: isVoid, theme });
+      const nameSize = 11 * resolveLabelScale(labelScaleMode, z, annotationDetail?.textScale ?? 1);
+      const nameFill = contrast.color;
+      const metaFill = contrast.color;
       parts.push(
         `<text x="${cx}" y="${cy - nameSize * 0.35}" text-anchor="middle" dominant-baseline="middle" font-family='${FONT}' font-size="${nameSize}" font-weight="500" fill="${nameFill}">${escapeXml(cell.name)}</text>`
       );
       parts.push(
-        `<text x="${cx}" y="${cy + nameSize * 0.78}" text-anchor="middle" dominant-baseline="middle" font-family='${FONT}' font-size="${Math.max(9, nameSize * 0.72)}" fill="${metaFill}">${escapeXml(`${cell.area} m²`)}</text>`
+        `<text x="${cx}" y="${cy + nameSize * 0.78}" text-anchor="middle" dominant-baseline="middle" font-family='${FONT}' font-size="${Math.max(7, nameSize * 0.72)}" fill="${metaFill}" fill-opacity="0.68">${escapeXml(`${cell.area} m²`)}</text>`
       );
     }
   }
 
   parts.push("</svg>");
   return parts.join("");
-};
-
-const luminanceOf = (hex: string): number => {
-  if (!/^#[0-9a-f]{6}$/i.test(hex)) return 255;
-  const n = parseInt(hex.slice(1), 16);
-  return 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
 };
 
 export interface OrganismSvgAvailability {

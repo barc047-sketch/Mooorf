@@ -26,7 +26,15 @@ export interface RecoverySnapshot {
 }
 
 const cloneSpaces = (spaces: readonly SpaceCell[]) => spaces.map((space) => ({ ...space }));
-const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) => ({ ...view, spaces: cloneSpaces(view.spaces), camera: { ...view.camera }, organism: { ...view.organism }, annotationDetail: view.annotationDetail ? { ...view.annotationDetail } : undefined, resources: view.resources ? cloneResourceSettings(view.resources) : undefined }));
+const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) => ({
+  ...view,
+  spaces: cloneSpaces(view.spaces),
+  camera: { ...view.camera },
+  organism: { ...view.organism },
+  annotationDetail: view.annotationDetail ? { ...view.annotationDetail } : undefined,
+  cellShadow: view.cellShadow ? { ...view.cellShadow } : undefined,
+  resources: view.resources ? cloneResourceSettings(view.resources) : undefined,
+}));
 
 export const captureRecoverySnapshot = (): RecoverySnapshot => {
   const state = useLab.getState();
@@ -35,7 +43,7 @@ export const captureRecoverySnapshot = (): RecoverySnapshot => {
     view: state.view,
     spaces: cloneSpaces(state.spaces),
     camera: { ...state.camera },
-    settings: { ...state.settings, organism: { ...state.settings.organism }, annotationDetail: { ...state.settings.annotationDetail }, resources: cloneResourceSettings(state.settings.resources) },
+    settings: { ...state.settings, organism: { ...state.settings.organism }, annotationDetail: { ...state.settings.annotationDetail }, cellShadow: { ...state.settings.cellShadow }, resources: cloneResourceSettings(state.settings.resources) },
     selectedId: state.selectedId,
     primarySelectedId: state.primarySelectedId,
     selectedIds: [...state.selectedIds],
@@ -58,7 +66,7 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     view: snapshot.view,
     spaces: cloneSpaces(snapshot.spaces),
     camera: { ...snapshot.camera },
-    settings: { ...snapshot.settings, organism: { ...snapshot.settings.organism }, annotationDetail: { ...snapshot.settings.annotationDetail }, resources: cloneResourceSettings(snapshot.settings.resources) },
+    settings: { ...snapshot.settings, organism: { ...snapshot.settings.organism }, annotationDetail: { ...snapshot.settings.annotationDetail }, cellShadow: { ...snapshot.settings.cellShadow }, resources: cloneResourceSettings(snapshot.settings.resources) },
     ...normalizeSelectionState({
       selectedId: snapshot.selectedId,
       primarySelectedId: snapshot.primarySelectedId,
@@ -95,6 +103,7 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
         widgetScale: normalizeWidgetScale(snapshot.settings.widgetScale),
         annotationDetail: { ...current.settings.annotationDetail, ...snapshot.settings.annotationDetail },
         organism: { ...current.settings.organism, ...snapshot.settings.organism },
+        cellShadow: { ...snapshot.settings.cellShadow },
         resources: cloneResourceSettings(snapshot.settings.resources),
       },
     });
@@ -122,6 +131,7 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
         widgetScale: normalizeWidgetScale(config.settings.widgetScale),
         annotationDetail: { ...current.settings.annotationDetail, ...config.settings.annotationDetail },
         organism: { ...current.settings.organism, ...config.settings.organism },
+        cellShadow: { ...config.settings.cellShadow },
         resources: cloneResourceSettings(config.settings.resources),
       },
       ...replaceSelectionState(null),
