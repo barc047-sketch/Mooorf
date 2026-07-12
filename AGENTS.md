@@ -1,28 +1,46 @@
-# ZONUERT Agent Rules
+# MOOORF Agent Entry Point
 
-Work one phase at a time and preserve the browser-first, local-first architecture.
+Before planning, modifying, auditing or merging MOOORF, read:
 
-## Read order
+1. `docs/MOOORF_AI_TEAM_OPERATING_PROTOCOL.md`
+2. `docs/MOOORF_FINAL_SCOPE.md`
+3. `docs/MOOORF_MASTER_PRODUCT_SCOPE.md`
+4. `docs/MOOORF_DESKTOP_UI_REFERENCE_ADDENDUM.md`
+5. `docs/PROJECT_MEMORY_INDEX.md`
+6. `docs/CODEX_PHASE_PROTOCOL.md`
+7. relevant current handoff, task queue and audit artifacts.
 
-1. Read `docs/HANDOFF.md`.
-2. Read `docs/TASK_QUEUE.md`.
-3. Read `docs/BUGS.md` only when fixing a bug.
-4. Read `docs/DECISIONS.md` only when architecture matters.
-5. Read `package.json` only when scripts or dependencies matter.
+Rules:
 
-Never scan the full repository. Never read `node_modules`, `dist`, `build`, `.next`, `coverage`, `.env*`, secrets, or `package-lock.json` unless a dependency issue explicitly requires the lockfile.
+- The user is the Owner and final decision-maker.
+- The coordinating ChatGPT conversation is the Project Manager.
+- No worker starts without an explicit Owner GO command.
+- Do not interpret rough discussion as a locked decision.
+- Verify GitHub state before every implementation prompt.
+- Never merge unaudited complex work.
+- Preserve `.claude/launch.json`.
+- Keep `.references/` local-only.
+- Do not merge Claude prototype branches wholesale.
+- Master Graph remains the only project-data source of truth.
+- Read the full operating protocol for worker routing, branch safety and report
+  requirements.
 
-## Guardrails
+## Workspace hygiene (carried forward)
 
-- Complete only the requested phase.
-- Reuse existing layout, store, graph, and view logic.
-- Do not rewrite the store, central graph, canvas, table sync, import/export contracts, or project model unless the phase explicitly requires it.
-- Product data remains owned by the central graph/store, never UI tools, skills, or MCPs.
-- Do not add backend, auth, cloud save, payment, public gallery, or online deployment.
+These pre-protocol repository rules remain in force:
+
+- Read `docs/HANDOFF.md` then `docs/TASK_QUEUE.md` before phase work; read
+  `docs/BUGS.md` only when fixing a bug and `docs/DECISIONS.md` only when
+  architecture matters.
+- Never scan the full repository. Never read `node_modules`, `dist`, `build`,
+  `.next`, `coverage`, `.env*`, secrets, or `package-lock.json` unless a
+  dependency issue explicitly requires the lockfile.
+- Complete only the requested phase; prefer small, deterministic changes and
+  existing components.
+- Product data remains owned by the central graph/store, never UI tools,
+  skills, or MCPs.
+- Do not add backend, auth, cloud save, payment, public gallery, or online
+  deployment.
 - Do not install packages unless the phase explicitly requires them.
-- Do not touch secrets or delete major folders without approval.
-- Prefer small, deterministic changes and existing components.
-
-## Phase completion
-
-For code changes, run `npm run build`. Update `docs/HANDOFF.md` and `docs/TASK_QUEUE.md`. Update `docs/BUGS.md` only for a real bug and `docs/DECISIONS.md` only for a real architecture decision.
+- For code changes, run `npm run build`; update `docs/HANDOFF.md` and
+  `docs/TASK_QUEUE.md` on phase completion.

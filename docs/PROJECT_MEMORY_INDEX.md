@@ -2,6 +2,26 @@
 
 Purpose: compact map of where project truth lives so future Codex phases read less.
 
+## AI Team Operating Protocol
+
+Before any prompt, implementation, audit, fix, merge or milestone transition,
+read:
+
+`docs/MOOORF_AI_TEAM_OPERATING_PROTOCOL.md`
+
+This file defines:
+
+- Owner authority
+- Project Manager behaviour
+- worker routing
+- explicit GO commands
+- branch safety
+- parallel-work rules
+- milestone gates
+- visual approval
+- report format
+- current milestone order
+
 ## Canonical Product Scope — read first
 
 - `docs/MOOORF_FINAL_SCOPE.md` — mandatory entry point and read order before every new implementation prompt, audit, milestone, shell change, terminology change, or commercial phase.
