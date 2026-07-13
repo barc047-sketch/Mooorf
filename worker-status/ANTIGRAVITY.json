@@ -1,19 +1,20 @@
 {
   "worker": "Antigravity",
   "model": "Sonnet 4.6",
-  "status": "DONE",
-  "task": "Prototype reuse and production integration audit",
-  "brief": "docs/worker-briefs/C0_X_ANTIGRAVITY_PROTOTYPE_REUSE_INTEGRATION_AUDIT.md",
+  "status": "RUNNING",
+  "task": "C0.4 modular layer architecture audit",
+  "brief": "docs/worker-briefs/C0_4_ANTIGRAVITY_LAYER_ARCHITECTURE_AUDIT.md",
   "source_branch": "main",
-  "source_sha": "92f4c644a9f27a3bdd6b61d1349e560a63235bd1",
+  "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
   "work_branch": null,
-  "last_checkpoint": "Completed independent prototype reuse and integration audit across V1, V2, and C0.3 branches",
-  "updated_at": "2026-07-13T12:40:00Z",
+  "last_checkpoint": "Verifying fixed prototype and production sources",
+  "updated_at": "2026-07-13T18:32:00Z",
   "blocked_reason": null,
   "expected_outputs": [
-    "MOOORF_PROTOTYPE_REUSE_AND_INTEGRATION_MAP.md",
-    "MOOORF_REUSE_PRIORITY_AND_MILESTONE_PLAN.md",
-    "MOOORF_PROTOTYPE_DUPLICATION_AND_OWNERSHIP_RISK.md",
-    "MOOORF_PROTOTYPE_REUSE_AUDIT_STATE.json"
+    "C0_4_LAYER_OWNERSHIP_MATRIX.md",
+    "C0_4_STATE_HISTORY_TABLE_ARCHITECTURE.md",
+    "C0_4_RENDERER_EXPORT_LAYER_PLAN.md",
+    "C0_4_IMPLEMENTATION_SEQUENCE_AND_RISK.md",
+    "C0_4_AUDIT_STATE.json"
   ]
 }
