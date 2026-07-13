@@ -19,6 +19,11 @@ import type {
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION } from "./types";
 import type { ResourceSettings } from "../resources/types";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
+import type { ProjectPresentationDefaults } from "../domain/presentation/types";
+import {
+  cloneProjectPresentationDefaults,
+  normalizeCellAppearanceOverrides,
+} from "../domain/presentation/validation";
 
 /* Mirrors the existing SavedCanvasSnapshot field set (src/types.ts) so the
    JSON project export reuses one canonical project-state shape instead of
@@ -47,6 +52,7 @@ export interface ProjectExportSettings {
   labelCustomColour: string;
   cellShadow: CellShadowSettings;
   performanceQuality: PerformanceQuality;
+  presentationDefaults: ProjectPresentationDefaults;
 }
 
 export interface ProjectExportSummary {
@@ -91,7 +97,10 @@ export const buildProjectSnapshot = (
     schemaVersion: PROJECT_SNAPSHOT_SCHEMA_VERSION,
     exportedAt: now.toISOString(),
     project: { title: title.trim() },
-    spaces: input.spaces.map((s) => ({ ...s })),
+    spaces: input.spaces.map((space) => ({
+      ...space,
+      appearance: normalizeCellAppearanceOverrides(space.appearance, input.settings.presentationDefaults),
+    })),
     camera: { ...input.camera },
     theme: input.theme,
     settings: {
@@ -99,6 +108,7 @@ export const buildProjectSnapshot = (
       organism: { ...input.settings.organism },
       cellShadow: { ...input.settings.cellShadow },
       resources: cloneResourceSettings(input.settings.resources),
+      presentationDefaults: cloneProjectPresentationDefaults(input.settings.presentationDefaults),
     },
     summary: {
       spaceCount: input.spaces.length,

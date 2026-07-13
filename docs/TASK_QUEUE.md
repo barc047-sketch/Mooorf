@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
 - [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)
 - [x] V8.2C0 Canvas Performance + Contrast Reset (implementation complete; final branch verification/audit handoff)
 - [x] V8.2A.1 Multi-Selection Group Drag Foundation
@@ -27,6 +28,20 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## C0.4.1 — Layer Contracts, Defaults and Resolvers  ✅ IMPLEMENTED ON FEATURE BRANCH
+
+- [x] six unique canonical targets: Cell, Boundary, Membrane, Membrane Edge, Core, Void
+- [x] complete project defaults separated from nested sparse per-Cell overrides
+- [x] baseline-only Boundary (Off/Solid/width/offset/paint) and Core (On/Dot/size/paint)
+- [x] pure complete resolver reusing current colour, Organism palette, and material-registry owners
+- [x] deterministic numeric clamps, compatible fallback, recoverable unknown IDs, explicit target reset
+- [x] immutable Void subtraction/area/geometry/hit-test/clearance invariants
+- [x] project/config/saved-view/export/recovery migration without a major schema bump
+- [x] focused domain and directly affected persistence/resource/export contracts
+- [x] no visible UI, renderer draw calls, Inspector controls, Flags, Annotation Cards, advanced technical styles, or packages
+- [ ] Antigravity independent architecture/migration audit and merge approval
+- [ ] C0.4.2–C0.4.6 remain separately gated and unimplemented
 
 ## V8.2C0.2 — Icon and Grid Asset Registry  ✅ IMPLEMENTED
 

@@ -15,6 +15,7 @@ import {
 } from "./filenames";
 import type { ExportPresentationOptions, ExportVisualOptions } from "./types";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
+import { cloneProjectPresentationDefaults } from "../domain/presentation/validation";
 
 export type PackProgressStage =
   | "Capturing canvas"
@@ -48,6 +49,7 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
     labelCustomColour: s.labelCustomColour,
     cellShadow: { ...s.cellShadow },
     performanceQuality: s.performanceQuality,
+    presentationDefaults: cloneProjectPresentationDefaults(s.presentationDefaults),
   };
 };
 

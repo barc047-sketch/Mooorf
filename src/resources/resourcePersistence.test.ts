@@ -4,6 +4,7 @@ import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings"
 import { DEFAULT_RESOURCE_SETTINGS, normalizeResourceSettings, RESOURCE_SCHEMA_VERSION } from "./resourcePersistence";
 import { resourceCatalogue } from "./resourceCatalogue";
 import { DEFAULT_CELL_SHADOW } from "../canvas/cellShadow";
+import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
 
 const ok = (value: unknown, message: string) => { if (!value) throw new Error(message); };
 const equal = (actual: unknown, expected: unknown, message: string) => { if (!Object.is(actual, expected)) throw new Error(`${message}: ${String(actual)} !== ${String(expected)}`); };
@@ -38,7 +39,7 @@ const settings = {
   labelScaleMode: "screen" as const, labelColourMode: "auto" as const, labelCustomColour: "#171719",
   cellShadow: DEFAULT_CELL_SHADOW, performanceQuality: "automatic" as const,
 };
-const snapshot = buildProjectSnapshot({ spaces: [], camera: { x: 0, y: 0, zoom: 1 }, theme: "day", settings }, "Resources", new Date("2026-07-12T00:00:00.000Z"));
+const snapshot = buildProjectSnapshot({ spaces: [], camera: { x: 0, y: 0, zoom: 1 }, theme: "day", settings: { ...settings, presentationDefaults: createProjectPresentationDefaults(settings) } }, "Resources", new Date("2026-07-12T00:00:00.000Z"));
 const roundTrip = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, []))).snapshot.settings.resources;
 equal(roundTrip.grid.presetId, "technical", "grid preset round trips");
 equal(roundTrip.materialBindings.spaceFill.materialId, DEFAULT_RESOURCE_SETTINGS.materialBindings.spaceFill.materialId, "material binding round trips");

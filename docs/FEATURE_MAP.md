@@ -4,6 +4,16 @@ Purpose: map features to files, docs, and risk level for faster future phases.
 
 Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implementation reuses existing ownership instead of creating duplicate controls or state.
 
+## C0.4.1 — Layer Contracts, Defaults and Resolvers
+
+- Purpose: establish renderer-neutral presentation ownership for Cell, Boundary, Membrane, Membrane Edge, Core, and Void without changing current Canvas output.
+- Main files: `src/domain/presentation/*`, `src/types.ts`, `src/state/store.ts`, `src/export/projectSnapshot.ts`, `src/import/projectFiles.ts`, and `src/import/projectTransfer.ts`.
+- Ownership: `SpaceCell.appearance` stores optional sparse overrides; `settings.presentationDefaults` stores the complete project hierarchy; the existing material registry and `getNucleusColor`/Organism palette paths remain canonical inputs to one pure resolver.
+- Persistence: project, config, saved-view, export, and recovery paths clone and normalize IDs/scalars only. Missing legacy data derives Membrane from `blobOn`, Core from `organism.showNuclei`, and material references from existing resource bindings without a major schema bump.
+- Invariants: Selection UI is never persisted appearance; Void presentation cannot alter subtraction, programmed area, geometry, hit testing, or clearance. Renderers and UI do not consume the new contract in C0.4.1, so visual output remains unchanged.
+- Deferred: renderer separation, selection-overlay isolation, Cell Inspector controls, advanced Boundary/Core styles, Labels, Flags, Annotation Cards, and C0.4.2–C0.4.6 implementation.
+- Risk: high for sparse migration and future resolver adoption; never persist registry definitions or create a second colour/material/store owner.
+
 ## Icon and Grid Asset Registry (V8.2C0.2)
 
 - Purpose: provide audited, immutable symbol and grid metadata for the future inspector without adding placement UI or changing Canvas runtime behavior.

@@ -24,6 +24,14 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 - New widget/card/control CSS is acceptable only when it extends these primitives or covers a genuinely new interaction.
 - Future stats/data widgets should use compact micro-card patterns, tabular numerals, and glass surfaces from the existing widget system.
 
+## C0.4.1 Presentation Domain
+
+- `src/domain/presentation/types.ts` owns the six canonical target IDs, material-target compatibility metadata, complete project-default types, sparse `CellAppearanceOverrides`, and complete resolved output types. Selection, Labels, Flags, and Annotation Cards are not members of this persistence schema.
+- `defaults.ts` derives current-compatible project defaults from existing resource bindings plus legacy Morph/Core settings. Boundary is Off/Solid, Core is On/Dot at the current 0.34 radius ratio, Membrane follows legacy Morph, and Membrane Edge remains a separate inactive owner.
+- `validation.ts` owns deterministic clamps, safe ID/colour extraction, sparse normalization, deep cloning, migration, and the explicit reset operation (remove one target override to inherit again). It never accepts embedded material definitions.
+- `resolveAppearance.ts` is the pure renderer-neutral projection. It reuses the material registry, nucleus colour resolver, and Organism palette resolver; unknown/incompatible IDs remain reported and fall back truthfully.
+- Existing project/config/saved-view/recovery/export owners persist the contract. Future renderers and the Cell Inspector must consume this domain rather than add renderer defaults, flat `SpaceCell` style fields, or a second registry.
+
 ## Resource Registry Foundation (V8.2B)
 
 - `src/materials/materialRegistry.ts` owns canonical serializable material definitions; `builtInMaterials.ts` adapts the existing palette library into collections and `materialResolver.ts` preserves current colour output.

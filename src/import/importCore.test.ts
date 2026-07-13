@@ -16,6 +16,7 @@ import type { ProjectExportSnapshot } from "../export/projectSnapshot";
 import type { SavedCanvasSnapshot, SpaceCell } from "../types";
 import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 import { DEFAULT_CELL_SHADOW } from "../canvas/cellShadow";
+import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
   if (!Object.is(actual, expected)) throw new Error(`${message}: ${String(actual)} !== ${String(expected)}`);
@@ -57,8 +58,20 @@ const settings = {
   cellShadow: DEFAULT_CELL_SHADOW,
   performanceQuality: "automatic" as const,
 };
+const presentationDefaults = createProjectPresentationDefaults(settings);
+const settingsWithPresentation = { ...settings, presentationDefaults };
 const spaces: SpaceCell[] = [
-  { id: "a", name: "Studio", area: 80, category: "Work", privacy: "shared", color: "#123456", x: 10, y: 20 },
+  {
+    id: "a",
+    name: "Studio",
+    area: 80,
+    category: "Work",
+    privacy: "shared",
+    color: "#123456",
+    x: 10,
+    y: 20,
+    appearance: { boundary: { visible: true, width: 3 } },
+  },
 ];
 const snapshot: ProjectExportSnapshot = {
   schemaVersion: 1,
@@ -67,7 +80,7 @@ const snapshot: ProjectExportSnapshot = {
   spaces,
   camera: { x: 1, y: 2, zoom: 1.2 },
   theme: "day",
-  settings,
+  settings: settingsWithPresentation,
   summary: { spaceCount: 1, voidCount: 0, programmedAreaM2: 80 },
 };
 const savedViews: SavedCanvasSnapshot[] = [];
@@ -76,18 +89,54 @@ const project = buildProjectEnvelope(snapshot, savedViews, new Date("2026-07-11T
 equal(project.kind, "mooorf-project", "project discriminator");
 equal(project.schemaVersion, PROJECT_FILE_VERSION, "project schema version");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].color, "#123456", "complete project preserves explicit colors");
-const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", createdAt: 1, spaces, camera: snapshot.camera, rendererMode: settings.rendererMode, morphMode: settings.morphMode, attachMode: settings.attachMode, mergeDistance: settings.mergeDistance, blobOn: settings.blobOn, paletteMode: settings.paletteMode, colorSource: settings.colorSource, layoutPreset: settings.layoutPreset, annotationMode: settings.annotationMode, organism: settings.organism, theme: "day", uiScale: settings.uiScale, widgetScale: settings.widgetScale, annotationDetail: settings.annotationDetail, showGrid: settings.showGrid, nucleusPaletteId: settings.nucleusPaletteId, organismPaletteId: settings.organismPaletteId, resources: settings.resources };
-equal(parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [savedView]))).savedViews.length, 1, "saved views validate and round-trip");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].appearance?.boundary?.width, 3, "project preserves sparse Cell appearance");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.presentationDefaults.schemaVersion, 1, "project preserves presentation defaults");
+const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", createdAt: 1, spaces, camera: snapshot.camera, rendererMode: settings.rendererMode, morphMode: settings.morphMode, attachMode: settings.attachMode, mergeDistance: settings.mergeDistance, blobOn: settings.blobOn, paletteMode: settings.paletteMode, colorSource: settings.colorSource, layoutPreset: settings.layoutPreset, annotationMode: settings.annotationMode, organism: settings.organism, theme: "day", uiScale: settings.uiScale, widgetScale: settings.widgetScale, annotationDetail: settings.annotationDetail, showGrid: settings.showGrid, nucleusPaletteId: settings.nucleusPaletteId, organismPaletteId: settings.organismPaletteId, resources: settings.resources, presentationDefaults };
+const parsedSavedView = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [savedView]))).savedViews[0];
+equal(parsedSavedView.presentationDefaults?.schemaVersion, 1, "saved-view presentation defaults round-trip");
+equal(parsedSavedView.spaces[0].appearance?.boundary?.visible, true, "saved-view sparse appearance round-trips");
+const legacySavedView = {
+  ...savedView,
+  spaces: savedView.spaces.map(({ appearance: _appearance, ...space }) => space),
+  nucleusPaletteId: "architecture-warm",
+  resources: undefined,
+  presentationDefaults: undefined,
+};
+const migratedSavedView = parseProjectEnvelope(JSON.stringify({ ...project, savedViews: [legacySavedView] })).savedViews[0];
+equal(migratedSavedView.presentationDefaults?.cell.paint.materialId, "palette:architecture-warm", "legacy saved view derives presentation materials from its palette");
+equal(migratedSavedView.spaces[0].appearance, undefined, "legacy saved-view Cells remain sparse");
 equal(parseProjectEnvelope(JSON.stringify(snapshot)).snapshot.project.title, "Test", "V7.2 JSON snapshot is recognized");
+const legacySnapshot = {
+  ...snapshot,
+  spaces: snapshot.spaces.map(({ appearance: _appearance, ...space }) => space),
+  settings: Object.fromEntries(Object.entries(snapshot.settings).filter(([key]) => key !== "presentationDefaults")),
+};
+const migratedLegacy = parseProjectEnvelope(JSON.stringify(legacySnapshot));
+equal(migratedLegacy.snapshot.settings.presentationDefaults.membrane.visible, settings.blobOn, "legacy Morph state migrates to Membrane defaults");
+equal(migratedLegacy.snapshot.settings.presentationDefaults.core.visible, true, "legacy Core visibility migrates safely");
+equal(migratedLegacy.snapshot.spaces[0].appearance, undefined, "legacy Cells remain sparse after migration");
 throws(() => parseProjectEnvelope('{"kind":"wrong","schemaVersion":1}'), "kind", "invalid project kind rejected");
 throws(() => parseProjectEnvelope('{"kind":"mooorf-project"}'), "schema", "missing schema rejected");
 throws(() => parseProjectEnvelope(JSON.stringify({ ...project, schemaVersion: 99 })), "future", "future project rejected");
 throws(() => parseProjectEnvelope("{"), "json", "malformed JSON rejected");
 throws(() => parseProjectEnvelope(JSON.stringify({ ...project, snapshot: { ...snapshot, camera: { x: Infinity, y: 0, zoom: 1 } } })), "finite", "non-finite coordinates rejected");
 throws(() => parseProjectEnvelope('{"kind":"mooorf-project","schemaVersion":1,"__proto__":{},"snapshot":{}}'), "unsafe", "prototype pollution keys rejected");
+throws(() => parseProjectEnvelope(JSON.stringify({
+  ...project,
+  snapshot: {
+    ...snapshot,
+    settings: { ...snapshot.settings, presentationDefaults: { schemaVersion: 99 } },
+  },
+})), "future presentation", "future presentation schema rejected");
 
 const config = buildConfigEnvelope(snapshot, new Date("2026-07-11T00:00:00.000Z"));
 equal(parseConfigEnvelope(JSON.stringify(config)).kind, "mooorf-config", "settings-only config validates");
+equal(parseConfigEnvelope(JSON.stringify(config)).settings.presentationDefaults.schemaVersion, 1, "config presentation defaults round-trip");
+const legacyConfig = {
+  ...config,
+  settings: Object.fromEntries(Object.entries(config.settings).filter(([key]) => key !== "presentationDefaults")),
+};
+equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.presentationDefaults.membrane.visible, settings.blobOn, "legacy config gains presentation defaults");
 const configPreview = previewConfigChanges(config, [...spaces, { ...spaces[0], id: "b", name: "Other" }]);
 equal(configPreview.matchingLayoutIds, 1, "matching layout ids counted");
 equal(configPreview.unmatchedLayoutIds, 0, "unmatched ids absent");

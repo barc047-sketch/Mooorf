@@ -1,4 +1,5 @@
 import type { ResourceSettings } from "./resources/types";
+import type { CellAppearanceOverrides, ProjectPresentationDefaults } from "./domain/presentation/types";
 
 export type Theme = "day" | "night";
 
@@ -178,6 +179,8 @@ export interface SpaceCell {
   x: number;
   y: number;
   born?: number; // Date.now() at creation — drives spawn stagger in renderer
+  /** C0.4.1 — presentation-only sparse overrides; architectural data stays above. */
+  appearance?: CellAppearanceOverrides;
 }
 
 export interface Camera {
@@ -219,4 +222,6 @@ export interface SavedCanvasSnapshot {
   labelCustomColour?: string;
   cellShadow?: CellShadowSettings;
   performanceQuality?: PerformanceQuality;
+  /** C0.4.1 — optional so pre-layer saved views migrate from legacy settings. */
+  presentationDefaults?: ProjectPresentationDefaults;
 }

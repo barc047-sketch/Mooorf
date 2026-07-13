@@ -58,6 +58,14 @@ import {
   normalizePerformanceQuality,
 } from "./visualSettings";
 import { resolveWidgetOpen } from "../ui/widgets/widgetLifecycle";
+import type { ProjectPresentationDefaults } from "../domain/presentation/types";
+import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
+import {
+  cloneCellAppearanceOverrides,
+  cloneProjectPresentationDefaults,
+  normalizeCellAppearanceOverrides,
+  normalizeProjectPresentationDefaults,
+} from "../domain/presentation/validation";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -101,6 +109,7 @@ export interface LabSettings {
   organismPaletteId: string;
   organism: OrganismSettings;
   resources: ResourceSettings;
+  presentationDefaults: ProjectPresentationDefaults;
 }
 
 export const DEFAULT_ANNOTATION_DETAIL: AnnotationDetail = {
@@ -208,9 +217,37 @@ const closedContext = {
 const cloneSpace = (space: SpaceCell): SpaceCell => ({
   ...space,
   kind: normalizeSpaceKind(space.kind),
+  appearance: cloneCellAppearanceOverrides(space.appearance),
 });
 const cloneCamera = (camera: Camera): Camera => ({ ...camera });
 const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...organism });
+
+const syncLegacyPresentationDefaults = (
+  current: ProjectPresentationDefaults,
+  patch: Partial<LabSettings>,
+  legacy: { blobOn: boolean; organism: OrganismSettings; resources: ResourceSettings },
+  resourcesChanged: boolean
+): ProjectPresentationDefaults => {
+  if (patch.presentationDefaults) {
+    return normalizeProjectPresentationDefaults(patch.presentationDefaults, legacy);
+  }
+  const next = cloneProjectPresentationDefaults(current);
+  const derived = createProjectPresentationDefaults(legacy);
+  if (typeof patch.blobOn === "boolean") next.membrane.visible = patch.blobOn;
+  if (patch.organism && typeof patch.organism.showNuclei === "boolean") {
+    next.core.visible = patch.organism.showNuclei;
+  }
+  if (resourcesChanged) {
+    next.cell.paint = { ...next.cell.paint, materialId: derived.cell.paint.materialId, opacity: derived.cell.paint.opacity };
+    next.boundary.paint = { ...next.boundary.paint, materialId: derived.boundary.paint.materialId, opacity: derived.boundary.paint.opacity };
+    next.membrane.paint = { ...next.membrane.paint, materialId: derived.membrane.paint.materialId, opacity: derived.membrane.paint.opacity };
+    next.membraneEdge.paint = { ...next.membraneEdge.paint, materialId: derived.membraneEdge.paint.materialId, opacity: derived.membraneEdge.paint.opacity };
+    next.core.paint = { ...next.core.paint, materialId: derived.core.paint.materialId, opacity: derived.core.paint.opacity };
+    next.void.fill = { ...next.void.fill, materialId: derived.void.fill.materialId, opacity: derived.void.fill.opacity };
+    next.void.edge = { ...next.void.edge, materialId: derived.void.edge.materialId, opacity: derived.void.edge.opacity };
+  }
+  return next;
+};
 
 const isFinitePosition = (position: SpacePosition): boolean =>
   Boolean(position.id) && Number.isFinite(position.x) && Number.isFinite(position.y);
@@ -254,21 +291,44 @@ const applyHistoryEntry = (
   return spaces.map((space) => space.id === entry.id ? { ...space, ...value } : space);
 };
 
-const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => ({
-  ...snapshot,
-  colorSource: snapshot.colorSource === "privacy" ? "privacy" : "category",
-  uiScale: normalizeUiScale(snapshot.uiScale),
-  widgetScale: normalizeWidgetScale(snapshot.widgetScale),
-  spaces: snapshot.spaces.map(cloneSpace),
-  camera: cloneCamera(snapshot.camera),
-  organism: cloneOrganism(snapshot.organism),
-  resources: snapshot.resources ? cloneResourceSettings(snapshot.resources) : undefined,
-  labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
-  labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
-  labelCustomColour: normalizeLabelCustomColour(snapshot.labelCustomColour),
-  cellShadow: normalizeLegacyCellShadow(snapshot.cellShadow, snapshot.rendererMode),
-  performanceQuality: normalizePerformanceQuality(snapshot.performanceQuality),
-});
+const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => {
+  const resources = snapshot.resources
+    ? cloneResourceSettings(snapshot.resources)
+    : {
+        ...cloneResourceSettings(DEFAULT_RESOURCE_SETTINGS),
+        materialBindings: defaultMaterialBindings(
+          snapshot.nucleusPaletteId ?? "editorial-aurora",
+          snapshot.organismPaletteId ?? "mode"
+        ),
+        grid: migrateLegacyGridSettings(snapshot.showGrid ?? false),
+        annotationInstances: [],
+        iconPlacements: [],
+      };
+  const presentationDefaults = normalizeProjectPresentationDefaults(snapshot.presentationDefaults, {
+    blobOn: snapshot.blobOn ?? true,
+    organism: snapshot.organism,
+    resources,
+  });
+  return {
+    ...snapshot,
+    colorSource: snapshot.colorSource === "privacy" ? "privacy" : "category",
+    uiScale: normalizeUiScale(snapshot.uiScale),
+    widgetScale: normalizeWidgetScale(snapshot.widgetScale),
+    spaces: snapshot.spaces.map((space) => ({
+      ...cloneSpace(space),
+      appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
+    })),
+    camera: cloneCamera(snapshot.camera),
+    organism: cloneOrganism(snapshot.organism),
+    resources,
+    presentationDefaults,
+    labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
+    labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
+    labelCustomColour: normalizeLabelCustomColour(snapshot.labelCustomColour),
+    cellShadow: normalizeLegacyCellShadow(snapshot.cellShadow, snapshot.rendererMode),
+    performanceQuality: normalizePerformanceQuality(snapshot.performanceQuality),
+  };
+};
 
 const safeStorage = () => {
   try {
@@ -366,6 +426,7 @@ const makeSnapshot = (
   nucleusPaletteId: state.settings.nucleusPaletteId,
   organismPaletteId: state.settings.organismPaletteId,
   resources: cloneResourceSettings(state.settings.resources),
+  presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults),
   labelScaleMode: state.settings.labelScaleMode,
   labelColourMode: state.settings.labelColourMode,
   labelCustomColour: state.settings.labelCustomColour,
@@ -420,6 +481,11 @@ export const useLab = create<LabState>((set) => ({
     organismPaletteId: "mode",
     organism: { ...DEFAULT_ORGANISM_SETTINGS },
     resources: cloneResourceSettings(DEFAULT_RESOURCE_SETTINGS),
+    presentationDefaults: createProjectPresentationDefaults({
+      blobOn: false,
+      organism: DEFAULT_ORGANISM_SETTINGS,
+      resources: DEFAULT_RESOURCE_SETTINGS,
+    }),
   },
   activeTool: "select",
   temporaryTool: null,
@@ -464,6 +530,13 @@ export const useLab = create<LabState>((set) => ({
               ? migrateLegacyGridSettings(patch.showGrid)
               : cloneResourceSettings(s.settings.resources).grid,
           };
+      const organism = patch.organism ? { ...s.settings.organism, ...patch.organism } : s.settings.organism;
+      const presentationDefaults = syncLegacyPresentationDefaults(
+        s.settings.presentationDefaults,
+        patch,
+        { blobOn: patch.blobOn ?? s.settings.blobOn, organism, resources },
+        Boolean(patch.resources || patch.nucleusPaletteId || patch.organismPaletteId)
+      );
       return {
         settings: {
           ...s.settings,
@@ -474,6 +547,7 @@ export const useLab = create<LabState>((set) => ({
           cellShadow: patch.cellShadow ? normalizeCellShadow(patch.cellShadow) : normalizeCellShadow(s.settings.cellShadow),
           performanceQuality: normalizePerformanceQuality(patch.performanceQuality ?? s.settings.performanceQuality),
           resources,
+          presentationDefaults,
         },
       };
     }),
@@ -484,9 +558,18 @@ export const useLab = create<LabState>((set) => ({
     })),
 
   setOrganism: (patch) =>
-    set((s) => ({
-      settings: { ...s.settings, organism: { ...s.settings.organism, ...patch } },
-    })),
+    set((s) => {
+      const organism = { ...s.settings.organism, ...patch };
+      const presentationDefaults = cloneProjectPresentationDefaults(s.settings.presentationDefaults);
+      if (typeof patch.showNuclei === "boolean") presentationDefaults.core.visible = patch.showNuclei;
+      return {
+        settings: {
+          ...s.settings,
+          organism,
+          presentationDefaults,
+        },
+      };
+    }),
 
   setAnnotationDetail: (patch) =>
     set((s) => ({
@@ -751,8 +834,27 @@ export const useLab = create<LabState>((set) => ({
       const snapshot = s.savedViews.find((view) => view.id === id);
       if (!snapshot) return {};
       const now = Date.now();
+      const organism = { ...DEFAULT_ORGANISM_SETTINGS, ...cloneOrganism(snapshot.organism) };
+      const resources = snapshot.resources
+        ? cloneResourceSettings(snapshot.resources)
+        : {
+            ...cloneResourceSettings(s.settings.resources),
+            materialBindings: defaultMaterialBindings(
+              snapshot.nucleusPaletteId ?? s.settings.nucleusPaletteId,
+              snapshot.organismPaletteId ?? s.settings.organismPaletteId
+            ),
+            grid: migrateLegacyGridSettings(snapshot.showGrid ?? s.settings.showGrid),
+            annotationInstances: [],
+            iconPlacements: [],
+          };
+      const presentationDefaults = normalizeProjectPresentationDefaults(snapshot.presentationDefaults, {
+        blobOn: snapshot.blobOn ?? true,
+        organism,
+        resources,
+      });
       const spaces = snapshot.spaces.map((space, index) => ({
         ...cloneSpace(space),
+        appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
         born: now + index * 24,
       }));
       return {
@@ -781,19 +883,9 @@ export const useLab = create<LabState>((set) => ({
           showGrid: snapshot.showGrid ?? s.settings.showGrid,
           nucleusPaletteId: snapshot.nucleusPaletteId ?? s.settings.nucleusPaletteId,
           organismPaletteId: snapshot.organismPaletteId ?? s.settings.organismPaletteId,
-          organism: { ...DEFAULT_ORGANISM_SETTINGS, ...cloneOrganism(snapshot.organism) },
-          resources: snapshot.resources
-            ? cloneResourceSettings(snapshot.resources)
-            : {
-                ...cloneResourceSettings(s.settings.resources),
-                materialBindings: defaultMaterialBindings(
-                  snapshot.nucleusPaletteId ?? s.settings.nucleusPaletteId,
-                  snapshot.organismPaletteId ?? s.settings.organismPaletteId
-                ),
-                grid: migrateLegacyGridSettings(snapshot.showGrid ?? s.settings.showGrid),
-                annotationInstances: [],
-                iconPlacements: [],
-              },
+          organism,
+          resources,
+          presentationDefaults,
           labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
           labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
           labelCustomColour: normalizeLabelCustomColour(snapshot.labelCustomColour),

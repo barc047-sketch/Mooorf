@@ -1,0 +1,224 @@
+import { createProjectPresentationDefaults, PRESENTATION_SCHEMA_VERSION, type LegacyPresentationSettings } from "./defaults";
+import {
+  PRESENTATION_TARGET_CONTRACTS,
+  type CellAppearanceOverrides,
+  type PresentationDefaultsKey,
+  type PresentationPaintDefaults,
+  type PresentationPaintOverride,
+  type PresentationTargetId,
+  type ProjectPresentationDefaults,
+} from "./types";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const clamp = (value: number, minimum: number, maximum: number): number =>
+  Math.min(maximum, Math.max(minimum, value));
+
+const canonicalHex = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const colour = value.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(colour)) return colour;
+  if (/^#[0-9a-f]{3}$/.test(colour)) {
+    return `#${colour[1]}${colour[1]}${colour[2]}${colour[2]}${colour[3]}${colour[3]}`;
+  }
+  return null;
+};
+
+const materialId = (value: unknown, fallback: string): string => {
+  if (typeof value !== "string") return fallback;
+  const id = value.trim().slice(0, 160);
+  return id || fallback;
+};
+
+const finiteOr = (value: unknown, fallback: number, minimum: number, maximum: number): number =>
+  typeof value === "number" && Number.isFinite(value) ? clamp(value, minimum, maximum) : fallback;
+
+const normalizePaintDefaults = (value: unknown, fallback: PresentationPaintDefaults): PresentationPaintDefaults => {
+  const record = isRecord(value) ? value : {};
+  const colour = record.colour === null ? null : canonicalHex(record.colour) ?? fallback.colour;
+  return {
+    materialId: materialId(record.materialId, fallback.materialId),
+    colour,
+    opacity: finiteOr(record.opacity, fallback.opacity, 0, 1),
+  };
+};
+
+export const normalizeProjectPresentationDefaults = (
+  value: unknown,
+  legacy: LegacyPresentationSettings = {}
+): ProjectPresentationDefaults => {
+  const fallback = createProjectPresentationDefaults(legacy);
+  if (!isRecord(value)) return fallback;
+  if (typeof value.schemaVersion === "number" && value.schemaVersion > PRESENTATION_SCHEMA_VERSION) {
+    throw new Error("Future presentation schema versions are not supported.");
+  }
+  const cell = isRecord(value.cell) ? value.cell : {};
+  const boundary = isRecord(value.boundary) ? value.boundary : {};
+  const membrane = isRecord(value.membrane) ? value.membrane : {};
+  const membraneEdge = isRecord(value.membraneEdge) ? value.membraneEdge : {};
+  const core = isRecord(value.core) ? value.core : {};
+  const voidDefaults = isRecord(value.void) ? value.void : {};
+  return {
+    schemaVersion: PRESENTATION_SCHEMA_VERSION,
+    cell: {
+      visible: typeof cell.visible === "boolean" ? cell.visible : fallback.cell.visible,
+      paint: normalizePaintDefaults(cell.paint, fallback.cell.paint),
+    },
+    boundary: {
+      visible: typeof boundary.visible === "boolean" ? boundary.visible : fallback.boundary.visible,
+      style: "solid",
+      width: finiteOr(boundary.width, fallback.boundary.width, 0, 64),
+      offset: finiteOr(boundary.offset, fallback.boundary.offset, -64, 64),
+      paint: normalizePaintDefaults(boundary.paint, fallback.boundary.paint),
+    },
+    membrane: {
+      visible: typeof membrane.visible === "boolean" ? membrane.visible : fallback.membrane.visible,
+      paint: normalizePaintDefaults(membrane.paint, fallback.membrane.paint),
+    },
+    membraneEdge: {
+      visible: typeof membraneEdge.visible === "boolean" ? membraneEdge.visible : fallback.membraneEdge.visible,
+      width: finiteOr(membraneEdge.width, fallback.membraneEdge.width, 0, 64),
+      paint: normalizePaintDefaults(membraneEdge.paint, fallback.membraneEdge.paint),
+    },
+    core: {
+      visible: typeof core.visible === "boolean" ? core.visible : fallback.core.visible,
+      shape: "dot",
+      size: finiteOr(core.size, fallback.core.size, 0.1, 2),
+      paint: normalizePaintDefaults(core.paint, fallback.core.paint),
+    },
+    void: {
+      visible: typeof voidDefaults.visible === "boolean" ? voidDefaults.visible : fallback.void.visible,
+      fill: normalizePaintDefaults(voidDefaults.fill, fallback.void.fill),
+      edge: normalizePaintDefaults(voidDefaults.edge, fallback.void.edge),
+      edgeWidth: finiteOr(voidDefaults.edgeWidth, fallback.void.edgeWidth, 0, 64),
+    },
+  };
+};
+
+const normalizePaintOverride = (
+  value: unknown,
+  defaults: PresentationPaintDefaults
+): PresentationPaintOverride | undefined => {
+  if (!isRecord(value)) return undefined;
+  const next: PresentationPaintOverride = {};
+  if (typeof value.materialId === "string") {
+    const id = materialId(value.materialId, defaults.materialId);
+    if (id !== defaults.materialId) next.materialId = id;
+  }
+  const colour = canonicalHex(value.colour);
+  if (colour && colour !== defaults.colour) next.colour = colour;
+  if (typeof value.opacity === "number" && Number.isFinite(value.opacity)) {
+    const opacity = clamp(value.opacity, 0, 1);
+    if (opacity !== defaults.opacity) next.opacity = opacity;
+  }
+  return Object.keys(next).length ? next : undefined;
+};
+
+const changedBoolean = (value: unknown, fallback: boolean): boolean | undefined =>
+  typeof value === "boolean" && value !== fallback ? value : undefined;
+
+const changedNumber = (
+  value: unknown,
+  fallback: number,
+  minimum: number,
+  maximum: number
+): number | undefined => {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  const normalized = clamp(value, minimum, maximum);
+  return normalized !== fallback ? normalized : undefined;
+};
+
+const compact = <T extends Record<string, unknown>>(value: T): T | undefined =>
+  Object.values(value).some((item) => item !== undefined) ? value : undefined;
+
+/** Extracts only supported scalar/reference fields. Unknown nested objects,
+ * including material definitions, are intentionally discarded. */
+export const normalizeCellAppearanceOverrides = (
+  value: unknown,
+  defaults: ProjectPresentationDefaults
+): CellAppearanceOverrides | undefined => {
+  if (!isRecord(value)) return undefined;
+  const cell = isRecord(value.cell) ? compact({
+    visible: changedBoolean(value.cell.visible, defaults.cell.visible),
+    paint: normalizePaintOverride(value.cell.paint, defaults.cell.paint),
+  }) : undefined;
+  const boundary = isRecord(value.boundary) ? compact({
+    visible: changedBoolean(value.boundary.visible, defaults.boundary.visible),
+    style: value.boundary.style === "solid" && value.boundary.style !== defaults.boundary.style ? "solid" as const : undefined,
+    width: changedNumber(value.boundary.width, defaults.boundary.width, 0, 64),
+    offset: changedNumber(value.boundary.offset, defaults.boundary.offset, -64, 64),
+    paint: normalizePaintOverride(value.boundary.paint, defaults.boundary.paint),
+  }) : undefined;
+  const membrane = isRecord(value.membrane) ? compact({
+    visible: changedBoolean(value.membrane.visible, defaults.membrane.visible),
+    paint: normalizePaintOverride(value.membrane.paint, defaults.membrane.paint),
+  }) : undefined;
+  const membraneEdge = isRecord(value.membraneEdge) ? compact({
+    visible: changedBoolean(value.membraneEdge.visible, defaults.membraneEdge.visible),
+    width: changedNumber(value.membraneEdge.width, defaults.membraneEdge.width, 0, 64),
+    paint: normalizePaintOverride(value.membraneEdge.paint, defaults.membraneEdge.paint),
+  }) : undefined;
+  const core = isRecord(value.core) ? compact({
+    visible: changedBoolean(value.core.visible, defaults.core.visible),
+    shape: value.core.shape === "dot" && value.core.shape !== defaults.core.shape ? "dot" as const : undefined,
+    size: changedNumber(value.core.size, defaults.core.size, 0.1, 2),
+    paint: normalizePaintOverride(value.core.paint, defaults.core.paint),
+  }) : undefined;
+  const voidTarget = isRecord(value.void) ? compact({
+    visible: changedBoolean(value.void.visible, defaults.void.visible),
+    fill: normalizePaintOverride(value.void.fill, defaults.void.fill),
+    edge: normalizePaintOverride(value.void.edge, defaults.void.edge),
+    edgeWidth: changedNumber(value.void.edgeWidth, defaults.void.edgeWidth, 0, 64),
+  }) : undefined;
+  return compact({ cell, boundary, membrane, membraneEdge, core, void: voidTarget });
+};
+
+const keyForTarget = (target: PresentationTargetId): PresentationDefaultsKey =>
+  PRESENTATION_TARGET_CONTRACTS.find((contract) => contract.id === target)!.defaultsKey;
+
+/** Canonical explicit reset command: remove one sparse target so it inherits
+ * the project default again. */
+export const resetCellAppearanceTarget = (
+  value: CellAppearanceOverrides | undefined,
+  target: PresentationTargetId
+): CellAppearanceOverrides | undefined => {
+  if (!value) return undefined;
+  const next: CellAppearanceOverrides = {
+    ...value,
+    cell: value.cell ? { ...value.cell, paint: value.cell.paint ? { ...value.cell.paint } : undefined } : undefined,
+    boundary: value.boundary ? { ...value.boundary, paint: value.boundary.paint ? { ...value.boundary.paint } : undefined } : undefined,
+    membrane: value.membrane ? { ...value.membrane, paint: value.membrane.paint ? { ...value.membrane.paint } : undefined } : undefined,
+    membraneEdge: value.membraneEdge ? { ...value.membraneEdge, paint: value.membraneEdge.paint ? { ...value.membraneEdge.paint } : undefined } : undefined,
+    core: value.core ? { ...value.core, paint: value.core.paint ? { ...value.core.paint } : undefined } : undefined,
+    void: value.void ? {
+      ...value.void,
+      fill: value.void.fill ? { ...value.void.fill } : undefined,
+      edge: value.void.edge ? { ...value.void.edge } : undefined,
+    } : undefined,
+  };
+  delete (next as Record<PresentationDefaultsKey, unknown>)[keyForTarget(target)];
+  return Object.values(next).some((item) => item !== undefined) ? next : undefined;
+};
+
+export const cloneCellAppearanceOverrides = (
+  value: CellAppearanceOverrides | undefined
+): CellAppearanceOverrides | undefined => {
+  if (!value) return undefined;
+  return {
+    cell: value.cell ? { ...value.cell, paint: value.cell.paint ? { ...value.cell.paint } : undefined } : undefined,
+    boundary: value.boundary ? { ...value.boundary, paint: value.boundary.paint ? { ...value.boundary.paint } : undefined } : undefined,
+    membrane: value.membrane ? { ...value.membrane, paint: value.membrane.paint ? { ...value.membrane.paint } : undefined } : undefined,
+    membraneEdge: value.membraneEdge ? { ...value.membraneEdge, paint: value.membraneEdge.paint ? { ...value.membraneEdge.paint } : undefined } : undefined,
+    core: value.core ? { ...value.core, paint: value.core.paint ? { ...value.core.paint } : undefined } : undefined,
+    void: value.void ? {
+      ...value.void,
+      fill: value.void.fill ? { ...value.void.fill } : undefined,
+      edge: value.void.edge ? { ...value.void.edge } : undefined,
+    } : undefined,
+  };
+};
+
+export const cloneProjectPresentationDefaults = (
+  value: ProjectPresentationDefaults
+): ProjectPresentationDefaults => normalizeProjectPresentationDefaults(value);

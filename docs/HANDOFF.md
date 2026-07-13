@@ -1,5 +1,14 @@
 # Handoff
 
+## C0.4.1 — Layer Contracts, Defaults and Resolvers
+
+- Added one modular presentation domain for Cell, Boundary, Membrane, Membrane Edge, Core, and Void. `SpaceCell.appearance` is optional and sparse; the complete `settings.presentationDefaults` hierarchy remains separate from architectural data.
+- Defaults preserve the current production baseline: Cell visible, Boundary off/solid, Morph-derived Membrane, independently inactive Membrane Edge, Core dot at the current 0.34 ratio, and visible subtractive Void. Existing resource bindings provide material IDs; existing nucleus/Organism palette resolvers provide deterministic colours.
+- Unknown material IDs remain recoverable in persistence and resolve through a truthful compatible fallback. Invalid numeric values fall back or clamp; reset removes a target override so it inherits the project default again. No material definitions or registry objects enter Cells.
+- Existing project, config, saved-view, export, and recovery owners now clone/normalize this contract. Legacy files with no appearance data derive defaults from `blobOn`, `organism.showNuclei`, and resource bindings without a major schema bump; future presentation schemas reject safely.
+- Void appearance is unable to change subtraction, programmed area, geometry, hit testing, or clearance. Selection remains temporary UI. Labels, Flags, and Annotation Cards have no active schema in this slice.
+- No renderer, shader, Canvas UI, Cell Inspector, advanced technical style, Area editor, or package changed. C0.4.2–C0.4.6 remain gated; the pushed feature branch requires independent Antigravity audit before merge.
+
 ## V8.2C0.2 — Icon and Grid Asset Registry
 
 - The canonical icon registry now contains exactly 77 active, Lucide-backed drawable symbols across architecture, landscape, diagram, annotation, wayfinding, environmental, accessibility, and service categories. Every entry has a namespaced ID, installed geometry source key, searchable metadata, accessibility text, ISC/Lucide provenance, approved validation state, and an explicit `space` placement target.

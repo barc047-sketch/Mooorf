@@ -8,6 +8,7 @@ import { PROJECT_SNAPSHOT_SCHEMA_VERSION, MANIFEST_SCHEMA_VERSION, DEFAULT_VISUA
 import type { SpaceCell } from "../types";
 import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 import { DEFAULT_CELL_SHADOW } from "../canvas/cellShadow";
+import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
   if (!Object.is(actual, expected)) {
@@ -92,9 +93,10 @@ const settings = {
   cellShadow: DEFAULT_CELL_SHADOW,
   performanceQuality: "automatic" as const,
 };
+const settingsWithPresentation = { ...settings, presentationDefaults: createProjectPresentationDefaults(settings) };
 equal(computeProgrammedArea(spaces), 20, "programmed area excludes voids and NaN-safe");
 const snapshot = buildProjectSnapshot(
-  { spaces, camera: { x: 0, y: 0, zoom: 1 }, theme: "day", settings },
+  { spaces, camera: { x: 0, y: 0, zoom: 1 }, theme: "day", settings: settingsWithPresentation },
   "  My Project  ",
   new Date(2026, 0, 1)
 );

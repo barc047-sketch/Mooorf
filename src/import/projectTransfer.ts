@@ -10,6 +10,10 @@ import {
   type MooorfConfigEnvelope,
   type MooorfProjectEnvelope,
 } from "./projectFiles";
+import {
+  cloneCellAppearanceOverrides,
+  cloneProjectPresentationDefaults,
+} from "../domain/presentation/validation";
 
 const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 
@@ -25,7 +29,10 @@ export interface RecoverySnapshot {
   savedViews: SavedCanvasSnapshot[];
 }
 
-const cloneSpaces = (spaces: readonly SpaceCell[]) => spaces.map((space) => ({ ...space }));
+const cloneSpaces = (spaces: readonly SpaceCell[]) => spaces.map((space) => ({
+  ...space,
+  appearance: cloneCellAppearanceOverrides(space.appearance),
+}));
 const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) => ({
   ...view,
   spaces: cloneSpaces(view.spaces),
@@ -34,6 +41,9 @@ const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) =
   annotationDetail: view.annotationDetail ? { ...view.annotationDetail } : undefined,
   cellShadow: view.cellShadow ? { ...view.cellShadow } : undefined,
   resources: view.resources ? cloneResourceSettings(view.resources) : undefined,
+  presentationDefaults: view.presentationDefaults
+    ? cloneProjectPresentationDefaults(view.presentationDefaults)
+    : undefined,
 }));
 
 export const captureRecoverySnapshot = (): RecoverySnapshot => {
@@ -43,7 +53,7 @@ export const captureRecoverySnapshot = (): RecoverySnapshot => {
     view: state.view,
     spaces: cloneSpaces(state.spaces),
     camera: { ...state.camera },
-    settings: { ...state.settings, organism: { ...state.settings.organism }, annotationDetail: { ...state.settings.annotationDetail }, cellShadow: { ...state.settings.cellShadow }, resources: cloneResourceSettings(state.settings.resources) },
+    settings: { ...state.settings, organism: { ...state.settings.organism }, annotationDetail: { ...state.settings.annotationDetail }, cellShadow: { ...state.settings.cellShadow }, resources: cloneResourceSettings(state.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults) },
     selectedId: state.selectedId,
     primarySelectedId: state.primarySelectedId,
     selectedIds: [...state.selectedIds],
@@ -66,7 +76,7 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     view: snapshot.view,
     spaces: cloneSpaces(snapshot.spaces),
     camera: { ...snapshot.camera },
-    settings: { ...snapshot.settings, organism: { ...snapshot.settings.organism }, annotationDetail: { ...snapshot.settings.annotationDetail }, cellShadow: { ...snapshot.settings.cellShadow }, resources: cloneResourceSettings(snapshot.settings.resources) },
+    settings: { ...snapshot.settings, organism: { ...snapshot.settings.organism }, annotationDetail: { ...snapshot.settings.annotationDetail }, cellShadow: { ...snapshot.settings.cellShadow }, resources: cloneResourceSettings(snapshot.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults) },
     ...normalizeSelectionState({
       selectedId: snapshot.selectedId,
       primarySelectedId: snapshot.primarySelectedId,
@@ -105,6 +115,7 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
         organism: { ...current.settings.organism, ...snapshot.settings.organism },
         cellShadow: { ...snapshot.settings.cellShadow },
         resources: cloneResourceSettings(snapshot.settings.resources),
+        presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
       },
     });
     return recovery;
@@ -133,6 +144,7 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
         organism: { ...current.settings.organism, ...config.settings.organism },
         cellShadow: { ...config.settings.cellShadow },
         resources: cloneResourceSettings(config.settings.resources),
+        presentationDefaults: cloneProjectPresentationDefaults(config.settings.presentationDefaults),
       },
       ...replaceSelectionState(null),
       contextSurface: null,

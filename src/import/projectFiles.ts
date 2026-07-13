@@ -11,6 +11,12 @@ import {
   normalizeLegacyCellShadow,
   normalizePerformanceQuality,
 } from "../state/visualSettings";
+import type { ProjectPresentationDefaults } from "../domain/presentation/types";
+import {
+  cloneProjectPresentationDefaults,
+  normalizeCellAppearanceOverrides,
+  normalizeProjectPresentationDefaults,
+} from "../domain/presentation/validation";
 
 export const PROJECT_FILE_VERSION = 1;
 export const CONFIG_FILE_VERSION = 1;
@@ -83,7 +89,11 @@ const validateCamera = (value: unknown): Camera => {
   };
 };
 
-const validateSpace = (value: unknown, index: number): SpaceCell => {
+const validateSpace = (
+  value: unknown,
+  index: number,
+  presentationDefaults: ProjectPresentationDefaults
+): SpaceCell => {
   if (!isRecord(value)) throw new Error(`Space row ${index + 1} is invalid.`);
   const privacy = value.privacy;
   if (privacy !== "public" && privacy !== "shared" && privacy !== "private") {
@@ -103,6 +113,7 @@ const validateSpace = (value: unknown, index: number): SpaceCell => {
     color: typeof value.color === "string" ? value.color.trim().slice(0, 64) : "",
     x: finite(value.x, `Space row ${index + 1} x`),
     y: finite(value.y, `Space row ${index + 1} y`),
+    appearance: normalizeCellAppearanceOverrides(value.appearance, presentationDefaults),
   };
 };
 
@@ -127,6 +138,17 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
     typeof annotation.boundingBox !== "boolean"
   ) throw new Error("Annotation settings are invalid.");
   const rendererMode = oneOf(value.rendererMode, ["organism", "classic"] as const, "Renderer mode");
+  const organism = { ...(value.organism as unknown as ProjectExportSettings["organism"]) };
+  const resources = normalizeResourceSettings(value.resources, {
+    showGrid: value.showGrid === true,
+    nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
+    organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
+  });
+  const presentationDefaults = normalizeProjectPresentationDefaults(value.presentationDefaults, {
+    blobOn: value.blobOn,
+    organism,
+    resources,
+  });
   return {
     ...(value as unknown as ProjectExportSettings),
     rendererMode,
@@ -143,12 +165,8 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
       ...(value.annotationDetail as unknown as ProjectExportSettings["annotationDetail"]),
       position: oneOf(annotation.position, ["auto", "center", "above", "below"] as const, "Label position"),
     },
-    organism: { ...(value.organism as unknown as ProjectExportSettings["organism"]) },
-    resources: normalizeResourceSettings(value.resources, {
-      showGrid: value.showGrid === true,
-      nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
-      organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
-    }),
+    organism,
+    resources,
     labelScaleMode: normalizeLabelScaleMode(value.labelScaleMode, rendererMode),
     labelColourMode: normalizeLabelColourMode(value.labelColourMode),
     labelCustomColour: normalizeLabelCustomColour(value.labelCustomColour),
@@ -156,6 +174,7 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
       ? normalizeCellShadow(value.cellShadow)
       : normalizeLegacyCellShadow(undefined, rendererMode),
     performanceQuality: normalizePerformanceQuality(value.performanceQuality),
+    presentationDefaults,
   };
 };
 
@@ -170,7 +189,8 @@ const validateSnapshot = (value: unknown): ProjectExportSnapshot => {
   if (!isRecord(value.project)) throw new Error("Project metadata is missing.");
   const theme = value.theme;
   if (theme !== "day" && theme !== "night") throw new Error("Project theme is invalid.");
-  const spaces = value.spaces.map(validateSpace);
+  const settings = validateSettings(value.settings);
+  const spaces = value.spaces.map((space, index) => validateSpace(space, index, settings.presentationDefaults));
   return {
     schemaVersion: PROJECT_SNAPSHOT_SCHEMA_VERSION,
     exportedAt: clean(value.exportedAt, "Exported date", 80),
@@ -178,7 +198,7 @@ const validateSnapshot = (value: unknown): ProjectExportSnapshot => {
     spaces,
     camera: validateCamera(value.camera),
     theme,
-    settings: validateSettings(value.settings),
+    settings,
     summary: isRecord(value.summary)
       ? {
           spaceCount: spaces.length,
@@ -202,19 +222,30 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
   if ((theme !== "day" && theme !== "night") || (rendererMode !== "organism" && rendererMode !== "classic")) {
     throw new Error(`Saved view ${index + 1} has invalid display settings.`);
   }
+  const resources = normalizeResourceSettings(value.resources, {
+    showGrid: value.showGrid === true,
+    nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
+    organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
+  });
+  const organism = { ...(value.organism as unknown as SavedCanvasSnapshot["organism"]) };
+  const presentationDefaults = normalizeProjectPresentationDefaults(value.presentationDefaults, {
+    blobOn: typeof value.blobOn === "boolean" ? value.blobOn : true,
+    organism,
+    resources,
+  });
   return {
     ...(value as unknown as SavedCanvasSnapshot),
     id: clean(value.id, `Saved view ${index + 1} id`, 160),
     name: clean(value.name, `Saved view ${index + 1} name`),
     createdAt: finite(value.createdAt, `Saved view ${index + 1} createdAt`),
-    spaces: value.spaces.map(validateSpace),
+    spaces: value.spaces.map((space, spaceIndex) => validateSpace(space, spaceIndex, presentationDefaults)),
     camera: validateCamera(value.camera),
     theme,
     rendererMode,
     uiScale: normalizeUiScale(value.uiScale),
     widgetScale: normalizeWidgetScale(value.widgetScale),
     colorSource: value.colorSource === "privacy" ? "privacy" : "category",
-    organism: { ...(value.organism as unknown as SavedCanvasSnapshot["organism"]) },
+    organism,
     labelScaleMode: normalizeLabelScaleMode(value.labelScaleMode, rendererMode),
     labelColourMode: normalizeLabelColourMode(value.labelColourMode),
     labelCustomColour: normalizeLabelCustomColour(value.labelCustomColour),
@@ -222,11 +253,8 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
       ? normalizeCellShadow(value.cellShadow)
       : normalizeLegacyCellShadow(undefined, rendererMode),
     performanceQuality: normalizePerformanceQuality(value.performanceQuality),
-    resources: normalizeResourceSettings(value.resources, {
-      showGrid: value.showGrid === true,
-      nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
-      organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
-    }),
+    resources,
+    presentationDefaults,
   };
 };
 
@@ -253,11 +281,42 @@ export const buildProjectEnvelope = (
   project: { ...snapshot.project },
   snapshot: {
     ...snapshot,
-    spaces: snapshot.spaces.map((space) => ({ ...space })),
+    spaces: snapshot.spaces.map((space) => ({
+      ...space,
+      appearance: normalizeCellAppearanceOverrides(space.appearance, snapshot.settings.presentationDefaults),
+    })),
     camera: { ...snapshot.camera },
-    settings: { ...snapshot.settings, annotationDetail: { ...snapshot.settings.annotationDetail }, organism: { ...snapshot.settings.organism }, resources: cloneResourceSettings(snapshot.settings.resources) },
+    settings: {
+      ...snapshot.settings,
+      annotationDetail: { ...snapshot.settings.annotationDetail },
+      organism: { ...snapshot.settings.organism },
+      resources: cloneResourceSettings(snapshot.settings.resources),
+      presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
+    },
   },
-  savedViews: savedViews.map((view) => ({ ...view, spaces: view.spaces.map((space) => ({ ...space })), camera: { ...view.camera }, organism: { ...view.organism }, resources: view.resources ? cloneResourceSettings(view.resources) : undefined })),
+  savedViews: savedViews.map((view) => {
+    const resources = normalizeResourceSettings(view.resources, {
+      showGrid: view.showGrid === true,
+      nucleusPaletteId: view.nucleusPaletteId ?? "editorial-aurora",
+      organismPaletteId: view.organismPaletteId ?? "mode",
+    });
+    const presentationDefaults = normalizeProjectPresentationDefaults(view.presentationDefaults, {
+      blobOn: view.blobOn ?? true,
+      organism: view.organism,
+      resources,
+    });
+    return {
+      ...view,
+      spaces: view.spaces.map((space) => ({
+        ...space,
+        appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
+      })),
+      camera: { ...view.camera },
+      organism: { ...view.organism },
+      resources,
+      presentationDefaults,
+    };
+  }),
 });
 
 export const parseProjectEnvelope = (text: string): MooorfProjectEnvelope => {
@@ -294,7 +353,14 @@ export const buildConfigEnvelope = (
   kind: "mooorf-config",
   schemaVersion: CONFIG_FILE_VERSION,
   savedAt: now.toISOString(),
-  settings: { ...snapshot.settings, theme: snapshot.theme, annotationDetail: { ...snapshot.settings.annotationDetail }, organism: { ...snapshot.settings.organism }, resources: cloneResourceSettings(snapshot.settings.resources) },
+  settings: {
+    ...snapshot.settings,
+    theme: snapshot.theme,
+    annotationDetail: { ...snapshot.settings.annotationDetail },
+    organism: { ...snapshot.settings.organism },
+    resources: cloneResourceSettings(snapshot.settings.resources),
+    presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
+  },
   workspace: {
     camera: { ...snapshot.camera },
     spaceLayoutById: Object.fromEntries(snapshot.spaces.map((space) => [space.id, { x: space.x, y: space.y }])),
