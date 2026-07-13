@@ -1,14 +1,15 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "WAITING_REVIEW",
   "task": "C0.4.1 layer contracts, defaults and resolvers",
   "brief": "docs/worker-briefs/C0_4_1_CODEX_LAYER_CONTRACTS_RESOLVERS.md",
   "source_branch": "main",
   "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
   "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
-  "last_checkpoint": "Project, config, saved-view, export, and recovery migration integrated; focused legacy/round-trip/future-schema contracts pass with source-main colour parity",
-  "updated_at": "2026-07-13T19:19:26Z",
+  "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "last_checkpoint": "Feature branch committed and pushed; five focused contracts, git diff check, and the single production build pass; ready for independent audit",
+  "updated_at": "2026-07-13T19:23:38Z",
   "blocked_reason": null,
   "expected_outputs": [
     "typed presentation target contracts and project defaults",
