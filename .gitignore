@@ -6,6 +6,7 @@ build/
 .vercel/
 coverage/
 .audit/
+.custom-gpt-pack/
 .DS_Store
 .env
 .env.*
