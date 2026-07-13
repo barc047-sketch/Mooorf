@@ -1,14 +1,14 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "DONE",
   "task": "C0.2 approved merge and canonical scope sync",
   "brief": "docs/worker-briefs/C0_2_CODEX_APPROVED_MERGE_AND_SCOPE_SYNC.md",
   "source_branch": "main",
   "source_sha": "92f4c644a9f27a3bdd6b61d1349e560a63235bd1",
   "work_branch": "main",
-  "last_checkpoint": "Focused icon/grid/persistence contracts and structural scope checks passed; exactly one final production build next",
-  "updated_at": "2026-07-13T18:02:58Z",
+  "last_checkpoint": "Main pushed and verified at a0f7b33d4e13ad72d5203141d7688794ad377446; C0.2 and canonical scope sync complete",
+  "updated_at": "2026-07-13T18:05:07Z",
   "blocked_reason": null,
   "expected_outputs": [
     "origin/main with audited C0.2 and five approved scope commits",
