@@ -1,14 +1,14 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "WAITING_REVIEW",
   "task": "C0.3 Cell Inspector V2 takeover and completion",
   "brief": "docs/worker-briefs/C0_3_CODEX_TAKEOVER_CELL_INSPECTOR_V2.md",
   "source_branch": "design/c0-3-icons-symbols-inspector-lab",
   "source_sha": "e97e59984a74dee94675f77a22b270424a773115",
   "work_branch": "design/c0-3-cell-inspector-v2-lab",
-  "last_checkpoint": "Recovered Claude scaffold completed in place; focused contracts and local serving pass; preparing the single prototype commit",
-  "updated_at": "2026-07-13T13:29:14Z",
+  "last_checkpoint": "Prototype committed and pushed at 462bf9bacbb1ee60015fc1e794539ab3b25f6b97; waiting for Owner visual QA",
+  "updated_at": "2026-07-13T13:30:42Z",
   "blocked_reason": null,
   "expected_outputs": [
     "design-prototypes/c0-3-cell-inspector-v2/C0_3_CODEX_TAKEOVER_REPORT.md"
