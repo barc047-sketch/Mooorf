@@ -4,6 +4,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
+- Antigravity: delta-audit the pushed V8.2C0.2 icon/grid registry branch; approve merge before C0.3 begins
 - Antigravity: audit pushed V8.2C0 Canvas performance/contrast/glass branch at 1440 and 1280
 
 - Antigravity: audit the pushed V8.2B resource-foundation branch
@@ -17,6 +18,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- V8.2C0.2 Icon and Grid Asset Registry: 77 approved Lucide/ISC drawable symbols; eight canonical grids with truthful active/future support; legacy alias normalization and ID-only persistence; no UI, Canvas runtime, package, or product-store change
 - V8.2C0 Canvas Performance + Contrast Reset: rAF/coalesced local input previews; one release transaction; screen/adaptive/world labels; deterministic Auto Contrast; optional Cell Shadow; stable shadow-free UI glass; instant widget refocus; plain startup; projected-centre radials; migration/export parity; future shell work deferred
 
 - V8.2B Expandable Resource Registry Foundation: serializable materials/grid/annotation/icon registries; palette-preserving adapter; safe parameter/binding validation; resource catalogue; nested project/config/saved-view migration; export fallback/manifest metadata; no visual UI or packages
@@ -213,5 +215,5 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - [x] internal Classic fallback, Auto Contrast, resources, migration, history, and export preserved
 - [x] Owner accepted visible Morph/Membrane and the current stage for progression
 - [ ] accepted limitation: deeper interaction optimization at approximately 50+ Cells is deferred; performance is not claimed fixed
-- [ ] V8.2C0.2 Icon and Grid Asset Registry
-- [ ] V8.2C0.3 Icons & Symbols Inspector (shortcut `I` remains unassigned)
+- [x] V8.2C0.2 Icon and Grid Asset Registry: implementation complete; audit/merge pending
+- [ ] V8.2C0.3 Icons & Symbols Inspector: blocked pending C0.2 audit/merge approval; shortcut `I` remains unassigned
