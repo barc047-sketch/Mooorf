@@ -1,5 +1,17 @@
 # MOOORF Agent Entry Point
 
+## Custom GPT / Project Manager boot
+
+A fresh MOOORF Project Manager or Custom GPT session must begin with:
+
+1. `custom-gpt/bootstrap/BOOT_PROTOCOL.md`
+2. `custom-gpt/state/CURRENT_PROJECT_STATE.json`
+3. live `main` and worker-status branch verification
+
+The command used by the Owner is: `BOOT MOOORF`.
+
+GitHub live state overrides uploaded Knowledge and previous chat memory.
+
 Before planning, modifying, auditing or merging MOOORF, read:
 
 1. `docs/MOOORF_AI_TEAM_OPERATING_PROTOCOL.md`
