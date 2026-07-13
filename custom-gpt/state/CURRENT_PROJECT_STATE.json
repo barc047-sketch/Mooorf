@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-07-14T00:00:00+05:30",
+  "repository": "barc047-sketch/Mooorf",
+  "default_branch": "main",
+  "recorded_main_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
+  "current_phase": "C0.4.1",
+  "current_gate": "independent audit before merge",
+  "owner_approval_required": true,
+  "active_task": {
+    "id": "C0.4.1",
+    "title": "Layer contracts, defaults and resolvers",
+    "worker": "Codex",
+    "status": "WAITING_REVIEW",
+    "source_branch": "main",
+    "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
+    "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
+    "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "brief": "docs/worker-briefs/C0_4_1_CODEX_LAYER_CONTRACTS_RESOLVERS.md",
+    "next_gate": "fresh-session Antigravity delta audit"
+  },
+  "workers": {
+    "codex": {
+      "assignment": "ASSIGNED",
+      "execution": "WAITING_REVIEW",
+      "task": "C0.4.1 layer contracts, defaults and resolvers"
+    },
+    "antigravity": {
+      "assignment": "UNASSIGNED",
+      "execution": "HOLD",
+      "last_task": "C0.4 modular layer architecture audit"
+    },
+    "claude": {
+      "assignment": "UNASSIGNED",
+      "execution": "ABORTED",
+      "last_task": "C0.3 Cell Inspector V2 prototype",
+      "note": "Do not reuse the exhausted session. Valuable prototype work was later completed by Codex."
+    }
+  },
+  "next_planned_phase": "C0.4.2 selection overlay separation after C0.4.1 audit and merge approval",
+  "locked_sequence": [
+    "Audit C0.4.1",
+    "Owner reviews audit",
+    "Owner approves or rejects merge",
+    "Merge C0.4.1 if approved",
+    "Prepare C0.4.2 compact contract",
+    "Owner GO for C0.4.2"
+  ],
+  "protected": [
+    ".claude/launch.json",
+    ".references/",
+    "main without explicit audited merge approval",
+    "Master Graph/store as sole data source"
+  ],
+  "known_limits": [
+    "Known Vite chunk warning remains accepted",
+    "50+ Cell performance remains a known limitation",
+    "Advanced technical illustration styles are later-scope",
+    "Annotation Card remains planned for C0.13A"
+  ],
+  "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
+}

@@ -1,0 +1,26 @@
+{
+  "gpt_name": "MOOORF OS — Project Manager",
+  "instructions_file": "custom-gpt/upload-pack/INSTRUCTIONS_TO_PASTE.md",
+  "knowledge_files": [
+    "custom-gpt/knowledge/01_MOOORF_CORE_RULES.md",
+    "custom-gpt/knowledge/02_MOOORF_PRODUCT_ARCHITECTURE.md",
+    "custom-gpt/knowledge/03_MOOORF_ROADMAP_AND_CURRENT_STATE.md",
+    "custom-gpt/knowledge/04_MOOORF_ORCHESTRATION_GLOSSARY.md"
+  ],
+  "conversation_starter": "BOOT MOOORF",
+  "repository": "barc047-sketch/Mooorf",
+  "governance_ref": "docs/mooorf-ai-team-operating-protocol",
+  "production_ref": "main",
+  "worker_refs": ["status/codex", "status/claude", "status/antigravity"],
+  "required_connection": "GitHub",
+  "recommended_visibility": "private",
+  "live_boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md",
+  "live_state_file": "custom-gpt/state/CURRENT_PROJECT_STATE.json",
+  "validation_suite": "custom-gpt/validation/CUSTOM_GPT_TEST_SUITE.md",
+  "security": {
+    "upload_secrets": false,
+    "upload_env_files": false,
+    "upload_local_references": false,
+    "merge_permission_default": false
+  }
+}
