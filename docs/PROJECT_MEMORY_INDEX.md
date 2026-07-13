@@ -27,7 +27,11 @@ This file defines:
 - `docs/MOOORF_FINAL_SCOPE.md` — mandatory entry point and read order before every new implementation prompt, audit, milestone, shell change, terminology change, or commercial phase.
 - `docs/MOOORF_MASTER_PRODUCT_SCOPE.md` — authoritative product vision, final shell ownership, Canvas/Data/Dashboard structure, beginner and advanced flows, materials, Arrange, connections, markup, uploads, templates, exports, plans, and implementation roadmap.
 - `docs/MOOORF_DESKTOP_UI_REFERENCE_ADDENDUM.md` — authoritative desktop-first refinement for 1440/1280, reference-image composition, the top Project Drawer, automatic text contrast, optional Cell Shadow, smoothness architecture, export queue, Download Center, shortcut hints, and deferred device work.
-- Every future implementation prompt must read the final scope, master scope, and applicable addenda before changing product structure, terminology, shell layout, contrast, performance, or export behaviour.
+- `docs/MOOORF_CANONICAL_PHASE_ROADMAP.md` — dependency-safe phase order, milestone gates and current production sequencing.
+- `docs/MOOORF_CHANGE_CONTROL_PROTOCOL.md` — roadmap-first product-management process; ideas do not become code without architecture review, documentation approval and explicit GO.
+- `docs/MOOORF_ANNOTATION_CARD_AND_LABEL_LAYOUT_SCOPE.md` — canonical standalone Annotation Card, Cell Label Layout, Flag, Area-resize and table-projection scope.
+- `docs/MOOORF_ROADMAP_AMENDMENT_2026_07_13_ANNOTATION_CARD.md` — Owner-approved amendment removing Linked Callout and placing Annotation Card/label changes into safe phases.
+- Every future implementation prompt must read the final scope, master scope, applicable addenda, canonical roadmap and change-control protocol before changing product structure, terminology, shell layout, contrast, performance or export behaviour.
 - When a decision changes, update the relevant canonical scope file and record the reason in `docs/DECISIONS.md`; do not silently diverge.
 
 Before a feature, check `docs/COMPONENT_INVENTORY.md` and `docs/FEATURE_MAP.md` to satisfy the Ponytail reuse rule.
