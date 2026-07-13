@@ -7,8 +7,8 @@
   "source_branch": "main",
   "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
   "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
-  "last_checkpoint": "Canonical six-target type hierarchy, complete defaults, sparse reset semantics, and resolver compatibility contract designed; focused RED test confirmed",
-  "updated_at": "2026-07-13T19:06:13Z",
+  "last_checkpoint": "Pure six-target appearance resolver implemented with legacy colour parity, material compatibility fallback, sparse normalization, reset semantics, and immutable Void invariants",
+  "updated_at": "2026-07-13T19:16:34Z",
   "blocked_reason": null,
   "expected_outputs": [
     "typed presentation target contracts and project defaults",
