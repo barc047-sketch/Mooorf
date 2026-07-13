@@ -7,8 +7,8 @@
   "source_branch": "main",
   "source_sha": "92f4c644a9f27a3bdd6b61d1349e560a63235bd1",
   "work_branch": "main",
-  "last_checkpoint": "Publishing RUNNING status before source verification",
-  "updated_at": "2026-07-13T17:51:29Z",
+  "last_checkpoint": "Source verified: main 92f4c644, audited C0.2 028c905, five approved docs commits reachable",
+  "updated_at": "2026-07-13T17:57:34Z",
   "blocked_reason": null,
   "expected_outputs": [
     "origin/main with audited C0.2 and five approved scope commits",
