@@ -7,8 +7,8 @@
   "source_branch": "main",
   "source_sha": "92f4c644a9f27a3bdd6b61d1349e560a63235bd1",
   "work_branch": "main",
-  "last_checkpoint": "Source verified: main 92f4c644, audited C0.2 028c905, five approved docs commits reachable",
-  "updated_at": "2026-07-13T17:57:34Z",
+  "last_checkpoint": "Audited C0.2 commit integrated onto isolated main as 12ba5cd; documentation sync next",
+  "updated_at": "2026-07-13T17:58:40Z",
   "blocked_reason": null,
   "expected_outputs": [
     "origin/main with audited C0.2 and five approved scope commits",
