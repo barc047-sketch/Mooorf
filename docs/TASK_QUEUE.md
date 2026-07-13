@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)
 - [x] V8.2C0 Canvas Performance + Contrast Reset (implementation complete; final branch verification/audit handoff)
 - [x] V8.2A.1 Multi-Selection Group Drag Foundation
 - [x] V8.2B Expandable Resource Registry Foundation
@@ -26,6 +27,18 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## V8.2C0.2 — Icon and Grid Asset Registry  ✅ IMPLEMENTED
+
+- [x] exactly 77 active Lucide/ISC drawable symbols across eight product categories
+- [x] canonical namespaced IDs, installed source-key validation, accessibility/search metadata, provenance, and six legacy aliases
+- [x] drawable-symbol placement targets kept separate from existing shell/navigation/tool/insert/utility command icons
+- [x] exactly eight canonical grid IDs with previews, parameters, camera/theme/material, snap, export, and renderer-support metadata
+- [x] truthful status: Dotted live in the current Organism path, None active/off, six visual presets Future
+- [x] existing resource catalogue canonicalizes known icon aliases; ID-only persistence preserves unknown references and excludes registry objects
+- [x] no prototype SVGs, licence-uncertain assets, packages, Cell Inspector, Canvas renderer/shader, product-store, or shell changes
+- [ ] Antigravity delta audit and merge approval
+- [ ] C0.3 Icons & Symbols Inspector remains blocked until C0.2 audit/merge approval
 
 ## V8.2C0 — Canvas Performance + Contrast Reset
 

@@ -28,9 +28,9 @@ V6N.1 makes the shared visual primitives mandatory for production UI.
 
 - `src/materials/materialRegistry.ts` owns canonical serializable material definitions; `builtInMaterials.ts` adapts the existing palette library into collections and `materialResolver.ts` preserves current colour output.
 - Material targets cover space/core/boundary, organism/edge, void/edge, canvas/grid, line/relationship, text/background, and frame. Parameter metadata supports colour, numeric/range/angle/percentage, boolean, enum, gradient, and project-asset texture references.
-- `src/grid/gridRegistry.ts` owns dotted, fine-line, technical, architectural, major-minor, isometric, radial, and none presets. Current `showGrid` remains the render switch through a legacy migration adapter.
+- `src/grid/gridRegistry.ts` owns dotted, fine-line, technical, architectural, major-minor, isometric, radial, and none presets plus preview/parameter/camera/theme/material/snap/export support metadata. Dotted truthfully reflects the current Organism render path, None is active/off, and the other six presets remain Future; current `showGrid` remains the render switch through a legacy migration adapter.
 - `src/annotations/annotationRegistry.ts` owns 18 truthful future annotation definitions. It does not claim canvas tools are live.
-- `src/icons/iconRegistry.ts` owns small Lucide/local/uploaded metadata contracts only. Uploaded icons must use `asset:` references; raw/base64 assets are forbidden.
+- `src/icons/iconRegistry.ts` owns exactly 77 approved Lucide/ISC drawable symbols across eight product categories, six legacy ID aliases, and explicit `space` placement targets. `iconValidation.ts` validates installed geometry keys, provenance, metadata, and safe references. Shell/navigation/tool/insert/utility command icons remain in their existing UI registries; uploaded icons must use `asset:` references and raw/base64 assets remain forbidden.
 - `src/resources/resourceCatalogue.ts` is the read-only cross-resource discovery API for get/list/category/target/search/status and favourites/recent-ready ID normalization. Static registries must never become one giant mutable store.
 - Future resource UI must consume these registries and reuse `WidgetFrame`, `WidgetHost`, shared controls, and the V8.2A context host rather than duplicating definitions or product state.
 

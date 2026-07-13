@@ -4,6 +4,16 @@ Purpose: map features to files, docs, and risk level for faster future phases.
 
 Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implementation reuses existing ownership instead of creating duplicate controls or state.
 
+## Icon and Grid Asset Registry (V8.2C0.2)
+
+- Purpose: provide audited, immutable symbol and grid metadata for the future inspector without adding placement UI or changing Canvas runtime behavior.
+- Main files: `src/icons/types.ts`, `src/icons/iconRegistry.ts`, `src/icons/iconValidation.ts`, `src/grid/types.ts`, `src/grid/gridRegistry.ts`, `src/resources/resourceCatalogue.ts`, and focused registry/persistence contracts.
+- Icon ownership: exactly 77 installed Lucide/ISC drawable symbols use canonical `icon:<category>:<name>` IDs, approved provenance/validation metadata, accessibility/search fields, and explicit `space` targets. Existing shell/navigation/tool command registries remain separate presentation owners.
+- Grid ownership: the eight established IDs remain stable. Dotted reflects the one live Organism grid path, None is active/off, and the other six presets are Future metadata; snap/export fields describe compatibility but remain explicitly unimplemented.
+- Persistence: resource settings store canonical IDs and sparse values only. Six known legacy icon IDs normalize at catalogue/placement boundaries; unknown IDs are retained for recovery.
+- Deferred: C0.3 inspector UI, placement/transform/tint/backing, shortcut `I`, grid renderer/snapping/export work, target rails, and prototype/custom asset ingestion.
+- Risk: source/licence drift and falsely claiming metadata-only grids as rendered. Keep registry validation deterministic and runtime support truthful.
+
 ## Canvas Performance Reset (V8.2C0)
 
 - Purpose: one rAF-scheduled input boundary, renderer-local drag previews, fixed/adaptive/world label presentation, deterministic Auto Contrast, optional Cell Shadow, stable glass, immediate widget refocus, and projected-centre radials.

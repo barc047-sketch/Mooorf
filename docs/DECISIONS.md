@@ -406,3 +406,11 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Inline Name/Area edits reuse central graph ownership and the existing bounded Undo/Redo history as an edit variant; no second history or editor state system exists.
 - ORG/CLS and renderer names are internal. SVG uses the existing Classic vector adapter for Cells/labels regardless of the live renderer; Membrane remains raster-only.
 - V8.2C0.2 asset registry and V8.2C0.3 Icons & Symbols Inspector remain deferred; shortcut `I` remains unassigned here.
+
+# V8.2C0.2 — Verified icon/grid registry ownership
+
+- The production drawable registry contains only 77 source-verifiable Lucide symbols under the ISC licence. The audit inventory's conflicting 82-versus-95/96 counts and asserted proprietary prototype geometry are not treated as production evidence; no unverified prototype SVG is imported.
+- Drawable symbols and UI command icons are separate resource classes. The current phase exposes only `drawable-symbol` entries with `space` placement targets; shell, navigation, tool, insert, and utility icons remain owned by existing UI registries.
+- Canonical IDs are namespaced and stable. Six prior built-in IDs resolve through an alias boundary, while unknown IDs remain serialized for forward recovery rather than being replaced with a misleading fallback.
+- The existing eight grid IDs remain the contract. Dotted is the sole live rendered preset in the current Organism path, None is the explicit active off state, and six additional presets are metadata-only Future entries. Snapping and grid export are compatibility declarations with `implemented: false`.
+- The resource catalogue stays read-only, project/config formats store IDs only, and registry definitions never enter product persistence. C0.3 UI and every Canvas/grid runtime change remain deferred until independent audit and merge approval.

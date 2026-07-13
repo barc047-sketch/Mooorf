@@ -1,5 +1,13 @@
 # Handoff
 
+## V8.2C0.2 — Icon and Grid Asset Registry
+
+- The canonical icon registry now contains exactly 77 active, Lucide-backed drawable symbols across architecture, landscape, diagram, annotation, wayfinding, environmental, accessibility, and service categories. Every entry has a namespaced ID, installed geometry source key, searchable metadata, accessibility text, ISC/Lucide provenance, approved validation state, and an explicit `space` placement target.
+- Drawable symbols remain separate from shell, navigation, tool, insert, and utility command icons. Six legacy IDs resolve to canonical IDs; unknown IDs remain recoverable instead of being silently rewritten or discarded. No prototype SVG, uploaded binary, executable source, or licence-uncertain geometry entered production.
+- The existing eight grid IDs remain canonical. Dotted is the only live visual preset (current Organism path), None is the active off state, and Fine Line, Technical, Architectural, Major/Minor, Isometric, and Radial are truthfully marked Future. Preview, parameter, camera, theme/material, snapping, and export compatibility metadata are declared without claiming unimplemented snapping/export/rendering.
+- The read-only resource catalogue now exposes the audited icon/grid metadata and canonicalizes legacy icon IDs in ready/favourite/recent references. Project/config persistence continues to store IDs only; registry objects are never serialized, and unknown references round-trip safely.
+- C0.2 adds no Cell Inspector, icon-placement UI, keyboard shortcut, Canvas renderer/shader change, store schema, package, backend, or shell change. Antigravity delta audit and merge approval are required before C0.3 Icons & Symbols Inspector is unblocked.
+
 ## V8.2C0 — Canvas Performance + Contrast Reset
 
 - Both production renderers now coalesce pointer and wheel input to one local update per animation frame. Group previews never write canonical spaces; release commits the final original-anchor transform once, preserving single-step Undo/Redo and stale-ID safety.

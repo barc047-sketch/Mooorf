@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- V8.2C0.2 Icon and Grid Asset Registry
 - V8.2C0 Canvas Performance + Contrast Reset
 - V8.2A.1 Multi-Selection Group Drag Foundation
 - V8.2B Expandable Resource Registry Foundation
@@ -47,17 +48,20 @@ Complete:
 - V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 Next:
+- Antigravity delta audit of the pushed V8.2C0.2 registry branch; C0.3 remains blocked pending audit/merge approval
 - Antigravity independent V8.2C0 reference/performance/migration audit on the pushed feature branch
 - Antigravity independent V8.2B audit on the pushed feature branch
 - Claude prototype review before resource browsers, shelves, or panels
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 Not started:
-- V8.2C visual Material Browser / shelf / Grid Shelf / Icon Library / Annotation Studio / Tools page
+- V8.2C visual Material Browser / shelf / Grid Shelf / Icons & Symbols Inspector / Annotation Studio / Tools page
 - V8.2A follow-ons: marquee and iPad context gesture
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+V8.2C0.2 expands the existing immutable resource owners to exactly 77 active Lucide/ISC drawable symbols and eight canonical grid presets. UI command icons are not drawable resources; six legacy symbol IDs resolve canonically while unknown IDs remain recoverable. Dotted is the only current rendered grid, None is the explicit off state, and the other six presets remain Future metadata. No prototype asset, package, Canvas runtime, store schema, or UI was added. C0.3 waits for Antigravity delta audit and merge approval.
 
 V8.2C0 keeps raw Canvas movement renderer-local and rAF-coalesced, committing one final transform/history transaction at release. It adds shared Screen/Adaptive/World labels, deterministic Auto Contrast, optional quality-gated Cell Shadow, plain-cell startup, stable no-shadow glass, instant widget refocus, and projected-centre radials across Classic/Organism without adding another camera, history, colour resolver, settings store, or shell system. Full detail: `docs/HANDOFF.md`.
 
