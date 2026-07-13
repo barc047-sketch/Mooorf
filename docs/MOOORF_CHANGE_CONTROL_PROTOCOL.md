@@ -1,7 +1,7 @@
 # MOOORF Change Control Protocol
 
-**Status:** Canonical product-management protocol  
-**Authority:** Applies to every new idea, correction, preference, architectural change, phase adjustment, prototype, implementation brief and merge recommendation  
+**Status:** Canonical product-management protocol
+**Authority:** Applies to every new idea, correction, preference, architectural change, phase adjustment, prototype, implementation brief and merge recommendation
 **Product-code effect:** None. This document controls how decisions become work.
 
 ## 1. Purpose

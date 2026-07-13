@@ -1,7 +1,7 @@
 # MOOORF Annotation Card and Cell Label Layout Scope
 
-**Status:** Owner-approved canonical scope  
-**Date:** 2026-07-13  
+**Status:** Owner-approved canonical scope
+**Date:** 2026-07-13
 **Product-code effect:** None. This document defines future architecture and sequencing only.
 
 ## 1. Locked naming and exclusions

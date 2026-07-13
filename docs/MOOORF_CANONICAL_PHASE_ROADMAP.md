@@ -1,8 +1,8 @@
 # MOOORF Canonical Phase Roadmap
 
-**Status:** Canonical planning and sequencing document  
-**Authority:** Required before every new milestone, worker brief, implementation, audit, or merge decision  
-**Product-code effect:** None. This document plans work; it does not authorize implementation.  
+**Status:** Canonical planning and sequencing document
+**Authority:** Required before every new milestone, worker brief, implementation, audit, or merge decision
+**Product-code effect:** None. This document plans work; it does not authorize implementation.
 **Current production base at publication:** `92f4c644a9f27a3bdd6b61d1349e560a63235bd1`
 
 ## 1. Purpose
@@ -158,8 +158,8 @@ Create legal, stable resource IDs and metadata before any production symbol or g
 
 ### Current status
 
-Implementation branch: `feature/c0-2-icon-grid-asset-registry`  
-Head: `028c90541481b07a185e768fae921a7108a4e5d2`  
+Implementation branch: `feature/c0-2-icon-grid-asset-registry`
+Head: `028c90541481b07a185e768fae921a7108a4e5d2`
 Independent audit result: `MERGE CANDIDATE`.
 
 ### Explicit exclusions
@@ -185,7 +185,7 @@ Approve the interaction and visual language of a compact Cell Inspector before r
 
 ### Prototype branch
 
-`design/c0-3-cell-inspector-v2-lab`  
+`design/c0-3-cell-inspector-v2-lab`
 Head: `462bf9bacbb1ee60015fc1e794539ab3b25f6b97`
 
 ### Included prototype behaviour

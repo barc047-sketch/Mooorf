@@ -1,7 +1,7 @@
 # MOOORF Roadmap Amendment — Annotation Card and Cell Label Layout
 
-**Date:** 2026-07-13  
-**Status:** Owner-approved roadmap amendment  
+**Date:** 2026-07-13
+**Status:** Owner-approved roadmap amendment
 **Overrides:** Any earlier planning note that defined `Linked Callout` as a project object.
 
 ## 1. Approved prototype verdict
