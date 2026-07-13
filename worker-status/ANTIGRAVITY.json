@@ -1,14 +1,14 @@
 {
   "worker": "Antigravity",
   "model": "Sonnet 4.6",
-  "status": "RUNNING",
+  "status": "DONE",
   "task": "C0.4 modular layer architecture audit",
   "brief": "docs/worker-briefs/C0_4_ANTIGRAVITY_LAYER_ARCHITECTURE_AUDIT.md",
   "source_branch": "main",
   "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
   "work_branch": null,
-  "last_checkpoint": "Verifying fixed prototype and production sources",
-  "updated_at": "2026-07-13T18:32:00Z",
+  "last_checkpoint": "Completed architecture layer ownership and sequence mapping. Handed off to Codex.",
+  "updated_at": "2026-07-13T18:36:00Z",
   "blocked_reason": null,
   "expected_outputs": [
     "C0_4_LAYER_OWNERSHIP_MATRIX.md",
