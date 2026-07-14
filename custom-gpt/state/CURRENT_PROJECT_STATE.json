@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T04:25:00+05:30",
+  "updated_at": "2026-07-15T04:54:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
@@ -12,7 +12,7 @@
     "durable_memory": "GitHub exact refs, worker status files, current state and append-only orchestration event log",
     "event_log": "custom-gpt/state/ORCHESTRATION_EVENT_LOG.md",
     "rule": "Never rely on chat memory alone; verify and record exact refs before decisions",
-    "owner_speed_directive": "No additional audit loop for C0.4F-A or C0.4F-B unless a blocker/high-risk contradiction appears; use one substantial Codex completion batch with built-in verification",
+    "owner_speed_directive": "No additional routine audit loop; use one substantial Codex umbrella branch with internal checkpoints and built-in verification",
     "limit_awareness": "Local worker execution is not observable until status/branch/head evidence is pushed"
   },
   "c0_4f_a": {
@@ -29,7 +29,77 @@
     "findings": "No BLOCKER, HIGH, MEDIUM or LOW product finding; accepted known Organism fallback and 50+ Cell limitation",
     "next_gate": "Owner command MERGE C0.4F-A"
   },
-  "cancelled_or_superseded": [
+  "next_program": {
+    "id": "C0-EDITING-WORKSPACE-COMPLETION",
+    "title": "Complete Canvas Editing Workspace",
+    "worker": "Codex",
+    "status": "PLAN LOCKED — START AFTER C0.4F-A MERGE AND OWNER GO",
+    "planned_branch": "feature/c0-editing-workspace-completion",
+    "plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
+    "architecture": {
+      "organism_targets": [
+        "Cell",
+        "Boundary",
+        "Membrane",
+        "Membrane Edge",
+        "Core",
+        "Void"
+      ],
+      "separate_families": [
+        "Connection System",
+        "Markup and Annotation System",
+        "Selection and Arrange Commands"
+      ],
+      "connection_rule": "Connection is not a seventh Organism target; V1 uses straight centre-to-centre lines with semantic meaning and visual appearance kept separately editable",
+      "annotation_rule": "Annotation Card is standalone markup, not Cell content and not the existing label-mode AnnotationWidget"
+    },
+    "bottom_dock": {
+      "left": [
+        "Select",
+        "Target",
+        "Arrange"
+      ],
+      "centre": [
+        "Add Cell",
+        "Add Cluster",
+        "Add Void"
+      ],
+      "right": [
+        "Connect",
+        "Material",
+        "Preset",
+        "Markup",
+        "Detail"
+      ],
+      "rail_rule": "One reusable contextual rail opens above the active circular launcher; only one rail open at once"
+    },
+    "detailed_widgets": [
+      "Cell Settings",
+      "Boundary Settings",
+      "Membrane Settings",
+      "Membrane Edge Settings",
+      "Core Settings",
+      "Void Settings",
+      "Connection Settings",
+      "Annotation Studio"
+    ],
+    "inspector": "Context hub retained and expanded to Cell/multi-selection, Connection and Annotation contexts; detailed controls live in separate widgets",
+    "material_system": "One shared Quick Material rail and one shared Material Browser, filtered by active target or selected Connection/Annotation; presets remain separate bundles",
+    "checkpoints": [
+      "A — complete Canvas control map, bottom dock and shared contextual rail; move/remove legacy duplicates",
+      "B — context-aware Inspector, six dedicated layer widgets, Quick Materials, Presets, Material Browser foundation and audited Symbol registry forward-port",
+      "C — straight centre-to-centre Connection foundation with Connection Settings, persistence, history and export",
+      "D — Markup rail, standalone Annotation Card, Annotation Studio, label-settings migration and final hardening"
+    ],
+    "review_rule": "One final fixed feature head and Owner review; no separate audit by default unless a BLOCKER/HIGH contradiction appears"
+  },
+  "superseded_or_absorbed_plans": [
+    {
+      "id": "C0.4F-B",
+      "brief": "docs/worker-briefs/C0_4F_B_CODEX_LAYER_INSPECTOR_SETTINGS_COMPLETION.md",
+      "status": "ABSORBED INTO C0-EDITING-WORKSPACE-COMPLETION BEFORE DISPATCH",
+      "note": "Still valid as layer-settings contract input, but its former exclusions for Connections, Material Browser and shell changes are superseded by the Owner-directed umbrella plan"
+    },
     {
       "id": "C0.4F-A-CODEX-RED-TEAM",
       "branch": "audit/c0-4f-a-codex-red-team",
@@ -39,35 +109,6 @@
       "merge_rule": "report branch must never be merged"
     }
   ],
-  "next_prepared_task": {
-    "id": "C0.4F-B",
-    "title": "Production Layer Inspector and Settings Completion",
-    "worker": "Codex",
-    "status": "PREPARED — START AFTER C0.4F-A MERGE",
-    "required_main_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "planned_branch": "feature/c0-4f-b-layer-inspector-settings",
-    "brief": "docs/worker-briefs/C0_4F_B_CODEX_LAYER_INSPECTOR_SETTINGS_COMPLETION.md",
-    "scope": [
-      "repair all stale/broken/no-op appearance controls",
-      "redesign production Inspector around Cell, Boundary, Membrane, Membrane Edge, Core and Void",
-      "Project Default / Local Override / Mixed inheritance",
-      "transactional history and ephemeral slider previews",
-      "persistence/migration round-trip",
-      "clean PNG/SVG/PDF technical-stroke parity",
-      "1440 and 1280 deterministic QA"
-    ],
-    "explicit_exclusions": [
-      "Area/Table sync",
-      "CSV/Excel redesign",
-      "Floors",
-      "Dashboard",
-      "Connections",
-      "advanced Membrane",
-      "full Material Browser",
-      "broad shell redesign"
-    ],
-    "audit_rule": "No separate audit by default; Codex must provide focused tests, typecheck, diff check, one final build and browser QA, then stop at WAITING_REVIEW"
-  },
   "completed_parallel_research": [
     {
       "id": "C0-2-SYMBOL-EXPANSION",
@@ -88,8 +129,8 @@
     "codex": {
       "execution": "WAITING_REVIEW",
       "current_feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "next_assignment": "C0.4F-B after explicit merge and GO",
-      "next_brief": "docs/worker-briefs/C0_4F_B_CODEX_LAYER_INSPECTOR_SETTINGS_COMPLETION.md"
+      "next_assignment": "C0-EDITING-WORKSPACE-COMPLETION after explicit merge and GO",
+      "next_plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md"
     },
     "antigravity": {
       "execution": "DONE",
@@ -99,19 +140,21 @@
     },
     "claude": {
       "execution": "HOLD",
-      "last_task": "C0.3 Cell Inspector V2 prototype"
+      "last_task": "C0.3 Cell Inspector V2 prototype",
+      "reuse_rule": "Selective visual/component evidence only; never merge prototype shell or mock state"
     }
   },
   "locked_sequence": [
     "Owner says MERGE C0.4F-A",
     "Fast-forward main only to exact audited feature SHA 21388c0d765cd4bbc675d0321d94e77db9a41e5c",
     "Verify main equals the audited feature head",
-    "Owner says GO CODEX C0.4F-B",
-    "Codex creates feature/c0-4f-b-layer-inspector-settings from exact post-merge main",
-    "Codex completes target-aware Inspector/settings/history/persistence/export batch",
-    "Codex pushes fixed head with built-in verification and stops at WAITING_REVIEW",
+    "Generate the exact Codex umbrella contract from docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
+    "Owner says GO CODEX C0-EDITING-WORKSPACE-COMPLETION",
+    "Codex creates feature/c0-editing-workspace-completion from exact post-merge main",
+    "Codex completes Checkpoints A through D on one branch with internal verification",
+    "Codex pushes one fixed head and stops at WAITING_REVIEW",
     "Owner reviews evidence and decides merge without a routine extra audit loop",
-    "Then proceed to Area editing, Table/Canvas sync and reliable CSV/Excel import"
+    "Then proceed to Area editing, Table/Canvas sync, reliable CSV/Excel import, Floors and Dashboard"
   ],
   "protected": [
     ".claude/launch.json",
@@ -120,14 +163,17 @@
     "Master Graph/store as sole data source",
     "audit branches must never be merged",
     "research branches must never be merged wholesale into main",
-    "Selection UI must never persist or export"
+    "Selection UI must never persist or export",
+    "Connection semantic meaning must remain separate from visual line appearance",
+    "Annotation Card must remain standalone markup rather than Cell appearance/content"
   ],
   "known_limits": [
     "Organism non-solid Boundary styles truthfully fall back to solid",
     "50+ Cell performance remains a known limitation",
     "Known Vite chunk warning remains accepted",
-    "Advanced Membrane geometry and motion remain deferred",
-    "Full Material Browser remains deferred"
+    "Curved/Bezier/orthogonal/animated connections are deferred beyond straight-line V1",
+    "Advanced Membrane geometry and motion remain performance-gated",
+    "Full premium marketplace/commercial material system remains deferred"
   ],
   "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
 }
