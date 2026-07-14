@@ -112,3 +112,37 @@ Append-only durable record. GitHub state and exact refs override chat memory, lo
   2. Floors, derived statistics and compact Dashboard.
   3. Essential Connections, export parity and dense-scene hardening.
 - No product code begins before the exact Owner GO for each bounded contract.
+
+## 2026-07-15 — C0.4F-A independent audit completed
+
+- Audit branch: `audit/c0-4f-a-runtime-layer-separation`
+- Audit head: `2cb97065511bfa710e149438c41eafbd2fec4949`
+- Exact audited feature: `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`
+- Verdict: `MERGE CANDIDATE`.
+- No BLOCKER, HIGH, MEDIUM or LOW product finding was reported.
+- The supplementary Codex red-team audit was cancelled under the Owner speed directive; no additional routine audit loop is required.
+- Current gate remains explicit Owner command `MERGE C0.4F-A`.
+
+## 2026-07-15 — Complete Canvas Editing Workspace plan locked
+
+- Owner corrected the next scope to include all previously planned editing surfaces rather than only a narrow Inspector patch.
+- Canonical plan: `docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md`.
+- Planned production branch after C0.4F-A merge: `feature/c0-editing-workspace-completion`.
+- The former C0.4F-B Inspector brief remains useful input but is absorbed before dispatch because its exclusions for Connections, Material Browser and shell work conflict with the expanded Owner direction.
+- Architecture locked:
+  - six Organism targets: Cell, Boundary, Membrane, Membrane Edge, Core and Void,
+  - Connection is a separate family, not a seventh Organism target,
+  - initial Visual Connection is a straight centre-to-centre line that follows Cell movement,
+  - semantic Relationship meaning remains separately editable from line appearance,
+  - Annotation Card is standalone markup, not Cell content/appearance and not the existing label-mode AnnotationWidget,
+  - Inspector remains a compact context hub,
+  - each Organism target, Connection and Annotation receives a dedicated detailed widget using the shared WidgetFrame/WidgetHost system,
+  - one shared Material rail and Browser filter by active target or selected Connection/Annotation,
+  - Presets remain separate bundles rather than raw materials.
+- Bottom dock locked:
+  - left: Select, Target, Arrange,
+  - centre: Add Cell, Add Cluster, Add Void,
+  - right: Connect, Material, Preset, Markup, Detail,
+  - one shared contextual rail opens above the active circular launcher.
+- One umbrella implementation branch uses four internal checkpoints: shell/rails; Inspector/layer widgets/materials/symbols; straight Connections; Annotation/Markup and hardening.
+- No routine separate audit after implementation; Codex supplies focused tests, typecheck, diff check, one final build and 1440/1280 QA, then stops at one fixed `WAITING_REVIEW` head.
