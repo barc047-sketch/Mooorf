@@ -1,18 +1,19 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T04:54:00+05:30",
+  "updated_at": "2026-07-15T05:08:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
   "current_phase": "C0.4F-A-MERGE-GATE",
-  "current_gate": "Antigravity fixed-head audit returned MERGE CANDIDATE; awaiting explicit Owner merge command",
+  "current_gate": "Antigravity fixed-head audit returned MERGE CANDIDATE; awaiting explicit Owner command MERGE C0.4F-A",
   "owner_approval_required": true,
   "orchestration_mode": {
-    "status": "OWNER_DIRECTED_FAST_TRACK",
+    "status": "OWNER_REVIEWED_SEQUENTIAL_FAST_TRACK",
     "durable_memory": "GitHub exact refs, worker status files, current state and append-only orchestration event log",
     "event_log": "custom-gpt/state/ORCHESTRATION_EVENT_LOG.md",
     "rule": "Never rely on chat memory alone; verify and record exact refs before decisions",
-    "owner_speed_directive": "No additional routine audit loop; use one substantial Codex umbrella branch with internal checkpoints and built-in verification",
+    "owner_speed_directive": "Build one bounded Codex milestone at a time. Present the next exact scope to the Owner before creating or dispatching its contract. No routine extra audit loop.",
+    "dispatch_protocol": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md",
     "limit_awareness": "Local worker execution is not observable until status/branch/head evidence is pushed"
   },
   "c0_4f_a": {
@@ -29,13 +30,9 @@
     "findings": "No BLOCKER, HIGH, MEDIUM or LOW product finding; accepted known Organism fallback and 50+ Cell limitation",
     "next_gate": "Owner command MERGE C0.4F-A"
   },
-  "next_program": {
-    "id": "C0-EDITING-WORKSPACE-COMPLETION",
-    "title": "Complete Canvas Editing Workspace",
-    "worker": "Codex",
-    "status": "PLAN LOCKED — START AFTER C0.4F-A MERGE AND OWNER GO",
-    "planned_branch": "feature/c0-editing-workspace-completion",
-    "plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
+  "editing_workspace_plan": {
+    "master_plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
+    "dispatch_protocol": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md",
     "architecture": {
       "organism_targets": [
         "Cell",
@@ -50,7 +47,7 @@
         "Markup and Annotation System",
         "Selection and Arrange Commands"
       ],
-      "connection_rule": "Connection is not a seventh Organism target; V1 uses straight centre-to-centre lines with semantic meaning and visual appearance kept separately editable",
+      "connection_rule": "Connection is not a seventh Organism target; V1 uses straight centre-to-centre lines with semantic meaning and visual appearance separately editable",
       "annotation_rule": "Annotation Card is standalone markup, not Cell content and not the existing label-mode AnnotationWidget"
     },
     "bottom_dock": {
@@ -82,23 +79,65 @@
       "Void Settings",
       "Connection Settings",
       "Annotation Studio"
-    ],
-    "inspector": "Context hub retained and expanded to Cell/multi-selection, Connection and Annotation contexts; detailed controls live in separate widgets",
-    "material_system": "One shared Quick Material rail and one shared Material Browser, filtered by active target or selected Connection/Annotation; presets remain separate bundles",
-    "checkpoints": [
-      "A — complete Canvas control map, bottom dock and shared contextual rail; move/remove legacy duplicates",
-      "B — context-aware Inspector, six dedicated layer widgets, Quick Materials, Presets, Material Browser foundation and audited Symbol registry forward-port",
-      "C — straight centre-to-centre Connection foundation with Connection Settings, persistence, history and export",
-      "D — Markup rail, standalone Annotation Card, Annotation Studio, label-settings migration and final hardening"
-    ],
-    "review_rule": "One final fixed feature head and Owner review; no separate audit by default unless a BLOCKER/HIGH contradiction appears"
+    ]
+  },
+  "sequential_milestones": [
+    {
+      "id": "M1",
+      "title": "Canvas Shell, Bottom Dock and Shared Contextual Rails",
+      "planned_branch": "feature/c0-m1-canvas-shell-context-rails",
+      "status": "NEXT — PRESENT TO OWNER BEFORE DISPATCH"
+    },
+    {
+      "id": "M2",
+      "title": "Inspector Context, Target Rail and Dedicated Organism Settings Widgets",
+      "planned_branch": "feature/c0-m2-inspector-layer-settings",
+      "status": "PREVIEW ONLY"
+    },
+    {
+      "id": "M3",
+      "title": "Quick Materials, Presets and Material Browser Foundation",
+      "planned_branch": "feature/c0-m3-materials-presets-browser",
+      "status": "PLANNED"
+    },
+    {
+      "id": "M4",
+      "title": "Straight Connection Foundation",
+      "planned_branch": "feature/c0-m4-straight-connections",
+      "status": "PLANNED"
+    },
+    {
+      "id": "M5",
+      "title": "Markup Rail, Annotation Card and Annotation Studio",
+      "planned_branch": "feature/c0-m5-annotation-markup",
+      "status": "PLANNED"
+    },
+    {
+      "id": "M6",
+      "title": "C0 Editing Workspace Hardening",
+      "planned_branch": "feature/c0-m6-editing-workspace-hardening",
+      "status": "PLANNED"
+    }
+  ],
+  "dispatch_rule": {
+    "before_each_milestone": "Assistant presents exact visible changes, moves/removals, exclusions, branch and acceptance checks; Owner may add changes",
+    "authorization": "Only explicit Owner GO creates the final contract and Codex launch prompt",
+    "completion": "Codex stops at WAITING_REVIEW; Assistant verifies GitHub evidence; Owner explicitly approves merge or correction",
+    "next_milestone": "Present only after current milestone is reviewed and merged",
+    "audit": "No separate audit by default unless a BLOCKER/HIGH-risk contradiction appears"
   },
   "superseded_or_absorbed_plans": [
     {
+      "id": "C0-EDITING-WORKSPACE-COMPLETION-UMBRELLA",
+      "planned_branch": "feature/c0-editing-workspace-completion",
+      "status": "SUPERSEDED BEFORE DISPATCH",
+      "reason": "Owner requires one bounded milestone at a time with review and additions before each Codex dispatch"
+    },
+    {
       "id": "C0.4F-B",
       "brief": "docs/worker-briefs/C0_4F_B_CODEX_LAYER_INSPECTOR_SETTINGS_COMPLETION.md",
-      "status": "ABSORBED INTO C0-EDITING-WORKSPACE-COMPLETION BEFORE DISPATCH",
-      "note": "Still valid as layer-settings contract input, but its former exclusions for Connections, Material Browser and shell changes are superseded by the Owner-directed umbrella plan"
+      "status": "INPUT TO M2, NOT DISPATCHED",
+      "note": "Layer-settings requirements remain valid input but will be reviewed with the Owner before M2"
     },
     {
       "id": "C0.4F-A-CODEX-RED-TEAM",
@@ -129,8 +168,8 @@
     "codex": {
       "execution": "WAITING_REVIEW",
       "current_feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "next_assignment": "C0-EDITING-WORKSPACE-COMPLETION after explicit merge and GO",
-      "next_plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md"
+      "next_assignment": "M1 only after C0.4F-A merge, Owner review of M1 scope and explicit GO",
+      "next_plan": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md"
     },
     "antigravity": {
       "execution": "DONE",
@@ -148,13 +187,13 @@
     "Owner says MERGE C0.4F-A",
     "Fast-forward main only to exact audited feature SHA 21388c0d765cd4bbc675d0321d94e77db9a41e5c",
     "Verify main equals the audited feature head",
-    "Generate the exact Codex umbrella contract from docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
-    "Owner says GO CODEX C0-EDITING-WORKSPACE-COMPLETION",
-    "Codex creates feature/c0-editing-workspace-completion from exact post-merge main",
-    "Codex completes Checkpoints A through D on one branch with internal verification",
-    "Codex pushes one fixed head and stops at WAITING_REVIEW",
-    "Owner reviews evidence and decides merge without a routine extra audit loop",
-    "Then proceed to Area editing, Table/Canvas sync, reliable CSV/Excel import, Floors and Dashboard"
+    "Assistant presents M1 exact scope to Owner; no dispatch yet",
+    "Owner adds/removes requirements and says GO CODEX M1",
+    "Assistant creates final M1 contract and Codex launch prompt",
+    "Codex implements M1 on feature/c0-m1-canvas-shell-context-rails and stops at WAITING_REVIEW",
+    "Assistant verifies M1 GitHub evidence and Owner explicitly approves merge or correction",
+    "After M1 merge, Assistant presents M2 before any dispatch",
+    "Repeat the same cycle through M6"
   ],
   "protected": [
     ".claude/launch.json",
@@ -165,7 +204,8 @@
     "research branches must never be merged wholesale into main",
     "Selection UI must never persist or export",
     "Connection semantic meaning must remain separate from visual line appearance",
-    "Annotation Card must remain standalone markup rather than Cell appearance/content"
+    "Annotation Card must remain standalone markup rather than Cell appearance/content",
+    "No later milestone may be dispatched before Owner review and GO"
   ],
   "known_limits": [
     "Organism non-solid Boundary styles truthfully fall back to solid",
