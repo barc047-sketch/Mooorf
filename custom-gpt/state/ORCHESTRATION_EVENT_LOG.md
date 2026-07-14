@@ -47,3 +47,41 @@ Append-only durable record. GitHub state and exact refs override chat memory, lo
 - Branch base: `main@c4600472ea76f651800c19b91cf8f67954ca992e`
 - Purpose: map exact provenance, reusable code/prototypes, canonical owners, dependencies, performance risks, tests and future Codex contract inputs from C0.4F-B through essential product hardening.
 - Product code forbidden; no moving-head C0.4F-A audit.
+
+## 2026-07-15 — C0.4F-A implementation completed
+
+- Codex status: `WAITING_REVIEW`
+- Exact base: `main@c4600472ea76f651800c19b91cf8f67954ca992e`
+- Feature branch: `feature/c0-4f-a-runtime-layer-separation`
+- Fixed feature head: `21388c0d765cd4bbc675d0321d94e77db9a41e5c`
+- Feature is exactly one commit ahead of the base with no divergence.
+- Implementation report: `docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md`
+- Reported checks: focused contracts, app typecheck, diff check, one production build and 1440/1280 browser QA passed.
+- Known limits: Organism non-solid Boundary styles truthfully fall back to solid; SVG/PDF technical-stroke vector parity remains C0.4F-B work; known Vite chunk warning remains.
+- No merge performed. C0.4F-B not started.
+
+## 2026-07-15 — Essential product atlas completed
+
+- Research branch: `research/c0-fast-track-essential-product-atlas`
+- Fixed research head: `348ee8cd62e45de1b1c51f144e1b7607acd016ee`
+- Branch is exactly one report-only commit ahead of production base `c4600472ea76f651800c19b91cf8f67954ca992e`.
+- Outputs:
+  - `docs/research/MOOORF_ESSENTIAL_PRODUCT_REUSE_ATLAS.md`
+  - `docs/research/MOOORF_FAST_TRACK_DEPENDENCY_GRAPH.json`
+  - `docs/research/MOOORF_CODEX_CONTRACT_INPUTS_C0_4F_B_TO_HARDENING.md`
+  - `docs/research/MOOORF_FAST_TRACK_RISK_AND_DEFERRED_REGISTER.md`
+- Purpose fulfilled: exact provenance, ownership, data flows, dependencies, risks and future substantial Codex contract inputs from C0.4F-B through essential hardening.
+- Research branch must not be merged wholesale into main.
+
+## 2026-07-15 — C0.4F-A fixed-head audit assigned
+
+- Task ID: `C0.4F-A-AUDIT`
+- Auditor: Antigravity, fresh session, read-only.
+- Exact base: `main@c4600472ea76f651800c19b91cf8f67954ca992e`
+- Exact feature: `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`
+- Audit contract: `docs/worker-briefs/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md`
+- Report branch: `audit/c0-4f-a-runtime-layer-separation`, created from exact production base.
+- Output report: `docs/audits/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md`
+- Verdict must be exactly `MERGE CANDIDATE`, `CORRECTION REQUIRED` or `REJECT`.
+- Audit branch is report-only and must never be merged.
+- Next gate: Owner reviews the verdict; no merge without explicit approval.
