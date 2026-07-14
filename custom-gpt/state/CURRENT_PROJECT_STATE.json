@@ -1,189 +1,133 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T04:15:00+05:30",
+  "updated_at": "2026-07-15T04:25:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0.4F-A-AUDIT",
-  "current_gate": "Exact fixed head verified; Antigravity independent audit and fresh Codex red-team audit assigned",
+  "current_phase": "C0.4F-A-MERGE-GATE",
+  "current_gate": "Antigravity fixed-head audit returned MERGE CANDIDATE; awaiting explicit Owner merge command",
   "owner_approval_required": true,
   "orchestration_mode": {
     "status": "OWNER_DIRECTED_FAST_TRACK",
     "durable_memory": "GitHub exact refs, worker status files, current state and append-only orchestration event log",
     "event_log": "custom-gpt/state/ORCHESTRATION_EVENT_LOG.md",
     "rule": "Never rely on chat memory alone; verify and record exact refs before decisions",
+    "owner_speed_directive": "No additional audit loop for C0.4F-A or C0.4F-B unless a blocker/high-risk contradiction appears; use one substantial Codex completion batch with built-in verification",
     "limit_awareness": "Local worker execution is not observable until status/branch/head evidence is pushed"
   },
-  "acceleration_mode": {
-    "status": "OWNER_APPROVED",
-    "production_worker": "Codex only",
-    "primary_independent_auditor": "Antigravity read-only",
-    "supplemental_reviewer": "fresh isolated Codex red-team session",
-    "claude": "HOLD",
-    "plan": "docs/MOOORF_ACCELERATION_MODE_2026_07_15.md",
-    "principle": "larger essential bounded milestones; one production lane; fixed-head audit before merge"
-  },
-  "completed_gate": {
-    "id": "C0.4.1",
-    "title": "Layer contracts, defaults and resolvers",
-    "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
-    "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "audit_verdict": "MERGE CANDIDATE",
-    "merge_method": "non-forced fast-forward",
-    "merged_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "owner_command": "MERGE C0.4.1"
-  },
-  "active_task": {
-    "id": "C0.4F-A-AUDIT",
-    "title": "Fixed-head audit of runtime layer separation and essential Boundary strokes",
-    "source_branch": "main",
+  "c0_4f_a": {
+    "title": "Runtime layer separation and essential Boundary strokes",
     "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
     "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
     "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "status": "DUAL AUDIT ASSIGNED",
-    "next_gate": "Owner reviews both reports; Antigravity is primary independent verdict and Codex red-team is supplemental evidence"
+    "implementation_status": "WAITING_REVIEW",
+    "implementation_report": "docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md",
+    "audit_branch": "audit/c0-4f-a-runtime-layer-separation",
+    "audit_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
+    "audit_report": "docs/audits/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
+    "audit_verdict": "MERGE CANDIDATE",
+    "findings": "No BLOCKER, HIGH, MEDIUM or LOW product finding; accepted known Organism fallback and 50+ Cell limitation",
+    "next_gate": "Owner command MERGE C0.4F-A"
   },
-  "audit_strategy": {
-    "primary": {
-      "worker": "Antigravity",
-      "status": "START NOW",
-      "brief": "docs/worker-briefs/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
-      "work_branch": "audit/c0-4f-a-runtime-layer-separation",
-      "report": "docs/audits/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
-      "role": "cross-model independent merge-gate audit"
-    },
-    "supplemental": {
-      "worker": "Codex fresh isolated reviewer",
-      "status": "START NOW",
+  "cancelled_or_superseded": [
+    {
+      "id": "C0.4F-A-CODEX-RED-TEAM",
+      "branch": "audit/c0-4f-a-codex-red-team",
       "brief": "docs/worker-briefs/C0_4F_A_CODEX_RED_TEAM_AUDIT.md",
-      "work_branch": "audit/c0-4f-a-codex-red-team",
-      "report": "docs/audits/C0_4F_A_CODEX_RED_TEAM_AUDIT.md",
-      "role": "same-model adversarial technical review; must not be implementation session",
-      "status_file_rule": "do not overwrite status/codex implementation record"
-    },
-    "decision_rule": "Do not merge on self-review alone. Prefer agreement. Any BLOCKER/HIGH or conflicting verdict requires investigation or correction before Owner merge approval."
+      "status": "CANCELLED BY OWNER SPEED DIRECTIVE",
+      "reason": "Primary independent Antigravity audit completed with MERGE CANDIDATE; no extra audit loop required",
+      "merge_rule": "report branch must never be merged"
+    }
+  ],
+  "next_prepared_task": {
+    "id": "C0.4F-B",
+    "title": "Production Layer Inspector and Settings Completion",
+    "worker": "Codex",
+    "status": "PREPARED — START AFTER C0.4F-A MERGE",
+    "required_main_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "planned_branch": "feature/c0-4f-b-layer-inspector-settings",
+    "brief": "docs/worker-briefs/C0_4F_B_CODEX_LAYER_INSPECTOR_SETTINGS_COMPLETION.md",
+    "scope": [
+      "repair all stale/broken/no-op appearance controls",
+      "redesign production Inspector around Cell, Boundary, Membrane, Membrane Edge, Core and Void",
+      "Project Default / Local Override / Mixed inheritance",
+      "transactional history and ephemeral slider previews",
+      "persistence/migration round-trip",
+      "clean PNG/SVG/PDF technical-stroke parity",
+      "1440 and 1280 deterministic QA"
+    ],
+    "explicit_exclusions": [
+      "Area/Table sync",
+      "CSV/Excel redesign",
+      "Floors",
+      "Dashboard",
+      "Connections",
+      "advanced Membrane",
+      "full Material Browser",
+      "broad shell redesign"
+    ],
+    "audit_rule": "No separate audit by default; Codex must provide focused tests, typecheck, diff check, one final build and browser QA, then stop at WAITING_REVIEW"
   },
   "completed_parallel_research": [
     {
       "id": "C0-2-SYMBOL-EXPANSION",
-      "worker": "Antigravity",
-      "status": "DONE",
       "branch": "research/c0-2-symbol-asset-expansion",
       "head": "9aa52779deac12701ba30eed1ff6e919e88091f4",
-      "outputs": [
-        "docs/research/C0_2_SYMBOL_ASSET_EXPANSION.md",
-        "docs/research/C0_2_SYMBOL_CANDIDATE_MANIFEST.json"
-      ],
-      "result": "77 baseline symbols; 59 verified ADD candidates; 14 aliases; 8 custom-design candidates; 5 rejects; target 164 searchable IDs / 144 active geometry symbols",
-      "merge_rule": "research-only; ingest an Owner-approved shortlist through a later bounded Codex contract"
+      "result": "77 baseline symbols; 59 verified additions; 14 aliases; 8 custom-design candidates; 5 rejects; target 164 searchable IDs / 144 active geometry symbols",
+      "merge_rule": "research-only; never merge wholesale"
     },
     {
       "id": "C0-FAST-TRACK-ATLAS",
-      "worker": "Antigravity",
-      "status": "DONE",
-      "source_branch": "main",
-      "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-      "work_branch": "research/c0-fast-track-essential-product-atlas",
-      "work_sha": "348ee8cd62e45de1b1c51f144e1b7607acd016ee",
-      "outputs": [
-        "docs/research/MOOORF_ESSENTIAL_PRODUCT_REUSE_ATLAS.md",
-        "docs/research/MOOORF_FAST_TRACK_DEPENDENCY_GRAPH.json",
-        "docs/research/MOOORF_CODEX_CONTRACT_INPUTS_C0_4F_B_TO_HARDENING.md",
-        "docs/research/MOOORF_FAST_TRACK_RISK_AND_DEFERRED_REGISTER.md"
-      ],
-      "result": "Exact provenance, ownership, data-flow, dependency, risk and future Codex batch inputs from C0.4F-B through essential hardening",
-      "merge_rule": "research-only; use as contract-generation input and never merge wholesale into main"
+      "branch": "research/c0-fast-track-essential-product-atlas",
+      "head": "348ee8cd62e45de1b1c51f144e1b7607acd016ee",
+      "result": "Exact provenance, ownership, data-flow, dependency, risk and future Codex inputs through essential hardening",
+      "merge_rule": "research-only; use as contract input and never merge wholesale"
     }
   ],
   "workers": {
     "codex": {
-      "production_assignment": "C0.4F-A implementation",
-      "production_execution": "WAITING_REVIEW",
-      "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-      "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
-      "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "report": "docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md",
-      "supplemental_review": "fresh isolated red-team session on audit/c0-4f-a-codex-red-team",
-      "note": "Implementation session remains stopped; reviewer must be a separate clean session and must not overwrite status/codex"
+      "execution": "WAITING_REVIEW",
+      "current_feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+      "next_assignment": "C0.4F-B after explicit merge and GO",
+      "next_brief": "docs/worker-briefs/C0_4F_B_CODEX_LAYER_INSPECTOR_SETTINGS_COMPLETION.md"
     },
     "antigravity": {
-      "assignment": "C0.4F-A primary independent fixed-head audit",
-      "execution": "START NOW",
-      "brief": "docs/worker-briefs/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
-      "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-      "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "work_branch": "audit/c0-4f-a-runtime-layer-separation",
-      "note": "Read-only cross-model audit; report branch must never be merged"
+      "execution": "DONE",
+      "last_task": "C0.4F-A independent fixed-head audit",
+      "last_work_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
+      "verdict": "MERGE CANDIDATE"
     },
     "claude": {
-      "assignment": "UNASSIGNED",
       "execution": "HOLD",
-      "last_task": "C0.3 Cell Inspector V2 prototype",
-      "note": "Acceleration mode uses Codex for all production work"
+      "last_task": "C0.3 Cell Inspector V2 prototype"
     }
   },
-  "next_contract_preparation": {
-    "status": "PLANNING ONLY WHILE AUDITS RUN",
-    "source": "research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee",
-    "batch": "C0.4F-B editing, history, export parity and minimal Inspector integration",
-    "required_precondition": "C0.4F-A audited merge",
-    "registry_dependency": "Forward-port the audited C0.2 icon/grid registry to the future current main; never merge the old divergent branch wholesale",
-    "symbol_scope": "Start with the Owner-approved essential shortlist rather than all research candidates",
-    "no_product_code_before_go": true
-  },
-  "boundary_decision": {
-    "role": "technical stroke system rather than required material surface",
-    "essential_styles": [
-      "solid",
-      "dashed",
-      "dotted",
-      "dash-dot",
-      "double",
-      "segmented-bars"
-    ],
-    "essential_controls": [
-      "width",
-      "offset",
-      "alignment",
-      "dash-or-bar-length",
-      "gap-length",
-      "secondary-line-spacing",
-      "colour",
-      "opacity"
-    ],
-    "material_ui_required": false
-  },
-  "next_planned_phase": "C0.4F-B Essential Editing, History and Export Parity after C0.4F-A audited merge",
   "locked_sequence": [
-    "Run Antigravity independent audit and fresh Codex red-team audit against exact head 21388c0d",
-    "Compare verdicts and investigate any conflict or BLOCKER/HIGH finding",
-    "Owner approves merge, correction or rejection",
-    "Merge only exact audited feature after explicit Owner command",
-    "Forward-port audited C0.2 icon/grid registry onto the new main inside a bounded Codex contract",
-    "Execute C0.4F-B minimal Inspector editing, one-transaction history and technical-stroke export parity",
-    "Audit and merge C0.4F-B",
-    "Batch 2: Area editing, Table/Canvas sync and reliable CSV/Excel import",
-    "Batch 3: Floors, derived statistics and compact Dashboard",
-    "Batch 4: Essential Connections, export parity and dense-scene hardening"
+    "Owner says MERGE C0.4F-A",
+    "Fast-forward main only to exact audited feature SHA 21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "Verify main equals the audited feature head",
+    "Owner says GO CODEX C0.4F-B",
+    "Codex creates feature/c0-4f-b-layer-inspector-settings from exact post-merge main",
+    "Codex completes target-aware Inspector/settings/history/persistence/export batch",
+    "Codex pushes fixed head with built-in verification and stops at WAITING_REVIEW",
+    "Owner reviews evidence and decides merge without a routine extra audit loop",
+    "Then proceed to Area editing, Table/Canvas sync and reliable CSV/Excel import"
   ],
   "protected": [
     ".claude/launch.json",
     ".references/",
-    "main without explicit audited merge approval",
+    "main without explicit Owner merge approval",
     "Master Graph/store as sole data source",
     "audit branches must never be merged",
     "research branches must never be merged wholesale into main",
-    "status/codex implementation record must not be overwritten by supplemental reviewer"
+    "Selection UI must never persist or export"
   ],
   "known_limits": [
-    "Organism non-solid Boundary styles truthfully fall back to solid pending later renderer capability",
-    "SVG/PDF vector parity for technical strokes remains C0.4F-B work",
-    "No GitHub CI status checks are configured; independent audit evidence is the verification source",
-    "Known Vite chunk warning remains accepted",
+    "Organism non-solid Boundary styles truthfully fall back to solid",
     "50+ Cell performance remains a known limitation",
-    "Full Material Browser is deferred from the essential fast track",
-    "Advanced Membrane geometry and motion are deferred",
-    "Annotation Card remains planned for later scope"
+    "Known Vite chunk warning remains accepted",
+    "Advanced Membrane geometry and motion remain deferred",
+    "Full Material Browser remains deferred"
   ],
   "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
 }
