@@ -1,45 +1,48 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0.4F-A runtime layer separation and essential Boundary strokes",
-  "brief": "docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md",
-  "source_branch": "main",
-  "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "planned_work_branch": "feature/c0-4f-a-runtime-layer-separation",
-  "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+  "status": "ASSIGNED_AWAITING_WORKER_START",
+  "task": "C0 M1 Production Inspector, Content and Layer Editing Recovery",
+  "brief": "docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md",
+  "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
+  "contract_branch": "docs/mooorf-ai-team-operating-protocol",
+  "source_branch": "feature/c0-4f-a-runtime-layer-separation",
+  "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+  "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
   "previous_task": {
-    "id": "C0.4.1",
-    "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "id": "C0.4F-A",
+    "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
+    "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "audit_branch": "audit/c0-4f-a-runtime-layer-separation",
+    "audit_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
     "audit_verdict": "MERGE CANDIDATE",
-    "merge_status": "MERGED",
-    "merged_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "merge_method": "non-forced fast-forward"
+    "merge_status": "NOT MERGED — M1 MUST BUILD DIRECTLY ON THIS HEAD"
   },
-  "last_checkpoint": "C0.4F-A implementation is complete on the fixed feature head and the remote branch was verified at the exact SHA. One canonical runtime projection now feeds Classic and Organism; Classic supports all six essential Boundary styles; Organism uses a bounded Membrane/Edge adapter and truthful non-solid Boundary fallback. Selection remains temporary and clean-export-excluded. No merge was performed and C0.4F-B was not started.",
-  "updated_at": "2026-07-15T03:54:10+05:30",
-  "blocked_reason": null,
-  "verification": {
-    "focused_contracts": [
-      "src/domain/presentation/presentationContracts.test.ts",
-      "src/canvas/runtimePresentation.test.ts",
-      "src/canvas/runtimeRendererIntegration.test.ts",
-      "src/canvas/runtimeOrganismWiring.test.ts",
-      "src/export/exportCore.test.ts",
-      "src/import/importCore.test.ts",
-      "src/resources/resourcePersistence.test.ts"
-    ],
-    "app_typecheck": "PASS",
-    "production_build": "PASS with existing large-chunk warning",
-    "browser_qa": "PASS at 1440x900 and 1280x800; source-main default comparison, Classic six-style matrix, Organism fallback matrix, independent target toggles, drag and zoom",
-    "diff_check": "PASS",
-    "forbidden_scope": "No .claude, .references, package manifest or lockfile changes"
-  },
-  "known_limits": [
-    "Organism non-solid Boundary styles truthfully render as solid with unsupported-organism-style metadata",
-    "SVG/PDF vector parity for the new technical strokes remains deferred to C0.4F-B",
-    "Existing Vite large-chunk warning remains"
+  "assignment_summary": [
+    "canonical inline and Inspector editing for Space Name, Area and Body/subtext",
+    "minimal Table sync for Name/Area/Body only",
+    "Content and Appearance Inspector",
+    "coordinated text presets, Text Size, Text Colour and Auto Contrast",
+    "Cell, Boundary, Membrane, Membrane Edge, Core and Void editing",
+    "six separate detailed settings widgets",
+    "Project Default / Local Override / Mixed",
+    "one-transaction history and ephemeral previews",
+    "persistence, migration and clean export parity",
+    "documented rebind/move/removal of every stale, broken or no-op visual control"
   ],
-  "report": "docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md",
-  "next_gate": "Independent fixed-head audit and explicit Owner merge or correction command"
+  "explicit_exclusions": [
+    "production Symbol library",
+    "bottom dock redesign",
+    "Quick Materials or full Material Browser",
+    "Connections",
+    "Annotation Card/Studio",
+    "broad Table/import redesign",
+    "advanced procedural Membrane shaders",
+    "merge to main",
+    "beginning M2"
+  ],
+  "updated_at": "2026-07-15T05:58:00+05:30",
+  "blocked_reason": null,
+  "next_worker_action": "Read the contract from the governance branch, verify the exact source SHA, update this status to RUNNING, create the planned feature branch, implement the full bounded contract, then push one fixed head and stop at WAITING_REVIEW.",
+  "next_gate": "Worker RUNNING checkpoint on GitHub, then final WAITING_REVIEW evidence; main remains unchanged"
 }
