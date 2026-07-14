@@ -1,20 +1,22 @@
 {
   "worker": "Antigravity",
-  "model": "Sonnet 4.6",
-  "status": "DONE",
-  "task": "C0.4 modular layer architecture audit",
-  "brief": "docs/worker-briefs/C0_4_ANTIGRAVITY_LAYER_ARCHITECTURE_AUDIT.md",
+  "model": "Sonnet",
+  "status": "START NOW",
+  "task": "C0.4.1 independent architecture, migration and scope audit",
+  "brief": "docs/worker-briefs/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
   "source_branch": "main",
   "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
-  "work_branch": null,
-  "last_checkpoint": "Completed architecture layer ownership and sequence mapping. Handed off to Codex.",
-  "updated_at": "2026-07-13T18:36:00Z",
+  "feature_branch": "feature/c0-4-1-layer-contracts-resolvers",
+  "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "work_branch": "audit/c0-4-1-layer-contracts-resolvers",
+  "work_sha": "b9f67740e0580a9f5230d112c5958e5b97e22b39",
+  "last_checkpoint": "Owner approved the fresh-session C0.4.1 audit; bounded brief and isolated audit branch created. Awaiting live auditor claim before RUNNING.",
+  "updated_at": "2026-07-15T02:42:36+05:30",
   "blocked_reason": null,
   "expected_outputs": [
-    "C0_4_LAYER_OWNERSHIP_MATRIX.md",
-    "C0_4_STATE_HISTORY_TABLE_ARCHITECTURE.md",
-    "C0_4_RENDERER_EXPORT_LAYER_PLAN.md",
-    "C0_4_IMPLEMENTATION_SEQUENCE_AND_RISK.md",
-    "C0_4_AUDIT_STATE.json"
+    "exact SHA and changed-file verification",
+    "independent focused tests and production build",
+    "architecture, migration, scope and regression findings",
+    "durable audit report with merge/correction/reject verdict"
   ]
 }
