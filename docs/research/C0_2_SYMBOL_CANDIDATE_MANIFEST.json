@@ -1,0 +1,2700 @@
+[
+  {
+    "id": "icon:architecture:dining",
+    "name": "Dining Space",
+    "sourceKey": "Utensils",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "dining",
+      "food",
+      "table",
+      "restaurant",
+      "cafe",
+      "eating"
+    ],
+    "accessibleLabel": "Dining area symbol",
+    "architecturalUse": "Indicates dining space layouts, seating groups, and food service zones.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing kitchen (CookingPot) symbol.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:office",
+    "name": "Office Workspace",
+    "sourceKey": "Briefcase",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "office",
+      "desk",
+      "work",
+      "corporate",
+      "business"
+    ],
+    "accessibleLabel": "Office workspace symbol",
+    "architecturalUse": "Marks dedicated workspace, offices, administrative areas, or business functions.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:classroom",
+    "name": "Classroom",
+    "sourceKey": "GraduationCap",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "classroom",
+      "school",
+      "study",
+      "lecture",
+      "education",
+      "training"
+    ],
+    "accessibleLabel": "Classroom symbol",
+    "architecturalUse": "Marks educational spaces, classrooms, lecture halls, or seminar rooms.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing civic (Landmark) and school (School) symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:studio",
+    "name": "Studio",
+    "sourceKey": "Monitor",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "studio",
+      "desk",
+      "screen",
+      "computer",
+      "design",
+      "media",
+      "workstation"
+    ],
+    "accessibleLabel": "Studio symbol",
+    "architecturalUse": "Marks creative studios, design labs, digital workspaces, or control booths.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:workshop",
+    "name": "Workshop",
+    "sourceKey": "Hammer",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "workshop",
+      "tools",
+      "maker",
+      "fabrication",
+      "craft",
+      "shop"
+    ],
+    "accessibleLabel": "Workshop symbol",
+    "architecturalUse": "Indicates fabrication labs, maker spaces, woodshops, or manual work zones.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing maintenance (Wrench) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:retail",
+    "name": "Retail Store",
+    "sourceKey": "Store",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "retail",
+      "shop",
+      "commerce",
+      "commercial",
+      "sales"
+    ],
+    "accessibleLabel": "Retail store symbol",
+    "architecturalUse": "Marks shopping areas, commercial retail spaces, storefronts, or markets.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to house (House) symbol visually.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:lobby",
+    "name": "Lobby",
+    "sourceKey": "ConciergeBell",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "lobby",
+      "reception",
+      "desk",
+      "entry",
+      "waiting",
+      "hospitality"
+    ],
+    "accessibleLabel": "Lobby and reception symbol",
+    "architecturalUse": "Indicates building entrance lobbies, waiting areas, or front desks.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:reception",
+    "name": "Reception Desk",
+    "sourceKey": "Contact",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "reception",
+      "counter",
+      "staff",
+      "checkin",
+      "information"
+    ],
+    "accessibleLabel": "Reception desk symbol",
+    "architecturalUse": "Marks service counters, check-in points, or administrative desks.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:storage",
+    "name": "Storage Room",
+    "sourceKey": "Package",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "storage",
+      "box",
+      "stock",
+      "inventory",
+      "archive",
+      "depot"
+    ],
+    "accessibleLabel": "Storage room symbol",
+    "architecturalUse": "Indicates closets, stockrooms, archive spaces, or general storage facilities.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:utility",
+    "name": "Utility Room",
+    "sourceKey": "WashingMachine",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "utility",
+      "laundry",
+      "service",
+      "appliance",
+      "clean",
+      "washing"
+    ],
+    "accessibleLabel": "Utility room symbol",
+    "architecturalUse": "Marks laundry rooms, back-of-house service, janitorial closets, or plant support.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:bedroom-single",
+    "name": "Single Bedroom",
+    "sourceKey": "BedSingle",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "bedroom",
+      "sleep",
+      "guest",
+      "dormitory",
+      "single"
+    ],
+    "accessibleLabel": "Single bedroom symbol",
+    "architecturalUse": "Differentiates single occupancy rooms, dormitories, or guest bedrooms.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing bedroom (BedDouble) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:toilet",
+    "name": "Toilet / WC",
+    "sourceKey": "Toilet",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "toilet",
+      "wc",
+      "bathroom",
+      "restroom",
+      "washroom",
+      "water closet"
+    ],
+    "accessibleLabel": "Restroom symbol",
+    "architecturalUse": "Indicates water closets, public toilets, or compact washrooms.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing bathroom (Bath) symbol.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:meeting-room",
+    "name": "Meeting Room",
+    "sourceKey": "Users",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "meeting",
+      "conference",
+      "collaboration",
+      "team",
+      "boardroom"
+    ],
+    "accessibleLabel": "Meeting room symbol",
+    "architecturalUse": "Marks conference rooms, collaborative hubs, boardrooms, or team tables.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:cafe",
+    "name": "Cafe",
+    "sourceKey": "Coffee",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "cafe",
+      "coffee",
+      "tea",
+      "drink",
+      "break",
+      "canteen"
+    ],
+    "accessibleLabel": "Cafe symbol",
+    "architecturalUse": "Marks office breakrooms, coffee bars, public cafes, or lounges.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:door-closed",
+    "name": "Closed Door",
+    "sourceKey": "DoorClosed",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "door",
+      "closed",
+      "gate",
+      "lock",
+      "entry",
+      "exit"
+    ],
+    "accessibleLabel": "Closed door symbol",
+    "architecturalUse": "Indicates emergency exits, locked rooms, or restricted access doors.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to door (DoorOpen) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:down",
+    "name": "Direction Down",
+    "sourceKey": "ArrowDown",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "down",
+      "vertical",
+      "exit",
+      "stairs",
+      "direction"
+    ],
+    "accessibleLabel": "Direction down symbol",
+    "architecturalUse": "Indicates downward circulation, down stairs, or egress descent.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Direction Up (ArrowUp) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:left",
+    "name": "Direction Left",
+    "sourceKey": "ArrowLeft",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "left",
+      "direction",
+      "exit",
+      "wayfinding"
+    ],
+    "accessibleLabel": "Direction left symbol",
+    "architecturalUse": "Indicates leftward circulation direction or emergency egress route.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Direction Right (ArrowRight) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:up-right",
+    "name": "Direction Up Right",
+    "sourceKey": "ArrowUpRight",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "diagonal",
+      "stair",
+      "slope",
+      "escalator",
+      "upward"
+    ],
+    "accessibleLabel": "Direction up-right symbol",
+    "architecturalUse": "Indicates diagonal ascent, ramps, stairs, or escalators in plan.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:down-right",
+    "name": "Direction Down Right",
+    "sourceKey": "ArrowDownRight",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "diagonal",
+      "ramp",
+      "slope",
+      "descent",
+      "downward"
+    ],
+    "accessibleLabel": "Direction down-right symbol",
+    "architecturalUse": "Indicates diagonal descent, access ramps, or escape slopes in plan.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:chevrons-up",
+    "name": "Vertical Ascent",
+    "sourceKey": "ChevronsUp",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "vertical",
+      "ascent",
+      "multi-level",
+      "elevator",
+      "escalator"
+    ],
+    "accessibleLabel": "Vertical ascent symbol",
+    "architecturalUse": "Marks rapid vertical transition points like elevators, lift shafts, or express stairs.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:chevrons-down",
+    "name": "Vertical Descent",
+    "sourceKey": "ChevronsDown",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "vertical",
+      "descent",
+      "multi-level",
+      "elevator",
+      "escalator"
+    ],
+    "accessibleLabel": "Vertical descent symbol",
+    "architecturalUse": "Marks rapid vertical egress points, elevator drops, or chute exits.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:move",
+    "name": "Movement Hub",
+    "sourceKey": "Move",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "circulation",
+      "hub",
+      "crossroads",
+      "atrium",
+      "flow"
+    ],
+    "accessibleLabel": "Circulation hub symbol",
+    "architecturalUse": "Indicates circulation nodes, corridors crossings, or major vertical/horizontal distribution halls.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Target (Crosshair) and Movement Arrow (MoveRight) symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:table",
+    "name": "Table Layout",
+    "sourceKey": "Table",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "table",
+      "furniture",
+      "desk",
+      "dining",
+      "boardroom"
+    ],
+    "accessibleLabel": "Table furniture symbol",
+    "architecturalUse": "Indicates structural table elements, workstations, or dining arrangements.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:desk",
+    "name": "Desk Workstation",
+    "sourceKey": "Laptop",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "desk",
+      "table",
+      "work",
+      "study",
+      "furniture",
+      "workstation"
+    ],
+    "accessibleLabel": "Workstation desk symbol",
+    "architecturalUse": "Marks hot-desks, personal laptop space, study carrels, or office desking.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to studio (Monitor) and workstation (Computer) symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:wardrobe",
+    "name": "Wardrobe / Storage Clos",
+    "sourceKey": "Archive",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "wardrobe",
+      "closet",
+      "cabinet",
+      "cupboard",
+      "furniture"
+    ],
+    "accessibleLabel": "Wardrobe symbol",
+    "architecturalUse": "Marks lockers, wardrobes, custom joinery, or built-in closets.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to storage (Package) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:shower",
+    "name": "Shower",
+    "sourceKey": "ShowerHead",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "shower",
+      "bath",
+      "wash",
+      "wet",
+      "bathroom",
+      "plumbing"
+    ],
+    "accessibleLabel": "Shower symbol",
+    "architecturalUse": "Indicates shower stalls, locker room facilities, or wet area layouts.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to bathroom (Bath) and toilet (Toilet) symbols.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:microwave",
+    "name": "Appliance: Microwave",
+    "sourceKey": "Microwave",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "microwave",
+      "kitchen",
+      "cook",
+      "appliance",
+      "pantry"
+    ],
+    "accessibleLabel": "Microwave appliance symbol",
+    "architecturalUse": "Marks kitchenette counter appliances or office pantry equipment.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:refrigerator",
+    "name": "Appliance: Fridge",
+    "sourceKey": "Refrigerator",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "refrigerator",
+      "fridge",
+      "cool",
+      "kitchen",
+      "appliance",
+      "cold"
+    ],
+    "accessibleLabel": "Refrigerator appliance symbol",
+    "architecturalUse": "Indicates commercial or domestic refrigerator nodes in kitchen designs.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:tv",
+    "name": "TV / Display Panel",
+    "sourceKey": "Tv",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "tv",
+      "lounge",
+      "screen",
+      "display",
+      "media",
+      "presentation"
+    ],
+    "accessibleLabel": "Television screen symbol",
+    "architecturalUse": "Indicates wall-mounted TV screens, presentation displays in meeting rooms, or monitors.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to studio (Monitor) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:architecture:workstation",
+    "name": "Computer Workstation",
+    "sourceKey": "Computer",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "computer",
+      "pc",
+      "workstation",
+      "office",
+      "desk"
+    ],
+    "accessibleLabel": "Computer symbol",
+    "architecturalUse": "Marks CAD stations, dedicated desktop workstations, or IT labs.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to desk (Laptop) and studio (Monitor) symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:landscape:garden",
+    "name": "Garden",
+    "sourceKey": "Flower",
+    "category": "landscape",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "garden",
+      "flower",
+      "plant",
+      "planting",
+      "landscape",
+      "bloom"
+    ],
+    "accessibleLabel": "Garden area symbol",
+    "architecturalUse": "Marks decorative garden beds, flower planting, or sensory courtyards.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing landscape flower (Flower2) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:landscape:tree-deciduous",
+    "name": "Deciduous Tree",
+    "sourceKey": "TreeDeciduous",
+    "category": "landscape",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "tree",
+      "deciduous",
+      "plant",
+      "outdoor",
+      "broadleaf",
+      "shade"
+    ],
+    "accessibleLabel": "Deciduous tree symbol",
+    "architecturalUse": "Indicates deciduous (broadleaf) trees on site plans for seasonal sun analysis.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing pine tree (TreePine) and forest (Trees) symbols.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:landscape:tree-palm",
+    "name": "Palm Tree",
+    "sourceKey": "TreePalm",
+    "category": "landscape",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "tree",
+      "palm",
+      "plant",
+      "outdoor",
+      "tropical",
+      "coastal"
+    ],
+    "accessibleLabel": "Palm tree symbol",
+    "architecturalUse": "Indicates palm trees in warm or coastal climate landscape layouts.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to other tree symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:landscape:tent",
+    "name": "Outdoor Shelter",
+    "sourceKey": "Tent",
+    "category": "landscape",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "tent",
+      "camp",
+      "shelter",
+      "canopy",
+      "temporary",
+      "outdoor"
+    ],
+    "accessibleLabel": "Outdoor shelter symbol",
+    "architecturalUse": "Indicates temporary structures, event tents, or campsite locations.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing shade (Umbrella) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:landscape:waves",
+    "name": "Water Waves",
+    "sourceKey": "Waves",
+    "category": "landscape",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "water",
+      "waves",
+      "sea",
+      "lake",
+      "ocean",
+      "river",
+      "flow"
+    ],
+    "accessibleLabel": "Water waves symbol",
+    "architecturalUse": "Indicates larger open water bodies, rivers, coastal zones, or major water movement.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing water (WavesHorizontal) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:fire-extinguisher",
+    "name": "Fire Extinguisher",
+    "sourceKey": "FireExtinguisher",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "safety",
+      "fire",
+      "extinguisher",
+      "emergency",
+      "protection"
+    ],
+    "accessibleLabel": "Fire extinguisher symbol",
+    "architecturalUse": "Indicates locations of wall-mounted fire extinguishers or fire cabinets.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:smoke-alarm",
+    "name": "Smoke Alarm / Sensor",
+    "sourceKey": "AlarmSmoke",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "safety",
+      "smoke",
+      "alarm",
+      "sensor",
+      "detector",
+      "fire"
+    ],
+    "accessibleLabel": "Smoke alarm sensor symbol",
+    "architecturalUse": "Marks ceiling-mounted smoke detectors or fire alarm system nodes.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing emergency (Siren) symbol.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:waste",
+    "name": "Waste Receptacle",
+    "sourceKey": "Trash",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "waste",
+      "trash",
+      "bin",
+      "garbage",
+      "refuse",
+      "utility"
+    ],
+    "accessibleLabel": "Waste bin symbol",
+    "architecturalUse": "Marks garbage collections, waste rooms, or trash bins in public areas.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:recycle",
+    "name": "Recycling Node",
+    "sourceKey": "Recycle",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "recycle",
+      "waste",
+      "green",
+      "ecological",
+      "reuse"
+    ],
+    "accessibleLabel": "Recycling symbol",
+    "architecturalUse": "Marks sorting bins, recycling cabinets, or ecological waste collection spaces.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:lock",
+    "name": "Access Restricted (Lock)",
+    "sourceKey": "Lock",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "security",
+      "restricted",
+      "locked",
+      "closed",
+      "gate"
+    ],
+    "accessibleLabel": "Locked security symbol",
+    "architecturalUse": "Marks rooms requiring card key access, mechanical keys, or high-security vaults.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:unlock",
+    "name": "Access Granted (Unlock)",
+    "sourceKey": "Unlock",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "security",
+      "open",
+      "unlocked",
+      "access",
+      "gate"
+    ],
+    "accessibleLabel": "Unlocked security symbol",
+    "architecturalUse": "Marks public doors, override bypasses, or egress routes that unlock during emergency.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Lock symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:bell",
+    "name": "Audible Alarm / Bell",
+    "sourceKey": "Bell",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "alert",
+      "alarm",
+      "bell",
+      "notification",
+      "safety"
+    ],
+    "accessibleLabel": "Audible alarm symbol",
+    "architecturalUse": "Indicates warning bells, intercom chimes, or audio alert speakers.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to BellRing symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:bell-ring",
+    "name": "Active Alarm Bell",
+    "sourceKey": "BellRing",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "alarm",
+      "bell",
+      "ring",
+      "alert",
+      "active",
+      "sound"
+    ],
+    "accessibleLabel": "Ringing alarm bell symbol",
+    "architecturalUse": "Marks active sirens, school bells, or sounders that ring continuously.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Bell symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:hazard",
+    "name": "Hazard Indicator",
+    "sourceKey": "AlertTriangle",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "hazard",
+      "warning",
+      "caution",
+      "danger",
+      "alert"
+    ],
+    "accessibleLabel": "Hazard warning symbol",
+    "architecturalUse": "Marks high-voltage zones, steps, low ceilings, or dangerous machinery zones.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing emergency (Siren) symbol.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:gauge",
+    "name": "Dashboard Gauge",
+    "sourceKey": "Gauge",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "gauge",
+      "meter",
+      "measure",
+      "pressure",
+      "water",
+      "gas"
+    ],
+    "accessibleLabel": "Gauge meter symbol",
+    "architecturalUse": "Marks monitoring dials, pressure valves, water meters, or HVAC gauges.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:key",
+    "name": "Security Key",
+    "sourceKey": "Key",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "key",
+      "access",
+      "lock",
+      "security",
+      "utility"
+    ],
+    "accessibleLabel": "Key security symbol",
+    "architecturalUse": "Marks key-locked services, electric risers, control panels, or janitorial locks.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Lock and Unlock symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:service:hardhat",
+    "name": "Construction Zone",
+    "sourceKey": "HardHat",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "hardhat",
+      "safety",
+      "construction",
+      "helmet",
+      "workshop"
+    ],
+    "accessibleLabel": "Safety helmet symbol",
+    "architecturalUse": "Marks hardhat zones, construction staging, manual labor workshops, or safety lockers.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:environmental:noise",
+    "name": "Acoustic Source",
+    "sourceKey": "Speaker",
+    "category": "environmental",
+    "candidateCategory": "ENVIRONMENTAL",
+    "tags": [
+      "sound",
+      "noise",
+      "acoustic",
+      "speaker",
+      "volume",
+      "disturbance"
+    ],
+    "accessibleLabel": "Speaker sound symbol",
+    "architecturalUse": "Marks noise sources, mechanical equipment, public address speakers, or zones of high acoustic emission.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:environmental:high-noise",
+    "name": "High Noise Level",
+    "sourceKey": "Megaphone",
+    "category": "environmental",
+    "candidateCategory": "ENVIRONMENTAL",
+    "tags": [
+      "noise",
+      "loud",
+      "alarm",
+      "megaphone",
+      "siren",
+      "broadcast"
+    ],
+    "accessibleLabel": "Megaphone warning symbol",
+    "architecturalUse": "Marks construction zones, alarms, engine rooms, or areas requiring hearing protection.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Speaker symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:environmental:quiet",
+    "name": "Quiet Zone",
+    "sourceKey": "EarOff",
+    "category": "environmental",
+    "candidateCategory": "ENVIRONMENTAL",
+    "tags": [
+      "quiet",
+      "acoustic",
+      "silent",
+      "library",
+      "hearing",
+      "isolation"
+    ],
+    "accessibleLabel": "Quiet zone symbol",
+    "architecturalUse": "Marks study areas, meditation rooms, library floors, or areas requiring low ambient noise.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing accessibility hearing (Ear) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:accessibility:assistance-point",
+    "name": "Assistance Info Point",
+    "sourceKey": "HelpCircle",
+    "category": "accessibility",
+    "candidateCategory": "ACCESSIBILITY",
+    "tags": [
+      "help",
+      "info",
+      "support",
+      "information",
+      "assistance"
+    ],
+    "accessibleLabel": "Information desk symbol",
+    "architecturalUse": "Marks help desks, tourist info, guest relations, or accessibility support points.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing help (CircleQuestionMark) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:accessibility:vision-impaired",
+    "name": "Low Vision Access",
+    "sourceKey": "EyeOff",
+    "category": "accessibility",
+    "candidateCategory": "ACCESSIBILITY",
+    "tags": [
+      "vision",
+      "blind",
+      "low-vision",
+      "accessibility",
+      "braille"
+    ],
+    "accessibleLabel": "Low vision symbol",
+    "architecturalUse": "Marks tactile floor maps, braille signs, audio guide points, or visually accessible paths.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing annotation view (Eye) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:accessibility:heart",
+    "name": "Wellness / First Aid",
+    "sourceKey": "Heart",
+    "category": "accessibility",
+    "candidateCategory": "ACCESSIBILITY",
+    "tags": [
+      "heart",
+      "wellness",
+      "firstaid",
+      "health",
+      "care",
+      "community"
+    ],
+    "accessibleLabel": "Heart symbol",
+    "architecturalUse": "Marks wellness rooms, first-aid posts, prayer rooms, or care facilities.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:road",
+    "name": "Vehicular Road",
+    "sourceKey": "Road",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "road",
+      "street",
+      "transit",
+      "highway",
+      "driveway"
+    ],
+    "accessibleLabel": "Roadway symbol",
+    "architecturalUse": "Indicates driving lanes, fire truck access roads, loading driveways, or public streets.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:cycle",
+    "name": "Bicycle Lane",
+    "sourceKey": "Bike",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "cycle",
+      "bicycle",
+      "bike",
+      "path",
+      "parking",
+      "rack"
+    ],
+    "accessibleLabel": "Bicycle symbol",
+    "architecturalUse": "Marks bicycle parking racks, shower lockers, cycle lanes, or bike pathways.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:bus",
+    "name": "Bus Stop / Station",
+    "sourceKey": "Bus",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "bus",
+      "shuttle",
+      "transit",
+      "public",
+      "stop",
+      "station"
+    ],
+    "accessibleLabel": "Bus stop symbol",
+    "architecturalUse": "Marks public transit bus stops, shuttle docks, or bus stations on site layouts.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:rail",
+    "name": "Railway / Transit Node",
+    "sourceKey": "Train",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "train",
+      "rail",
+      "subway",
+      "metro",
+      "transit",
+      "station"
+    ],
+    "accessibleLabel": "Train station symbol",
+    "architecturalUse": "Indicates railway alignments, subway station entries, metro links, or light rail stops.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:loading",
+    "name": "Loading Dock / Truck",
+    "sourceKey": "Truck",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "loading",
+      "dock",
+      "truck",
+      "freight",
+      "delivery",
+      "cargo"
+    ],
+    "accessibleLabel": "Loading dock symbol",
+    "architecturalUse": "Indicates back-of-house loading docks, delivery areas, freight elevators, or logistics ports.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:boat",
+    "name": "Ferry / Boat Dock",
+    "sourceKey": "Ship",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "ferry",
+      "ship",
+      "boat",
+      "water",
+      "pier",
+      "dock",
+      "marina"
+    ],
+    "accessibleLabel": "Boat dock symbol",
+    "architecturalUse": "Marks public ferries, boat berths, marina docks, or canal transport stops.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "LATER",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:airport",
+    "name": "Airport / Heliport",
+    "sourceKey": "Plane",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "flight",
+      "aviation",
+      "airport",
+      "plane",
+      "helicopter",
+      "heliport"
+    ],
+    "accessibleLabel": "Airport symbol",
+    "architecturalUse": "Marks helipads, airport connections, or general aviation terminals in urban context.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "LATER",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wayfinding:map",
+    "name": "Map Location",
+    "sourceKey": "Map",
+    "category": "wayfinding",
+    "candidateCategory": "URBAN AND TRANSPORT",
+    "tags": [
+      "map",
+      "plan",
+      "route",
+      "wayfinding",
+      "urban"
+    ],
+    "accessibleLabel": "Map board symbol",
+    "architecturalUse": "Marks location of directory boards, map displays, or physical town planning landmarks.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing wayfinding signpost (Signpost) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:anchor",
+    "name": "Fixed Anchor",
+    "sourceKey": "Anchor",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "anchor",
+      "fixed",
+      "lock",
+      "reference",
+      "boundary"
+    ],
+    "accessibleLabel": "Anchor symbol",
+    "architecturalUse": "Indicates pinned nodes, reference points, structural anchors, or unmovable constraints.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:link",
+    "name": "Relationship Link",
+    "sourceKey": "Link",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "link",
+      "connection",
+      "chain",
+      "relation",
+      "adjacency"
+    ],
+    "accessibleLabel": "Connection link symbol",
+    "architecturalUse": "Marks close adjacency requirements, structural connections, or programmatic relationships.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Link2 symbol.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:link-broken",
+    "name": "Broken Relationship",
+    "sourceKey": "Link2",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "disconnected",
+      "broken",
+      "separate",
+      "split",
+      "avoid"
+    ],
+    "accessibleLabel": "Broken link symbol",
+    "architecturalUse": "Indicates programmatic separation requirements, acoustic isolation zones, or avoid constraints.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to Link symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:merge",
+    "name": "Merge Flow",
+    "sourceKey": "Merge",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "merge",
+      "join",
+      "combine",
+      "converge",
+      "flow"
+    ],
+    "accessibleLabel": "Merge flow symbol",
+    "architecturalUse": "Indicates convergence of foot traffic, water drainage channels, or mechanical ducts.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to split (Split) and branch (GitBranch) symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:split",
+    "name": "Split Flow",
+    "sourceKey": "Split",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "split",
+      "fork",
+      "divide",
+      "diverge",
+      "flow"
+    ],
+    "accessibleLabel": "Split flow symbol",
+    "architecturalUse": "Indicates divergence of programmatic paths, pedestrian choice points, or duct distribution.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to merge (Merge) and branch (GitBranch) symbols.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:shuffle",
+    "name": "Dispersion Flow",
+    "sourceKey": "Shuffle",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "shuffle",
+      "mix",
+      "random",
+      "dispersion",
+      "flow"
+    ],
+    "accessibleLabel": "Dispersion flow symbol",
+    "architecturalUse": "Indicates random mixing zones, public squares with cross-circulation, or flexible layouts.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:combine",
+    "name": "Union Combine",
+    "sourceKey": "Combine",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "combine",
+      "group",
+      "union",
+      "aggregate",
+      "boundary"
+    ],
+    "accessibleLabel": "Combine symbol",
+    "architecturalUse": "Marks merged programmatic functions, shared zones, or unified site elements.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:list-tree",
+    "name": "Hierarchy Tree",
+    "sourceKey": "ListTree",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "hierarchy",
+      "tree",
+      "structure",
+      "nesting",
+      "flow"
+    ],
+    "accessibleLabel": "Hierarchy tree symbol",
+    "architecturalUse": "Indicates zoning hierarchies, structural load-bearing paths, or departmental organization.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to workflow (Workflow) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:layout-grid",
+    "name": "Zoning Grid",
+    "sourceKey": "LayoutGrid",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "grid",
+      "layout",
+      "zoning",
+      "quadrant",
+      "divisions"
+    ],
+    "accessibleLabel": "Layout grid symbol",
+    "architecturalUse": "Marks grid-based planning structures, structural bays, modular layouts, or zones.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:diagram:grid",
+    "name": "Geometric Grid",
+    "sourceKey": "Grid",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "grid",
+      "coordinates",
+      "pattern",
+      "blueprint",
+      "alignment"
+    ],
+    "accessibleLabel": "Geometric grid symbol",
+    "architecturalUse": "Marks module alignments, construction grid lines, or technical drawing references.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to layout-grid (LayoutGrid) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:north-arrow",
+    "name": "Alternate North Arrow",
+    "sourceKey": "Navigation2",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "direction",
+      "north",
+      "bearing",
+      "orientation",
+      "arrow"
+    ],
+    "accessibleLabel": "North arrow symbol",
+    "architecturalUse": "An alternative North arrow design showing site bearing or solar orientation.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing annotation north (Navigation) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:flag",
+    "name": "Milestone Flag",
+    "sourceKey": "Flag",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "flag",
+      "marker",
+      "milestone",
+      "target",
+      "phase"
+    ],
+    "accessibleLabel": "Flag symbol",
+    "architecturalUse": "Marks project checkpoints, property corners, site survey markers, or phase targets.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:tag",
+    "name": "Metadata Tag",
+    "sourceKey": "Tag",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "tag",
+      "label",
+      "category",
+      "data",
+      "id"
+    ],
+    "accessibleLabel": "Label tag symbol",
+    "architecturalUse": "Marks space category labels, occupant ID designations, or schedule keys in drawings.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing annotation area-tag (ScanText) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:pin",
+    "name": "Drawing Pin",
+    "sourceKey": "Pin",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "pin",
+      "pushpin",
+      "mark",
+      "reference",
+      "anchor"
+    ],
+    "accessibleLabel": "Pushpin symbol",
+    "architecturalUse": "Pins comments, annotations, visual references, or details to specific coordinates.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing wayfinding location (MapPin) symbol.",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:bookmark",
+    "name": "Saved Bookmark",
+    "sourceKey": "Bookmark",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "bookmark",
+      "favorite",
+      "save",
+      "reference",
+      "flag"
+    ],
+    "accessibleLabel": "Bookmark symbol",
+    "architecturalUse": "Marks key rooms for client presentations, highlights areas for review, or saves spaces.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:note",
+    "name": "Sticky Note",
+    "sourceKey": "StickyNote",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "note",
+      "memo",
+      "comment",
+      "draft",
+      "feedback"
+    ],
+    "accessibleLabel": "Memo note symbol",
+    "architecturalUse": "Marks design feedback notes, coordinator comments, or client change requests on layout.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:edit",
+    "name": "Sketch Pencil",
+    "sourceKey": "Pencil",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "pencil",
+      "sketch",
+      "draw",
+      "edit",
+      "marker",
+      "note"
+    ],
+    "accessibleLabel": "Sketch pencil symbol",
+    "architecturalUse": "Indicates hand-drawn sketch overlays, coordinator markup, or designer changes.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:hash",
+    "name": "Numbered Marker",
+    "sourceKey": "Hash",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "hash",
+      "number",
+      "index",
+      "schedule",
+      "dimension"
+    ],
+    "accessibleLabel": "Hash number symbol",
+    "architecturalUse": "Marks door numbers, window schedule indexes, partition types, or item counts.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:asterisk",
+    "name": "Footnote / Reference",
+    "sourceKey": "Asterisk",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "asterisk",
+      "footnote",
+      "reference",
+      "note",
+      "star"
+    ],
+    "accessibleLabel": "Asterisk reference symbol",
+    "architecturalUse": "Links plan drawing coordinates to written specification notes or local guidelines.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "None",
+    "priority": "USEFUL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:annotation:info",
+    "name": "Info Bullet",
+    "sourceKey": "Info",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "info",
+      "detail",
+      "specification",
+      "guide",
+      "help"
+    ],
+    "accessibleLabel": "Information symbol",
+    "architecturalUse": "Marks space specifications, occupancy rules, structural notes, or user guidance.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Similar to existing accessibility help (CircleQuestionMark) and assistance-point (HelpCircle) symbols.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ADD"
+  },
+  {
+    "id": "icon:wc",
+    "name": "WC (Alias)",
+    "sourceKey": "Toilet",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "toilet",
+      "wc",
+      "bathroom",
+      "restroom",
+      "washroom"
+    ],
+    "accessibleLabel": "Toilet alias",
+    "architecturalUse": "Alias pointing to icon:architecture:toilet for architectural standardization.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:dining",
+    "name": "Dining Room (Alias)",
+    "sourceKey": "Utensils",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "dining",
+      "food",
+      "table",
+      "canteen"
+    ],
+    "accessibleLabel": "Dining alias",
+    "architecturalUse": "Alias pointing to icon:architecture:dining.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:living",
+    "name": "Living Space (Alias)",
+    "sourceKey": "Sofa",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "sofa",
+      "lounge",
+      "living"
+    ],
+    "accessibleLabel": "Living alias",
+    "architecturalUse": "Alias pointing to icon:architecture:living.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:bed",
+    "name": "Bed (Alias)",
+    "sourceKey": "BedDouble",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "bed",
+      "sleep",
+      "bedroom"
+    ],
+    "accessibleLabel": "Bed alias",
+    "architecturalUse": "Alias pointing to icon:architecture:bedroom.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:kitchen",
+    "name": "Kitchen (Alias)",
+    "sourceKey": "CookingPot",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "cook",
+      "food",
+      "kitchen"
+    ],
+    "accessibleLabel": "Kitchen alias",
+    "architecturalUse": "Alias pointing to icon:architecture:kitchen.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:office",
+    "name": "Office (Alias)",
+    "sourceKey": "Briefcase",
+    "category": "architecture",
+    "candidateCategory": "ARCHITECTURE",
+    "tags": [
+      "office",
+      "desk",
+      "work"
+    ],
+    "accessibleLabel": "Office alias",
+    "architecturalUse": "Alias pointing to icon:architecture:office.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:elevator",
+    "name": "Elevator (Alias)",
+    "sourceKey": "ChevronsUp",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "elevator",
+      "lift",
+      "vertical"
+    ],
+    "accessibleLabel": "Elevator alias",
+    "architecturalUse": "Alias pointing to icon:wayfinding:chevrons-up or custom elevator symbols.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "USEFUL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:escalator",
+    "name": "Escalator (Alias)",
+    "sourceKey": "ArrowUpRight",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "escalator",
+      "circulation",
+      "stair"
+    ],
+    "accessibleLabel": "Escalator alias",
+    "architecturalUse": "Alias pointing to icon:wayfinding:up-right or custom escalator symbols.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "USEFUL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:car",
+    "name": "Car Parking (Alias)",
+    "sourceKey": "CircleParking",
+    "category": "architecture",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "car",
+      "vehicle",
+      "parking"
+    ],
+    "accessibleLabel": "Car alias",
+    "architecturalUse": "Alias pointing to icon:architecture:parking.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:pedestrian",
+    "name": "Pedestrian (Alias)",
+    "sourceKey": "Footprints",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "walking",
+      "pedestrian",
+      "path"
+    ],
+    "accessibleLabel": "Pedestrian alias",
+    "architecturalUse": "Alias pointing to icon:wayfinding:walking.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:ac",
+    "name": "Air Conditioning (Alias)",
+    "sourceKey": "Snowflake",
+    "category": "environmental",
+    "candidateCategory": "ENVIRONMENTAL",
+    "tags": [
+      "ac",
+      "cooling",
+      "hvac"
+    ],
+    "accessibleLabel": "AC alias",
+    "architecturalUse": "Alias pointing to icon:environmental:cold.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "USEFUL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:heating",
+    "name": "Heating (Alias)",
+    "sourceKey": "Flame",
+    "category": "environmental",
+    "candidateCategory": "ENVIRONMENTAL",
+    "tags": [
+      "heating",
+      "thermal",
+      "boiler"
+    ],
+    "accessibleLabel": "Heating alias",
+    "architecturalUse": "Alias pointing to icon:environmental:heat.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "USEFUL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:wifi",
+    "name": "WiFi Connectivity (Alias)",
+    "sourceKey": "Wifi",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "wifi",
+      "internet",
+      "wireless"
+    ],
+    "accessibleLabel": "WiFi alias",
+    "architecturalUse": "Alias pointing to icon:service:connectivity.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:power",
+    "name": "Power Outlet (Alias)",
+    "sourceKey": "Plug",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "power",
+      "electricity",
+      "utility"
+    ],
+    "accessibleLabel": "Power alias",
+    "architecturalUse": "Alias pointing to icon:service:electrical.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Direct alias.",
+    "priority": "ESSENTIAL",
+    "recommendation": "ALIAS"
+  },
+  {
+    "id": "icon:circulation:step-forward",
+    "name": "Circulation Step Forward",
+    "sourceKey": "StepForward",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "step",
+      "forward",
+      "media",
+      "next"
+    ],
+    "accessibleLabel": "Next step symbol",
+    "architecturalUse": "Intended for circulation segments but resembles standard player media controls too closely.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Looks like software UI controls, not floor plan circulation.",
+    "priority": "LATER",
+    "recommendation": "REJECT"
+  },
+  {
+    "id": "icon:circulation:step-back",
+    "name": "Circulation Step Back",
+    "sourceKey": "StepBack",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "step",
+      "back",
+      "media",
+      "previous"
+    ],
+    "accessibleLabel": "Previous step symbol",
+    "architecturalUse": "Intended for reverse circulation segments but resembles standard player media controls too closely.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Looks like software UI controls, not floor plan circulation.",
+    "priority": "LATER",
+    "recommendation": "REJECT"
+  },
+  {
+    "id": "icon:landscape:sunlight",
+    "name": "Sunlight (Duplicate)",
+    "sourceKey": "Sun",
+    "category": "landscape",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "sun",
+      "light",
+      "solar",
+      "daylight"
+    ],
+    "accessibleLabel": "Sunlight symbol",
+    "architecturalUse": "Near duplicate of environmental:sun which uses SunMedium. Keep one canonical sun symbol.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "High visual similarity to environmental:sun.",
+    "priority": "LATER",
+    "recommendation": "REJECT"
+  },
+  {
+    "id": "icon:diagram:share",
+    "name": "Shared Connection",
+    "sourceKey": "Share2",
+    "category": "diagram",
+    "candidateCategory": "DIAGRAM AND RELATIONSHIPS",
+    "tags": [
+      "share",
+      "nodes",
+      "network"
+    ],
+    "accessibleLabel": "Share node symbol",
+    "architecturalUse": "Intended for joint links, but is too software-centric and easily confused with web application UI shares.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Conflicts with application shell share icons.",
+    "priority": "LATER",
+    "recommendation": "REJECT"
+  },
+  {
+    "id": "icon:annotation:section",
+    "name": "Pizza Section (Duplicate)",
+    "sourceKey": "Slice",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "slice",
+      "section",
+      "drawing",
+      "cut"
+    ],
+    "accessibleLabel": "Section slice symbol",
+    "architecturalUse": "The slice icon (looks like a pizza slice) is highly non-standard for drafting sections. Needs custom drafting marker.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "ISC",
+    "attribution": "Lucide Contributors",
+    "attributionUrl": "https://lucide.dev/license",
+    "similarityWarning": "Inappropriate geometric representation.",
+    "priority": "LATER",
+    "recommendation": "REJECT"
+  },
+  {
+    "id": "icon:circulation:elevator-cab",
+    "name": "Elevator Lift Cab",
+    "sourceKey": "custom:elevator-cab",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "elevator",
+      "lift",
+      "cab",
+      "shaft",
+      "vertical"
+    ],
+    "accessibleLabel": "Elevator cab plan symbol",
+    "architecturalUse": "Indicates elevator shafts with cab outline in floor plan drawings. Lucide has no elevator cab symbol.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "Lucide has only Forklift or ChevronsUp. Custom path required.",
+    "priority": "ESSENTIAL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  },
+  {
+    "id": "icon:circulation:stairs-plan",
+    "name": "Stairs Plan View",
+    "sourceKey": "custom:stairs-plan",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "stairs",
+      "steps",
+      "plan",
+      "ascent",
+      "circulation"
+    ],
+    "accessibleLabel": "Stairs plan view symbol",
+    "architecturalUse": "Standard architectural symbol for stairs showing treads and exit direction arrow. Existing stairs (BetweenVerticalStart) is non-standard.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "Lucide lacks stairs plan symbol. Existing stairs symbol is a technical workaround.",
+    "priority": "ESSENTIAL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  },
+  {
+    "id": "icon:circulation:escalator-section",
+    "name": "Escalator Section",
+    "sourceKey": "custom:escalator-section",
+    "category": "wayfinding",
+    "candidateCategory": "CIRCULATION",
+    "tags": [
+      "escalator",
+      "steps",
+      "vertical",
+      "circulation",
+      "transit"
+    ],
+    "accessibleLabel": "Escalator section symbol",
+    "architecturalUse": "Indicates escalator paths in shopping malls or transit hubs. Lucide lacks escalator symbols.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "Lucide has no escalator symbols. Custom path needed.",
+    "priority": "USEFUL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  },
+  {
+    "id": "icon:furniture:wardrobe-layout",
+    "name": "Wardrobe Plan Outline",
+    "sourceKey": "custom:wardrobe-layout",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "wardrobe",
+      "closet",
+      "cabinet",
+      "hanger",
+      "clothes"
+    ],
+    "accessibleLabel": "Wardrobe layout plan symbol",
+    "architecturalUse": "Architectural floor plan symbol for wardrobes: rectangle with clothes hanger or crossed dash lines.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "None. Lucide has only folder/archive drawers.",
+    "priority": "USEFUL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  },
+  {
+    "id": "icon:furniture:sink-layout",
+    "name": "Plumbing: Sink Layout",
+    "sourceKey": "custom:sink-layout",
+    "category": "architecture",
+    "candidateCategory": "FURNITURE AND FIXTURES",
+    "tags": [
+      "sink",
+      "basin",
+      "plumbing",
+      "wet",
+      "bathroom",
+      "kitchen"
+    ],
+    "accessibleLabel": "Sink plan symbol",
+    "architecturalUse": "Plan view of single/double bowl sinks with tap indicators for kitchen counters or vanity units.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "Lucide has no sink/basin symbols. Custom path required.",
+    "priority": "ESSENTIAL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  },
+  {
+    "id": "icon:landscape:gate-layout",
+    "name": "Fence Gate Swing",
+    "sourceKey": "custom:gate-layout",
+    "category": "landscape",
+    "candidateCategory": "SITE AND LANDSCAPE",
+    "tags": [
+      "gate",
+      "fence",
+      "swing",
+      "opening",
+      "entrance"
+    ],
+    "accessibleLabel": "Fence gate plan symbol",
+    "architecturalUse": "Standard plan symbol for double-swing vehicular gates or single pedestrian gates on boundaries.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "None. Lucide has no fence gate swing symbols.",
+    "priority": "ESSENTIAL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  },
+  {
+    "id": "icon:service:drainage-drain",
+    "name": "Floor Drainage Drain",
+    "sourceKey": "custom:drainage-drain",
+    "category": "service",
+    "candidateCategory": "SERVICES AND SAFETY",
+    "tags": [
+      "drain",
+      "drainage",
+      "plumbing",
+      "waste",
+      "floor drain"
+    ],
+    "accessibleLabel": "Floor drain symbol",
+    "architecturalUse": "Standard architectural symbol for floor waste drain (circle with center dot and radiating lines or grid).",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "None. Lucide lacks floor drain symbols.",
+    "priority": "USEFUL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  },
+  {
+    "id": "icon:annotation:section-mark",
+    "name": "Architectural Section Cut",
+    "sourceKey": "custom:section-mark",
+    "category": "annotation",
+    "candidateCategory": "ANNOTATION AND PRESENTATION",
+    "tags": [
+      "section",
+      "cut",
+      "drawing",
+      "detail",
+      "marker"
+    ],
+    "accessibleLabel": "Section cut symbol",
+    "architecturalUse": "Standard architectural drafting section cut symbol (circle head with orientation pointer and cut line). Existing slice is non-standard.",
+    "placeableTargets": [
+      "space"
+    ],
+    "licence": "Proprietary",
+    "attribution": "MOOORF Original",
+    "similarityWarning": "Lucide has only pizza slice (Slice) or scissors, both inappropriate. Custom design required.",
+    "priority": "ESSENTIAL",
+    "recommendation": "NEEDS CUSTOM DESIGN"
+  }
+]
