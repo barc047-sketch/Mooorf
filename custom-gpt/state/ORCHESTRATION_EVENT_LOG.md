@@ -146,3 +146,19 @@ Append-only durable record. GitHub state and exact refs override chat memory, lo
   - one shared contextual rail opens above the active circular launcher.
 - One umbrella implementation branch uses four internal checkpoints: shell/rails; Inspector/layer widgets/materials/symbols; straight Connections; Annotation/Markup and hardening.
 - No routine separate audit after implementation; Codex supplies focused tests, typecheck, diff check, one final build and 1440/1280 QA, then stops at one fixed `WAITING_REVIEW` head.
+
+## 2026-07-15 — Merge gate and milestone order corrected
+
+- Exact GitHub comparison confirms `main@c4600472ea76f651800c19b91cf8f67954ca992e` is one commit behind audited layer-separation head `21388c0d765cd4bbc675d0321d94e77db9a41e5c`.
+- `MERGE C0.4F-A` would only fast-forward `main` to that one audited commit; it would not merge audit branches, research branches, symbols, Inspector, Materials, Connections or Annotation work.
+- The audit verdict means the bounded architecture change is safe; it does not mean the complete user-facing settings workflow is finished.
+- Because the Owner reports stale/broken settings after layer separation, the safer production strategy is to hold `main` and start M1 directly from the audited feature head.
+- New next milestone: `M1 — Layer Editing Recovery and Dedicated Settings` on `feature/c0-m1-layer-editing-recovery`, based exactly on `21388c0d...`.
+- M1 restores truthful controls, six dedicated settings widgets, inheritance, history, persistence and export before any dock-shell redesign.
+- Corrected roadmap: `docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md`.
+- Antigravity symbol research is durably mapped:
+  - M2 forward-ports the audited 77-symbol baseline, validates/ingests 59 Lucide additions and 14 aliases, excludes 5 rejects and builds the production Symbol Inspector;
+  - 8 custom architectural vectors require separate Owner visual approval and original MOOORF-owned geometry;
+  - diagram/link candidates feed M5 Connection vocabulary without replacing the graph model;
+  - annotation candidates feed M6 Markup;
+  - the grid registry becomes visible only in M7 when rendering/snapping/export support is truthful.
