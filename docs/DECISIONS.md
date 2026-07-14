@@ -414,3 +414,11 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Canonical IDs are namespaced and stable. Six prior built-in IDs resolve through an alias boundary, while unknown IDs remain serialized for forward recovery rather than being replaced with a misleading fallback.
 - The existing eight grid IDs remain the contract. Dotted is the sole live rendered preset in the current Organism path, None is the explicit active off state, and six additional presets are metadata-only Future entries. Snapping and grid export are compatibility declarations with `implemented: false`.
 - The resource catalogue stays read-only, project/config formats store IDs only, and registry definitions never enter product persistence. C0.3 UI and every Canvas/grid runtime change remain deferred until independent audit and merge approval.
+
+# C0.4F-A — Runtime presentation ownership
+
+- Both live renderers consume one pure runtime projection built from the canonical C0.4.1 resolver and central store. Renderer adapters do not own appearance state, material registries, or fallback policy.
+- Boundary width, offset, alignment displacement, dash/bar length, gap, double spacing, Void edge width, and Membrane Edge width are world-scaled. They never modify Cell area, radius, field strength, hit testing, clearance, or Void subtraction.
+- Classic owns all six technical Boundary styles. Organism supports a solid Boundary overlay only; non-solid requests retain requested-style metadata, report `unsupported-organism-style`, and render solid. A major per-Cell shader-uniform redesign is explicitly deferred.
+- Organism keeps the existing one-pass field shader for shared Membrane/Membrane Edge and uses one pointer-transparent Canvas2D overlay for per-Cell Boundary/Core/Void plus edge-only Cell fill. The overlay is composited into captures and cannot block drag, pan, or zoom.
+- Selection is renderer-neutral temporary UI projected from session selection. It is not a presentation target and never enters Cell appearance, saved views, project/config data, copy/paste style, or clean export.

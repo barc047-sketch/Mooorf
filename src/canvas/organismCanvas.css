@@ -12,6 +12,15 @@
   touch-action: none;
 }
 
+.organism-presentation-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
 /* V6N.2 — camera-synced scan dot matrix (offsets driven by the render loop).
    Dots instead of crossing lines: quieter, closer to the HUD references. */
 .organism-grid {

@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- C0.4F-A Runtime Layer Separation (feature branch complete; waiting independent review; not merged)
 - V8.2C0.2 Icon and Grid Asset Registry
 - V8.2C0 Canvas Performance + Contrast Reset
 - V8.2A.1 Multi-Selection Group Drag Foundation
@@ -48,6 +49,7 @@ Complete:
 - V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 Next:
+- Independent review of C0.4F-A; do not merge or start C0.4F-B without the Owner's exact command
 - Antigravity delta audit of the pushed V8.2C0.2 registry branch; C0.3 remains blocked pending audit/merge approval
 - Antigravity independent V8.2C0 reference/performance/migration audit on the pushed feature branch
 - Antigravity independent V8.2B audit on the pushed feature branch
@@ -60,6 +62,8 @@ Not started:
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+C0.4F-A routes both live renderers through one canonical runtime presentation projection. Classic supports all six Boundary styles; Organism preserves the current field shader, adds bounded Membrane/Edge controls, and truthfully falls non-solid Boundary styles back to solid through a pointer-transparent overlay. Technical strokes are world-scaled and presentation-only. Selection remains temporary and clean-export-excluded. Full evidence: `docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md`. The branch is `WAITING_REVIEW`; no merge or C0.4F-B work is authorized.
 
 V8.2C0.2 expands the existing immutable resource owners to exactly 77 active Lucide/ISC drawable symbols and eight canonical grid presets. UI command icons are not drawable resources; six legacy symbol IDs resolve canonically while unknown IDs remain recoverable. Dotted is the only current rendered grid, None is the explicit off state, and the other six presets remain Future metadata. No prototype asset, package, Canvas runtime, store schema, or UI was added. C0.3 waits for Antigravity delta audit and merge approval.
 

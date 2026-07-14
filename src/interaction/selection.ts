@@ -83,3 +83,36 @@ export const resolveSelectionRingState = (
   primary: boolean,
   hovered: boolean
 ): SelectionRingState => selected ? (primary ? "primary" : "secondary") : hovered ? "hover" : "none";
+
+export interface SelectionOverlayProjectionInput {
+  visibleIds: readonly string[];
+  selectedIds: readonly string[];
+  primarySelectedId: string | null;
+  hoveredId: string | null;
+  /** False for clean export. The complete temporary projection is omitted. */
+  include: boolean;
+}
+
+/** One renderer-neutral temporary projection for Classic and Organism.
+ * It is computed from session selection and is never persisted in Cell
+ * appearance, project snapshots, copy/paste style, or clean exports. */
+export const projectSelectionOverlay = ({
+  visibleIds,
+  selectedIds,
+  primarySelectedId,
+  hoveredId,
+  include,
+}: SelectionOverlayProjectionInput): ReadonlyMap<string, SelectionRingState> => {
+  const projection = new Map<string, SelectionRingState>();
+  if (!include) return projection;
+  const selected = new Set(selectedIds);
+  for (const id of visibleIds) {
+    const state = resolveSelectionRingState(
+      selected.has(id),
+      primarySelectedId === id,
+      hoveredId === id
+    );
+    if (state !== "none") projection.set(id, state);
+  }
+  return projection;
+};

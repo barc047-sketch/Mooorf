@@ -1,5 +1,13 @@
 # Handoff
 
+## C0.4F-A — Runtime Layer Separation
+
+- One renderer-neutral runtime projection now feeds both Classic and Organism from the canonical C0.4.1 presentation resolver and central store. Selection is a separate temporary projection and remains absent from appearance persistence and clean export.
+- Classic independently renders Cell, all six technical Boundary styles, Membrane fill, Membrane Edge, Core, and Void. Technical dimensions are world-scaled and never alter area radius, hit testing, clearance, or Void subtraction.
+- Organism retains its one-pass field shader with three bounded global Membrane/Edge controls. A pointer-transparent Canvas2D overlay owns per-Cell Boundary/Core/Void and edge-only Cell presentation; non-solid Boundary styles truthfully fall back to solid and report the fallback.
+- Presentation schema v2 adds Boundary alignment/dash/gap/double-spacing fields with deterministic v1 migration. Import/export/resource contracts, app-config typecheck, focused runtime contracts, final production build, source-main default comparison, and 1440/1280 browser QA pass. Only the existing chunk warning remains.
+- Full evidence: `docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md`. Branch must remain unmerged at `WAITING_REVIEW`; C0.4F-B is not started.
+
 ## C0.4.1 — Layer Contracts, Defaults and Resolvers
 
 - Added one modular presentation domain for Cell, Boundary, Membrane, Membrane Edge, Core, and Void. `SpaceCell.appearance` is optional and sparse; the complete `settings.presentationDefaults` hierarchy remains separate from architectural data.

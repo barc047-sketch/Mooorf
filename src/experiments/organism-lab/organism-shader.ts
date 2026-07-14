@@ -45,6 +45,9 @@ uniform vec3 uAccentColor;
 uniform vec3 uBgColor;
 uniform float uColorMix;
 uniform float uNucleusDots;
+uniform float uMembraneOpacity;
+uniform float uMembraneEdgeOpacity;
+uniform float uMembraneEdgeWidth;
 uniform float uMorphEnabled;
 uniform float uShadowEnabled;
 uniform vec3 uShadowColor;
@@ -150,6 +153,13 @@ void main() {
   }
 
   float organism = body * (1.0 - pocket);
+  float surfaceBand = uMorphEnabled > 0.5
+    ? 1.0 - smoothstep(
+        0.0,
+        max(max(aa, uSoftness * 0.55) * max(uMembraneEdgeWidth, 0.5), 0.0015),
+        abs(f - uIso)
+      )
+    : 1.0 - smoothstep(0.18, 0.48, abs(body - 0.5));
 
   float fp = max(f, 0.0);
   float depth = 1.0 - exp(-fp * 0.28);
@@ -175,7 +185,9 @@ void main() {
     }
     col = mix(col, uShadowColor, shadowMask * uShadowOpacity * (1.0 - organism));
   }
-  col = mix(col, bodyMix, organism);
+  float surfaceOpacity = uMorphEnabled > 0.5 ? uMembraneOpacity : 1.0;
+  col = mix(col, bodyMix, organism * surfaceOpacity);
+  col = mix(col, uAccentColor, surfaceBand * uMembraneEdgeOpacity);
   if (uMorphEnabled < 0.5) {
     col = mix(col, mix(uBgColor, uAccentColor, 0.62), plainVoidRingAt(p) * 0.82);
   }
@@ -246,6 +258,10 @@ export interface OrganismRenderFrame {
   colorMix: number;
   /** 0..1 embedded nucleus dot visibility */
   nucleusDots: number;
+  /** Shared field/path presentation controls; per-Cell layers remain outside the shader. */
+  membraneOpacity: number;
+  membraneEdgeOpacity: number;
+  membraneEdgeWidth: number;
   morphEnabled: boolean;
   shadowEnabled: boolean;
   shadowColor: RGB;
@@ -283,6 +299,9 @@ const UNIFORM_NAMES = [
   "uBgColor",
   "uColorMix",
   "uNucleusDots",
+  "uMembraneOpacity",
+  "uMembraneEdgeOpacity",
+  "uMembraneEdgeWidth",
   "uMorphEnabled",
   "uShadowEnabled",
   "uShadowColor",
@@ -386,6 +405,9 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform3f(loc["uBgColor"] ?? null, frame.bgColor[0], frame.bgColor[1], frame.bgColor[2]);
       gl.uniform1f(loc["uColorMix"] ?? null, frame.colorMix);
       gl.uniform1f(loc["uNucleusDots"] ?? null, frame.nucleusDots);
+      gl.uniform1f(loc["uMembraneOpacity"] ?? null, frame.membraneOpacity);
+      gl.uniform1f(loc["uMembraneEdgeOpacity"] ?? null, frame.membraneEdgeOpacity);
+      gl.uniform1f(loc["uMembraneEdgeWidth"] ?? null, frame.membraneEdgeWidth);
       gl.uniform1f(loc["uMorphEnabled"] ?? null, frame.morphEnabled ? 1 : 0);
       gl.uniform1f(loc["uShadowEnabled"] ?? null, frame.shadowEnabled ? 1 : 0);
       gl.uniform3f(loc["uShadowColor"] ?? null, frame.shadowColor[0], frame.shadowColor[1], frame.shadowColor[2]);

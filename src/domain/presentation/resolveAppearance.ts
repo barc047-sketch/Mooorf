@@ -102,9 +102,14 @@ export const resolveCellAppearance = (
     },
     boundary: {
       visible: overrides?.boundary?.visible ?? defaults.boundary.visible,
-      style: "solid",
+      style: overrides?.boundary?.style ?? defaults.boundary.style,
       width: overrides?.boundary?.width ?? defaults.boundary.width,
       offset: overrides?.boundary?.offset ?? defaults.boundary.offset,
+      alignment: overrides?.boundary?.alignment ?? defaults.boundary.alignment,
+      dashLength: overrides?.boundary?.dashLength ?? defaults.boundary.dashLength,
+      gapLength: overrides?.boundary?.gapLength ?? defaults.boundary.gapLength,
+      secondaryLineSpacing:
+        overrides?.boundary?.secondaryLineSpacing ?? defaults.boundary.secondaryLineSpacing,
       paint: resolvedPaint(defaults.boundary.paint, overrides?.boundary?.paint, "space-boundary", (id) => nucleusFor(id).ring),
     },
     membrane: {

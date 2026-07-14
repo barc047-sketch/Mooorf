@@ -10,13 +10,18 @@ import type {
   SpaceCell,
 } from "../types";
 import { areaToRadius } from "../lib/geometry";
-import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import { drawBlobLayer, type BlobBody } from "./blob";
 import type { AttachMode, MorphMode } from "../types";
 import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
 import { resolveCellShadow } from "./cellShadow";
-import { resolveSelectionRingState } from "../interaction/selection";
+import { projectSelectionOverlay } from "../interaction/selection";
+import type { ProjectPresentationDefaults } from "../domain/presentation/types";
+import {
+  drawCircleLayers,
+  projectCircleLayers,
+  projectRuntimePresentation,
+} from "./presentationLayers";
 
 // Pure canvas draw layer — no React, no store. CanvasView feeds it snapshots.
 
@@ -27,6 +32,7 @@ export interface BlobSettings {
   attachMode: AttachMode;
   paletteMode: PaletteMode;
   nucleusPaletteId: string;
+  organismPaletteId: string;
   colorSource: ColorSource;
   annotationDetail: AnnotationDetail;
   labelScaleMode: LabelScaleMode;
@@ -34,6 +40,7 @@ export interface BlobSettings {
   labelCustomColour: string;
   cellShadow: CellShadowSettings;
   performanceQuality: PerformanceQuality;
+  presentationDefaults: ProjectPresentationDefaults;
 }
 
 export interface Tokens {
@@ -108,7 +115,6 @@ export function drawScene(
 ): boolean {
   const includeLabels = options?.includeLabels ?? true;
   const selectedIds = options?.selectedIds ?? (selectedId ? [selectedId] : []);
-  const selectedSet = new Set(selectedIds);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h); // body token bg shows through
   let blobSettling = false;
@@ -116,13 +122,20 @@ export function drawScene(
   const z = cam.zoom;
   const toX = (x: number) => (x - cam.x) * z + w / 2;
   const toY = (y: number) => (y - cam.y) * z + h / 2;
-  const areaRange = getAreaRange(spaces);
   const theme = !isDark(tokens.ink) ? "night" : "day";
   const cellShadow = resolveCellShadow(blob.cellShadow, blob.performanceQuality, theme);
+  const presentation = projectRuntimePresentation(spaces, blob, theme);
+  const selection = projectSelectionOverlay({
+    visibleIds: spaces.map((space) => space.id),
+    selectedIds,
+    primarySelectedId: selectedId,
+    hoveredId: options?.hoveredId ?? null,
+    include: !options?.isExport || selectedIds.length > 0,
+  });
 
   // Organism tissue underneath the cells. Bodies are world-space (no viewport
   // cull — the layer caches world geometry; the canvas clips it for free).
-  if (blob.blobOn && spaces.length > 0) {
+  if ((presentation.membrane.visible || presentation.membraneEdge.visible) && spaces.length > 0) {
     const bodies: BlobBody[] = [];
     for (const c of spaces) {
       if (c.kind === "void") continue;
@@ -147,7 +160,15 @@ export function drawScene(
       blob.mergeDistance,
       night,
       blob.morphMode,
-      blob.attachMode
+      blob.attachMode,
+      {
+        fillColour: presentation.membrane.paint.colour,
+        fillOpacity: presentation.membrane.visible ? presentation.membrane.paint.opacity : 0,
+        edgeVisible: presentation.membraneEdge.visible,
+        edgeColour: presentation.membraneEdge.paint.colour,
+        edgeOpacity: presentation.membraneEdge.paint.opacity,
+        edgeWidth: presentation.membraneEdge.width,
+      }
     );
   }
 
@@ -168,29 +189,18 @@ export function drawScene(
 
     const r = areaToRadius(c.area) * z * spawn * (lifted ? 1.03 : 1);
     if (r <= 0 || sx < -r - 60 || sx > w + r + 60 || sy < -r - 60 || sy > h + r + 60) continue;
-    const mappedColor = getNucleusColor(c, blob.paletteMode, areaRange, blob.nucleusPaletteId, blob.colorSource);
+    const appearance = presentation.byId.get(c.id);
+    if (!appearance) continue;
+    const layers = projectCircleLayers(c, appearance, r, z, "classic");
+    const mappedColor = { fill: appearance.cell.paint.colour, ring: appearance.boundary.paint.colour };
     const isVoid = c.kind === "void";
 
     ctx.globalAlpha = Math.min(1, Math.max(0, spawn));
 
     if (isVoid) {
-      ctx.save();
-      ctx.setLineDash([5 * z, 5 * z]);
-      ctx.lineWidth = Math.max(1.2, 1.5 * z);
-      ctx.strokeStyle = mappedColor.ring;
-      ctx.fillStyle = "rgba(0,0,0,0.035)";
-      ctx.beginPath();
-      ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.globalAlpha *= 0.68;
-      ctx.beginPath();
-      ctx.arc(sx, sy, r * 0.42, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
+      drawCircleLayers(ctx, sx, sy, layers, { cell: false, boundary: false, core: false });
     } else {
-      if (cellShadow.enabled && (!options?.isExport || cellShadow.includeInExport)) {
+      if (layers.cell && cellShadow.enabled && (!options?.isExport || cellShadow.includeInExport)) {
         ctx.save();
         ctx.filter = `blur(${cellShadow.softness}px)`;
         ctx.fillStyle = cellShadow.rgba;
@@ -206,36 +216,35 @@ export function drawScene(
         ctx.restore();
       }
 
-      ctx.fillStyle = mappedColor.fill;
-      ctx.beginPath();
-      ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fill();
+      drawCircleLayers(ctx, sx, sy, layers, { boundary: false, core: false, void: false });
 
       // Ceramic shading — subtle top-light.
-      const g = ctx.createRadialGradient(
-        sx - r * 0.32,
-        sy - r * 0.38,
-        r * 0.15,
-        sx,
-        sy,
-        r
-      );
-      g.addColorStop(0, "rgba(255,255,255,0.16)");
-      g.addColorStop(0.55, "rgba(255,255,255,0)");
-      g.addColorStop(1, "rgba(0,0,0,0.12)");
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fill();
+      if (layers.cell) {
+        ctx.save();
+        ctx.globalAlpha *= layers.cell.opacity;
+        const g = ctx.createRadialGradient(
+          sx - r * 0.32,
+          sy - r * 0.38,
+          r * 0.15,
+          sx,
+          sy,
+          r
+        );
+        g.addColorStop(0, "rgba(255,255,255,0.16)");
+        g.addColorStop(0.55, "rgba(255,255,255,0)");
+        g.addColorStop(1, "rgba(0,0,0,0.12)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      drawCircleLayers(ctx, sx, sy, layers, { cell: false, void: false });
     }
 
     /* Selection is one external presentation-only ring. It never enters
        radius, position, Morph geometry, material, or field calculations. */
-    const ringState = resolveSelectionRingState(
-      selectedSet.has(c.id),
-      selectedId === c.id,
-      options?.hoveredId === c.id
-    );
+    const ringState = selection.get(c.id) ?? "none";
     if (ringState !== "none") {
       ctx.save();
       ctx.globalAlpha = ringState === "hover" ? 0.34 : ringState === "secondary" ? 0.58 : 0.86;

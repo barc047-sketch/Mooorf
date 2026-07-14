@@ -3,7 +3,7 @@ import type { ResourceSettings } from "../../resources/types";
 import type { MaterialBinding } from "../../materials/types";
 import type { PresentationPaintDefaults, ProjectPresentationDefaults } from "./types";
 
-export const PRESENTATION_SCHEMA_VERSION = 1 as const;
+export const PRESENTATION_SCHEMA_VERSION = 2 as const;
 
 export interface LegacyPresentationSettings {
   blobOn?: boolean;
@@ -31,6 +31,10 @@ export const createProjectPresentationDefaults = (
       style: "solid",
       width: 1.5,
       offset: 0,
+      alignment: "centre",
+      dashLength: 8,
+      gapLength: 6,
+      secondaryLineSpacing: 3,
       paint: paint(bindings.spaceBoundary),
     },
     membrane: { visible: legacy.blobOn === true, paint: paint(bindings.organism) },
@@ -43,7 +47,7 @@ export const createProjectPresentationDefaults = (
     },
     void: {
       visible: true,
-      fill: paint(bindings.voidFill),
+      fill: { ...paint(bindings.voidFill), opacity: bindings.voidFill.opacity * 0.035 },
       edge: paint(bindings.voidEdge),
       edgeWidth: 1.5,
     },

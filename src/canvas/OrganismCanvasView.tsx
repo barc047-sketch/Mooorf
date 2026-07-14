@@ -46,7 +46,7 @@ import {
 } from "./cellActivation";
 import type { SpaceKind } from "../types";
 import { registerCanvasCapture, type CaptureRequestOptions } from "./exportCapture";
-import { resolveSelectionIntent, resolveSelectionRingState } from "../interaction/selection";
+import { projectSelectionOverlay, resolveSelectionIntent } from "../interaction/selection";
 import {
   applySpacePositionsPreview,
   createGroupTranslation,
@@ -60,6 +60,11 @@ import { projectClientPoint } from "./labelPresentation";
 import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
 import { resolveCellShadow } from "./cellShadow";
+import {
+  drawCircleLayers,
+  projectCircleLayers,
+  projectRuntimePresentation,
+} from "./presentationLayers";
 import "./organismCanvas.css";
 
 const CAPTURE_TIMEOUT_MS = 5000;
@@ -93,6 +98,7 @@ const readTheme = (): LabTheme =>
 export default function OrganismCanvasView() {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const presentationCanvasRef = useRef<HTMLCanvasElement>(null);
   const labelLayerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const spaces = useLab((s) => s.spaces);
@@ -106,17 +112,46 @@ export default function OrganismCanvasView() {
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const colorSource = useLab((s) => s.settings.colorSource);
+  const organismPaletteId = useLab((s) => s.settings.organismPaletteId);
+  const morphMode = useLab((s) => s.settings.morphMode);
+  const presentationDefaults = useLab((s) => s.settings.presentationDefaults);
   const showGrid = useLab((s) => s.settings.showGrid);
   const labelScaleMode = useLab((s) => s.settings.labelScaleMode);
   const labelColourMode = useLab((s) => s.settings.labelColourMode);
   const labelCustomColour = useLab((s) => s.settings.labelCustomColour);
   const themeMode = useLab((s) => s.theme);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
+  const labelPresentation = useMemo(() => projectRuntimePresentation(spaces, {
+    presentationDefaults,
+    paletteMode,
+    colorSource,
+    nucleusPaletteId,
+    organismPaletteId,
+    morphMode,
+  }, themeMode), [
+    spaces,
+    presentationDefaults,
+    paletteMode,
+    colorSource,
+    nucleusPaletteId,
+    organismPaletteId,
+    morphMode,
+    themeMode,
+  ]);
+  const labelSelection = useMemo(() => projectSelectionOverlay({
+    visibleIds: spaces.map((space) => space.id),
+    selectedIds,
+    primarySelectedId: selectedId,
+    hoveredId: null,
+    include: true,
+  }), [spaces, selectedIds, selectedId]);
 
   useEffect(() => {
     const host = hostRef.current;
     const canvas = canvasRef.current;
-    if (!host || !canvas) return;
+    const presentationCanvas = presentationCanvasRef.current;
+    if (!host || !canvas || !presentationCanvas) return;
+    const presentationCtx = presentationCanvas.getContext("2d");
 
     const announceReadiness = (stage: "canvas-mounted" | "renderer-ready" | "render-requested" | "ready") => {
       const state = useLab.getState();
@@ -161,7 +196,11 @@ export default function OrganismCanvasView() {
     let h = 0;
     let lastCommitted = useLab.getState().camera;
     let camTarget: typeof cam | null = null;
-    let pendingCapture: { resolve: (canvas: HTMLCanvasElement) => void; reject: (err: Error) => void } | null = null;
+    let pendingCapture: {
+      scale: 1 | 2 | 4;
+      resolve: (canvas: HTMLCanvasElement) => void;
+      reject: (err: Error) => void;
+    } | null = null;
     let derivedDirty = true;
     let cachedAreaRange = getAreaRange(spaces.slice(0, MAX_NUCLEI));
     let cachedCellColors = new Map<string, string>();
@@ -180,19 +219,29 @@ export default function OrganismCanvasView() {
     );
     let cachedField = effectiveField(resolved.params);
     let cachedShadow = resolveCellShadow(settings.cellShadow, settings.performanceQuality, theme);
+    let cachedPresentation = projectRuntimePresentation(
+      spaces.slice(0, MAX_NUCLEI),
+      settings,
+      theme
+    );
 
     const refreshDerived = () => {
       cachedAreaRange = getAreaRange(spaces.slice(0, MAX_NUCLEI));
+      cachedPresentation = projectRuntimePresentation(
+        spaces.slice(0, MAX_NUCLEI),
+        settings,
+        theme
+      );
       cachedCellColors = new Map(
         spaces.slice(0, MAX_NUCLEI).map((space) => [
           space.id,
-          getNucleusColor(
-            space,
-            settings.paletteMode,
-            cachedAreaRange,
-            settings.nucleusPaletteId,
-            settings.colorSource
-          ).fill,
+          cachedPresentation.byId.get(space.id)?.cell.paint.colour ?? getNucleusColor(
+              space,
+              settings.paletteMode,
+              cachedAreaRange,
+              settings.nucleusPaletteId,
+              settings.colorSource
+            ).fill,
         ])
       );
       cachedStyle = styleColors(settings.morphMode, theme);
@@ -234,7 +283,10 @@ export default function OrganismCanvasView() {
       bgColor: [1, 1, 1],
       accentColor: [0.55, 0.08, 0.14],
       colorMix: 0,
-      nucleusDots: 1,
+      nucleusDots: 0,
+      membraneOpacity: 1,
+      membraneEdgeOpacity: 0,
+      membraneEdgeWidth: 1,
       morphEnabled: false,
       shadowEnabled: false,
       shadowColor: [0, 0, 0],
@@ -278,6 +330,8 @@ export default function OrganismCanvasView() {
       w = host.clientWidth;
       h = host.clientHeight;
       renderer?.resize(w, h, dpr);
+      presentationCanvas.width = Math.max(1, Math.round(w * dpr));
+      presentationCanvas.height = Math.max(1, Math.round(h * dpr));
       invalidate();
     };
     resize();
@@ -313,6 +367,7 @@ export default function OrganismCanvasView() {
         }, CAPTURE_TIMEOUT_MS);
         renderer.resize(w, h, scale);
         pendingCapture = {
+          scale,
           resolve: (frameCanvas) => {
             window.clearTimeout(timeout);
             resolve(frameCanvas);
@@ -390,6 +445,37 @@ export default function OrganismCanvasView() {
     };
     let lastNuclei: ProductionNucleus[] = [];
 
+    const drawPresentationOverlay = (nuclei: ProductionNucleus[], scale: number) => {
+      if (!presentationCtx) return;
+      const pixelScale = Math.max(1, scale);
+      const targetWidth = Math.max(1, Math.round(w * pixelScale));
+      const targetHeight = Math.max(1, Math.round(h * pixelScale));
+      if (presentationCanvas.width !== targetWidth) presentationCanvas.width = targetWidth;
+      if (presentationCanvas.height !== targetHeight) presentationCanvas.height = targetHeight;
+      presentationCtx.setTransform(1, 0, 0, 1, 0, 0);
+      presentationCtx.clearRect(0, 0, targetWidth, targetHeight);
+      presentationCtx.setTransform(pixelScale, 0, 0, pixelScale, 0, 0);
+      let fallbackCount = 0;
+      const spacesById = new Map(spaces.map((space) => [space.id, space]));
+      for (const nucleus of nuclei) {
+        const space = spacesById.get(nucleus.id);
+        const appearance = cachedPresentation.byId.get(nucleus.id);
+        if (!space || !appearance) continue;
+        const layers = projectCircleLayers(
+          space,
+          appearance,
+          nucleus.screenR,
+          cam.zoom,
+          "organism"
+        );
+        if (layers.boundary?.fallback) fallbackCount += 1;
+        drawCircleLayers(presentationCtx, nucleus.sx, nucleus.sy, layers, {
+          cell: !cachedPresentation.membrane.visible && cachedPresentation.membraneEdge.visible,
+        });
+      }
+      presentationCanvas.dataset.boundaryFallbackCount = String(fallbackCount);
+    };
+
     /* camera-synced technical grid — cheap CSS background, render-loop offsets */
     const syncGrid = () => {
       const grid = gridRef.current;
@@ -404,6 +490,13 @@ export default function OrganismCanvasView() {
       const layer = labelLayerRef.current;
       if (!layer) return;
       const byId = new Map(nuclei.map((n) => [n.id, n]));
+      const selection = projectSelectionOverlay({
+        visibleIds: nuclei.map((nucleus) => nucleus.id),
+        selectedIds: [...selectedIdSet],
+        primarySelectedId: selectedId,
+        hoveredId,
+        include: true,
+      });
       layer.style.setProperty(
         "--label-scale",
         String(resolveLabelScale(settings.labelScaleMode, cam.zoom, settings.annotationDetail.textScale))
@@ -421,11 +514,7 @@ export default function OrganismCanvasView() {
         const selected = selectedIdSet.has(nucleus.id);
         anchor.dataset.selected = selected ? "true" : "false";
         anchor.dataset.primary = selectedId === nucleus.id ? "true" : "false";
-        anchor.dataset.ring = resolveSelectionRingState(
-          selected,
-          selectedId === nucleus.id,
-          hoveredId === nucleus.id
-        );
+        anchor.dataset.ring = selection.get(nucleus.id) ?? "none";
         const keyline = anchor.querySelector<HTMLElement>(".organism-cell-keyline");
         if (keyline) {
           const editing = anchor.dataset.editing === "true";
@@ -695,6 +784,14 @@ export default function OrganismCanvasView() {
       const palette = cachedPalette;
       const params = resolved.params;
       const eff = cachedField;
+      const membraneColour = hexToRgb01(cachedPresentation.membrane.paint.colour);
+      const edgeColour = hexToRgb01(cachedPresentation.membraneEdge.paint.colour);
+      const usesPaletteBody = cachedPresentation.membrane.paint.colour.toLowerCase() === palette.bodyHex.toLowerCase();
+      const bodyTarget = membraneColour;
+      const bodyBTarget = usesPaletteBody ? palette.bodyB : membraneColour;
+      const accentTarget = edgeColour;
+      const colorMixTarget = usesPaletteBody ? palette.blend : 0;
+      const morphPresentationActive = cachedPresentation.membrane.visible || cachedPresentation.membraneEdge.visible;
 
       if (!smooth) {
         smooth = {
@@ -706,18 +803,19 @@ export default function OrganismCanvasView() {
           pocketIso: params.pocketThreshold,
           pocketSoft: params.pocketSoftness,
           pocketAmount: sc.pocketAmount,
-          dots: 1,
-          body: [palette.body[0], palette.body[1], palette.body[2]],
-          bodyB: [palette.bodyB[0], palette.bodyB[1], palette.bodyB[2]],
+          dots: 0,
+          body: [bodyTarget[0], bodyTarget[1], bodyTarget[2]],
+          bodyB: [bodyBTarget[0], bodyBTarget[1], bodyBTarget[2]],
           bg: [palette.ground[0], palette.ground[1], palette.ground[2]],
-          accent: [palette.accent[0], palette.accent[1], palette.accent[2]],
-          colorMix: palette.blend,
+          accent: [accentTarget[0], accentTarget[1], accentTarget[2]],
+          colorMix: colorMixTarget,
         };
       }
 
       const kNum = expK(10, dt);
       const kCol = expK(3.4, dt);
-      const dotsTarget = params.showNuclei ? 1 : 0;
+      // Core is per-Cell presentation, so the bounded Canvas2D adapter owns it.
+      const dotsTarget = 0;
       smooth.mass += (params.mass - smooth.mass) * kNum;
       smooth.iso += (params.isoLevel - smooth.iso) * kNum;
       smooth.softness += (params.edgeSoftness - smooth.softness) * kNum;
@@ -729,19 +827,19 @@ export default function OrganismCanvasView() {
       smooth.dots += (dotsTarget - smooth.dots) * kCol;
       let settling = false;
       for (let i = 0; i < 3; i++) {
-        smooth.body[i] += (palette.body[i] - smooth.body[i]) * kCol;
-        smooth.bodyB[i] += (palette.bodyB[i] - smooth.bodyB[i]) * kCol;
+        smooth.body[i] += (bodyTarget[i] - smooth.body[i]) * kCol;
+        smooth.bodyB[i] += (bodyBTarget[i] - smooth.bodyB[i]) * kCol;
         smooth.bg[i] += (palette.ground[i] - smooth.bg[i]) * kCol;
-        smooth.accent[i] += (palette.accent[i] - smooth.accent[i]) * kCol;
-        settling = settling || Math.abs(palette.body[i] - smooth.body[i]) > 0.002;
-        settling = settling || Math.abs(palette.bodyB[i] - smooth.bodyB[i]) > 0.002;
+        smooth.accent[i] += (accentTarget[i] - smooth.accent[i]) * kCol;
+        settling = settling || Math.abs(bodyTarget[i] - smooth.body[i]) > 0.002;
+        settling = settling || Math.abs(bodyBTarget[i] - smooth.bodyB[i]) > 0.002;
         settling = settling || Math.abs(palette.ground[i] - smooth.bg[i]) > 0.002;
-        settling = settling || Math.abs(palette.accent[i] - smooth.accent[i]) > 0.002;
+        settling = settling || Math.abs(accentTarget[i] - smooth.accent[i]) > 0.002;
       }
-      smooth.colorMix += (palette.blend - smooth.colorMix) * kCol;
+      smooth.colorMix += (colorMixTarget - smooth.colorMix) * kCol;
       settling =
         settling ||
-        Math.abs(palette.blend - smooth.colorMix) > 0.002 ||
+        Math.abs(colorMixTarget - smooth.colorMix) > 0.002 ||
         Math.abs(eff.tension - smooth.tension) > 0.002 ||
         Math.abs(eff.bias - smooth.bias) > 0.002 ||
         Math.abs(params.edgeSoftness - smooth.softness) > 0.002 ||
@@ -765,7 +863,8 @@ export default function OrganismCanvasView() {
         nucleiBuf[o] = n.fx;
         nucleiBuf[o + 1] = n.fy;
         nucleiBuf[o + 2] = n.r;
-        nucleiBuf[o + 3] = n.strength;
+        const cellVisible = cachedPresentation.byId.get(n.id)?.cell.visible ?? true;
+        nucleiBuf[o + 3] = !morphPresentationActive && n.kind === "space" && !cellVisible ? 0 : n.strength;
         if (n.kind === "space") {
           const parsed = /^#[0-9a-f]{6}$/i.test(n.color) ? Number.parseInt(n.color.slice(1), 16) : 0x777a79;
           const tr = ((parsed >> 16) & 255) / 255;
@@ -804,10 +903,17 @@ export default function OrganismCanvasView() {
       frame.accentColor = smooth.accent;
       frame.colorMix = smooth.colorMix;
       frame.nucleusDots = smooth.dots;
+      frame.membraneOpacity = cachedPresentation.membrane.visible
+        ? cachedPresentation.membrane.paint.opacity
+        : 0;
+      frame.membraneEdgeOpacity = cachedPresentation.membraneEdge.visible
+        ? cachedPresentation.membraneEdge.paint.opacity
+        : 0;
+      frame.membraneEdgeWidth = Math.max(0.5, cachedPresentation.membraneEdge.width * cam.zoom);
       frame.fieldDebug = params.showFieldDebug;
       frame.nucleiDebug = params.showNucleiDebug;
       const shadow = cachedShadow;
-      frame.morphEnabled = settings.blobOn;
+      frame.morphEnabled = morphPresentationActive;
       frame.shadowEnabled = shadow.enabled && (!pendingCapture || shadow.includeInExport);
       frame.shadowColor = hexToRgb01(
         shadow.colorMode === "custom" ? shadow.color : theme === "night" ? "#000000" : "#222222"
@@ -822,6 +928,7 @@ export default function OrganismCanvasView() {
       if (!firstUsableFrame) announceReadiness("render-requested");
       try {
         renderer?.render(frame);
+        drawPresentationOverlay(nuclei, pendingCapture?.scale ?? dpr);
         if (!firstUsableFrame) {
           firstUsableFrame = true;
           announceReadiness("ready");
@@ -839,6 +946,7 @@ export default function OrganismCanvasView() {
             const cctx = clone.getContext("2d");
             if (!cctx) throw new Error("Could not clone the organism canvas for export.");
             cctx.drawImage(canvas, 0, 0);
+            cctx.drawImage(presentationCanvas, 0, 0);
             req.resolve(clone);
           } catch (err) {
             req.reject(err instanceof Error ? err : new Error("Organism canvas capture failed."));
@@ -893,6 +1001,12 @@ export default function OrganismCanvasView() {
   return (
     <div ref={hostRef} className="organism-canvas-host">
       <canvas ref={canvasRef} className="organism-canvas" data-testid="organism-canvas" />
+      <canvas
+        ref={presentationCanvasRef}
+        className="organism-presentation-canvas"
+        data-testid="organism-presentation-canvas"
+        aria-hidden="true"
+      />
       {showGrid && <div ref={gridRef} className="organism-grid" aria-hidden="true" />}
       <div
         ref={labelLayerRef}
@@ -906,8 +1020,18 @@ export default function OrganismCanvasView() {
         style={{ "--label-scale": annotationDetail.textScale } as CSSProperties}
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
-          const mappedColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
           const kind: SpaceKind = space.kind === "void" ? "void" : "space";
+          const legacyColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
+          const appearance = labelPresentation.byId.get(space.id);
+          const mappedColor = {
+            ...legacyColor,
+            fill: kind === "void"
+              ? appearance?.void.fill.colour ?? legacyColor.fill
+              : appearance?.cell.paint.colour ?? legacyColor.fill,
+            ring: kind === "void"
+              ? appearance?.void.edge.colour ?? legacyColor.ring
+              : appearance?.boundary.paint.colour ?? legacyColor.ring,
+          };
           const labelContrast = resolveLabelContrast({
             mode: labelColourMode,
             customColor: labelCustomColour,
@@ -941,7 +1065,7 @@ export default function OrganismCanvasView() {
               data-kind={kind}
               data-selected={selected ? "true" : "false"}
               data-primary={space.id === selectedId ? "true" : undefined}
-              data-ring={resolveSelectionRingState(selected, space.id === selectedId, false)}
+              data-ring={labelSelection.get(space.id) ?? "none"}
               data-editing={editing ? "true" : undefined}
               style={labelStyle}
             >

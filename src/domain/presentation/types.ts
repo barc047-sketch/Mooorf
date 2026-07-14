@@ -52,16 +52,39 @@ export interface SurfaceAppearanceOverride {
   paint?: PresentationPaintOverride;
 }
 
+export const BOUNDARY_STYLES = [
+  "solid",
+  "dashed",
+  "dotted",
+  "dash-dot",
+  "double",
+  "segmented-bars",
+] as const;
+
+export type BoundaryStyle = typeof BOUNDARY_STYLES[number];
+
+export const BOUNDARY_ALIGNMENTS = ["inner", "centre", "outer"] as const;
+
+export type BoundaryAlignment = typeof BOUNDARY_ALIGNMENTS[number];
+
 export interface BoundaryPresentationDefaults extends SurfacePresentationDefaults {
-  style: "solid";
+  style: BoundaryStyle;
   width: number;
   offset: number;
+  alignment: BoundaryAlignment;
+  dashLength: number;
+  gapLength: number;
+  secondaryLineSpacing: number;
 }
 
 export interface BoundaryAppearanceOverride extends SurfaceAppearanceOverride {
-  style?: "solid";
+  style?: BoundaryStyle;
   width?: number;
   offset?: number;
+  alignment?: BoundaryAlignment;
+  dashLength?: number;
+  gapLength?: number;
+  secondaryLineSpacing?: number;
 }
 
 export interface MembraneEdgePresentationDefaults extends SurfacePresentationDefaults {
@@ -98,7 +121,7 @@ export interface VoidAppearanceOverride {
 }
 
 export interface ProjectPresentationDefaults {
-  schemaVersion: 1;
+  schemaVersion: 2;
   cell: SurfacePresentationDefaults;
   boundary: BoundaryPresentationDefaults;
   membrane: SurfacePresentationDefaults;
@@ -134,9 +157,13 @@ export interface ResolvedSurfaceAppearance {
 }
 
 export interface ResolvedBoundaryAppearance extends ResolvedSurfaceAppearance {
-  style: "solid";
+  style: BoundaryStyle;
   width: number;
   offset: number;
+  alignment: BoundaryAlignment;
+  dashLength: number;
+  gapLength: number;
+  secondaryLineSpacing: number;
 }
 
 export interface ResolvedMembraneEdgeAppearance extends ResolvedSurfaceAppearance {

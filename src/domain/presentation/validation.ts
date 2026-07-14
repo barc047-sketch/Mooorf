@@ -1,6 +1,10 @@
 import { createProjectPresentationDefaults, PRESENTATION_SCHEMA_VERSION, type LegacyPresentationSettings } from "./defaults";
 import {
+  BOUNDARY_ALIGNMENTS,
+  BOUNDARY_STYLES,
   PRESENTATION_TARGET_CONTRACTS,
+  type BoundaryAlignment,
+  type BoundaryStyle,
   type CellAppearanceOverrides,
   type PresentationDefaultsKey,
   type PresentationPaintDefaults,
@@ -33,6 +37,12 @@ const materialId = (value: unknown, fallback: string): string => {
 
 const finiteOr = (value: unknown, fallback: number, minimum: number, maximum: number): number =>
   typeof value === "number" && Number.isFinite(value) ? clamp(value, minimum, maximum) : fallback;
+
+const boundaryStyle = (value: unknown, fallback: BoundaryStyle): BoundaryStyle =>
+  BOUNDARY_STYLES.includes(value as BoundaryStyle) ? value as BoundaryStyle : fallback;
+
+const boundaryAlignment = (value: unknown, fallback: BoundaryAlignment): BoundaryAlignment =>
+  BOUNDARY_ALIGNMENTS.includes(value as BoundaryAlignment) ? value as BoundaryAlignment : fallback;
 
 const normalizePaintDefaults = (value: unknown, fallback: PresentationPaintDefaults): PresentationPaintDefaults => {
   const record = isRecord(value) ? value : {};
@@ -67,9 +77,18 @@ export const normalizeProjectPresentationDefaults = (
     },
     boundary: {
       visible: typeof boundary.visible === "boolean" ? boundary.visible : fallback.boundary.visible,
-      style: "solid",
+      style: boundaryStyle(boundary.style, fallback.boundary.style),
       width: finiteOr(boundary.width, fallback.boundary.width, 0, 64),
       offset: finiteOr(boundary.offset, fallback.boundary.offset, -64, 64),
+      alignment: boundaryAlignment(boundary.alignment, fallback.boundary.alignment),
+      dashLength: finiteOr(boundary.dashLength, fallback.boundary.dashLength, 0.25, 256),
+      gapLength: finiteOr(boundary.gapLength, fallback.boundary.gapLength, 0.25, 256),
+      secondaryLineSpacing: finiteOr(
+        boundary.secondaryLineSpacing,
+        fallback.boundary.secondaryLineSpacing,
+        0,
+        128
+      ),
       paint: normalizePaintDefaults(boundary.paint, fallback.boundary.paint),
     },
     membrane: {
@@ -145,9 +164,22 @@ export const normalizeCellAppearanceOverrides = (
   }) : undefined;
   const boundary = isRecord(value.boundary) ? compact({
     visible: changedBoolean(value.boundary.visible, defaults.boundary.visible),
-    style: value.boundary.style === "solid" && value.boundary.style !== defaults.boundary.style ? "solid" as const : undefined,
+    style: BOUNDARY_STYLES.includes(value.boundary.style as BoundaryStyle) && value.boundary.style !== defaults.boundary.style
+      ? value.boundary.style as BoundaryStyle
+      : undefined,
     width: changedNumber(value.boundary.width, defaults.boundary.width, 0, 64),
     offset: changedNumber(value.boundary.offset, defaults.boundary.offset, -64, 64),
+    alignment: BOUNDARY_ALIGNMENTS.includes(value.boundary.alignment as BoundaryAlignment) && value.boundary.alignment !== defaults.boundary.alignment
+      ? value.boundary.alignment as BoundaryAlignment
+      : undefined,
+    dashLength: changedNumber(value.boundary.dashLength, defaults.boundary.dashLength, 0.25, 256),
+    gapLength: changedNumber(value.boundary.gapLength, defaults.boundary.gapLength, 0.25, 256),
+    secondaryLineSpacing: changedNumber(
+      value.boundary.secondaryLineSpacing,
+      defaults.boundary.secondaryLineSpacing,
+      0,
+      128
+    ),
     paint: normalizePaintOverride(value.boundary.paint, defaults.boundary.paint),
   }) : undefined;
   const membrane = isRecord(value.membrane) ? compact({

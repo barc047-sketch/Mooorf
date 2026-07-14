@@ -14,6 +14,15 @@ export interface BlobBody {
   r: number;
 }
 
+export interface BlobLayerAppearance {
+  fillColour: string;
+  fillOpacity: number;
+  edgeVisible: boolean;
+  edgeColour: string;
+  edgeOpacity: number;
+  edgeWidth: number;
+}
+
 interface Camera {
   x: number;
   y: number;
@@ -462,7 +471,8 @@ export function drawBlobLayer(
   mergeDistance: number,
   night: boolean,
   morphMode: MorphMode,
-  attachMode: AttachMode
+  attachMode: AttachMode,
+  appearance?: BlobLayerAppearance
 ): boolean {
   if (bodies.length === 0) return false;
 
@@ -485,8 +495,16 @@ export function drawBlobLayer(
   ctx.translate(w / 2, h / 2);
   ctx.scale(cam.zoom, cam.zoom);
   ctx.translate(-cam.x, -cam.y);
-  ctx.fillStyle = `rgb(${p.fill[0] | 0}, ${p.fill[1] | 0}, ${p.fill[2] | 0})`;
+  const baseAlpha = ctx.globalAlpha;
+  ctx.fillStyle = appearance?.fillColour ?? `rgb(${p.fill[0] | 0}, ${p.fill[1] | 0}, ${p.fill[2] | 0})`;
+  ctx.globalAlpha = baseAlpha * (appearance?.fillOpacity ?? 1);
   ctx.fill(cache.path, "nonzero");
+  if (appearance?.edgeVisible && appearance.edgeWidth > 0) {
+    ctx.strokeStyle = appearance.edgeColour;
+    ctx.lineWidth = appearance.edgeWidth;
+    ctx.globalAlpha = baseAlpha * appearance.edgeOpacity;
+    ctx.stroke(cache.path);
+  }
   ctx.restore();
   return settling;
 }

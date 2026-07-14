@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] C0.4F-A Runtime Layer Separation (feature implementation complete; `WAITING_REVIEW`; do not merge)
 - [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
 - [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)
 - [x] V8.2C0 Canvas Performance + Contrast Reset (implementation complete; final branch verification/audit handoff)
@@ -28,6 +29,20 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## C0.4F-A — Runtime Layer Separation  ✅ IMPLEMENTED ON FEATURE BRANCH
+
+- [x] one canonical runtime projection shared by Classic and Organism
+- [x] explicit temporary selection projection excluded from persistence and clean export
+- [x] Classic Cell/Boundary/Membrane/Membrane Edge/Core/Void separation
+- [x] all six Classic Boundary styles plus alignment, width, offset, dash/bar, gap, double spacing, colour, and opacity
+- [x] bounded Organism Membrane/Edge shader controls and pointer-transparent per-Cell overlay
+- [x] truthful solid fallback for unsupported Organism technical Boundary styles
+- [x] world-scaled technical strokes with area/radius/hit/clearance/Void invariants
+- [x] presentation schema v2 with v1 migration and import/export/resource regression coverage
+- [x] focused contracts, app-config typecheck, final build, source-main comparison, and 1440/1280 browser QA
+- [ ] independent review and Owner merge command
+- [ ] C0.4F-B remains blocked and unstarted
 
 ## C0.4.1 — Layer Contracts, Defaults and Resolvers  ✅ IMPLEMENTED ON FEATURE BRANCH
 
