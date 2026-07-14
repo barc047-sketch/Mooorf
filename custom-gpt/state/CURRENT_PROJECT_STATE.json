@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T05:08:00+05:30",
+  "updated_at": "2026-07-15T05:24:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0.4F-A-MERGE-GATE",
-  "current_gate": "Antigravity fixed-head audit returned MERGE CANDIDATE; awaiting explicit Owner command MERGE C0.4F-A",
+  "current_phase": "C0.4F-A-COMBINED-COMPLETION-GATE",
+  "current_gate": "Hold main at c4600472; use audited C0.4F-A head 21388c0 as the base for M1 so the incomplete layer-separation state is not merged alone",
   "owner_approval_required": true,
   "orchestration_mode": {
     "status": "OWNER_REVIEWED_SEQUENTIAL_FAST_TRACK",
@@ -14,6 +14,7 @@
     "rule": "Never rely on chat memory alone; verify and record exact refs before decisions",
     "owner_speed_directive": "Build one bounded Codex milestone at a time. Present the next exact scope to the Owner before creating or dispatching its contract. No routine extra audit loop.",
     "dispatch_protocol": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md",
+    "corrected_milestone_map": "docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md",
     "limit_awareness": "Local worker execution is not observable until status/branch/head evidence is pushed"
   },
   "c0_4f_a": {
@@ -22,160 +23,127 @@
     "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
     "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
     "implementation_status": "WAITING_REVIEW",
-    "implementation_report": "docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md",
-    "audit_branch": "audit/c0-4f-a-runtime-layer-separation",
-    "audit_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
-    "audit_report": "docs/audits/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
     "audit_verdict": "MERGE CANDIDATE",
-    "findings": "No BLOCKER, HIGH, MEDIUM or LOW product finding; accepted known Organism fallback and 50+ Cell limitation",
-    "next_gate": "Owner command MERGE C0.4F-A"
+    "meaning_of_verdict": "The one-commit layer-separation scope is technically safe and architecture-compliant; it does not mean the complete user-facing settings workflow is finished",
+    "merge_policy": "Do not merge this head alone while known appearance controls remain incomplete. Base M1 directly on this audited head and merge the combined usable result later."
   },
   "editing_workspace_plan": {
     "master_plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
-    "dispatch_protocol": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md",
+    "sequential_map": "docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md",
     "architecture": {
-      "organism_targets": [
-        "Cell",
-        "Boundary",
-        "Membrane",
-        "Membrane Edge",
-        "Core",
-        "Void"
-      ],
-      "separate_families": [
-        "Connection System",
-        "Markup and Annotation System",
-        "Selection and Arrange Commands"
-      ],
-      "connection_rule": "Connection is not a seventh Organism target; V1 uses straight centre-to-centre lines with semantic meaning and visual appearance separately editable",
-      "annotation_rule": "Annotation Card is standalone markup, not Cell content and not the existing label-mode AnnotationWidget"
-    },
-    "bottom_dock": {
-      "left": [
-        "Select",
-        "Target",
-        "Arrange"
-      ],
-      "centre": [
-        "Add Cell",
-        "Add Cluster",
-        "Add Void"
-      ],
-      "right": [
-        "Connect",
-        "Material",
-        "Preset",
-        "Markup",
-        "Detail"
-      ],
-      "rail_rule": "One reusable contextual rail opens above the active circular launcher; only one rail open at once"
-    },
-    "detailed_widgets": [
-      "Cell Settings",
-      "Boundary Settings",
-      "Membrane Settings",
-      "Membrane Edge Settings",
-      "Core Settings",
-      "Void Settings",
-      "Connection Settings",
-      "Annotation Studio"
-    ]
+      "organism_targets": ["Cell", "Boundary", "Membrane", "Membrane Edge", "Core", "Void"],
+      "separate_families": ["Connection System", "Markup and Annotation System", "Selection and Arrange Commands"],
+      "connection_rule": "Connection is not a seventh Organism target",
+      "annotation_rule": "Annotation Card is standalone markup"
+    }
   },
   "sequential_milestones": [
     {
       "id": "M1",
-      "title": "Canvas Shell, Bottom Dock and Shared Contextual Rails",
-      "planned_branch": "feature/c0-m1-canvas-shell-context-rails",
-      "status": "NEXT — PRESENT TO OWNER BEFORE DISPATCH"
+      "title": "Layer Editing Recovery and Dedicated Settings",
+      "planned_branch": "feature/c0-m1-layer-editing-recovery",
+      "exact_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+      "status": "NEXT — PRESENT TO OWNER BEFORE DISPATCH",
+      "purpose": "Repair the incomplete product state caused by layer separation before shell redesign",
+      "includes": [
+        "map every visible appearance control",
+        "rebind, move or remove every broken/stale/no-op setting",
+        "retain Inspector as context hub",
+        "six dedicated settings widgets",
+        "Project Default / Local Override / Mixed",
+        "history, persistence, migration and export parity",
+        "migrate Morph/Attachment/Density to Membrane ownership where valid",
+        "1440 and 1280 QA"
+      ]
     },
     {
       "id": "M2",
-      "title": "Inspector Context, Target Rail and Dedicated Organism Settings Widgets",
-      "planned_branch": "feature/c0-m2-inspector-layer-settings",
-      "status": "PREVIEW ONLY"
+      "title": "Symbol Registry Forward-Port and Production Symbol Inspector",
+      "planned_branch": "feature/c0-m2-symbol-registry-inspector",
+      "status": "PLANNED — OWNER PREVIEW AFTER M1",
+      "inputs": {
+        "baseline": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
+        "research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4"
+      },
+      "symbol_plan": {
+        "forward_port_existing": 77,
+        "verified_lucide_additions": 59,
+        "aliases": 14,
+        "rejects_excluded": 5,
+        "custom_vectors_deferred_for_owner_visual_review": 8,
+        "target_active_geometry_after_customs": 144,
+        "target_searchable_ids_after_customs": 164
+      }
     },
     {
       "id": "M3",
-      "title": "Quick Materials, Presets and Material Browser Foundation",
-      "planned_branch": "feature/c0-m3-materials-presets-browser",
+      "title": "Bottom Dock and Shared Contextual Rails",
+      "planned_branch": "feature/c0-m3-canvas-shell-context-rails",
       "status": "PLANNED"
     },
     {
       "id": "M4",
-      "title": "Straight Connection Foundation",
-      "planned_branch": "feature/c0-m4-straight-connections",
+      "title": "Quick Materials, Presets and Material Browser",
+      "planned_branch": "feature/c0-m4-materials-presets-browser",
       "status": "PLANNED"
     },
     {
       "id": "M5",
-      "title": "Markup Rail, Annotation Card and Annotation Studio",
-      "planned_branch": "feature/c0-m5-annotation-markup",
-      "status": "PLANNED"
+      "title": "Straight Connection Foundation",
+      "planned_branch": "feature/c0-m5-straight-connections",
+      "status": "PLANNED",
+      "research_mapping": "Diagram/link symbols from Antigravity feed the drawable library and preset vocabulary but never replace the graph connection model"
     },
     {
       "id": "M6",
-      "title": "C0 Editing Workspace Hardening",
-      "planned_branch": "feature/c0-m6-editing-workspace-hardening",
+      "title": "Markup and Annotation Foundation",
+      "planned_branch": "feature/c0-m6-annotation-markup",
+      "status": "PLANNED",
+      "research_mapping": "Annotation-category symbols feed the markup library; the custom section-cut symbol waits for original-vector Owner approval"
+    },
+    {
+      "id": "M7",
+      "title": "Arrange, Grid and Snapping",
+      "planned_branch": "feature/c0-m7-arrange-grid-snap",
+      "status": "PLANNED",
+      "research_mapping": "Forward-ported C0.2 grid registry becomes visible only when rendering/snapping/export support is truthful"
+    },
+    {
+      "id": "M8",
+      "title": "Area, Table and Import Completion",
+      "planned_branch": "feature/c0-m8-table-import",
+      "status": "PLANNED"
+    },
+    {
+      "id": "M9",
+      "title": "Floors, Stats and Dashboard",
+      "planned_branch": "feature/c0-m9-floors-dashboard",
       "status": "PLANNED"
     }
   ],
+  "custom_symbol_milestone": {
+    "status": "PLANNED AFTER M2 OR WITH M6",
+    "rule": "Create original MOOORF-owned vectors; do not substitute misleading generic icons",
+    "candidates": ["elevator cab", "stairs plan", "escalator section", "wardrobe plan", "sink plan", "gate swing", "floor drain", "section cut"]
+  },
   "dispatch_rule": {
     "before_each_milestone": "Assistant presents exact visible changes, moves/removals, exclusions, branch and acceptance checks; Owner may add changes",
     "authorization": "Only explicit Owner GO creates the final contract and Codex launch prompt",
     "completion": "Codex stops at WAITING_REVIEW; Assistant verifies GitHub evidence; Owner explicitly approves merge or correction",
-    "next_milestone": "Present only after current milestone is reviewed and merged",
     "audit": "No separate audit by default unless a BLOCKER/HIGH-risk contradiction appears"
   },
-  "superseded_or_absorbed_plans": [
-    {
-      "id": "C0-EDITING-WORKSPACE-COMPLETION-UMBRELLA",
-      "planned_branch": "feature/c0-editing-workspace-completion",
-      "status": "SUPERSEDED BEFORE DISPATCH",
-      "reason": "Owner requires one bounded milestone at a time with review and additions before each Codex dispatch"
-    },
-    {
-      "id": "C0.4F-B",
-      "brief": "docs/worker-briefs/C0_4F_B_CODEX_LAYER_INSPECTOR_SETTINGS_COMPLETION.md",
-      "status": "INPUT TO M2, NOT DISPATCHED",
-      "note": "Layer-settings requirements remain valid input but will be reviewed with the Owner before M2"
-    },
-    {
-      "id": "C0.4F-A-CODEX-RED-TEAM",
-      "branch": "audit/c0-4f-a-codex-red-team",
-      "brief": "docs/worker-briefs/C0_4F_A_CODEX_RED_TEAM_AUDIT.md",
-      "status": "CANCELLED BY OWNER SPEED DIRECTIVE",
-      "reason": "Primary independent Antigravity audit completed with MERGE CANDIDATE; no extra audit loop required",
-      "merge_rule": "report branch must never be merged"
-    }
-  ],
-  "completed_parallel_research": [
-    {
-      "id": "C0-2-SYMBOL-EXPANSION",
-      "branch": "research/c0-2-symbol-asset-expansion",
-      "head": "9aa52779deac12701ba30eed1ff6e919e88091f4",
-      "result": "77 baseline symbols; 59 verified additions; 14 aliases; 8 custom-design candidates; 5 rejects; target 164 searchable IDs / 144 active geometry symbols",
-      "merge_rule": "research-only; never merge wholesale"
-    },
-    {
-      "id": "C0-FAST-TRACK-ATLAS",
-      "branch": "research/c0-fast-track-essential-product-atlas",
-      "head": "348ee8cd62e45de1b1c51f144e1b7607acd016ee",
-      "result": "Exact provenance, ownership, data-flow, dependency, risk and future Codex inputs through essential hardening",
-      "merge_rule": "research-only; use as contract input and never merge wholesale"
-    }
-  ],
   "workers": {
     "codex": {
       "execution": "WAITING_REVIEW",
       "current_feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "next_assignment": "M1 only after C0.4F-A merge, Owner review of M1 scope and explicit GO",
-      "next_plan": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md"
+      "next_assignment": "M1 Layer Editing Recovery after Owner reviews scope and says GO CODEX M1",
+      "next_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c"
     },
     "antigravity": {
       "execution": "DONE",
-      "last_task": "C0.4F-A independent fixed-head audit",
-      "last_work_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
-      "verdict": "MERGE CANDIDATE"
+      "audit_verdict": "MERGE CANDIDATE",
+      "symbol_research_head": "9aa52779deac12701ba30eed1ff6e919e88091f4",
+      "symbol_research_status": "MAPPED INTO M2, M5, M6, M7 AND CUSTOM-SYMBOL MILESTONE"
     },
     "claude": {
       "execution": "HOLD",
@@ -184,36 +152,24 @@
     }
   },
   "locked_sequence": [
-    "Owner says MERGE C0.4F-A",
-    "Fast-forward main only to exact audited feature SHA 21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "Verify main equals the audited feature head",
-    "Assistant presents M1 exact scope to Owner; no dispatch yet",
+    "Do not merge C0.4F-A alone",
+    "Assistant presents M1 exact scope to Owner",
     "Owner adds/removes requirements and says GO CODEX M1",
-    "Assistant creates final M1 contract and Codex launch prompt",
-    "Codex implements M1 on feature/c0-m1-canvas-shell-context-rails and stops at WAITING_REVIEW",
-    "Assistant verifies M1 GitHub evidence and Owner explicitly approves merge or correction",
-    "After M1 merge, Assistant presents M2 before any dispatch",
-    "Repeat the same cycle through M6"
+    "Codex creates feature/c0-m1-layer-editing-recovery from exact audited head 21388c0d",
+    "Codex completes M1 and stops at WAITING_REVIEW",
+    "Assistant verifies the combined C0.4F-A plus M1 feature head",
+    "Owner explicitly approves merge of the combined usable result to main",
+    "After merge, Assistant presents M2 Symbol Registry and Inspector before dispatch",
+    "Repeat sequentially through later milestones"
   ],
   "protected": [
-    ".claude/launch.json",
-    ".references/",
     "main without explicit Owner merge approval",
     "Master Graph/store as sole data source",
     "audit branches must never be merged",
     "research branches must never be merged wholesale into main",
-    "Selection UI must never persist or export",
-    "Connection semantic meaning must remain separate from visual line appearance",
-    "Annotation Card must remain standalone markup rather than Cell appearance/content",
-    "No later milestone may be dispatched before Owner review and GO"
-  ],
-  "known_limits": [
-    "Organism non-solid Boundary styles truthfully fall back to solid",
-    "50+ Cell performance remains a known limitation",
-    "Known Vite chunk warning remains accepted",
-    "Curved/Bezier/orthogonal/animated connections are deferred beyond straight-line V1",
-    "Advanced Membrane geometry and motion remain performance-gated",
-    "Full premium marketplace/commercial material system remains deferred"
+    "UI-command icons remain separate from drawable symbols",
+    "Rejected and unverified symbol assets remain excluded",
+    "Selection UI must never persist or export"
   ],
   "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
 }
