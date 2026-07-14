@@ -1,0 +1,162 @@
+{
+  "graph_version": "1.0.0",
+  "project": "barc047-sketch/Mooorf",
+  "base_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "nodes": [
+    {
+      "id": "C0.4F-A",
+      "name": "Runtime Layer Separation and Essential Boundary Strokes",
+      "role": "Codex Core Layer Separator",
+      "status": "RUNNING",
+      "prerequisites": [],
+      "blockers": [],
+      "outputs": [
+        "src/domain/presentation/types.ts",
+        "src/domain/presentation/resolveAppearance.ts"
+      ],
+      "data_dependencies": [
+        "SpaceCell.appearance"
+      ],
+      "gates": {
+        "independent_audit": "Antigravity verification of layer-separation rendering pipeline",
+        "owner_qa": "Manual check of stroke widths, opacity offsets, and fallback rendering"
+      }
+    },
+    {
+      "id": "C0.2-REGISTRY",
+      "name": "Icon and Grid Asset Registry Integration",
+      "role": "Static Metadata Registry",
+      "status": "MERGE_CANDIDATE",
+      "prerequisites": [],
+      "blockers": [],
+      "outputs": [
+        "src/icons/iconRegistry.ts",
+        "src/grid/gridRegistry.ts"
+      ],
+      "data_dependencies": [],
+      "gates": {
+        "independent_audit": "Antigravity validation of icon namespacing and fallback IDs",
+        "owner_qa": "Verification of no UI Command Icons mixed in the plan library"
+      }
+    },
+    {
+      "id": "BATCH-1",
+      "name": "Batch 1: C0.4F-B Editing, History and Minimal Inspector Ingestion",
+      "role": "Inspector Layout & State Core",
+      "status": "PLANNED",
+      "prerequisites": [
+        "C0.4F-A",
+        "C0.2-REGISTRY"
+      ],
+      "blockers": [],
+      "outputs": [
+        "src/ui/widgets/CellInspectorWidget.tsx"
+      ],
+      "data_dependencies": [
+        "SpaceCell.appearance.boundary",
+        "SpaceCell.appearance.core"
+      ],
+      "gates": {
+        "independent_audit": "Verify single-step undo history for all slider and text commits",
+        "owner_qa": "Double-click rename, Escape cancellation, and local style overrides"
+      }
+    },
+    {
+      "id": "BATCH-2",
+      "name": "Batch 2: Area Editing, Table/Canvas Sync, and Reliable File Intake",
+      "role": "Master Graph Sync & Parser",
+      "status": "PLANNED",
+      "prerequisites": [
+        "BATCH-1"
+      ],
+      "blockers": [],
+      "outputs": [
+        "src/import/tableImport.ts",
+        "src/views/TableView.tsx"
+      ],
+      "data_dependencies": [
+        "SpaceCell.area",
+        "SpaceCell.name",
+        "SpaceCell.kind"
+      ],
+      "gates": {
+        "independent_audit": "Verify no infinite loops during canvas drag and table update cycles",
+        "owner_qa": "CSV upload mapping preview, XLS worksheet choice, and append/replace modes"
+      }
+    },
+    {
+      "id": "BATCH-3",
+      "name": "Batch 3: Floor System, Derived Statistics, and Compact Dashboard",
+      "role": "Multi-Level Workspace Coordinator",
+      "status": "PLANNED",
+      "prerequisites": [
+        "BATCH-2"
+      ],
+      "blockers": [],
+      "outputs": [
+        "src/domain/stats/selectors.ts",
+        "src/ui/widgets/stats/ProjectPulseWidget.tsx"
+      ],
+      "data_dependencies": [
+        "SpaceCell.floor_id",
+        "FloorNode"
+      ],
+      "gates": {
+        "independent_audit": "Verify stats exclude hidden floor spaces; monitor recomputation lag",
+        "owner_qa": "Floor levels ordering, show/hide floor visibility, and mix distributions"
+      }
+    },
+    {
+      "id": "BATCH-4",
+      "name": "Batch 4: Essential Connections, Export Parity, and Scene Hardening",
+      "role": "Adjacency Matrix & PDF Packer",
+      "status": "PLANNED",
+      "prerequisites": [
+        "BATCH-3"
+      ],
+      "blockers": [],
+      "outputs": [
+        "src/export/exportService.ts"
+      ],
+      "data_dependencies": [
+        "RelationshipEdge"
+      ],
+      "gates": {
+        "independent_audit": "Verify offscreen capture excludes active selection borders and command menus",
+        "owner_qa": "Vector SVG export verification, A3 landscape PDF metadata footer, and ZIP presentation package"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "C0.4F-A",
+      "to": "BATCH-1",
+      "type": "hard_prerequisite",
+      "dependency_reason": "Inspector requires layer targets (Cell, Boundary, Core) to exist in data contracts"
+    },
+    {
+      "from": "C0.2-REGISTRY",
+      "to": "BATCH-1",
+      "type": "hard_prerequisite",
+      "dependency_reason": "Inspector Symbol Tab requires the canonical icon catalog for lookup queries"
+    },
+    {
+      "from": "BATCH-1",
+      "to": "BATCH-2",
+      "type": "hard_prerequisite",
+      "dependency_reason": "Table editor must sync values with the newly established Inspector fields"
+    },
+    {
+      "from": "BATCH-2",
+      "to": "BATCH-3",
+      "type": "hard_prerequisite",
+      "dependency_reason": "Floor selectors require a stabilized single-level edit cycle to build multi-level queries"
+    },
+    {
+      "from": "BATCH-3",
+      "to": "BATCH-4",
+      "type": "hard_prerequisite",
+      "dependency_reason": "Relationship rendering between cells depends on a stabilized multi-floor layout grid"
+    }
+  ]
+}
