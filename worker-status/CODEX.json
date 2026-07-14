@@ -1,20 +1,23 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0.4.1 layer contracts, defaults and resolvers",
-  "brief": "docs/worker-briefs/C0_4_1_CODEX_LAYER_CONTRACTS_RESOLVERS.md",
+  "status": "HOLD",
+  "task": "C0.4.1 audited merge pending explicit Owner approval",
+  "brief": "docs/worker-briefs/C0_4_1_CODEX_AUDITED_MERGE.md",
   "source_branch": "main",
   "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
   "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
   "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "last_checkpoint": "Feature branch committed and pushed; five focused contracts, git diff check, and the single production build pass; ready for independent audit",
-  "updated_at": "2026-07-13T19:23:38Z",
-  "blocked_reason": null,
+  "audit_status": "DONE",
+  "audit_verdict": "MERGE CANDIDATE",
+  "last_checkpoint": "Independent audit passed for the exact source and feature SHAs. Merge brief prepared. Waiting for explicit Owner command MERGE C0.4.1.",
+  "updated_at": "2026-07-15T15:00:00+05:30",
+  "blocked_reason": "Owner merge approval required",
   "expected_outputs": [
-    "typed presentation target contracts and project defaults",
-    "pure sparse-override resolvers with safe validation and migration",
-    "focused contracts and one production build",
-    "C0.4.1 implementation report and pushed feature branch"
+    "verify exact main and feature SHAs",
+    "merge only the audited feature",
+    "rerun focused contracts and one production build",
+    "push and report resulting main SHA",
+    "stop before C0.4F-A implementation"
   ]
 }
