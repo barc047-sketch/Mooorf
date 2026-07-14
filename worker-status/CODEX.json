@@ -1,12 +1,13 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "HOLD",
-  "task": "C0.4F-A runtime layer separation and essential Boundary strokes pending Owner GO",
+  "status": "WAITING_REVIEW",
+  "task": "C0.4F-A runtime layer separation and essential Boundary strokes",
   "brief": "docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md",
   "source_branch": "main",
   "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
   "planned_work_branch": "feature/c0-4f-a-runtime-layer-separation",
+  "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
   "previous_task": {
     "id": "C0.4.1",
     "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
@@ -15,14 +16,30 @@
     "merged_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
     "merge_method": "non-forced fast-forward"
   },
-  "last_checkpoint": "Owner approved MERGE C0.4.1. Main was verified at the audited base, fast-forwarded without force to the exact audited feature SHA, and verified identical to the feature branch. C0.4F-A brief is prepared; implementation has not started.",
-  "updated_at": "2026-07-15T15:18:00+05:30",
-  "blocked_reason": "Explicit Owner command GO CODEX C0.4F-A required",
-  "expected_outputs": [
-    "selection overlay isolation",
-    "Classic and Organism runtime layer separation",
-    "essential Boundary stroke system",
-    "focused tests and one production build",
-    "fixed pushed head for independent audit"
-  ]
+  "last_checkpoint": "C0.4F-A implementation is complete on the fixed feature head and the remote branch was verified at the exact SHA. One canonical runtime projection now feeds Classic and Organism; Classic supports all six essential Boundary styles; Organism uses a bounded Membrane/Edge adapter and truthful non-solid Boundary fallback. Selection remains temporary and clean-export-excluded. No merge was performed and C0.4F-B was not started.",
+  "updated_at": "2026-07-15T03:54:10+05:30",
+  "blocked_reason": null,
+  "verification": {
+    "focused_contracts": [
+      "src/domain/presentation/presentationContracts.test.ts",
+      "src/canvas/runtimePresentation.test.ts",
+      "src/canvas/runtimeRendererIntegration.test.ts",
+      "src/canvas/runtimeOrganismWiring.test.ts",
+      "src/export/exportCore.test.ts",
+      "src/import/importCore.test.ts",
+      "src/resources/resourcePersistence.test.ts"
+    ],
+    "app_typecheck": "PASS",
+    "production_build": "PASS with existing large-chunk warning",
+    "browser_qa": "PASS at 1440x900 and 1280x800; source-main default comparison, Classic six-style matrix, Organism fallback matrix, independent target toggles, drag and zoom",
+    "diff_check": "PASS",
+    "forbidden_scope": "No .claude, .references, package manifest or lockfile changes"
+  },
+  "known_limits": [
+    "Organism non-solid Boundary styles truthfully render as solid with unsupported-organism-style metadata",
+    "SVG/PDF vector parity for the new technical strokes remains deferred to C0.4F-B",
+    "Existing Vite large-chunk warning remains"
+  ],
+  "report": "docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md",
+  "next_gate": "Independent fixed-head audit and explicit Owner merge or correction command"
 }
