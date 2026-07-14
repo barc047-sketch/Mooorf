@@ -1,23 +1,38 @@
 {
   "worker": "Antigravity",
   "model": "Gemini 3.5 Flash",
-  "status": "DONE",
-  "task": "C0.4.1 independent architecture, migration and scope audit",
-  "brief": "docs/worker-briefs/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
+  "status": "START NOW",
+  "task": "Essential Product Reuse and Dependency Atlas",
+  "brief": "docs/worker-briefs/C0_FAST_TRACK_ANTIGRAVITY_ESSENTIAL_PRODUCT_ATLAS.md",
   "source_branch": "main",
-  "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
-  "feature_branch": "feature/c0-4-1-layer-contracts-resolvers",
-  "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "work_branch": "audit/c0-4-1-layer-contracts-resolvers",
-  "work_sha": "b9f67740e0580a9f5230d112c5958e5b97e22b39",
-  "report_path": "docs/audits/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
-  "last_checkpoint": "Completed independent read-only delta audit of C0.4.1 feature head. Verified exact SHAs, resolved presentation contracts compliance, and verified successful build/test execution. Verdict is MERGE CANDIDATE.",
-  "updated_at": "2026-07-15T02:50:00+05:30",
+  "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "work_branch": "research/c0-fast-track-essential-product-atlas",
+  "last_checkpoint": "Previous read-only Icon, Symbol and Architectural Asset Expansion Study completed and pushed at research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4. New report-only atlas branch created from exact production main and bounded contract assigned.",
+  "updated_at": "2026-07-15T03:46:00+05:30",
   "blocked_reason": null,
+  "previous_task": {
+    "id": "C0-2-SYMBOL-EXPANSION",
+    "status": "DONE",
+    "work_branch": "research/c0-2-symbol-asset-expansion",
+    "work_sha": "9aa52779deac12701ba30eed1ff6e919e88091f4",
+    "outputs": [
+      "docs/research/C0_2_SYMBOL_ASSET_EXPANSION.md",
+      "docs/research/C0_2_SYMBOL_CANDIDATE_MANIFEST.json"
+    ],
+    "result": "77 baseline symbols; 59 verified additions; 14 aliases; 8 custom-design candidates; 5 rejects; target 164 searchable IDs / 144 active geometry symbols"
+  },
   "expected_outputs": [
-    "exact SHA and changed-file verification",
-    "independent focused tests and production build",
-    "architecture, migration, scope and regression findings",
-    "durable audit report with merge/correction/reject verdict"
+    "exact live provenance inventory for production, feature, prototype and research branches",
+    "canonical ownership and end-to-end data-flow atlas",
+    "prototype reuse classifications with evidence",
+    "fast-track dependency graph and substantial Codex batch recommendations",
+    "future Codex contract inputs from C0.4F-B through essential hardening",
+    "performance, migration, export, licensing and deferred-scope risk register"
+  ],
+  "restrictions": [
+    "read-only research; no product code",
+    "do not modify main or any Codex/prototype/feature branch",
+    "do not audit a moving C0.4F-A head",
+    "do not merge or open a production PR"
   ]
 }
