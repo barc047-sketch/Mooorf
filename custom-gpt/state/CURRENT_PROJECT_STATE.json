@@ -1,71 +1,103 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T02:42:36+05:30",
+  "updated_at": "2026-07-15T15:00:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
   "current_phase": "C0.4.1",
-  "current_gate": "fresh-session independent audit assigned; awaiting live auditor claim",
+  "current_gate": "audit passed; explicit Owner merge approval required",
   "owner_approval_required": true,
+  "acceleration_mode": {
+    "status": "OWNER_APPROVED",
+    "production_worker": "Codex only",
+    "independent_auditor": "Antigravity read-only",
+    "claude": "HOLD",
+    "plan": "docs/MOOORF_ACCELERATION_MODE_2026_07_15.md",
+    "principle": "larger essential bounded milestones; one production lane; fixed-head audit before merge"
+  },
   "active_task": {
-    "id": "C0.4.1-AUDIT",
-    "title": "Independent audit of layer contracts, defaults and resolvers",
-    "worker": "Antigravity",
-    "status": "START NOW",
+    "id": "C0.4.1-MERGE",
+    "title": "Audited merge of layer contracts, defaults and resolvers",
+    "worker": "Codex",
+    "status": "HOLD",
     "source_branch": "main",
     "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
     "feature_branch": "feature/c0-4-1-layer-contracts-resolvers",
     "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "work_branch": "audit/c0-4-1-layer-contracts-resolvers",
-    "work_sha": "b9f67740e0580a9f5230d112c5958e5b97e22b39",
-    "brief": "docs/worker-briefs/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
-    "next_gate": "Owner reviews audit verdict"
+    "audit_verdict": "MERGE CANDIDATE",
+    "audit_report": "docs/audits/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
+    "brief": "docs/worker-briefs/C0_4_1_CODEX_AUDITED_MERGE.md",
+    "next_gate": "Owner says MERGE C0.4.1"
   },
   "workers": {
     "codex": {
       "assignment": "ASSIGNED",
-      "execution": "WAITING_REVIEW",
-      "task": "C0.4.1 layer contracts, defaults and resolvers",
-      "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
-      "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e"
+      "execution": "HOLD",
+      "task": "C0.4.1 audited merge after explicit Owner approval",
+      "feature_branch": "feature/c0-4-1-layer-contracts-resolvers",
+      "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e"
     },
     "antigravity": {
-      "assignment": "ASSIGNED",
-      "execution": "START NOW",
-      "task": "C0.4.1 independent architecture, migration and scope audit",
-      "brief": "docs/worker-briefs/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
-      "work_branch": "audit/c0-4-1-layer-contracts-resolvers",
-      "work_sha": "b9f67740e0580a9f5230d112c5958e5b97e22b39",
-      "note": "Do not claim RUNNING until status/antigravity records live execution evidence."
+      "assignment": "UNASSIGNED",
+      "execution": "DONE",
+      "last_task": "C0.4.1 independent architecture, migration and scope audit",
+      "verdict": "MERGE CANDIDATE",
+      "note": "Audit branch has divergent governance ancestry and is report-only; never merge it."
     },
     "claude": {
       "assignment": "UNASSIGNED",
-      "execution": "ABORTED",
+      "execution": "HOLD",
       "last_task": "C0.3 Cell Inspector V2 prototype",
-      "note": "Do not reuse the exhausted session. Valuable prototype work was later completed by Codex."
+      "note": "Temporary acceleration mode uses Codex for all production work."
     }
   },
-  "next_planned_phase": "C0.4.2 selection overlay separation after C0.4.1 audit and merge approval",
+  "boundary_decision": {
+    "role": "technical stroke system rather than required material surface",
+    "essential_styles": [
+      "solid",
+      "dashed",
+      "dotted",
+      "dash-dot",
+      "double",
+      "segmented-bars"
+    ],
+    "essential_controls": [
+      "width",
+      "offset",
+      "alignment",
+      "dash-or-bar-length",
+      "gap-length",
+      "secondary-line-spacing",
+      "colour",
+      "opacity"
+    ],
+    "material_ui_required": false
+  },
+  "next_planned_phase": "C0.4F-A Runtime Layer Separation after C0.4.1 merge",
   "locked_sequence": [
-    "Antigravity claims the fresh audit session and records RUNNING evidence",
-    "Audit exact C0.4.1 source and feature SHAs",
-    "Owner reviews audit verdict",
-    "Owner approves or rejects merge",
-    "Merge C0.4.1 only if approved and SHAs remain exact",
-    "Prepare C0.4.2 compact contract",
-    "Owner GO for C0.4.2"
+    "Owner explicitly approves C0.4.1 merge",
+    "Codex merges exact audited feature and stops",
+    "Project Manager resolves resulting main SHA",
+    "Prepare exact C0.4F-A Codex contract",
+    "Owner GO CODEX C0.4F-A",
+    "Codex implements runtime layer separation and essential Boundary strokes",
+    "Antigravity audits fixed C0.4F-A head in parallel read-only",
+    "Owner approves merge",
+    "Run C0.4F-B essential editing, history and export parity"
   ],
   "protected": [
     ".claude/launch.json",
     ".references/",
     "main without explicit audited merge approval",
-    "Master Graph/store as sole data source"
+    "Master Graph/store as sole data source",
+    "audit/c0-4-1-layer-contracts-resolvers must never be merged"
   ],
   "known_limits": [
     "Known Vite chunk warning remains accepted",
     "50+ Cell performance remains a known limitation",
-    "Advanced technical illustration styles are later-scope",
-    "Annotation Card remains planned for C0.13A"
+    "Full Material Browser is deferred from the essential fast track",
+    "Advanced Membrane geometry and motion are deferred",
+    "Annotation Card remains planned for later scope"
   ],
   "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
 }
