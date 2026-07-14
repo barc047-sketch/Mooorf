@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T15:00:00+05:30",
+  "updated_at": "2026-07-15T15:18:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
-  "recorded_main_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
-  "current_phase": "C0.4.1",
-  "current_gate": "audit passed; explicit Owner merge approval required",
+  "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "current_phase": "C0.4F-A",
+  "current_gate": "runtime layer separation contract prepared; explicit Owner GO required",
   "owner_approval_required": true,
   "acceleration_mode": {
     "status": "OWNER_APPROVED",
@@ -15,40 +15,47 @@
     "plan": "docs/MOOORF_ACCELERATION_MODE_2026_07_15.md",
     "principle": "larger essential bounded milestones; one production lane; fixed-head audit before merge"
   },
-  "active_task": {
-    "id": "C0.4.1-MERGE",
-    "title": "Audited merge of layer contracts, defaults and resolvers",
-    "worker": "Codex",
-    "status": "HOLD",
-    "source_branch": "main",
+  "completed_gate": {
+    "id": "C0.4.1",
+    "title": "Layer contracts, defaults and resolvers",
     "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
-    "feature_branch": "feature/c0-4-1-layer-contracts-resolvers",
     "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
     "audit_verdict": "MERGE CANDIDATE",
-    "audit_report": "docs/audits/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
-    "brief": "docs/worker-briefs/C0_4_1_CODEX_AUDITED_MERGE.md",
-    "next_gate": "Owner says MERGE C0.4.1"
+    "merge_method": "non-forced fast-forward",
+    "merged_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "owner_command": "MERGE C0.4.1"
+  },
+  "active_task": {
+    "id": "C0.4F-A",
+    "title": "Runtime layer separation and essential Boundary strokes",
+    "worker": "Codex",
+    "status": "PREPARED / HOLD",
+    "source_branch": "main",
+    "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "planned_work_branch": "feature/c0-4f-a-runtime-layer-separation",
+    "brief": "docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md",
+    "next_gate": "Owner says GO CODEX C0.4F-A"
   },
   "workers": {
     "codex": {
-      "assignment": "ASSIGNED",
+      "assignment": "PREPARED",
       "execution": "HOLD",
-      "task": "C0.4.1 audited merge after explicit Owner approval",
-      "feature_branch": "feature/c0-4-1-layer-contracts-resolvers",
-      "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e"
+      "task": "C0.4F-A runtime layer separation and essential Boundary strokes",
+      "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+      "brief": "docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md"
     },
     "antigravity": {
       "assignment": "UNASSIGNED",
       "execution": "DONE",
       "last_task": "C0.4.1 independent architecture, migration and scope audit",
       "verdict": "MERGE CANDIDATE",
-      "note": "Audit branch has divergent governance ancestry and is report-only; never merge it."
+      "note": "Use only for independent read-only audit after Codex pushes a fixed C0.4F-A head. The old C0.4.1 audit branch is report-only and must never be merged."
     },
     "claude": {
       "assignment": "UNASSIGNED",
       "execution": "HOLD",
       "last_task": "C0.3 Cell Inspector V2 prototype",
-      "note": "Temporary acceleration mode uses Codex for all production work."
+      "note": "Acceleration mode uses Codex for all production work."
     }
   },
   "boundary_decision": {
@@ -73,16 +80,14 @@
     ],
     "material_ui_required": false
   },
-  "next_planned_phase": "C0.4F-A Runtime Layer Separation after C0.4.1 merge",
+  "next_planned_phase": "C0.4F-A Runtime Layer Separation",
   "locked_sequence": [
-    "Owner explicitly approves C0.4.1 merge",
-    "Codex merges exact audited feature and stops",
-    "Project Manager resolves resulting main SHA",
-    "Prepare exact C0.4F-A Codex contract",
-    "Owner GO CODEX C0.4F-A",
+    "Owner says GO CODEX C0.4F-A",
+    "Codex creates branch from exact main SHA c4600472ea76f651800c19b91cf8f67954ca992e",
     "Codex implements runtime layer separation and essential Boundary strokes",
-    "Antigravity audits fixed C0.4F-A head in parallel read-only",
-    "Owner approves merge",
+    "Codex pushes fixed head and stops at WAITING_REVIEW",
+    "Antigravity independently audits the fixed head",
+    "Owner approves or rejects merge",
     "Run C0.4F-B essential editing, history and export parity"
   ],
   "protected": [
@@ -93,6 +98,7 @@
     "audit/c0-4-1-layer-contracts-resolvers must never be merged"
   ],
   "known_limits": [
+    "No GitHub status checks are configured on merged commit c4600472; independent audit test/build evidence is the verification source",
     "Known Vite chunk warning remains accepted",
     "50+ Cell performance remains a known limitation",
     "Full Material Browser is deferred from the essential fast track",
