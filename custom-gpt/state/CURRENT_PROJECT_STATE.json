@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T03:46:00+05:30",
+  "updated_at": "2026-07-15T04:10:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0.4F-A",
-  "current_gate": "Owner reports Codex local execution; awaiting GitHub RUNNING evidence or fixed pushed feature head",
+  "current_phase": "C0.4F-A-AUDIT",
+  "current_gate": "Codex fixed head verified; independent Antigravity audit assigned",
   "owner_approval_required": true,
   "orchestration_mode": {
     "status": "OWNER_DIRECTED_FAST_TRACK",
@@ -33,17 +33,20 @@
     "owner_command": "MERGE C0.4.1"
   },
   "active_task": {
-    "id": "C0.4F-A",
-    "title": "Runtime layer separation and essential Boundary strokes",
-    "worker": "Codex",
-    "status": "OWNER REPORTS RUNNING / GITHUB UNVERIFIED",
+    "id": "C0.4F-A-AUDIT",
+    "title": "Independent fixed-head audit of runtime layer separation and essential Boundary strokes",
+    "worker": "Antigravity",
+    "status": "START NOW",
     "source_branch": "main",
     "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "planned_work_branch": "feature/c0-4f-a-runtime-layer-separation",
-    "brief": "docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md",
-    "next_gate": "Codex pushes fixed head and status/codex records WAITING_REVIEW"
+    "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
+    "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "work_branch": "audit/c0-4f-a-runtime-layer-separation",
+    "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "brief": "docs/worker-briefs/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
+    "next_gate": "Owner reviews audit verdict and approves merge, correction or rejection"
   },
-  "parallel_research": [
+  "completed_parallel_research": [
     {
       "id": "C0-2-SYMBOL-EXPANSION",
       "worker": "Antigravity",
@@ -60,33 +63,41 @@
     {
       "id": "C0-FAST-TRACK-ATLAS",
       "worker": "Antigravity",
-      "status": "START NOW",
+      "status": "DONE",
       "source_branch": "main",
       "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
       "work_branch": "research/c0-fast-track-essential-product-atlas",
-      "brief": "docs/worker-briefs/C0_FAST_TRACK_ANTIGRAVITY_ESSENTIAL_PRODUCT_ATLAS.md",
-      "purpose": "exact provenance, reuse, ownership, dependency, risk and future Codex contract atlas from C0.4F-B through essential hardening",
-      "product_code_allowed": false
+      "work_sha": "348ee8cd62e45de1b1c51f144e1b7607acd016ee",
+      "outputs": [
+        "docs/research/MOOORF_ESSENTIAL_PRODUCT_REUSE_ATLAS.md",
+        "docs/research/MOOORF_FAST_TRACK_DEPENDENCY_GRAPH.json",
+        "docs/research/MOOORF_CODEX_CONTRACT_INPUTS_C0_4F_B_TO_HARDENING.md",
+        "docs/research/MOOORF_FAST_TRACK_RISK_AND_DEFERRED_REGISTER.md"
+      ],
+      "result": "Exact provenance, ownership, data-flow, dependency, risk and future Codex batch inputs from C0.4F-B through essential hardening",
+      "merge_rule": "research-only; use as contract-generation input and never merge wholesale into main"
     }
   ],
   "workers": {
     "codex": {
       "assignment": "ASSIGNED",
-      "execution": "OWNER REPORTS RUNNING / STATUS BRANCH STILL HOLD",
+      "execution": "WAITING_REVIEW",
       "task": "C0.4F-A runtime layer separation and essential Boundary strokes",
       "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-      "brief": "docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md",
-      "evidence_required": "feature branch/head or status/codex RUNNING checkpoint"
+      "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
+      "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+      "report": "docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md",
+      "note": "No merge performed and C0.4F-B not started"
     },
     "antigravity": {
       "assignment": "ASSIGNED",
       "execution": "START NOW",
-      "task": "Essential Product Reuse and Dependency Atlas",
-      "brief": "docs/worker-briefs/C0_FAST_TRACK_ANTIGRAVITY_ESSENTIAL_PRODUCT_ATLAS.md",
-      "work_branch": "research/c0-fast-track-essential-product-atlas",
-      "previous_completed_task": "Icon, Symbol and Architectural Asset Expansion Study",
-      "previous_work_sha": "9aa52779deac12701ba30eed1ff6e919e88091f4",
-      "note": "Read-only research only; no product code and no audit of a moving Codex head"
+      "task": "C0.4F-A independent fixed-head audit",
+      "brief": "docs/worker-briefs/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
+      "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+      "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+      "work_branch": "audit/c0-4f-a-runtime-layer-separation",
+      "note": "Read-only fixed-head audit; report branch must never be merged"
     },
     "claude": {
       "assignment": "UNASSIGNED",
@@ -119,10 +130,12 @@
   },
   "next_planned_phase": "C0.4F-B Essential Editing, History and Export Parity after C0.4F-A audited merge",
   "locked_sequence": [
-    "Codex pushes fixed C0.4F-A head and records WAITING_REVIEW",
-    "Antigravity pauses research if needed and performs separately assigned fixed-head C0.4F-A audit",
-    "Owner approves or rejects C0.4F-A merge",
-    "Project Manager uses the Essential Product Atlas to generate the exact C0.4F-B Codex contract",
+    "Antigravity claims fresh C0.4F-A audit session and records RUNNING evidence",
+    "Audit exact base c4600472 and exact feature head 21388c0d",
+    "Owner reviews verdict",
+    "Owner approves merge, correction or rejection",
+    "Merge only exact audited feature if explicitly approved",
+    "Use Essential Product Atlas to generate exact C0.4F-B Codex contract",
     "Owner GO for C0.4F-B",
     "Continue substantial bounded batches through Inspector, Area/Table, Floors/Dashboard, Connections/Export and hardening"
   ],
@@ -131,18 +144,18 @@
     ".references/",
     "main without explicit audited merge approval",
     "Master Graph/store as sole data source",
-    "audit/c0-4-1-layer-contracts-resolvers must never be merged",
+    "audit branches must never be merged",
     "research branches must never be merged wholesale into main"
   ],
   "known_limits": [
-    "status/codex remains HOLD although Owner reports local execution",
-    "No GitHub status checks are configured on merged commit c4600472; independent audit evidence is the verification source",
+    "Organism non-solid Boundary styles truthfully fall back to solid pending later renderer capability",
+    "SVG/PDF vector parity for technical strokes remains C0.4F-B work",
+    "No GitHub CI status checks are configured; independent audit evidence is the verification source",
     "Known Vite chunk warning remains accepted",
     "50+ Cell performance remains a known limitation",
     "Full Material Browser is deferred from the essential fast track",
     "Advanced Membrane geometry and motion are deferred",
     "Annotation Card remains planned for later scope"
   ],
-  "timestamp_note": "This update uses live Asia/Kolkata time; earlier generated 15:18 entries used an incorrect hour.",
   "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
 }
