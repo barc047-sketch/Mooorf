@@ -1,46 +1,45 @@
 {
   "worker": "Antigravity",
   "model": "Gemini 3.5 Flash",
-  "status": "DONE",
-  "task": "Essential Product Reuse and Dependency Atlas",
-  "brief": "docs/worker-briefs/C0_FAST_TRACK_ANTIGRAVITY_ESSENTIAL_PRODUCT_ATLAS.md",
+  "status": "START NOW",
+  "task": "C0.4F-A independent fixed-head runtime layer audit",
+  "brief": "docs/worker-briefs/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
   "source_branch": "main",
   "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "work_branch": "research/c0-fast-track-essential-product-atlas",
-  "work_sha": "348ee8cd62e45de1b1c51f144e1b7607acd016ee",
-  "outputs": [
-    "docs/research/MOOORF_ESSENTIAL_PRODUCT_REUSE_ATLAS.md",
-    "docs/research/MOOORF_FAST_TRACK_DEPENDENCY_GRAPH.json",
-    "docs/research/MOOORF_CODEX_CONTRACT_INPUTS_C0_4F_B_TO_HARDENING.md",
-    "docs/research/MOOORF_FAST_TRACK_RISK_AND_DEFERRED_REGISTER.md"
-  ],
-  "result": "Complete architectural dependency atlas, data flows, and future Codex batch briefs for C0.4F-B editing, sync, floor systems, connections, and hardening.",
-  "last_checkpoint": "Completed essential product reuse, dependency atlas, data-flow, risk, and deferred scope register report on branch research/c0-fast-track-essential-product-atlas at head 348ee8cd62e45de1b1c51f144e1b7607acd016ee.",
-  "updated_at": "2026-07-15T04:00:00+05:30",
+  "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
+  "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+  "work_branch": "audit/c0-4f-a-runtime-layer-separation",
+  "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "report_path": "docs/audits/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
+  "last_checkpoint": "Codex fixed feature head and implementation report were verified live. A clean report-only audit branch was created from the exact production base and the independent audit contract was dispatched. Awaiting live auditor claim before RUNNING.",
+  "updated_at": "2026-07-15T04:10:00+05:30",
   "blocked_reason": null,
   "previous_task": {
-    "id": "C0-2-SYMBOL-EXPANSION",
+    "id": "C0-FAST-TRACK-ATLAS",
     "status": "DONE",
-    "work_branch": "research/c0-2-symbol-asset-expansion",
-    "work_sha": "9aa52779deac12701ba30eed1ff6e919e88091f4",
+    "work_branch": "research/c0-fast-track-essential-product-atlas",
+    "work_sha": "348ee8cd62e45de1b1c51f144e1b7607acd016ee",
     "outputs": [
-      "docs/research/C0_2_SYMBOL_ASSET_EXPANSION.md",
-      "docs/research/C0_2_SYMBOL_CANDIDATE_MANIFEST.json"
+      "docs/research/MOOORF_ESSENTIAL_PRODUCT_REUSE_ATLAS.md",
+      "docs/research/MOOORF_FAST_TRACK_DEPENDENCY_GRAPH.json",
+      "docs/research/MOOORF_CODEX_CONTRACT_INPUTS_C0_4F_B_TO_HARDENING.md",
+      "docs/research/MOOORF_FAST_TRACK_RISK_AND_DEFERRED_REGISTER.md"
     ],
-    "result": "77 baseline symbols; 59 verified additions; 14 aliases; 8 custom-design candidates; 5 rejects; target 164 searchable IDs / 144 active geometry symbols"
+    "result": "Essential product reuse, dependency, data-flow, risk and future Codex contract atlas completed."
   },
   "expected_outputs": [
-    "exact live provenance inventory for production, feature, prototype and research branches",
-    "canonical ownership and end-to-end data-flow atlas",
-    "prototype reuse classifications with evidence",
-    "fast-track dependency graph and substantial Codex batch recommendations",
-    "future Codex contract inputs from C0.4F-B through essential hardening",
-    "performance, migration, export, licensing and deferred-scope risk register"
+    "exact base and fixed feature SHA verification",
+    "full changed-file and architecture ownership audit",
+    "Boundary schema, migration and renderer fallback verification",
+    "geometry, selection, Void and export invariants",
+    "independent focused tests, typecheck, browser QA and one production build",
+    "durable verdict report: MERGE CANDIDATE, CORRECTION REQUIRED or REJECT"
   ],
   "restrictions": [
-    "read-only research; no product code",
-    "do not modify main or any Codex/prototype/feature branch",
-    "do not audit a moving C0.4F-A head",
-    "do not merge or open a production PR"
+    "read-only audit; no product code",
+    "do not modify main or the Codex feature branch",
+    "audit only exact feature head 21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "audit branch is report-only and must never be merged",
+    "do not merge or begin C0.4F-B"
   ]
 }
