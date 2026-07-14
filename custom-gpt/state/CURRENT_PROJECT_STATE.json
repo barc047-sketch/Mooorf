@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T05:42:00+05:30",
+  "updated_at": "2026-07-15T05:58:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0.4F-A-COMBINED-COMPLETION-GATE",
-  "current_gate": "Hold main at c4600472; use audited C0.4F-A head 21388c0 as the exact base for M1 so layer separation and user-facing editing are merged together as one usable result",
+  "current_phase": "C0-M1-DISPATCHED",
+  "current_gate": "Owner authorized GO CODEX M1. Contract and launch prompt are locked; awaiting Codex RUNNING evidence on status/codex and feature branch creation from exact audited head 21388c0d",
   "owner_approval_required": true,
   "orchestration_mode": {
     "status": "OWNER_REVIEWED_SEQUENTIAL_FAST_TRACK",
@@ -25,7 +25,7 @@
     "implementation_status": "WAITING_REVIEW",
     "audit_verdict": "MERGE CANDIDATE",
     "meaning_of_verdict": "The one-commit layer-separation scope is technically safe and architecture-compliant; it does not mean the complete user-facing settings workflow is finished",
-    "merge_policy": "Do not merge this head alone. Base M1 directly on the audited head and merge the combined usable result later."
+    "merge_policy": "Do not merge this head alone. M1 builds directly on the audited head and the combined usable result is reviewed for merge later."
   },
   "provenance_ledger": {
     "runtime_foundation": "feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c -> M1 base",
@@ -45,39 +45,53 @@
       "annotation_rule": "Annotation Card is standalone markup"
     }
   },
+  "active_milestone": {
+    "id": "M1",
+    "title": "Production Inspector, Content and Layer Editing Recovery",
+    "status": "AUTHORIZED_AND_DISPATCHED_AWAITING_WORKER_START",
+    "contract": "docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md",
+    "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
+    "contract_branch": "docs/mooorf-ai-team-operating-protocol",
+    "planned_branch": "feature/c0-m1-inspector-layer-editing-recovery",
+    "exact_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "production_main_remains": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "prototype_input": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
+    "includes": [
+      "compact production Inspector with Content and Appearance",
+      "double-click Space Name, Area and Body/subtext editing",
+      "minimal Table sync for Name/Area/Body only",
+      "Enter/outside commit, Escape cancel, Shift+Enter Body line break",
+      "Area remains numeric and area-driven; Body never changes Cell geometry",
+      "Text Style presets, proportional Text Size, Text Colour and Auto Contrast",
+      "Project Default / Local Override / Mixed",
+      "map every visible appearance control",
+      "rebind, move or remove every broken/stale/no-op setting",
+      "six dedicated settings widgets",
+      "Copy/Paste/Reset Style",
+      "optional renderer-neutral non-exported dotted selection orbit",
+      "history, persistence, migration and export parity",
+      "migrate Morph/Attachment/Density to Membrane ownership where valid",
+      "1440 and 1280 QA"
+    ],
+    "excludes": [
+      "production Symbol library",
+      "bottom dock redesign",
+      "Quick Materials and full Material Browser",
+      "Connections",
+      "Annotation Card/Studio",
+      "broad Table/import redesign",
+      "advanced procedural Membrane shaders",
+      "merge to main",
+      "beginning M2"
+    ],
+    "required_outputs": [
+      "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md",
+      "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
+      "one fixed feature head",
+      "status/codex WAITING_REVIEW evidence"
+    ]
+  },
   "sequential_milestones": [
-    {
-      "id": "M1",
-      "title": "Production Inspector, Content and Layer Editing Recovery",
-      "planned_branch": "feature/c0-m1-inspector-layer-editing-recovery",
-      "exact_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "status": "NEXT — PRESENT TO OWNER BEFORE DISPATCH",
-      "prototype_input": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
-      "includes": [
-        "compact production Inspector with Content and Appearance",
-        "double-click Space Name, Area and Body/subtext editing",
-        "Enter/outside commit, Escape cancel, Shift+Enter Body line break",
-        "Area remains numeric and area-driven; Body never changes Cell geometry",
-        "Text Style presets, proportional Text Size, Text Colour and Auto Contrast",
-        "Project Default / Local Override / Mixed",
-        "map every visible appearance control",
-        "rebind, move or remove every broken/stale/no-op setting",
-        "six dedicated settings widgets",
-        "Copy/Paste/Reset Style",
-        "optional renderer-neutral non-exported dotted selection orbit",
-        "history, persistence, migration and export parity",
-        "migrate Morph/Attachment/Density to Membrane ownership where valid",
-        "1440 and 1280 QA"
-      ],
-      "excludes": [
-        "production Symbol library",
-        "bottom dock redesign",
-        "Material Browser",
-        "Connections",
-        "Annotation Card",
-        "broad Table/import redesign"
-      ]
-    },
     {
       "id": "M2",
       "title": "Symbol Registry Forward-Port and Production Symbol Inspector",
@@ -138,7 +152,7 @@
       "title": "Table and Import Completion",
       "planned_branch": "feature/c0-m8-table-import",
       "status": "PLANNED",
-      "note": "M1 already implements direct Name/Area/Body editing through the canonical store; M8 completes bulk Table fields, sync hardening and CSV/XLS/XLSX"
+      "note": "M1 implements direct Name/Area/Body editing and minimal sync; M8 completes bulk Table fields, sync hardening and CSV/XLS/XLSX"
     },
     {
       "id": "M9",
@@ -160,9 +174,11 @@
   },
   "workers": {
     "codex": {
-      "execution": "WAITING_REVIEW",
-      "current_feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "next_assignment": "M1 Production Inspector, Content and Layer Editing Recovery after Owner reviews scope and says GO CODEX M1",
+      "execution": "ASSIGNED_AWAITING_WORKER_START",
+      "status_branch_commit": "22897a0a51b34742a9fe1319ba755c4dafbef0ed",
+      "current_assignment": "M1 Production Inspector, Content and Layer Editing Recovery",
+      "contract": "docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md",
+      "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
       "next_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c"
     },
     "antigravity": {
@@ -179,15 +195,15 @@
     }
   },
   "locked_sequence": [
-    "Do not merge C0.4F-A alone",
-    "Assistant presents M1 exact scope to Owner",
-    "Owner adds/removes requirements and says GO CODEX M1",
-    "Codex creates feature/c0-m1-inspector-layer-editing-recovery from exact audited head 21388c0d",
-    "Codex completes M1 and stops at WAITING_REVIEW",
-    "Assistant verifies the combined C0.4F-A plus M1 feature head",
-    "Owner explicitly approves merge of the combined usable result to main",
-    "After merge, Assistant presents M2 Symbol Registry and Inspector before dispatch",
-    "Repeat sequentially through later milestones"
+    "Owner authorized GO CODEX M1",
+    "User starts Codex with docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
+    "Codex verifies exact source 21388c0d and updates status/codex to RUNNING",
+    "Codex creates feature/c0-m1-inspector-layer-editing-recovery from exact audited head",
+    "Codex completes M1 and pushes one fixed head",
+    "Codex updates status/codex to WAITING_REVIEW and stops",
+    "Assistant verifies combined C0.4F-A plus M1 evidence",
+    "Owner explicitly approves merge or correction",
+    "After merge, Assistant presents M2 Symbol Registry and Inspector before dispatch"
   ],
   "protected": [
     "main without explicit Owner merge approval",
