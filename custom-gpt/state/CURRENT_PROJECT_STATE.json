@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T05:24:00+05:30",
+  "updated_at": "2026-07-15T05:42:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
   "current_phase": "C0.4F-A-COMBINED-COMPLETION-GATE",
-  "current_gate": "Hold main at c4600472; use audited C0.4F-A head 21388c0 as the base for M1 so the incomplete layer-separation state is not merged alone",
+  "current_gate": "Hold main at c4600472; use audited C0.4F-A head 21388c0 as the exact base for M1 so layer separation and user-facing editing are merged together as one usable result",
   "owner_approval_required": true,
   "orchestration_mode": {
     "status": "OWNER_REVIEWED_SEQUENTIAL_FAST_TRACK",
-    "durable_memory": "GitHub exact refs, worker status files, current state and append-only orchestration event log",
+    "durable_memory": "GitHub exact refs, provenance ledger, worker status files, current state and append-only orchestration event log",
     "event_log": "custom-gpt/state/ORCHESTRATION_EVENT_LOG.md",
-    "rule": "Never rely on chat memory alone; verify and record exact refs before decisions",
+    "rule": "Never rely on chat memory alone; every prototype, research output and future destination must be recorded by exact ref",
     "owner_speed_directive": "Build one bounded Codex milestone at a time. Present the next exact scope to the Owner before creating or dispatching its contract. No routine extra audit loop.",
     "dispatch_protocol": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md",
     "corrected_milestone_map": "docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md",
@@ -25,7 +25,15 @@
     "implementation_status": "WAITING_REVIEW",
     "audit_verdict": "MERGE CANDIDATE",
     "meaning_of_verdict": "The one-commit layer-separation scope is technically safe and architecture-compliant; it does not mean the complete user-facing settings workflow is finished",
-    "merge_policy": "Do not merge this head alone while known appearance controls remain incomplete. Base M1 directly on this audited head and merge the combined usable result later."
+    "merge_policy": "Do not merge this head alone. Base M1 directly on the audited head and merge the combined usable result later."
+  },
+  "provenance_ledger": {
+    "runtime_foundation": "feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c -> M1 base",
+    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 Content/Inspector, M2 Symbol, M3 rails, M4 Material Browser",
+    "audited_icon_grid_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2 -> M2 symbols, M7 grid",
+    "antigravity_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4 -> M2, M5, M6, M7 and custom-symbol milestone",
+    "antigravity_fast_track_atlas": "research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee -> contract input for every milestone",
+    "reuse_rule": "Selective forward-port only; prototype, audit and research branches are never merged wholesale"
   },
   "editing_workspace_plan": {
     "master_plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
@@ -40,20 +48,34 @@
   "sequential_milestones": [
     {
       "id": "M1",
-      "title": "Layer Editing Recovery and Dedicated Settings",
-      "planned_branch": "feature/c0-m1-layer-editing-recovery",
+      "title": "Production Inspector, Content and Layer Editing Recovery",
+      "planned_branch": "feature/c0-m1-inspector-layer-editing-recovery",
       "exact_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
       "status": "NEXT — PRESENT TO OWNER BEFORE DISPATCH",
-      "purpose": "Repair the incomplete product state caused by layer separation before shell redesign",
+      "prototype_input": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
       "includes": [
+        "compact production Inspector with Content and Appearance",
+        "double-click Space Name, Area and Body/subtext editing",
+        "Enter/outside commit, Escape cancel, Shift+Enter Body line break",
+        "Area remains numeric and area-driven; Body never changes Cell geometry",
+        "Text Style presets, proportional Text Size, Text Colour and Auto Contrast",
+        "Project Default / Local Override / Mixed",
         "map every visible appearance control",
         "rebind, move or remove every broken/stale/no-op setting",
-        "retain Inspector as context hub",
         "six dedicated settings widgets",
-        "Project Default / Local Override / Mixed",
+        "Copy/Paste/Reset Style",
+        "optional renderer-neutral non-exported dotted selection orbit",
         "history, persistence, migration and export parity",
         "migrate Morph/Attachment/Density to Membrane ownership where valid",
         "1440 and 1280 QA"
+      ],
+      "excludes": [
+        "production Symbol library",
+        "bottom dock redesign",
+        "Material Browser",
+        "Connections",
+        "Annotation Card",
+        "broad Table/import redesign"
       ]
     },
     {
@@ -63,7 +85,8 @@
       "status": "PLANNED — OWNER PREVIEW AFTER M1",
       "inputs": {
         "baseline": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
-        "research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4"
+        "research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4",
+        "prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97"
       },
       "symbol_plan": {
         "forward_port_existing": 77,
@@ -79,40 +102,43 @@
       "id": "M3",
       "title": "Bottom Dock and Shared Contextual Rails",
       "planned_branch": "feature/c0-m3-canvas-shell-context-rails",
-      "status": "PLANNED"
+      "status": "PLANNED",
+      "prototype_mapping": "Claude contextual bottom-rail and right-panel composition; no full-shell merge"
     },
     {
       "id": "M4",
       "title": "Quick Materials, Presets and Material Browser",
       "planned_branch": "feature/c0-m4-materials-presets-browser",
-      "status": "PLANNED"
+      "status": "PLANNED",
+      "prototype_mapping": "Claude Material Browser layout, circular previews, search/categories, recents/favourites and hover preview/revert"
     },
     {
       "id": "M5",
       "title": "Straight Connection Foundation",
       "planned_branch": "feature/c0-m5-straight-connections",
       "status": "PLANNED",
-      "research_mapping": "Diagram/link symbols from Antigravity feed the drawable library and preset vocabulary but never replace the graph connection model"
+      "research_mapping": "Antigravity diagram/link symbols feed drawable library and preset vocabulary but never replace graph Connections"
     },
     {
       "id": "M6",
       "title": "Markup and Annotation Foundation",
       "planned_branch": "feature/c0-m6-annotation-markup",
       "status": "PLANNED",
-      "research_mapping": "Annotation-category symbols feed the markup library; the custom section-cut symbol waits for original-vector Owner approval"
+      "research_mapping": "Annotation-category symbols feed Markup; custom section-cut waits for original-vector Owner approval"
     },
     {
       "id": "M7",
       "title": "Arrange, Grid and Snapping",
       "planned_branch": "feature/c0-m7-arrange-grid-snap",
       "status": "PLANNED",
-      "research_mapping": "Forward-ported C0.2 grid registry becomes visible only when rendering/snapping/export support is truthful"
+      "research_mapping": "C0.2 grid registry becomes visible only with truthful render/snap/export support"
     },
     {
       "id": "M8",
-      "title": "Area, Table and Import Completion",
+      "title": "Table and Import Completion",
       "planned_branch": "feature/c0-m8-table-import",
-      "status": "PLANNED"
+      "status": "PLANNED",
+      "note": "M1 already implements direct Name/Area/Body editing through the canonical store; M8 completes bulk Table fields, sync hardening and CSV/XLS/XLSX"
     },
     {
       "id": "M9",
@@ -136,7 +162,7 @@
     "codex": {
       "execution": "WAITING_REVIEW",
       "current_feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-      "next_assignment": "M1 Layer Editing Recovery after Owner reviews scope and says GO CODEX M1",
+      "next_assignment": "M1 Production Inspector, Content and Layer Editing Recovery after Owner reviews scope and says GO CODEX M1",
       "next_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c"
     },
     "antigravity": {
@@ -147,15 +173,16 @@
     },
     "claude": {
       "execution": "HOLD",
-      "last_task": "C0.3 Cell Inspector V2 prototype",
-      "reuse_rule": "Selective visual/component evidence only; never merge prototype shell or mock state"
+      "prototype_head": "462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
+      "reuse_status": "MAPPED INTO M1, M2, M3 AND M4",
+      "reuse_rule": "Selective visual/interaction evidence only; never merge prototype shell or mock state"
     }
   },
   "locked_sequence": [
     "Do not merge C0.4F-A alone",
     "Assistant presents M1 exact scope to Owner",
     "Owner adds/removes requirements and says GO CODEX M1",
-    "Codex creates feature/c0-m1-layer-editing-recovery from exact audited head 21388c0d",
+    "Codex creates feature/c0-m1-inspector-layer-editing-recovery from exact audited head 21388c0d",
     "Codex completes M1 and stops at WAITING_REVIEW",
     "Assistant verifies the combined C0.4F-A plus M1 feature head",
     "Owner explicitly approves merge of the combined usable result to main",
@@ -166,7 +193,7 @@
     "main without explicit Owner merge approval",
     "Master Graph/store as sole data source",
     "audit branches must never be merged",
-    "research branches must never be merged wholesale into main",
+    "research and prototype branches must never be merged wholesale",
     "UI-command icons remain separate from drawable symbols",
     "Rejected and unverified symbol assets remain excluded",
     "Selection UI must never persist or export"
