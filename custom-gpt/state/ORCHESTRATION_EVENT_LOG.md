@@ -85,3 +85,30 @@ Append-only durable record. GitHub state and exact refs override chat memory, lo
 - Verdict must be exactly `MERGE CANDIDATE`, `CORRECTION REQUIRED` or `REJECT`.
 - Audit branch is report-only and must never be merged.
 - Next gate: Owner reviews the verdict; no merge without explicit approval.
+
+## 2026-07-15 — Supplemental fresh Codex red-team audit assigned
+
+- Owner proposed using Codex for review because of model quality.
+- Decision: do not replace the cross-model independent Antigravity audit; add a second fresh isolated Codex red-team review.
+- The implementation session is forbidden from reviewing itself.
+- Exact base: `main@c4600472ea76f651800c19b91cf8f67954ca992e`.
+- Exact feature: `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`.
+- Contract: `docs/worker-briefs/C0_4F_A_CODEX_RED_TEAM_AUDIT.md`.
+- Report branch: `audit/c0-4f-a-codex-red-team`, created from the exact production base.
+- Output: `docs/audits/C0_4F_A_CODEX_RED_TEAM_AUDIT.md`.
+- Codex reviewer must use a new conversation and clean worktree, must not read implementation scratch context, must not fix code, and must not overwrite `status/codex`.
+- Antigravity remains the primary independent merge-gate audit; Codex is supplemental adversarial evidence.
+- Any BLOCKER/HIGH finding or conflicting verdict requires investigation before merge.
+
+## 2026-07-15 — Post-audit production sequence locked
+
+- First gate: compare Antigravity and fresh Codex audit reports.
+- If safe, Owner explicitly commands merge of exact C0.4F-A feature head.
+- Next production contract must forward-port the audited C0.2 icon/grid registry onto the then-current main; never merge the old divergent C0.2 branch wholesale.
+- C0.4F-B then delivers minimal Inspector integration, technical appearance editing, one-transaction history and SVG/PDF technical-stroke parity.
+- Begin with an Owner-approved essential symbol shortlist rather than ingesting all research candidates.
+- Following batches:
+  1. Area editing, Table/Canvas sync and reliable CSV/Excel import.
+  2. Floors, derived statistics and compact Dashboard.
+  3. Essential Connections, export parity and dense-scene hardening.
+- No product code begins before the exact Owner GO for each bounded contract.
