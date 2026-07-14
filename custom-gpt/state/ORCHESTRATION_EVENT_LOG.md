@@ -162,3 +162,18 @@ Append-only durable record. GitHub state and exact refs override chat memory, lo
   - diagram/link candidates feed M5 Connection vocabulary without replacing the graph model;
   - annotation candidates feed M6 Markup;
   - the grid registry becomes visible only in M7 when rendering/snapping/export support is truthful.
+
+## 2026-07-15 — Owner authorized and dispatched Codex M1
+
+- Owner command: `GO CODEX M1`.
+- Final contract: `docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md` on `docs/mooorf-ai-team-operating-protocol`.
+- Launch prompt: `docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md` on the same governance branch.
+- Production `main` remains unchanged at `c4600472ea76f651800c19b91cf8f67954ca992e`.
+- Exact M1 base: audited `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`.
+- Required M1 branch: `feature/c0-m1-inspector-layer-editing-recovery`.
+- M1 scope includes canonical Name/Area/Body editing, minimal Table sync for those fields, Content/Appearance Inspector, coordinated text presets, six dedicated Organism settings widgets, defaults/overrides/Mixed, history, persistence, migration, export parity and complete control-ownership cleanup.
+- Claude prototype provenance is explicitly assigned to M1 for Inspector/Content interactions only; its mock state and shell remain forbidden.
+- C0.2/Antigravity symbol inputs remain preserved for M2 and are compatibility-only in M1.
+- `status/codex` now records `ASSIGNED_AWAITING_WORKER_START` at commit `22897a0a51b34742a9fe1319ba755c4dafbef0ed`.
+- Worker must update status to `RUNNING`, push the feature branch, complete the bounded contract, then stop at one fixed `WAITING_REVIEW` head.
+- No merge to `main`; no M2 work may begin.
