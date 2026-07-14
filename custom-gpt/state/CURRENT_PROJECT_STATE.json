@@ -1,34 +1,42 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-14T00:00:00+05:30",
+  "updated_at": "2026-07-15T02:42:36+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
   "current_phase": "C0.4.1",
-  "current_gate": "independent audit before merge",
+  "current_gate": "fresh-session independent audit assigned; awaiting live auditor claim",
   "owner_approval_required": true,
   "active_task": {
-    "id": "C0.4.1",
-    "title": "Layer contracts, defaults and resolvers",
-    "worker": "Codex",
-    "status": "WAITING_REVIEW",
+    "id": "C0.4.1-AUDIT",
+    "title": "Independent audit of layer contracts, defaults and resolvers",
+    "worker": "Antigravity",
+    "status": "START NOW",
     "source_branch": "main",
     "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
-    "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
-    "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "brief": "docs/worker-briefs/C0_4_1_CODEX_LAYER_CONTRACTS_RESOLVERS.md",
-    "next_gate": "fresh-session Antigravity delta audit"
+    "feature_branch": "feature/c0-4-1-layer-contracts-resolvers",
+    "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "work_branch": "audit/c0-4-1-layer-contracts-resolvers",
+    "work_sha": "b9f67740e0580a9f5230d112c5958e5b97e22b39",
+    "brief": "docs/worker-briefs/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
+    "next_gate": "Owner reviews audit verdict"
   },
   "workers": {
     "codex": {
       "assignment": "ASSIGNED",
       "execution": "WAITING_REVIEW",
-      "task": "C0.4.1 layer contracts, defaults and resolvers"
+      "task": "C0.4.1 layer contracts, defaults and resolvers",
+      "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
+      "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e"
     },
     "antigravity": {
-      "assignment": "UNASSIGNED",
-      "execution": "HOLD",
-      "last_task": "C0.4 modular layer architecture audit"
+      "assignment": "ASSIGNED",
+      "execution": "START NOW",
+      "task": "C0.4.1 independent architecture, migration and scope audit",
+      "brief": "docs/worker-briefs/C0_4_1_ANTIGRAVITY_DELTA_AUDIT.md",
+      "work_branch": "audit/c0-4-1-layer-contracts-resolvers",
+      "work_sha": "b9f67740e0580a9f5230d112c5958e5b97e22b39",
+      "note": "Do not claim RUNNING until status/antigravity records live execution evidence."
     },
     "claude": {
       "assignment": "UNASSIGNED",
@@ -39,10 +47,11 @@
   },
   "next_planned_phase": "C0.4.2 selection overlay separation after C0.4.1 audit and merge approval",
   "locked_sequence": [
-    "Audit C0.4.1",
-    "Owner reviews audit",
+    "Antigravity claims the fresh audit session and records RUNNING evidence",
+    "Audit exact C0.4.1 source and feature SHAs",
+    "Owner reviews audit verdict",
     "Owner approves or rejects merge",
-    "Merge C0.4.1 if approved",
+    "Merge C0.4.1 only if approved and SHAs remain exact",
     "Prepare C0.4.2 compact contract",
     "Owner GO for C0.4.2"
   ],
