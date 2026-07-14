@@ -2,22 +2,27 @@
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
   "status": "HOLD",
-  "task": "C0.4.1 audited merge pending explicit Owner approval",
-  "brief": "docs/worker-briefs/C0_4_1_CODEX_AUDITED_MERGE.md",
+  "task": "C0.4F-A runtime layer separation and essential Boundary strokes pending Owner GO",
+  "brief": "docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md",
   "source_branch": "main",
-  "source_sha": "a0f7b33d4e13ad72d5203141d7688794ad377446",
-  "work_branch": "feature/c0-4-1-layer-contracts-resolvers",
-  "work_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "audit_status": "DONE",
-  "audit_verdict": "MERGE CANDIDATE",
-  "last_checkpoint": "Independent audit passed for the exact source and feature SHAs. Merge brief prepared. Waiting for explicit Owner command MERGE C0.4.1.",
-  "updated_at": "2026-07-15T15:00:00+05:30",
-  "blocked_reason": "Owner merge approval required",
+  "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "planned_work_branch": "feature/c0-4f-a-runtime-layer-separation",
+  "previous_task": {
+    "id": "C0.4.1",
+    "feature_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "audit_verdict": "MERGE CANDIDATE",
+    "merge_status": "MERGED",
+    "merged_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "merge_method": "non-forced fast-forward"
+  },
+  "last_checkpoint": "Owner approved MERGE C0.4.1. Main was verified at the audited base, fast-forwarded without force to the exact audited feature SHA, and verified identical to the feature branch. C0.4F-A brief is prepared; implementation has not started.",
+  "updated_at": "2026-07-15T15:18:00+05:30",
+  "blocked_reason": "Explicit Owner command GO CODEX C0.4F-A required",
   "expected_outputs": [
-    "verify exact main and feature SHAs",
-    "merge only the audited feature",
-    "rerun focused contracts and one production build",
-    "push and report resulting main SHA",
-    "stop before C0.4F-A implementation"
+    "selection overlay isolation",
+    "Classic and Organism runtime layer separation",
+    "essential Boundary stroke system",
+    "focused tests and one production build",
+    "fixed pushed head for independent audit"
   ]
 }
