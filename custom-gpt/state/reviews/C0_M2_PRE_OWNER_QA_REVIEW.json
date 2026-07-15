@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "reviewed_at": "2026-07-15T20:56:00+05:30",
+  "task": "C0 M2 Advanced Appearance, Production Symbol Tab and Runtime Power Gates",
+  "branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
+  "base": "main@bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "fixed_head": "1cc8ec0c7ab756bc6b091b87014da2c3e27383d2",
+  "status_branch": "status/codex",
+  "status_sha": "5b751f9",
+  "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "verdict": "OWNER_VISUAL_QA_REQUIRED",
+  "branch_relation": "Exactly one commit above main with no divergence; main remains unchanged.",
+  "verified_static": [
+    "one Inspector with Content, Appearance and Symbol tabs",
+    "runtime gate projection exists for Membrane, Edge, Shadow, Motion, Labels, Grid and inactive future Snapping",
+    "Motion continuous ownership resolves through motionActive rather than the raw master toggle",
+    "symbol registry resolves 133 active geometries and 20 aliases as documented",
+    "AG3 remained isolated and did not modify this branch"
+  ],
+  "recorded_worker_checks": [
+    "14 focused contract suites passed",
+    "project-reference TypeScript passed after the final source correction",
+    "exact diff check passed",
+    "Vite production stage completed once after the earlier npm build stopped at its TypeScript gate",
+    "bounded browser smoke passed at 1280x800 and 1440x900"
+  ],
+  "documentation_note": "The implementation report says placement owns opacity/tint, while the live Symbol pane exposes tint but no separate symbol-opacity slider. The authorized M2 contract required tint, not a separate symbol-opacity control, so this is a report wording correction only unless the Owner requests opacity as a new control.",
+  "merge_allowed": false,
+  "next_gate": "Owner completes the short Fast Owner-QA checklist. Any real visual failure becomes one bounded correction; otherwise correct the report wording without rebuild and request explicit MERGE C0-M2."
+}
