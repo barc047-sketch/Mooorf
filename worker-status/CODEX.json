@@ -1,80 +1,67 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0 M1 Correction 4 Global I Inspector Shortcut",
-  "brief": "docs/worker-briefs/C0_M1_CORRECTION_4_GLOBAL_I_SHORTCUT.md",
-  "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
+  "status": "ASSIGNED_AWAITING_WORKER_START",
+  "task": "C0 M2 Advanced Appearance, Production Symbol Tab and Runtime Power Gates",
+  "brief": "docs/worker-briefs/C0_M2_CODEX_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES.md",
+  "launch_prompt": "docs/worker-briefs/C0_M2_CODEX_LAUNCH_PROMPT.md",
   "contract_branch": "docs/mooorf-ai-team-operating-protocol",
-  "source_branch": "feature/c0-4f-a-runtime-layer-separation",
-  "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-  "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
+  "source_branch": "main",
+  "source_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "planned_work_branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
   "feature_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
-  "previous_reviewed_head": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
-  "corrected_feature_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
-  "report_paths": [
-    "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
-    "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md"
+  "owner_authorization": "GO CODEX M2",
+  "assignment_summary": [
+    "preserve exactly one Inspector with Content, Appearance and Symbol tabs",
+    "advanced truthful Cell, Boundary, Core, Membrane Field, Membrane Edge and Void controls",
+    "canonical Cell Shadow Strength and advanced controls using the existing shadow owner",
+    "separate Field Edge Softness and Membrane Edge Softness only with independent state and visible renderer effects",
+    "preserve Cell Gradient and Solid Membrane colour modes",
+    "runtime power gates so Off skips feature-owned work",
+    "production Symbol tab using the audited 77-symbol baseline, 59 verified Lucide additions and 14 aliases while excluding 5 rejects",
+    "symbol search, categories, recents, favourites, hover preview, apply, replace and remove",
+    "symbol placement and backing with history, persistence, migration and export parity"
   ],
-  "owner_observed_issue_disposition": [
-    "The absent global I shortcut was reproduced at the reviewed head and corrected through one application-shell listener plus the canonical Inspector widget lifecycle.",
-    "The Owner manually confirmed that the global I shortcut works in the live preview.",
-    "Correction 4 preserves lowercase i, uppercase I, second-I close, closed/minimized/background/off-screen recovery, editing/modifier/repeat guards, Escape, right-click, Dock/Rail mouse/Enter/Space and exactly one Inspector in Canvas and Table."
+  "research_inputs": {
+    "claude_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
+    "baseline_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
+    "symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4",
+    "ag2_accepted": "research/m2-prototype-and-icon-gap-audit@55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51"
+  },
+  "explicit_exclusions": [
+    "separate Symbol Inspector",
+    "custom architectural vectors without later Owner approval",
+    "bottom-left Quick Bar and final Dock redesign",
+    "snapping UI or snapping engine",
+    "full Material Browser or Material Studio",
+    "Connections",
+    "Annotation or Markup",
+    "broad Table or import redesign",
+    "100+ space Table optimization",
+    "Floors, Stats or Dashboard",
+    "merge to main",
+    "beginning M3 or M4"
   ],
-  "verification_summary": [
-    "PASS: npx --no-install tsx src/interaction/inspectorShortcut.test.ts — Inspector shortcut policy contracts passed.",
-    "PASS: npx --no-install tsx src/domain/presentation/m1ProductContracts.test.ts — C0 M1 product contracts passed.",
-    "PASS: complete repository src/**/*.test.ts set, including affected M1 and C0.4F-A behavioral, renderer, history, persistence, export, interaction and widget contracts.",
-    "PASS: node --test scripts/audit-utils.test.mjs — 4/4.",
-    "PASS: npx tsc -b --pretty false — zero diagnostics after the final TypeScript source change.",
-    "PASS: git diff --check f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6...HEAD at corrected feature bd160b8c615cdafbbdd8a76332be46b69a6e765e.",
-    "PASS: exactly one final npm run build — 2890 modules, main application chunk 985.98 kB / 316.66 kB gzip, accepted Vite large-chunk warning only; no second build was run.",
-    "OWNER CONFIRMED: global I works in the live preview.",
-    "PARTIAL AUTOMATED BROWSER: Canvas lifecycle/editing guards and bounded Table checkpoints passed. The exhaustive 1440x900 plus 1280x800 CDP run was stopped after repeated harness stalls on controlled Table/textarea/number-field interactions; no complete uninterrupted two-viewport automated pass is claimed and no product failure was reproduced."
-  ],
-  "known_limitations": [
-    "Membrane Field and Edge are shared project fields and therefore edit Project Defaults rather than disconnected per-Cell overrides.",
-    "Organism has no truthful vector Membrane path; M1 does not synthesize one.",
-    "Advanced instruments, selection-orbit treatment and Symbol remain assigned to M2 inside the same Inspector.",
-    "M2 Membrane Field Edge Softness remains the existing field/body feather owner; independent Membrane Edge Softness is a future separate Edge owner and must not alias it.",
-    "Optional Void Inner Echo is M2-only, default off, and requires canonical live/export parity.",
-    "Material Browser remains assigned to M4.",
-    "The in-app browser does not expose file-saver transport as a download event; product completion state and deterministic export contracts were verified.",
-    "The exhaustive two-viewport Correction 4 CDP harness repeatedly stalled on controlled Table, textarea and number-field interactions. This is a QA-harness limitation, not a reproduced shortcut product failure; the Owner manually confirmed the shortcut in the live preview."
+  "qa_policy": {
+    "document": "docs/governance/FAST_OWNER_QA_MODE.md",
+    "focused_tests_only": true,
+    "exactly_one_final_build": true,
+    "exhaustive_cdp_required": false,
+    "browser_harness_tuning_limit_minutes": 10,
+    "owner_manual_checklist_items": "3-7"
+  },
+  "expected_reports": [
+    "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
+    "docs/C0_M2_CONTROL_OWNERSHIP_MAP.md"
   ],
   "previous_task": {
-    "id": "C0.4F-A",
-    "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
-    "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "audit_branch": "audit/c0-4f-a-runtime-layer-separation",
-    "audit_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
-    "audit_verdict": "MERGE CANDIDATE",
-    "merge_status": "NOT MERGED — M1 BUILT DIRECTLY ON THIS HEAD"
+    "id": "C0 M1",
+    "status": "MERGED",
+    "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+    "merge_method": "protected non-forced fast-forward"
   },
-  "assignment_summary": [
-    "canonical inline and Inspector editing for Space Name, Area and Body/subtext",
-    "minimal Table sync for Name, Area and Body only",
-    "one Inspector with M1 Content and Appearance tabs and a future M2 Symbol-tab seam",
-    "coordinated text presets, Text Size, Text Colour and Auto Contrast",
-    "three visible Appearance family widgets covering six canonical internal editing targets",
-    "Project Default, Local Override and Mixed states",
-    "one-transaction history and ephemeral previews",
-    "persistence, migration and clean PNG/SVG/PDF export parity",
-    "documented rebind, movement or removal of every stale, broken or no-op visual control"
-  ],
-  "explicit_exclusions": [
-    "production Symbol library or a separate Symbol Inspector",
-    "advanced Inspector instruments assigned to M2",
-    "Quick Materials or full Material Browser assigned to M4",
-    "Connections",
-    "Annotation Card/Studio",
-    "broad Table/import redesign",
-    "advanced procedural Membrane shaders",
-    "merge to main",
-    "beginning M2"
-  ],
-  "updated_at": "2026-07-15T19:27:46+05:30",
+  "updated_at": "2026-07-15T20:00:00+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Owner reviews corrected feature bd160b8c615cdafbbdd8a76332be46b69a6e765e. Codex is stopped; no merge, M2 work or browser-harness tuning is authorized.",
-  "next_gate": "Owner review of the Correction 4 fixed head; explicit merge authority remains required."
+  "next_worker_action": "Read the M2 contract, verify the exact branch/base, set status to RUNNING, implement the bounded milestone, push one fixed head, return to WAITING_REVIEW and stop.",
+  "next_gate": "Owner reviews the M2 fixed head using the short Fast Owner-QA checklist; explicit merge authority remains required."
 }
