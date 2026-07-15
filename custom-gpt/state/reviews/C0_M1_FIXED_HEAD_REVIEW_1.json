@@ -1,0 +1,44 @@
+{
+  "task": "C0-M1",
+  "reviewed_feature_sha": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
+  "reviewed_status_sha": "159fcfb6758b5fa3780a33109037269d658a61d5",
+  "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+  "production_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "branch_relation": {
+    "m1_vs_source": "ahead by 1, behind by 0",
+    "m1_vs_main": "ahead by 2, behind by 0",
+    "main_guard": "main identical to c4600472ea76f651800c19b91cf8f67954ca992e"
+  },
+  "evidence_verified": [
+    "status/codex WAITING_REVIEW points to exact feature SHA",
+    "implementation report exists at the feature head",
+    "control ownership map exists at the feature head",
+    "six dedicated widget IDs and bodies exist",
+    "canonical Name/Area/Body owners exist",
+    "reported tests/typecheck/build/1440/1280 QA are recorded"
+  ],
+  "verdict": "CORRECTION REQUIRED",
+  "findings": [
+    {
+      "id": "M1-R1",
+      "severity": "HIGH",
+      "title": "Escape can commit edited Inspector/Table content instead of cancelling",
+      "paths": [
+        "src/views/TableView.tsx",
+        "src/ui/widgets/InspectorWidget.tsx"
+      ],
+      "reason": "Escape resets local state and immediately blurs; onBlur commit can execute before the restored canonical draft renders, committing the edited Name/Area/Body and creating history instead of cancelling. AreaCell also commits event.target.value during the Escape-triggered blur.",
+      "test_gap": "Current M1 product contracts check source-string presence but do not execute the cancel/blur state machine."
+    },
+    {
+      "id": "M1-R2",
+      "severity": "MEDIUM",
+      "title": "Inspector header scope badge falsely labels selection as Local or Mixed",
+      "path": "src/ui/widgets/InspectorWidget.tsx",
+      "reason": "The header label derives Local/Mixed only from selection count, not canonical inheritance or actual mixed values."
+    }
+  ],
+  "correction_contract": "docs/worker-briefs/C0_M1_CORRECTION_1_CANCEL_AND_STATUS_TRUTH.md",
+  "launch_prompt": "docs/worker-briefs/C0_M1_CORRECTION_1_LAUNCH_PROMPT.md",
+  "next_gate": "Same Codex session corrects the existing M1 branch, pushes a new fixed head, updates status/codex to WAITING_REVIEW and stops. No merge and no M2."
+}
