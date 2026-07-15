@@ -26,6 +26,8 @@ import "./canvas.css";
 const DPR_MAX = 2;
 const Z_MIN = 0.25;
 const Z_MAX = 4;
+const projectedCanvasSpaces = (state: ReturnType<typeof useLab.getState>) =>
+  applySpacePositionsPreview(state.appearancePreview ?? state.spaces, state.arrangementPreview ?? []);
 const effectiveCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
   const runtime = state.membraneRuntimePreview ? { ...state.settings, ...state.membraneRuntimePreview } : state.settings;
   const visual = state.visualSettingsPreview ? {
@@ -64,7 +66,7 @@ export default function CanvasView() {
 
     // Live mirrors (refs, not React state)
     const cam = { ...st.camera };
-    let spaces = st.appearancePreview ?? st.spaces;
+    let spaces = projectedCanvasSpaces(st);
     let selectedId = st.selectedId;
     let selectedIds = st.selectedIds;
     let settings = effectiveCanvasSettings(st); // ephemeral previews project through canonical renderer inputs
@@ -85,7 +87,7 @@ export default function CanvasView() {
     let lastCommitted = st.camera; // reference marker for our own commits
 
     const unsub = useLab.subscribe((s) => {
-      spaces = s.appearancePreview ?? s.spaces;
+      spaces = projectedCanvasSpaces(s);
       selectedId = s.selectedId;
       selectedIds = s.selectedIds;
       settings = effectiveCanvasSettings(s);

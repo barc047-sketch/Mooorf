@@ -70,6 +70,30 @@ export type LayoutPresetId =
   | "orbit"
   | "asymmetry";
 
+/** Arrangement V2 extends the saved-project-safe legacy IDs without changing
+ * the persisted LayoutPresetId contract used by existing projects. */
+export type ArrangementPatternId =
+  | LayoutPresetId
+  | "horizontal-line"
+  | "vertical-line"
+  | "diagonal-line"
+  | "grid"
+  | "rows"
+  | "columns"
+  | "circle"
+  | "oval"
+  | "square-perimeter"
+  | "rectangle-perimeter"
+  | "cross"
+  | "radial-spokes"
+  | "concentric-rings"
+  | "golden-angle"
+  | "golden-spiral"
+  | "archimedean-spiral"
+  | "seeded-random"
+  | "compact-pack"
+  | "relaxed-pack";
+
 export type AnnotationMode = "editorial" | "pill" | "technical" | "hidden";
 
 export type LabelPosition = "auto" | "center" | "above" | "below";

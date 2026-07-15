@@ -8,6 +8,7 @@ import type {
   ColorSource,
   ContextPoint,
   ContextSurface,
+  ArrangementPatternId,
   LayoutPresetId,
   LabelColourMode,
   LabelScaleMode,
@@ -25,11 +26,14 @@ import type {
   WidgetId,
   CellShadowSettings,
 } from "../types";
-import { clamp, scatterPoint } from "../lib/geometry";
+import { areaToRadius, clamp, scatterPoint } from "../lib/geometry";
 import { DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
-import { applyLayoutPreset as arrangeLayoutPreset, placeBatchCells } from "../canvas/layoutPresets";
+import { placeBatchCells } from "../canvas/layoutPresets";
+import { calculateArrangement, isLegacyLayoutPreset, regenerateArrangementSeed, resolveArrangementScope } from "../arrangement/engine";
+import { arrangementRuntime } from "../arrangement/runtime";
+import { DEFAULT_ARRANGEMENT_PARAMETERS, type ArrangementParameters } from "../arrangement/types";
 import { normalizeUiScale, normalizeWidgetScale } from "./uiScale";
 import { readinessCanAdvance } from "../ui/readiness";
 import {
@@ -207,6 +211,9 @@ interface LabState {
   membraneRuntimePreview: MembraneRuntimeSnapshot | null;
   visualSettingsPreview: VisualSettingsSnapshot | null;
   resourcesPreview: ResourceSettings | null;
+  /** Arrangement V2 x/y-only renderer projection. Never persisted/exported. */
+  arrangementPreview: SpacePosition[] | null;
+  arrangementPreviewPatternId: ArrangementPatternId | null;
   styleClipboard: StyleClipboard | null;
 
   toggleTheme: () => void;
@@ -286,6 +293,9 @@ interface LabState {
   redoSpaceTransform: () => void;
   removeSpace: (id: string) => void;
   applyLayoutPreset: (presetId: LayoutPresetId) => void;
+  previewArrangement: (patternId: ArrangementPatternId, parameters: ArrangementParameters) => Promise<void>;
+  applyArrangementPreview: () => void;
+  cancelArrangementPreview: () => void;
   saveCurrentView: (name?: string) => string | null;
   loadSavedView: (id: string) => void;
   renameSavedView: (id: string, name: string) => void;
@@ -687,6 +697,8 @@ export const useLab = create<LabState>((set) => ({
   membraneRuntimePreview: null,
   visualSettingsPreview: null,
   resourcesPreview: null,
+  arrangementPreview: null,
+  arrangementPreviewPatternId: null,
   styleClipboard: null,
 
   toggleTheme: () =>
@@ -778,10 +790,14 @@ export const useLab = create<LabState>((set) => ({
     })),
 
   closeWidget: (id) =>
-    set((s) => ({
-      openWidgets: s.openWidgets.filter((w) => w !== id),
-      minimizedWidgets: s.minimizedWidgets.filter((widgetId) => widgetId !== id),
-    })),
+    set((s) => {
+      if (id === "layout") arrangementRuntime.cancel();
+      return {
+        openWidgets: s.openWidgets.filter((w) => w !== id),
+        minimizedWidgets: s.minimizedWidgets.filter((widgetId) => widgetId !== id),
+        ...(id === "layout" ? { arrangementPreview: null, arrangementPreviewPatternId: null } : {}),
+      };
+    }),
 
   focusWidget: (id) =>
     set((s) =>
@@ -1292,6 +1308,8 @@ export const useLab = create<LabState>((set) => ({
       return {
         settings: { ...s.settings, resources: after },
         resourcesPreview: null,
+        arrangementPreview: null,
+        arrangementPreviewPatternId: null,
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: [],
       };
@@ -1307,6 +1325,8 @@ export const useLab = create<LabState>((set) => ({
       return {
         settings: { ...s.settings, resources: after },
         resourcesPreview: null,
+        arrangementPreview: null,
+        arrangementPreviewPatternId: null,
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: [],
       };
@@ -1439,11 +1459,27 @@ export const useLab = create<LabState>((set) => ({
         : visibleSelectableIds(s.spaces, s.settings.rendererMode);
       const arrangedIdSet = new Set(arrangedIds);
       const beforeSubset = s.spaces.filter((space) => arrangedIdSet.has(space.id));
-      const afterSubset = arrangeLayoutPreset(beforeSubset, presetId);
-      const afterById = new Map(afterSubset.map((space) => [space.id, space]));
-      const spaces = s.spaces.map((space) => afterById.get(space.id) ?? space);
+      const generated = calculateArrangement({
+        patternId: presetId,
+        entities: beforeSubset.map((space) => ({
+          id: space.id,
+          x: space.x,
+          y: space.y,
+          radius: areaToRadius(space.area),
+          kind: space.kind ?? "space",
+        })),
+        parameters: {
+          ...DEFAULT_ARRANGEMENT_PARAMETERS,
+          seed: presetId === "random" ? regenerateArrangementSeed(Date.now()) : DEFAULT_ARRANGEMENT_PARAMETERS.seed,
+        },
+      });
+      const spaces = applySpacePositions(s.spaces, generated);
       const before = beforeSubset.map(({ id, x, y }) => ({ id, x, y }));
-      const after = afterSubset.map(({ id, x, y }) => ({ id, x, y }));
+      const afterById = new Map(spaces.map((space) => [space.id, space]));
+      const after = beforeSubset.map(({ id }) => {
+        const space = afterById.get(id)!;
+        return { id, x: space.x, y: space.y };
+      });
       const entry: SpaceHistoryEntry | null = isMeaningfulSpaceTransform(before, after)
         ? { kind: "transform", before, after }
         : null;
@@ -1457,6 +1493,59 @@ export const useLab = create<LabState>((set) => ({
         } : {}),
       };
     }),
+
+  previewArrangement: async (patternId, parameters) => {
+    const state = useLab.getState();
+    const visibleIds = visibleSelectableIds(state.spaces, state.settings.rendererMode);
+    const arrangedIds = resolveArrangementScope(
+      state.spaces,
+      state.selectedIds,
+      visibleIds,
+      parameters.scope,
+      parameters.includeVoids,
+    );
+    const arrangedSet = new Set(arrangedIds);
+    const entities = state.spaces.filter((space) => arrangedSet.has(space.id)).map((space) => ({
+      id: space.id,
+      x: space.x,
+      y: space.y,
+      radius: areaToRadius(space.area),
+      kind: space.kind ?? "space" as const,
+    }));
+    const arrangementPreview = await arrangementRuntime.calculate({ patternId, entities, parameters });
+    if (!arrangementPreview) return;
+    set({ arrangementPreview, arrangementPreviewPatternId: patternId });
+  },
+
+  applyArrangementPreview: () =>
+    set((s) => {
+      const preview = s.arrangementPreview;
+      if (!preview?.length) return { arrangementPreview: null, arrangementPreviewPatternId: null };
+      const previewIds = new Set(preview.map(({ id }) => id));
+      const before = s.spaces.filter((space) => previewIds.has(space.id)).map(({ id, x, y }) => ({ id, x, y }));
+      const transform = normalizeLiveTransform(s.spaces, before, preview);
+      const entry: SpaceHistoryEntry | null = isMeaningfulSpaceTransform(transform.before, transform.after)
+        ? { kind: "transform", ...transform }
+        : null;
+      const patternId = s.arrangementPreviewPatternId;
+      return {
+        spaces: entry ? applyHistoryEntry(s.spaces, entry, "after") : s.spaces,
+        settings: patternId && isLegacyLayoutPreset(patternId)
+          ? { ...s.settings, layoutPreset: patternId }
+          : s.settings,
+        arrangementPreview: null,
+        arrangementPreviewPatternId: null,
+        ...(entry ? {
+          transformUndoStack: pushHistory(s.transformUndoStack, entry),
+          transformRedoStack: [],
+        } : {}),
+      };
+    }),
+
+  cancelArrangementPreview: () => {
+    arrangementRuntime.cancel();
+    set({ arrangementPreview: null, arrangementPreviewPatternId: null });
+  },
 
   saveCurrentView: (name) => {
     let id: string | null = null;

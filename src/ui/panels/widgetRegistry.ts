@@ -100,12 +100,12 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   },
   layout: {
     id: "layout",
-    label: "Layout",
-    responsibility: "Arrangement presets (x/y-only) and visual spread.",
+    label: "ARRANGE",
+    responsibility: "Arrangement V2 registry, transient x/y preview and one-transaction apply.",
     launcher: "rail",
     status: "live",
     icon: LayoutGrid,
-    geometry: { variant: "compact", width: 288, minWidth: 260, maxHeight: 440, aspectIntent: "balanced" },
+    geometry: { variant: "standard", width: 324, minWidth: 288, maxHeight: 680, aspectIntent: "balanced" },
   },
   palette: {
     id: "palette",

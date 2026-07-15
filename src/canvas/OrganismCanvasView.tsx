@@ -121,7 +121,12 @@ export default function OrganismCanvasView() {
   const presentationCanvasRef = useRef<HTMLCanvasElement>(null);
   const labelLayerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const spaces = useLab((s) => s.appearancePreview ?? s.spaces);
+  const canonicalSpaces = useLab((s) => s.appearancePreview ?? s.spaces);
+  const arrangementPreview = useLab((s) => s.arrangementPreview);
+  const spaces = useMemo(
+    () => applySpacePositionsPreview(canonicalSpaces, arrangementPreview ?? []),
+    [canonicalSpaces, arrangementPreview],
+  );
   const selectedId = useLab((s) => s.selectedId);
   const selectedIds = useLab((s) => s.selectedIds);
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
@@ -195,7 +200,10 @@ export default function OrganismCanvasView() {
 
     const cam = { ...useLab.getState().camera };
     const initialState = useLab.getState();
-    let spaces = initialState.appearancePreview ?? initialState.spaces;
+    let spaces = applySpacePositionsPreview(
+      initialState.appearancePreview ?? initialState.spaces,
+      initialState.arrangementPreview ?? [],
+    );
     let selectedId = useLab.getState().selectedId;
     let selectedIdSet = new Set(useLab.getState().selectedIds);
     let settings = effectiveCanvasSettings(initialState);
@@ -330,7 +338,10 @@ export default function OrganismCanvasView() {
     let smooth: SmoothFrame | null = null;
 
     const unsub = useLab.subscribe((s) => {
-      const nextSpaces = s.appearancePreview ?? s.spaces;
+      const nextSpaces = applySpacePositionsPreview(
+        s.appearancePreview ?? s.spaces,
+        s.arrangementPreview ?? [],
+      );
       const spacesChanged = nextSpaces !== spaces;
       spaces = nextSpaces;
       selectedId = s.selectedId;
@@ -412,33 +423,43 @@ export default function OrganismCanvasView() {
 
     const unregisterCapture = registerCanvasCapture(
       async ({ scale, includeLabels, includeSelection }: CaptureRequestOptions) => {
+        const canonical = useLab.getState();
+        const liveSpaces = spaces;
+        spaces = canonical.spaces;
+        derivedDirty = true;
         const cssW = w;
         const cssH = h;
-        const webglCanvas = await captureWebglFrame(scale);
-        renderer?.resize(cssW, cssH, dpr);
-        invalidate();
+        try {
+          const webglCanvas = await captureWebglFrame(scale);
+          renderer?.resize(cssW, cssH, dpr);
 
-        let labelLayerCanvas: HTMLCanvasElement | undefined;
-        const layer = labelLayerRef.current;
-        if (includeLabels && layer) {
-          const { toCanvas } = await import("html-to-image");
-          labelLayerCanvas = await toCanvas(layer, {
-            pixelRatio: scale,
-            backgroundColor: undefined,
-            filter: (node) => {
-              if (!(node instanceof Element)) return true;
-              if (node.classList.contains("selection-command-wrap")) return false;
-              if (node.classList.contains("selection-edit-popover")) return false;
-              if (!includeSelection) {
-                if (node.classList.contains("organism-cell-keyline")) return false;
-                if (node.classList.contains("organism-selection-details")) return false;
-              }
-              return true;
-            },
-          });
+          let labelLayerCanvas: HTMLCanvasElement | undefined;
+          const layer = labelLayerRef.current;
+          if (includeLabels && layer) {
+            const { toCanvas } = await import("html-to-image");
+            labelLayerCanvas = await toCanvas(layer, {
+              pixelRatio: scale,
+              backgroundColor: undefined,
+              filter: (node) => {
+                if (!(node instanceof Element)) return true;
+                if (node.classList.contains("selection-command-wrap")) return false;
+                if (node.classList.contains("selection-edit-popover")) return false;
+                if (!includeSelection) {
+                  if (node.classList.contains("organism-cell-keyline")) return false;
+                  if (node.classList.contains("organism-selection-details")) return false;
+                }
+                return true;
+              },
+            });
+          }
+
+          return { canvas: webglCanvas, cssWidth: cssW, cssHeight: cssH, labelLayer: labelLayerCanvas };
+        } finally {
+          spaces = liveSpaces;
+          derivedDirty = true;
+          renderer?.resize(cssW, cssH, dpr);
+          invalidate();
         }
-
-        return { canvas: webglCanvas, cssWidth: cssW, cssHeight: cssH, labelLayer: labelLayerCanvas };
       }
     );
 
