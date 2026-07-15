@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "merged_at": "2026-07-15T19:45:00+05:30",
+  "owner_command": "MERGE C0-M1",
+  "repository": "barc047-sketch/Mooorf",
+  "previous_main": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "feature_branch": "feature/c0-m1-inspector-layer-editing-recovery",
+  "accepted_feature_head": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "status_branch": "status/codex",
+  "status_sha": "9ae60aece633ff0217fa07f4b7223b5132d7f755",
+  "merge_method": "non-forced fast-forward",
+  "resulting_main": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "verification": {
+    "pre_merge_relation": "feature was six commits ahead of main with zero divergence",
+    "post_merge_relation": "main is identical to accepted feature head",
+    "owner_manual_acceptance": [
+      "global I/i Inspector shortcut",
+      "Escape",
+      "right-click",
+      "editable Body/subtext in Table retained for now"
+    ],
+    "automated": [
+      "focused shortcut and M1 product contracts passed",
+      "affected contracts passed",
+      "TypeScript check passed",
+      "diff check passed",
+      "exactly one production build passed"
+    ]
+  },
+  "qa_policy": "docs/governance/FAST_OWNER_QA_MODE.md",
+  "research_policy": "AG2 remains selective research input and was not merged",
+  "next_gate": "M2 remains stopped until separate explicit Owner command GO CODEX M2"
+}
