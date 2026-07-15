@@ -1,7 +1,7 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "WAITING_REVIEW",
   "task": "C0 M1 Correction 3 Real UI Inspector Launch",
   "brief": "docs/worker-briefs/C0_M1_CORRECTION_3_OWNER_PATH_INSPECTOR_LAUNCH.md",
   "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
@@ -9,19 +9,29 @@
   "source_branch": "feature/c0-4f-a-runtime-layer-separation",
   "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
   "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
-  "feature_sha": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+  "feature_sha": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
   "previous_reviewed_head": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
-  "corrected_feature_sha": null,
+  "corrected_feature_sha": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
   "report_paths": [
     "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
     "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md"
   ],
   "owner_observed_issue_disposition": [
-    "Owner reports the visible Inspector i command still does not open the Inspector through the real application shell.",
-    "Correction 3 is tracing the actual rendered Dock and Rail pointer/keyboard command path; direct store, openWidget helper, window.lab and isolated lifecycle invocation are excluded as proof."
+    "FIXED: Dock and Rail were translating beneath early physical clicks during their 550 ms Motion entrance; locator QA waited for stabilization and masked the real coordinate race.",
+    "FIXED: Table composition removed Rail, Dock and the only WidgetHost, leaving no real Inspector command path outside Canvas.",
+    "Both actual controls now share data-command=open-inspector with fixed geometry, truthful active/expanded/focused state and click, Enter and Space activation in Canvas and Table.",
+    "No stale launcher, duplicate Inspector, covering element, canvas pointer capture, z-index or pointer-events interception was reproduced after the entrance settled."
   ],
   "verification_summary": [
-    "PENDING: real-control reproduction, browser integration tests, focused contracts, typecheck, exact diff check, one final production build and deterministic 1440x900 plus 1280x800 QA."
+    "PASS: every src/**/*.test.ts contract plus audit-utils 4/4, including affected M1 and C0.4F-A renderer, history, persistence, export and widget lifecycle coverage.",
+    "PASS: npx tsc -b --pretty false with zero diagnostics.",
+    "PASS: real-shell production-browser integration uses physical CDP pointer/keyboard input only and contains no store action, openWidget helper, window.lab or isolated lifecycle proof.",
+    "PASS: no-selection, closed, minimized, background, partly off-screen, Canvas, Table, Dock, Rail, repeated activation, Enter and Space each produce exactly one full viewport-contained Inspector.",
+    "PASS 1440x900: Dock 542,839 to 572,869; Rail 30,371 to 60,401; actual target BUTTON; recovered Inspector 11.81,92 to 343.81,488.78.",
+    "PASS 1280x800: Dock 462,739 to 492,769; Rail 30,321 to 60,351; actual target BUTTON; recovered Inspector 11.81,92 to 343.81,488.78; no document overflow.",
+    "PASS: git diff --check from c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9 through the fixed commit.",
+    "PASS: exactly one final npm run build; main artifact 984.47 kB and 316.13 kB gzip; accepted Vite large-chunk warning only.",
+    "Preview: http://127.0.0.1:4173/"
   ],
   "known_limitations": [
     "Membrane Field and Edge are shared project fields and therefore edit Project Defaults rather than disconnected per-Cell overrides.",
@@ -63,8 +73,8 @@
     "merge to main",
     "beginning M2"
   ],
-  "updated_at": "2026-07-15T15:05:00+05:30",
+  "updated_at": "2026-07-15T17:00:02+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Codex reproduces and fixes only the real rendered Dock/Rail Inspector launch path, adds real-shell browser integration coverage, verifies once, pushes one corrected feature head, then returns to WAITING_REVIEW.",
+  "next_worker_action": "STOP. Await Owner review of f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6; do not merge or begin M2.",
   "next_gate": "Owner review of the Correction 3 fixed head; explicit merge authority remains required."
 }
