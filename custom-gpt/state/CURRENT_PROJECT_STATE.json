@@ -1,1 +1,153 @@
-{"schema_version":"1.0.0","updated_at":"2026-07-15T20:05:00+05:30","repository":"barc047-sketch/Mooorf","default_branch":"main","recorded_main_sha":"bd160b8c615cdafbbdd8a76332be46b69a6e765e","current_phase":"C0-M2-ASSIGNED","current_gate":"Owner authorized GO CODEX M2 after protected M1 fast-forward. The M2 branch, final contract, launch prompt and Codex assignment status are pushed. Await Codex RUNNING then one fixed WAITING_REVIEW head; no merge authority.","owner_approval_required":false,"production_guard":{"main_sha":"bd160b8c615cdafbbdd8a76332be46b69a6e765e","merge_allowed":false,"m2_allowed":true},"completed_milestone":{"id":"M1","title":"Production Inspector, Content and Layer Editing Recovery","merged_head":"bd160b8c615cdafbbdd8a76332be46b69a6e765e","merge_method":"protected non-forced fast-forward","owner_confirmed":["global I/i Inspector shortcut","Escape and right-click","Dock/Rail Inspector launch","Boundary including dash-dot","Core-off centre-dot fix","Void without hard-coded inner echo","Membrane Cell Gradient and Solid modes","editable Body/subtext in Table retained for now"]},"locked_inspector_architecture":{"rule":"Exactly one Inspector; never create separate inspectors for appearance, symbols or layers","tabs":["Content","Appearance","Symbol"],"appearance_families":{"Cell":["Surface","Boundary","Core / nucleus"],"Membrane":["Field","Edge"],"Void":["Fill","Edge"]},"canonical_internal_targets":["cell","boundary","core","membrane","membrane-edge","void"],"global_shortcut":"I/i remains owned by the one Inspector"},"active_milestone":{"id":"M2","title":"Advanced Appearance, Production Symbol Tab and Runtime Power Gates","status":"ASSIGNED_AWAITING_WORKER_START","owner_authorization":"GO CODEX M2","source":"main@bd160b8c615cdafbbdd8a76332be46b69a6e765e","branch":"feature/c0-m2-advanced-inspector-symbols-runtime-gates","contract":"docs/worker-briefs/C0_M2_CODEX_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES.md","contract_commit":"6e022ba069aa79c1e8d7ce1982fcc641829b5fdf","launch_prompt":"docs/worker-briefs/C0_M2_CODEX_LAUNCH_PROMPT.md","launch_prompt_commit":"1f41862782ab168b38a556fba25e8e39b0827728","status_branch":"status/codex","assignment_status_sha":"856afd9e2f1ea9a73ee7973cf874fc7d113900ee","scope":["advanced truthful Cell Surface Boundary Core and canonical Cell Shadow controls","separate Field Edge Softness and Membrane Edge Softness only with independent owners and effects","preserve Cell Gradient and Solid Membrane modes","runtime power gates so Off skips owned work","production Symbol tab inside the one Inspector","77-symbol baseline plus 59 verified Lucide additions and 14 aliases excluding 5 rejects","symbol search categories recents favourites hover preview apply replace remove","symbol placement backing history persistence migration and export"],"exclusions":["custom architectural vectors without later Owner approval","Quick Bar and final Dock redesign","snapping UI or engine","Material Browser or Studio","Connections","Annotation or Markup","broad Table redesign","100+ space Table optimization","Floors Stats Dashboard","M3 or M4 work","merge to main"]},"parallel_research":{"id":"AG2","status":"ACCEPTED RESEARCH INPUT","corrected_head":"55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51","catalogue_scope":{"baseline":77,"verified_lucide_additions":59,"aliases":14,"full_original_custom_briefs":8,"pending_custom_gap_candidates":12,"rejected":5,"projected_ceiling_active_geometries":156,"projected_ceiling_searchable_ids":176,"policy":"Projected ceiling is not automatic M2 scope; custom vectors remain deferred without Owner approval."}},"qa_policy":{"mode":"FAST_OWNER_QA","policy_path":"docs/governance/FAST_OWNER_QA_MODE.md","required":["focused executable contracts for changed owners","affected history persistence migration renderer export contracts","TypeScript check","exact diff check from M2 base","exactly one final production build"],"browser_automation":"No exhaustive CDP matrix by default; stop harness tuning after 10 minutes","owner_review":"3-7 direct yes/no checks after WAITING_REVIEW","credit_rule":"Prioritize product implementation over redundant QA infrastructure"},"future_milestones":[{"id":"M3A","title":"Final Bottom Dock and Compact Quick Bar","status":"PLANNED"},{"id":"M3B","title":"Snapping Foundation and Collapsible Snap Menu","status":"PLANNED"},{"id":"M4","title":"Quick Materials, Presets and Material Browser/Studio","status":"PLANNED"},{"id":"M5","title":"Straight Connections and Line Snap Extensions","status":"PLANNED"},{"id":"M6","title":"Markup, Annotation and Auto-link Snapping","status":"PLANNED"},{"id":"M7","title":"Advanced Arrange, Grid Presets and Snap Optimization","status":"PLANNED"},{"id":"M8","title":"Table and Import Completion plus dense-table profiling","status":"PLANNED"},{"id":"M9","title":"Floors, Stats and Dashboard","status":"PLANNED"}],"protected":["main without explicit Owner merge approval","Master Graph/store as sole data source","exactly one Inspector","six canonical renderer targets remain separate internally","Cell Gradient must not be removed","Off must stop feature-owned work","prototype and research branches never merge wholesale","M2 stops at one fixed WAITING_REVIEW head"],"boot_file":"custom-gpt/bootstrap/BOOT_PROTOCOL.md"}
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-07-15T20:15:00+05:30",
+  "repository": "barc047-sketch/Mooorf",
+  "default_branch": "main",
+  "recorded_main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "current_phase": "C0-M2-IMPLEMENTATION_WITH_AG3-RESEARCH",
+  "current_gate": "M2 is assigned to Codex from merged main. AG3 is independently assigned to Antigravity for research-only shader controls, palette/material curation, staged symbol visual QA and preset recipes. Await each worker to push one fixed WAITING_REVIEW head; no merge authority.",
+  "owner_approval_required": false,
+  "production_guard": {
+    "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+    "merge_allowed": false,
+    "m2_allowed": true
+  },
+  "completed_milestone": {
+    "id": "M1",
+    "title": "Production Inspector, Content and Layer Editing Recovery",
+    "merged_head": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+    "merge_method": "protected non-forced fast-forward",
+    "owner_confirmed": [
+      "global I/i Inspector shortcut",
+      "Escape and right-click",
+      "Dock/Rail Inspector launch",
+      "Boundary including dash-dot",
+      "Core-off centre-dot fix",
+      "Void without hard-coded inner echo",
+      "Membrane Cell Gradient and Solid modes",
+      "editable Body/subtext in Table retained for now"
+    ]
+  },
+  "locked_inspector_architecture": {
+    "rule": "Exactly one Inspector; never create separate inspectors for appearance, symbols or layers",
+    "tabs": ["Content", "Appearance", "Symbol"],
+    "appearance_families": {
+      "Cell": ["Surface", "Boundary", "Core / nucleus"],
+      "Membrane": ["Field", "Edge"],
+      "Void": ["Fill", "Edge"]
+    },
+    "canonical_internal_targets": ["cell", "boundary", "core", "membrane", "membrane-edge", "void"],
+    "global_shortcut": "I/i remains owned by the one Inspector"
+  },
+  "active_milestone": {
+    "id": "M2",
+    "title": "Advanced Appearance, Production Symbol Tab and Runtime Power Gates",
+    "status": "ASSIGNED_AWAITING_WORKER_START",
+    "owner_authorization": "GO CODEX M2",
+    "source": "main@bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+    "branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
+    "contract": "docs/worker-briefs/C0_M2_CODEX_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES.md",
+    "contract_commit": "6e022ba069aa79c1e8d7ce1982fcc641829b5fdf",
+    "launch_prompt": "docs/worker-briefs/C0_M2_CODEX_LAUNCH_PROMPT.md",
+    "launch_prompt_commit": "1f41862782ab168b38a556fba25e8e39b0827728",
+    "status_branch": "status/codex",
+    "assignment_status_sha": "856afd9e2f1ea9a73ee7973cf874fc7d113900ee",
+    "scope": [
+      "advanced truthful Cell Surface Boundary Core and canonical Cell Shadow controls",
+      "separate Field Edge Softness and Membrane Edge Softness only with independent owners and effects",
+      "preserve Cell Gradient and Solid Membrane modes",
+      "runtime power gates so Off skips owned work",
+      "production Symbol tab inside the one Inspector",
+      "77-symbol baseline plus 59 verified Lucide additions and 14 aliases excluding 5 rejects",
+      "symbol search categories recents favourites hover preview apply replace remove",
+      "symbol placement backing history persistence migration and export"
+    ],
+    "exclusions": [
+      "custom architectural vectors without later Owner approval",
+      "Quick Bar and final Dock redesign",
+      "snapping UI or engine",
+      "Material Browser or Studio",
+      "Connections",
+      "Annotation or Markup",
+      "broad Table redesign",
+      "100+ space Table optimization",
+      "Floors Stats Dashboard",
+      "M3 or M4 work",
+      "merge to main"
+    ]
+  },
+  "parallel_research": {
+    "ag2": {
+      "status": "ACCEPTED RESEARCH INPUT",
+      "corrected_head": "55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51",
+      "catalogue_scope": {
+        "baseline": 77,
+        "verified_lucide_additions": 59,
+        "aliases": 14,
+        "full_original_custom_briefs": 8,
+        "pending_custom_gap_candidates": 12,
+        "rejected": 5,
+        "projected_ceiling_active_geometries": 156,
+        "projected_ceiling_searchable_ids": 176,
+        "policy": "Projected ceiling is not automatic M2 scope; custom vectors remain deferred without Owner approval."
+      }
+    },
+    "ag3": {
+      "title": "Visual Systems Research Atlas",
+      "worker": "Antigravity",
+      "status": "ASSIGNED_AWAITING_WORKER_START",
+      "owner_authorization": "GO ANTIGRAVITY AG3",
+      "source": "main@bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+      "branch": "research/ag3-visual-systems-atlas",
+      "contract": "docs/worker-briefs/AG3_ANTIGRAVITY_VISUAL_SYSTEMS_RESEARCH_ATLAS.md",
+      "contract_commit": "0678951413345d6a3ac3f06d1e86097a56ee7d40",
+      "launch_prompt": "docs/worker-briefs/AG3_ANTIGRAVITY_LAUNCH_PROMPT.md",
+      "launch_prompt_commit": "9f049ede6387adf1f6ac51cb23e32974eaedd29f",
+      "status_branch": "status/antigravity",
+      "assignment_status_sha": "aa0cf53088e34fe496bb086267df578579af5570",
+      "scope": [
+        "truthful shader control atlas with recommended safe ranges and performance tiers",
+        "curated premium Cell and Membrane palette/material shortlist",
+        "small staged M2 symbol visual-QA shortlist",
+        "visual preset recipes for M2 review and later M4 implementation",
+        "runtime power-gate and export implications"
+      ],
+      "restrictions": "research only; no production code, no Codex branch changes, no automatic catalogue expansion, no merge"
+    }
+  },
+  "qa_policy": {
+    "mode": "FAST_OWNER_QA",
+    "policy_path": "docs/governance/FAST_OWNER_QA_MODE.md",
+    "required": [
+      "focused executable contracts for changed owners",
+      "affected history persistence migration renderer export contracts",
+      "TypeScript check",
+      "exact diff check from M2 base",
+      "exactly one final production build"
+    ],
+    "browser_automation": "No exhaustive CDP matrix by default; stop harness tuning after 10 minutes",
+    "owner_review": "3-7 direct yes/no checks after WAITING_REVIEW",
+    "credit_rule": "Prioritize product implementation over redundant QA infrastructure"
+  },
+  "future_milestones": [
+    {"id": "M3A", "title": "Final Bottom Dock and Compact Quick Bar", "status": "PLANNED"},
+    {"id": "M3B", "title": "Snapping Foundation and Collapsible Snap Menu", "status": "PLANNED"},
+    {"id": "M4", "title": "Quick Materials, Presets and Material Browser/Studio", "status": "PLANNED"},
+    {"id": "M5", "title": "Straight Connections and Line Snap Extensions", "status": "PLANNED"},
+    {"id": "M6", "title": "Markup, Annotation and Auto-link Snapping", "status": "PLANNED"},
+    {"id": "M7", "title": "Advanced Arrange, Grid Presets and Snap Optimization", "status": "PLANNED"},
+    {"id": "M8", "title": "Table and Import Completion plus dense-table profiling", "status": "PLANNED"},
+    {"id": "M9", "title": "Floors, Stats and Dashboard", "status": "PLANNED"}
+  ],
+  "protected": [
+    "main without explicit Owner merge approval",
+    "Master Graph/store as sole data source",
+    "exactly one Inspector",
+    "six canonical renderer targets remain separate internally",
+    "Cell Gradient must not be removed",
+    "Off must stop feature-owned work",
+    "prototype and research branches never merge wholesale",
+    "M2 and AG3 each stop at one fixed WAITING_REVIEW head"
+  ],
+  "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
+}
