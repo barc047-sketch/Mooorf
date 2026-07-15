@@ -1,7 +1,7 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "WAITING_REVIEW",
   "task": "C0 M2 Advanced Appearance, Production Symbol Tab and Runtime Power Gates",
   "brief": "docs/worker-briefs/C0_M2_CODEX_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES.md",
   "launch_prompt": "docs/worker-briefs/C0_M2_CODEX_LAUNCH_PROMPT.md",
@@ -9,7 +9,7 @@
   "source_branch": "main",
   "source_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
   "planned_work_branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
-  "feature_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "feature_sha": "1cc8ec0c7ab756bc6b091b87014da2c3e27383d2",
   "owner_authorization": "GO CODEX M2",
   "assignment_summary": [
     "preserve exactly one Inspector with Content, Appearance and Symbol tabs",
@@ -54,14 +54,32 @@
     "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
     "docs/C0_M2_CONTROL_OWNERSHIP_MAP.md"
   ],
+  "report_paths": [
+    "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
+    "docs/C0_M2_CONTROL_OWNERSHIP_MAP.md"
+  ],
+  "verification_summary": [
+    "PASS: 14 focused executable suites covering icon registry, resource persistence/migration, M1 regressions, M2 schema/gates/history/product behavior, Classic and Organism renderers, SVG/export core and the V8.2 demand scheduler.",
+    "PASS: npx tsc -b --pretty false after the final TypeScript source change.",
+    "PASS: git diff --check bd160b8c615cdafbbdd8a76332be46b69a6e765e...HEAD at fixed feature 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2.",
+    "PASS WITH TRUTHFUL PIPELINE NOTE: exactly one npm run build invocation stopped at its TypeScript gate because the isolated Organism Lab frame lacked the new zero-default membraneEdgeSoftness field. The omission was fixed, full project-reference TypeScript passed, npm run build was not rerun, and the previously unreached Vite production stage was run exactly once with npx vite build: 2893 modules transformed; accepted large-chunk advisory only.",
+    "PASS: bounded rendered browser smoke at 1280x800 and 1440x900 proved exactly one Inspector, 133 enabled symbol cards, apply, hover preview/revert, favourite persistence and no document overflow.",
+    "PARTIAL LEGACY HARNESS: one broader pre-existing M1 browser path stalled at its controlled Area-editing guard and was stopped within Fast Owner-QA; the dedicated bounded M2 smoke passed and no product failure was reproduced."
+  ],
+  "known_limitations": [
+    "Organism SVG remains truthfully unavailable because the implicit WebGL membrane has no reusable vector path; Organism symbols export through PNG/PDF and Classic owns true-vector SVG.",
+    "Classic Membrane Edge softness uses a Canvas2D blur fallback while Organism owns the independent shader band.",
+    "Quick Bar, snapping UI/engine, Material Browser/Studio, custom architectural vectors, Connections, Annotation/Markup and broad Table redesign remain explicitly deferred.",
+    "The Vite build retains the accepted large-chunk advisory."
+  ],
   "previous_task": {
     "id": "C0 M1",
     "status": "MERGED",
     "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
     "merge_method": "protected non-forced fast-forward"
   },
-  "updated_at": "2026-07-15T20:00:33+05:30",
+  "updated_at": "2026-07-15T20:44:14+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Implement the bounded C0 M2 contract on the exact approved feature branch, run Fast Owner-QA once, push one fixed head, return to WAITING_REVIEW and stop.",
-  "next_gate": "Owner reviews the M2 fixed head using the short Fast Owner-QA checklist; explicit merge authority remains required."
+  "next_worker_action": "Owner reviews fixed feature 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2 using the five-item Fast Owner-QA checklist. Codex is stopped; no merge, M3, M4 or further QA-harness tuning is authorized.",
+  "next_gate": "Owner review of the C0 M2 fixed head; explicit merge authority remains required."
 }
