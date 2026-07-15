@@ -1,41 +1,27 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0 M1 Correction 2 Inspector Restore, Void Echo and Membrane Colour Truth",
-  "brief": "docs/worker-briefs/C0_M1_CORRECTION_2_INSPECTOR_VOID_MEMBRANE_COLOUR.md",
+  "status": "RUNNING",
+  "task": "C0 M1 Correction 3 Real UI Inspector Launch",
+  "brief": "docs/worker-briefs/C0_M1_CORRECTION_3_OWNER_PATH_INSPECTOR_LAUNCH.md",
   "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
   "contract_branch": "docs/mooorf-ai-team-operating-protocol",
   "source_branch": "feature/c0-4f-a-runtime-layer-separation",
   "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
   "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
   "feature_sha": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
-  "previous_reviewed_head": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
-  "corrected_feature_sha": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+  "previous_reviewed_head": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+  "corrected_feature_sha": null,
   "report_paths": [
     "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
     "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md"
   ],
   "owner_observed_issue_disposition": [
-    "Every registered widget launcher now generically mounts, focuses, expands and viewport-reveals its target through the existing WidgetHost/WidgetFrame and ephemeral central-store UI state.",
-    "Both Dock and Rail Inspector launchers restore the full Inspector body in one click; background focus and minimized recovery were verified in the built artifact.",
-    "The unconditional Void inner echo was removed from live Canvas2D and Classic SVG while preserving outer fill/edge, negative subtraction, selection, dragging, hit testing and persistence.",
-    "A reproduced sparse Void Edge-only edit no longer resets inherited Fill opacity; normalization now removes explicit undefined leaves.",
-    "Membrane Cell Gradient remains the unchanged default; Solid Black, Ink, MOOORF Red, Charcoal and Custom resolve through canonical persisted presentation state and the audited material registry.",
-    "Solid Organism fields set palette and spatial Cell colour mixing to zero, so no Cell-derived patches remain; Cell Gradient keeps the prior palette/spatial projection.",
-    "Correction 1 Escape, status, bottom-bar, Boundary and Core-off fixes remain executable-regression protected.",
-    "There remains exactly one Inspector: Content and Appearance are M1 tabs, Symbol is reserved as a future tab in this Inspector for M2, and Material Browser remains M4."
+    "Owner reports the visible Inspector i command still does not open the Inspector through the real application shell.",
+    "Correction 3 is tracing the actual rendered Dock and Rail pointer/keyboard command path; direct store, openWidget helper, window.lab and isolated lifecycle invocation are excluded as proof."
   ],
   "verification_summary": [
-    "all 31 src/**/*.test.ts files passed through npx --yes tsx, including executable widget lifecycle, renderer, history, persistence, import and export behavior",
-    "node --test scripts/audit-utils.test.mjs passed 4/4",
-    "npx tsc -b --pretty false passed with zero diagnostics",
-    "git diff --check 484ddeb859fcb18256a6acf7b7287e2be917aedc...c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9 passed",
-    "exactly one final npm run build passed in 15.8 seconds with the accepted Vite large-chunk warning only; main app chunk 983.99 kB / 315.98 kB gzip",
-    "deterministic built-artifact QA passed at 1440x900 and 1280x800; final browser warning/error log was empty",
-    "project snapshot, import, saved-view, live renderer and Classic SVG export contracts prove Membrane colour and Void layer parity; PNG/PDF retain the existing clean capture owner",
-    "verified preview remains available at http://127.0.0.1:4173/",
-    "origin/main remained c4600472ea76f651800c19b91cf8f67954ca992e"
+    "PENDING: real-control reproduction, browser integration tests, focused contracts, typecheck, exact diff check, one final production build and deterministic 1440x900 plus 1280x800 QA."
   ],
   "known_limitations": [
     "Membrane Field and Edge are shared project fields and therefore edit Project Defaults rather than disconnected per-Cell overrides.",
@@ -77,8 +63,8 @@
     "merge to main",
     "beginning M2"
   ],
-  "updated_at": "2026-07-15T14:26:04+05:30",
+  "updated_at": "2026-07-15T15:05:00+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Owner reviews corrected fixed head c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9; Codex stops and does not merge or begin M2.",
-  "next_gate": "Owner review of the corrected M1 head; explicit merge authority remains required."
+  "next_worker_action": "Codex reproduces and fixes only the real rendered Dock/Rail Inspector launch path, adds real-shell browser integration coverage, verifies once, pushes one corrected feature head, then returns to WAITING_REVIEW.",
+  "next_gate": "Owner review of the Correction 3 fixed head; explicit merge authority remains required."
 }
