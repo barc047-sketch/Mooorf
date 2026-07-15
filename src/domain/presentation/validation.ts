@@ -149,6 +149,15 @@ export const normalizeProjectPresentationDefaults = (
       fill: normalizePaintDefaults(voidDefaults.fill, fallback.void.fill),
       edge: normalizePaintDefaults(voidDefaults.edge, fallback.void.edge),
       edgeWidth: finiteOr(voidDefaults.edgeWidth, fallback.void.edgeWidth, 0, 64),
+      style: boundaryStyle(voidDefaults.style, fallback.void.style),
+      dashLength: finiteOr(voidDefaults.dashLength, fallback.void.dashLength, 0.25, 256),
+      gapLength: finiteOr(voidDefaults.gapLength, fallback.void.gapLength, 0.25, 256),
+      secondaryLineSpacing: finiteOr(
+        voidDefaults.secondaryLineSpacing,
+        fallback.void.secondaryLineSpacing,
+        0,
+        128
+      ),
     },
   };
 };
@@ -260,6 +269,17 @@ export const normalizeCellAppearanceOverrides = (
     fill: normalizePaintOverride(value.void.fill, defaults.void.fill),
     edge: normalizePaintOverride(value.void.edge, defaults.void.edge),
     edgeWidth: changedNumber(value.void.edgeWidth, defaults.void.edgeWidth, 0, 64),
+    style: BOUNDARY_STYLES.includes(value.void.style as BoundaryStyle) && value.void.style !== defaults.void.style
+      ? value.void.style as BoundaryStyle
+      : undefined,
+    dashLength: changedNumber(value.void.dashLength, defaults.void.dashLength, 0.25, 256),
+    gapLength: changedNumber(value.void.gapLength, defaults.void.gapLength, 0.25, 256),
+    secondaryLineSpacing: changedNumber(
+      value.void.secondaryLineSpacing,
+      defaults.void.secondaryLineSpacing,
+      0,
+      128
+    ),
   }) : undefined;
   return compact({ text, cell, boundary, membrane, membraneEdge, core, void: voidTarget });
 };

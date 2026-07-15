@@ -15,6 +15,7 @@ const placementFor = (iconId: string, targetSpaceId: string): IconPlacementSetti
   placement: "centre",
   scale: 1,
   opacity: 1,
+  tintMode: "auto",
   tint: "#171719",
   backing: "none",
   backingSize: 32,
@@ -28,14 +29,14 @@ export default function SymbolInspectorPane() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<LibraryFilter>("all");
   const selectedId = useLab((state) => state.primarySelectedId);
-  const resources = useLab((state) => state.resourcesPreview ?? state.settings.resources);
-  const canonicalResources = useLab((state) => state.settings.resources);
+  const resources = useLab((state) => state.settings.resources);
   const commitPlacement = useLab((state) => state.commitSymbolPlacement);
+  const commitSymbolPreview = useLab((state) => state.commitSymbolPreview);
   const previewPlacement = useLab((state) => state.previewSymbolPlacement);
   const cancelPreview = useLab((state) => state.cancelSymbolPreview);
   const toggleFavourite = useLab((state) => state.toggleIconFavourite);
   const current = selectedId ? resources.iconPlacements.find((placement) => placement.targetSpaceId === selectedId) ?? null : null;
-  const canonical = selectedId ? canonicalResources.iconPlacements.find((placement) => placement.targetSpaceId === selectedId) ?? null : null;
+  const canonical = current;
   const categories = useMemo(() => [...new Set(iconRegistry.list().map((item) => item.category))], []);
   const visible = useMemo(() => {
     const searched = iconRegistry.search(query);
@@ -63,7 +64,7 @@ export default function SymbolInspectorPane() {
   };
   const commitPreview = () => {
     if (!selectedId || !current) return;
-    commitPlacement(selectedId, current);
+    commitSymbolPreview();
   };
   const placementSlider = (label: string, key: "offsetX" | "offsetY" | "scale" | "rotation" | "backingSize" | "backingOffsetX" | "backingOffsetY" | "backingOpacity" | "backingOutlineWidth" | "hideBelowZoom", min: number, max: number, step: number, percent = false) => current ? <SliderRow
     label={label}
@@ -77,7 +78,7 @@ export default function SymbolInspectorPane() {
   /> : null;
 
   return <div className="m1-pane m2-symbol-pane" role="tabpanel">
-    {!selectedId && <p className="m1-empty-note">Select a Cell to apply, replace, preview or remove its primary symbol.</p>}
+    {!selectedId && <p className="m1-empty-note">Select a Cell or Void to apply, replace, preview or remove its primary symbol.</p>}
     <section className="m1-section">
       <div className="m2-symbol-search"><Search size={13} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search symbols" aria-label="Search symbols" /></div>
       <div className="m2-symbol-filters" role="radiogroup" aria-label="Symbol categories">
@@ -114,7 +115,8 @@ export default function SymbolInspectorPane() {
       {placementSlider("Offset Y", "offsetY", -128, 128, 1)}
       {placementSlider("Scale", "scale", 0.1, 4, 0.05, true)}
       {placementSlider("Rotation", "rotation", 0, 359, 1)}
-      <label className="m1-colour-row"><span>Symbol tint</span><input type="color" value={current.tint} aria-label="Symbol tint" onChange={(event) => commitPatch({ tint: event.target.value })} /></label>
+      <ChipRow options={[{ id: "auto", label: "Auto Contrast" }, { id: "custom", label: "Custom" }]} value={current.tintMode} onChange={(tintMode) => commitPatch({ tintMode })} ariaLabel="Symbol tint mode" />
+      {current.tintMode === "custom" && <label className="m1-colour-row"><span>Symbol tint</span><input type="color" value={current.tint} aria-label="Symbol tint" onChange={(event) => commitPatch({ tint: event.target.value })} /></label>}
       <span className="org-subcap">backing type</span>
       <ChipRow options={(["none", "circle", "square", "pill"] as const).map((id) => ({ id, label: id }))} value={current.backing} onChange={(backing) => commitPatch({ backing })} ariaLabel="Symbol backing type" />
       {current.backing !== "none" && <>

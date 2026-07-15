@@ -16,7 +16,7 @@ import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
 import { resolveCellShadowGated } from "./cellShadow";
 import { iconRegistry } from "../icons/iconRegistry";
-import { drawSymbolPlacement } from "../icons/iconDrawing";
+import { drawSymbolPlacement, resolveSymbolTint } from "../icons/iconDrawing";
 import type { ResourceSettings } from "../resources/types";
 import { projectSelectionOverlay } from "../interaction/selection";
 import type { ProjectPresentationDefaults } from "../domain/presentation/types";
@@ -272,10 +272,23 @@ export function drawScene(
         ctx.restore();
       }
       drawCircleLayers(ctx, sx, sy, layers, { cell: false, void: false });
-      const symbolPlacement = blob.resources.iconPlacements.find((placement) => placement.targetSpaceId === c.id);
-      const symbolDefinition = symbolPlacement ? iconRegistry.get(symbolPlacement.iconId) : null;
-      if (symbolPlacement && symbolDefinition) drawSymbolPlacement(ctx, symbolDefinition, symbolPlacement, { x: sx, y: sy, radius: r, zoom: z });
     }
+
+    const symbolPlacement = blob.resources.iconPlacements.find((placement) => placement.targetSpaceId === c.id);
+    const symbolDefinition = symbolPlacement ? iconRegistry.get(symbolPlacement.iconId) : null;
+    if (symbolPlacement && symbolDefinition) drawSymbolPlacement(ctx, symbolDefinition, symbolPlacement, {
+      x: sx,
+      y: sy,
+      radius: r,
+      zoom: z,
+      tint: resolveSymbolTint(symbolPlacement, {
+        theme,
+        backgroundColor: isVoid ? appearance.void.fill.colour : appearance.cell.paint.colour,
+        surfaceOpacity: isVoid ? appearance.void.fill.opacity : appearance.cell.paint.opacity,
+        canvasColor: tokens.surface,
+        voidBackground: isVoid,
+      }),
+    });
 
     /* Selection is one external presentation-only ring. It never enters
        radius, position, Morph geometry, material, or field calculations. */

@@ -30,6 +30,7 @@ equal(normalizedIconReferences.iconPlacements[0]?.iconId, "icon:architecture:doo
 equal(normalizedIconReferences.iconPlacements[1]?.iconId, "icon:missing", "unknown icon IDs remain recoverable");
 equal(normalizedIconReferences.iconPlacements[0]?.placement, "centre", "legacy placement migrates to the canonical centre preset");
 equal(normalizedIconReferences.iconPlacements[0]?.backingSize, 32, "legacy placement receives canonical backing geometry defaults");
+equal(normalizedIconReferences.iconPlacements[0]?.tintMode, "custom", "legacy tint remains visibly authored after v3 migration");
 
 const settings = {
   rendererMode: "organism" as const, morphMode: "cellular-reverse" as const, attachMode: "soft" as const,
@@ -58,6 +59,7 @@ ok(resourceCatalogue.search("aurora").some((entry) => entry.id === "palette:edit
 ok(resourceCatalogue.list({ status: "future" }).every((entry) => entry.status === "future"), "catalogue filters future resources");
 equal(resourceCatalogue.list({ kind: "icon", status: "active" }).length, 133, "catalogue discovers the approved M2 drawable symbols");
 equal(resourceCatalogue.listByTarget("icon", "space").length, 133, "catalogue filters drawable symbols by Cell target");
+equal(resourceCatalogue.listByTarget("icon", "void").length, 133, "catalogue filters drawable symbols by Void target");
 equal(resourceCatalogue.list({ kind: "grid", status: "future" }).length, 6, "catalogue reports all metadata-only grid presets truthfully");
 equal(resourceCatalogue.getById("icon", "icon:door")?.id, "icon:architecture:door", "catalogue resolves legacy icon aliases");
 equal(resourceCatalogue.normalizeReadyIds(["icon:door", "icon:architecture:door", "icon:missing"]).join(","), "icon:architecture:door", "favourites and recents normalize to canonical known IDs");

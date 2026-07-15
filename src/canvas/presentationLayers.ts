@@ -167,6 +167,10 @@ export interface CircleVoidProjection {
   edgeOpacity: number;
   edgeWidthPx: number;
   lineDashPx: readonly number[];
+  requestedStyle: BoundaryStyle;
+  renderedStyle: BoundaryStyle;
+  fallback: BoundaryStrokeProjection["fallback"];
+  strokes: readonly CircleStrokeProjection[];
 }
 
 export interface CircleLayerProjection {
@@ -179,17 +183,24 @@ export interface CircleLayerProjection {
 /** Boundary width and offset are world-scaled. This keeps live Canvas
  * geometry deterministic and gives a future vector exporter the same values
  * without coupling either appearance field to Cell area or hit testing. */
-export const resolveBoundaryStroke = (
-  boundary: ResolvedBoundaryAppearance,
+type StrokeStyleProjectionInput = Pick<
+  ResolvedBoundaryAppearance,
+  "style" | "width" | "dashLength" | "gapLength" | "secondaryLineSpacing"
+> & Partial<Pick<ResolvedBoundaryAppearance, "offset" | "alignment">>;
+
+/** Canonical six-style stroke projection shared by Cell Boundary and Void Edge. */
+export const resolveStrokeStyleProjection = (
+  boundary: StrokeStyleProjectionInput,
   zoom: number,
   _renderer: RuntimeRendererKind
 ): BoundaryStrokeProjection => {
   const scale = Number.isFinite(zoom) ? Math.max(0, zoom) : 0;
   const widthPx = boundary.width * scale;
-  const offsetPx = boundary.offset * scale;
-  const alignmentDelta = boundary.alignment === "inner"
+  const offsetPx = (boundary.offset ?? 0) * scale;
+  const alignment = boundary.alignment ?? "centre";
+  const alignmentDelta = alignment === "inner"
     ? -widthPx / 2
-    : boundary.alignment === "outer"
+    : alignment === "outer"
       ? widthPx / 2
       : 0;
   const radiusDeltaPx = offsetPx + alignmentDelta;
@@ -226,6 +237,12 @@ export const resolveBoundaryStroke = (
   };
 };
 
+export const resolveBoundaryStroke = (
+  boundary: ResolvedBoundaryAppearance,
+  zoom: number,
+  renderer: RuntimeRendererKind
+): BoundaryStrokeProjection => resolveStrokeStyleProjection(boundary, zoom, renderer);
+
 /** Projects presentation-only circle instructions around an existing renderer
  * radius. It never derives or returns area, hit, clearance, or field geometry. */
 export const projectCircleLayers = (
@@ -237,6 +254,27 @@ export const projectCircleLayers = (
 ): CircleLayerProjection => {
   const radius = Number.isFinite(radiusPx) ? Math.max(0, radiusPx) : 0;
   if (space.kind === "void") {
+    const stroke = resolveStrokeStyleProjection({
+      style: appearance.void.style,
+      width: appearance.void.edgeWidth,
+      dashLength: appearance.void.dashLength,
+      gapLength: appearance.void.gapLength,
+      secondaryLineSpacing: appearance.void.secondaryLineSpacing,
+    }, zoom, renderer);
+    const strokes = appearance.void.edgeVisible && stroke.widthPx > 0
+      ? stroke.radiiDeltaPx
+        .map((delta) => radius + delta)
+        .filter((projectedRadius) => projectedRadius > 0)
+        .map((projectedRadius) => ({
+          radiusPx: projectedRadius,
+          widthPx: stroke.widthPx,
+          colour: appearance.void.edge.colour,
+          opacity: appearance.void.edge.opacity,
+          lineDashPx: stroke.lineDashPx,
+          lineCap: stroke.lineCap,
+          renderedStyle: stroke.renderedStyle,
+        }))
+      : [];
     return {
       cell: null,
       boundary: null,
@@ -249,8 +287,12 @@ export const projectCircleLayers = (
         fillOpacity: appearance.void.fill.opacity,
         edgeColour: appearance.void.edge.colour,
         edgeOpacity: appearance.void.edge.opacity,
-        edgeWidthPx: appearance.void.edgeWidth * Math.max(0, zoom),
-        lineDashPx: [5 * Math.max(0, zoom), 5 * Math.max(0, zoom)],
+        edgeWidthPx: stroke.widthPx,
+        lineDashPx: stroke.lineDashPx,
+        requestedStyle: stroke.requestedStyle,
+        renderedStyle: stroke.renderedStyle,
+        fallback: stroke.fallback,
+        strokes,
       } : null,
     };
   }
@@ -323,16 +365,19 @@ export const drawCircleLayers = (
       ctx.fill();
       ctx.restore();
     }
-    if (layer.edgeVisible && layer.edgeWidthPx > 0) {
-      ctx.save();
-      ctx.strokeStyle = layer.edgeColour;
-      ctx.lineWidth = layer.edgeWidthPx;
-      ctx.globalAlpha *= layer.edgeOpacity;
-      ctx.setLineDash([...layer.lineDashPx]);
-      ctx.beginPath();
-      ctx.arc(x, y, layer.radiusPx, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
+    if (layer.edgeVisible) {
+      for (const stroke of layer.strokes) {
+        ctx.save();
+        ctx.strokeStyle = stroke.colour;
+        ctx.lineWidth = stroke.widthPx;
+        ctx.lineCap = stroke.lineCap;
+        ctx.globalAlpha *= stroke.opacity;
+        ctx.setLineDash([...stroke.lineDashPx]);
+        ctx.beginPath();
+        ctx.arc(x, y, stroke.radiusPx, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 

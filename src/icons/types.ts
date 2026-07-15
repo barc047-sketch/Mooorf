@@ -7,7 +7,8 @@ export type IconCategory =
 export type IconSourceType = "lucide" | "local-svg" | "local-png" | "uploaded";
 export type IconBacking = "none" | "circle" | "square" | "pill";
 export type IconPlacementPreset = "centre" | "above" | "below" | "top-left" | "top-right";
-export type IconTarget = "space";
+export type IconTarget = "space" | "void";
+export type IconTintMode = "auto" | "custom";
 export type IconOrigin = "lucide" | "mooorf-original" | "user-supplied";
 export type IconUsage = "drawable-symbol" | "ui-control";
 export type IconValidationStatus = "approved" | "pending" | "rejected";
@@ -44,6 +45,7 @@ export interface IconPlacementSettings {
   scale: number;
   rotation: number;
   opacity: number;
+  tintMode: IconTintMode;
   tint: string;
   backing: IconBacking;
   backingSize: number;

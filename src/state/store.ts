@@ -29,7 +29,7 @@ import { clamp, scatterPoint } from "../lib/geometry";
 import { DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
-import { applyLayoutPreset as arrangeLayoutPreset } from "../canvas/layoutPresets";
+import { applyLayoutPreset as arrangeLayoutPreset, placeBatchCells } from "../canvas/layoutPresets";
 import { normalizeUiScale, normalizeWidgetScale } from "./uiScale";
 import { readinessCanAdvance } from "../ui/readiness";
 import {
@@ -84,7 +84,6 @@ import {
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
-const TAU = Math.PI * 2;
 const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 export const SAVED_VIEWS_LIMIT = 20;
 const TRANSFORM_HISTORY_LIMIT = 50;
@@ -99,6 +98,11 @@ interface CellHistorySnapshot extends SpaceEditSnapshot {
   id: string;
   body: string;
   appearance?: CellAppearanceOverrides;
+}
+
+interface SelectionSnapshot {
+  selectedIds: string[];
+  primarySelectedId: string | null;
 }
 
 interface MembraneRuntimeSnapshot {
@@ -122,6 +126,7 @@ interface StyleClipboard {
 
 type SpaceHistoryEntry =
   | { kind: "transform"; before: SpacePosition[]; after: SpacePosition[] }
+  | { kind: "batch-add"; added: SpaceCell[]; beforeSelection: SelectionSnapshot; afterSelection: SelectionSnapshot }
   | { kind: "cells"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[] }
   | { kind: "defaults"; before: ProjectPresentationDefaults; after: ProjectPresentationDefaults }
   | { kind: "membrane-runtime"; before: MembraneRuntimeSnapshot; after: MembraneRuntimeSnapshot }
@@ -271,6 +276,7 @@ interface LabState {
   commitVisualSettingsPreview: () => void;
   cancelVisualSettingsPreview: () => void;
   commitSymbolPlacement: (targetSpaceId: string, placement: IconPlacementSettings | null) => void;
+  commitSymbolPreview: () => void;
   previewSymbolPlacement: (targetSpaceId: string, placement: IconPlacementSettings | null) => void;
   cancelSymbolPreview: () => void;
   toggleIconFavourite: (iconId: string) => void;
@@ -406,6 +412,12 @@ const applyHistoryEntry = (
   direction: "before" | "after"
 ): SpaceCell[] => {
   if (entry.kind === "transform") return applySpacePositions(spaces, entry[direction]);
+  if (entry.kind === "batch-add") {
+    const addedIds = new Set(entry.added.map((space) => space.id));
+    if (direction === "before") return spaces.filter((space) => !addedIds.has(space.id));
+    const liveIds = new Set(spaces.map((space) => space.id));
+    return [...spaces, ...entry.added.filter((space) => !liveIds.has(space.id)).map(cloneSpace)];
+  }
   if (entry.kind === "defaults" || entry.kind === "membrane-runtime" || entry.kind === "visual-settings" || entry.kind === "resources") return [...spaces];
   const values = new Map(entry[direction].map((value) => [value.id, value]));
   return spaces.map((space) => {
@@ -872,20 +884,31 @@ export const useLab = create<LabState>((set) => ({
       const total = Math.max(0, Math.floor(count));
       if (total === 0) return {};
       const now = Date.now();
-      const ringR = 58;
-      const added = Array.from({ length: total }, (_, k) => {
-        const center = k === 0;
-        const angle = -Math.PI / 2 + ((Math.max(k - 1, 0) / Math.max(total - 1, 1)) * TAU);
-        const radius = center ? 0 : ringR * (k % 2 === 0 ? 1 : 0.82);
-        return makeCell(s.spaces.length + k, {
-          x: s.camera.x + Math.cos(angle) * radius,
-          y: s.camera.y + Math.sin(angle) * radius,
+      const candidates = Array.from({ length: total }, (_, k) =>
+        makeCell(s.spaces.length + k, {
           born: now + k * 45,
-        });
-      });
+        })
+      );
+      const added = placeBatchCells(s.spaces, candidates, { x: s.camera.x, y: s.camera.y });
+      const beforeSelection: SelectionSnapshot = {
+        selectedIds: [...s.selectedIds],
+        primarySelectedId: s.primarySelectedId,
+      };
+      const afterSelection: SelectionSnapshot = {
+        selectedIds: added.map((space) => space.id),
+        primarySelectedId: added[added.length - 1]?.id ?? null,
+      };
+      const entry: SpaceHistoryEntry = {
+        kind: "batch-add",
+        added: added.map(cloneSpace),
+        beforeSelection,
+        afterSelection,
+      };
       return {
         spaces: [...s.spaces, ...added],
-        ...(added.length > 0 ? replaceSelectionState(added[added.length - 1].id) : selectionFromState(s)),
+        ...normalizeSelectionState(afterSelection),
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
       };
     }),
 
@@ -1274,6 +1297,21 @@ export const useLab = create<LabState>((set) => ({
       };
     }),
 
+  commitSymbolPreview: () =>
+    set((s) => {
+      if (!s.resourcesPreview) return {};
+      const before = cloneResourceSettings(s.settings.resources);
+      const after = cloneResourceSettings(s.resourcesPreview);
+      if (JSON.stringify(before) === JSON.stringify(after)) return { resourcesPreview: null };
+      const entry: SpaceHistoryEntry = { kind: "resources", before, after };
+      return {
+        settings: { ...s.settings, resources: after },
+        resourcesPreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
   previewSymbolPlacement: (targetSpaceId, placement) =>
     set((s) => ({ resourcesPreview: withSymbolPlacement(s.settings.resources, targetSpaceId, placement, false) })),
 
@@ -1319,6 +1357,7 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const entry = s.transformUndoStack[s.transformUndoStack.length - 1];
       if (!entry) return {};
+      const historySelection = entry.kind === "batch-add" ? entry.beforeSelection : null;
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "before"),
         settings: entry.kind === "defaults"
@@ -1337,6 +1376,7 @@ export const useLab = create<LabState>((set) => ({
         membraneRuntimePreview: null,
         visualSettingsPreview: null,
         resourcesPreview: null,
+        ...(historySelection ? normalizeSelectionState(historySelection) : {}),
         transformUndoStack: s.transformUndoStack.slice(0, -1),
         transformRedoStack: [...s.transformRedoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
       };
@@ -1346,6 +1386,7 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const entry = s.transformRedoStack[s.transformRedoStack.length - 1];
       if (!entry) return {};
+      const historySelection = entry.kind === "batch-add" ? entry.afterSelection : null;
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "after"),
         settings: entry.kind === "defaults"
@@ -1364,6 +1405,7 @@ export const useLab = create<LabState>((set) => ({
         membraneRuntimePreview: null,
         visualSettingsPreview: null,
         resourcesPreview: null,
+        ...(historySelection ? normalizeSelectionState(historySelection) : {}),
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: s.transformRedoStack.slice(0, -1),
       };
@@ -1392,14 +1434,27 @@ export const useLab = create<LabState>((set) => ({
 
   applyLayoutPreset: (presetId) =>
     set((s) => {
-      const spaces = arrangeLayoutPreset(s.spaces, presetId, {
-        centerX: s.camera.x,
-        centerY: s.camera.y,
-      });
+      const arrangedIds = s.selectedIds.length > 0
+        ? s.selectedIds.filter((id) => s.spaces.some((space) => space.id === id))
+        : visibleSelectableIds(s.spaces, s.settings.rendererMode);
+      const arrangedIdSet = new Set(arrangedIds);
+      const beforeSubset = s.spaces.filter((space) => arrangedIdSet.has(space.id));
+      const afterSubset = arrangeLayoutPreset(beforeSubset, presetId);
+      const afterById = new Map(afterSubset.map((space) => [space.id, space]));
+      const spaces = s.spaces.map((space) => afterById.get(space.id) ?? space);
+      const before = beforeSubset.map(({ id, x, y }) => ({ id, x, y }));
+      const after = afterSubset.map(({ id, x, y }) => ({ id, x, y }));
+      const entry: SpaceHistoryEntry | null = isMeaningfulSpaceTransform(before, after)
+        ? { kind: "transform", before, after }
+        : null;
       return {
         spaces,
         settings: { ...s.settings, layoutPreset: presetId },
         ...normalizeSelectionState(selectionFromState(s), new Set(spaces.map((space) => space.id))),
+        ...(entry ? {
+          transformUndoStack: pushHistory(s.transformUndoStack, entry),
+          transformRedoStack: [],
+        } : {}),
       };
     }),
 

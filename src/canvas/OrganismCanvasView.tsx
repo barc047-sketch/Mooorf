@@ -62,7 +62,7 @@ import { resolveLabelContrast } from "../design/labelContrast";
 import { resolveCellShadowGated } from "./cellShadow";
 import { resolveRuntimeGates } from "./runtimeGates";
 import { iconRegistry } from "../icons/iconRegistry";
-import { drawSymbolPlacement } from "../icons/iconDrawing";
+import { drawSymbolPlacement, resolveSymbolTint } from "../icons/iconDrawing";
 import {
   drawOrganismCircleOverlay,
   projectCircleLayers,
@@ -502,11 +502,18 @@ export default function OrganismCanvasView() {
         });
         const placement = settings.resources.iconPlacements.find((item) => item.targetSpaceId === nucleus.id);
         const definition = placement ? iconRegistry.get(placement.iconId) : null;
-        if (placement && definition && space.kind !== "void") drawSymbolPlacement(presentationCtx, definition, placement, {
+        if (placement && definition) drawSymbolPlacement(presentationCtx, definition, placement, {
           x: nucleus.sx,
           y: nucleus.sy,
           radius: nucleus.screenR,
           zoom: cam.zoom,
+          tint: resolveSymbolTint(placement, {
+            theme,
+            backgroundColor: space.kind === "void" ? appearance.void.fill.colour : appearance.cell.paint.colour,
+            surfaceOpacity: space.kind === "void" ? appearance.void.fill.opacity : appearance.cell.paint.opacity,
+            canvasColor: `#${cachedPalette.ground.map((value) => Math.round(value * 255).toString(16).padStart(2, "0")).join("")}`,
+            voidBackground: space.kind === "void",
+          }),
         });
       }
       presentationCanvas.dataset.boundaryFallbackCount = "0";

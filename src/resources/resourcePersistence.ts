@@ -7,7 +7,7 @@ import { normalizeMaterialBinding } from "../materials/materialValidation";
 import type { MaterialBinding, MaterialBindings } from "../materials/types";
 import type { ResourceSettings } from "./types";
 
-export const RESOURCE_SCHEMA_VERSION = 2 as const;
+export const RESOURCE_SCHEMA_VERSION = 3 as const;
 
 const binding = (materialId: string, sourceMode: MaterialBinding["sourceMode"] = "global"): MaterialBinding => ({ materialId, parameterOverrides: {}, sourceMode, opacity: 1, enabled: true });
 

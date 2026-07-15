@@ -22,7 +22,7 @@ import { projectCircleLayers, projectRuntimePresentation } from "../canvas/prese
 import type { ResourceSettings } from "../resources/types";
 import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 import { iconRegistry } from "../icons/iconRegistry";
-import { symbolSvgMarkup } from "../icons/iconDrawing";
+import { resolveSymbolTint, symbolSvgMarkup } from "../icons/iconDrawing";
 
 const FONT =
   '"Inter Tight","Neue Haas Grotesk Display Pro","Helvetica Neue",Helvetica,Arial,sans-serif';
@@ -132,7 +132,9 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
       const layer = layers.void;
       if (layer.fillVisible) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.radiusPx}" fill="${layer.fillColour}" fill-opacity="${layer.fillOpacity}" />`);
       if (layer.edgeVisible) {
-        parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.radiusPx}" fill="none" stroke="${layer.edgeColour}" stroke-opacity="${layer.edgeOpacity}" stroke-width="${layer.edgeWidthPx}" stroke-dasharray="${layer.lineDashPx.join(" ")}" />`);
+        for (const stroke of layer.strokes) {
+          parts.push(`<circle cx="${cx}" cy="${cy}" r="${stroke.radiusPx}" fill="none" stroke="${stroke.colour}" stroke-opacity="${stroke.opacity}" stroke-width="${stroke.widthPx}" stroke-dasharray="${stroke.lineDashPx.join(" ")}" stroke-linecap="${stroke.lineCap}" data-void-edge-style="${stroke.renderedStyle}" />`);
+        }
       }
     } else {
       if (layers.cell) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layers.cell.radiusPx}" fill="${layers.cell.colour}" fill-opacity="${layers.cell.opacity}"${resolvedShadow.enabled && resolvedShadow.includeInExport ? ' filter="url(#cell-shadow)"' : ""} />`);
@@ -142,10 +144,23 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
         }
       }
       if (layers.core) parts.push(`<circle cx="${cx + (layers.core.offsetXPx ?? 0)}" cy="${cy + (layers.core.offsetYPx ?? 0)}" r="${layers.core.radiusPx}" fill="${layers.core.colour}" fill-opacity="${layers.core.opacity}" />`);
-      const placement = resources.iconPlacements.find((item) => item.targetSpaceId === cell.id);
-      const definition = placement ? iconRegistry.get(placement.iconId) : null;
-      if (placement && definition) parts.push(symbolSvgMarkup(definition, placement, { x: cx, y: cy, radius: r, zoom: z }));
     }
+
+    const placement = resources.iconPlacements.find((item) => item.targetSpaceId === cell.id);
+    const definition = placement ? iconRegistry.get(placement.iconId) : null;
+    if (placement && definition) parts.push(symbolSvgMarkup(definition, placement, {
+      x: cx,
+      y: cy,
+      radius: r,
+      zoom: z,
+      tint: resolveSymbolTint(placement, {
+        theme,
+        backgroundColor: isVoid ? appearance.void.fill.colour : appearance.cell.paint.colour,
+        surfaceOpacity: isVoid ? appearance.void.fill.opacity : appearance.cell.paint.opacity,
+        canvasColor: background ?? (theme === "night" ? "#070707" : "#f5f6ee"),
+        voidBackground: isVoid,
+      }),
+    }));
 
     if (includeLabels) {
       const text = appearance.text;

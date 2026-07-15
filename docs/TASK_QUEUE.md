@@ -1,7 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
-- [x] C0-M2 Advanced Appearance, Production Symbol Tab and Runtime Power Gates (feature implementation complete; `WAITING_REVIEW`; do not merge or start M3/M4)
+- [x] C0-M2 Advanced Appearance, Production Symbol Tab and Runtime Power Gates (Correction 1 complete on the feature branch; `WAITING_REVIEW`; do not merge or start M3/M4/M5)
 - [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 4 complete; global `I` uses the canonical Inspector lifecycle in Canvas/Table; historical feature branch remains unmerged)
 - [x] C0.4F-A Runtime Layer Separation (feature implementation complete; `WAITING_REVIEW`; do not merge)
 - [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
@@ -45,9 +45,14 @@
 - [x] 77-symbol audited input reconciled to 133 active unique geometries after 3 rejected removals + exactly 59 verified additions
 - [x] 14 new deterministic aliases, all 5 rejected IDs unavailable, 8+12 custom candidates deferred
 - [x] Symbol search/categories/recents/favourites/keyboard/hover preview/revert/apply/replace/remove
-- [x] one symbol per Cell plus persisted preset/offset/scale/rotation/tint/backing/outline/far-zoom controls
+- [x] canonical-pane versus ephemeral-Canvas symbol preview split with one preview-commit owner and no hover/focus geometry loop
+- [x] one symbol per Cell or Void plus persisted preset/offset/scale/rotation/Auto Contrast or Custom tint/backing/outline/far-zoom controls
+- [x] legacy symbol tint migration preserves the visible Custom tint; all 133 approved symbols declare Cell and Void targets
 - [x] bounded history, migration, project/import/saved-view and Copy/Paste Style placement/backing parity
 - [x] Classic/Organism live Canvas, PNG/PDF and clean Classic SVG symbol parity
+- [x] current layout presets use canonical visible/all-versus-selected scope, preserve subset centroid/non-position data and create one history transaction
+- [x] Area-aware collision-cleared Add Cells placement, new-batch multi-selection and one-step batch Undo/Redo
+- [x] Void Edge defaults solid and owns its own values through the same current-six-style control/projection used by Boundary
 - [x] focused executable contracts, TypeScript and 1280/1440 bounded browser smoke
 - [ ] Owner review / independent audit and explicit merge command
 - [ ] M3/M4 remain blocked and unstarted

@@ -765,8 +765,8 @@ async function runViewport(client, viewport) {
   })()`, "Dock activation did not restore Inspector to the viewport");
   evidence.canvas.inspectorAfterRecovery = (await assertInspector(client, sessionId, viewport, "Canvas Dock off-screen recovery")).rect;
 
-  // C0 M2 — promote the existing seam inside this same Inspector and exercise
-  // apply + pointer preview/revert + favourites through rendered controls.
+  // C0 M2 — exercise canonical apply, pointer/keyboard preview stability and
+  // favourites through rendered controls inside the one existing Inspector.
   await pointerClick(client, sessionId, 'button[aria-label="Add Space"]');
   await pointerClickTextButton(client, sessionId, '.m1-tabs button', "symbol");
   await waitFor(client, sessionId, `document.querySelectorAll('.m1-tabs button').length === 3 && document.querySelectorAll('.m2-symbol-apply:not(:disabled)').length === 133`, "M2 Symbol tab did not expose the exact audited library");
@@ -778,8 +778,30 @@ async function runViewport(client, viewport) {
     return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, name: button.querySelector('span')?.textContent };
   }))()`);
   assert.equal(cards.length, 2, "two symbol cards are available for preview/revert");
+  const canonicalPane = await evaluate(client, sessionId, `(() => {
+    const pane = document.querySelector('.m2-symbol-pane');
+    const placement = [...document.querySelectorAll('.m2-symbol-pane .m1-section')].find((section) => section.textContent?.includes('Placement & backing'));
+    const rect = placement?.getBoundingClientRect();
+    return { active: document.querySelector('.m2-symbol-card[data-active="true"] .m2-symbol-apply span')?.textContent, scrollTop: pane?.scrollTop ?? 0, placement: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null };
+  })()`);
   await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: cards[1].x, y: cards[1].y }, sessionId);
-  await waitFor(client, sessionId, `document.querySelector('.m2-symbol-card[data-active="true"] .m2-symbol-apply span')?.textContent === ${JSON.stringify(cards[1].name)}`, "hover preview did not project the candidate symbol");
+  await delay(180);
+  const pointerPreviewPane = await evaluate(client, sessionId, `(() => {
+    const pane = document.querySelector('.m2-symbol-pane');
+    const placement = [...document.querySelectorAll('.m2-symbol-pane .m1-section')].find((section) => section.textContent?.includes('Placement & backing'));
+    const rect = placement?.getBoundingClientRect();
+    return { active: document.querySelector('.m2-symbol-card[data-active="true"] .m2-symbol-apply span')?.textContent, scrollTop: pane?.scrollTop ?? 0, placement: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null };
+  })()`);
+  assert.deepEqual(pointerPreviewPane, canonicalPane, "pointer preview does not remount, move or scroll canonical Symbol controls");
+  await evaluate(client, sessionId, `document.querySelectorAll('.m2-symbol-apply:not(:disabled)')[1]?.focus()`);
+  await delay(180);
+  const keyboardPreviewPane = await evaluate(client, sessionId, `(() => {
+    const pane = document.querySelector('.m2-symbol-pane');
+    const placement = [...document.querySelectorAll('.m2-symbol-pane .m1-section')].find((section) => section.textContent?.includes('Placement & backing'));
+    const rect = placement?.getBoundingClientRect();
+    return { active: document.querySelector('.m2-symbol-card[data-active="true"] .m2-symbol-apply span')?.textContent, scrollTop: pane?.scrollTop ?? 0, placement: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null };
+  })()`);
+  assert.deepEqual(keyboardPreviewPane, canonicalPane, "keyboard preview does not remount, move or scroll canonical Symbol controls");
   await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: 1, y: 1 }, sessionId);
   await waitFor(client, sessionId, `document.querySelector('.m2-symbol-card[data-active="true"] .m2-symbol-apply span')?.textContent === ${JSON.stringify(appliedSymbol)}`, "pointer leave did not revert to the canonical symbol");
   await evaluate(client, sessionId, `document.querySelector('.m2-symbol-card:first-child .m2-symbol-star')?.scrollIntoView({ block: 'center' })`);

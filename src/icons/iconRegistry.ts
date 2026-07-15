@@ -1,6 +1,6 @@
 import type { IconCategory, IconDefinition, IconTarget } from "./types";
 
-const SPACE_TARGETS = Object.freeze(["space"] as const);
+const SPACE_TARGETS = Object.freeze(["space", "void"] as const);
 const LUCIDE_ATTRIBUTION_URL = "https://lucide.dev/license";
 
 const lucideSymbol = (

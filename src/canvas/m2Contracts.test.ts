@@ -18,7 +18,7 @@ const appearance = normalizeProjectPresentationDefaults({
   membraneEdge: { ...settings.presentationDefaults.membraneEdge, softness: 0.62 },
   core: { ...settings.presentationDefaults.core, offsetX: 14, offsetY: -9 },
 }, settings);
-assert.equal(appearance.schemaVersion, 4);
+assert.equal(appearance.schemaVersion, 5);
 assert.equal(appearance.membraneEdge.softness, 0.62);
 assert.equal(appearance.core.offsetX, 14);
 assert.equal(appearance.core.offsetY, -9);
@@ -69,8 +69,8 @@ const moving = {
 assert.equal(resolveOrganism(moving).motionActive, true);
 assert.equal(resolveOrganism({ ...moving, organism: { ...moving.organism, motionEnabled: false } }).motionActive, false);
 
-// Resource v2 migration owns full placement/backing and normalizes one symbol per Cell.
-assert.equal(RESOURCE_SCHEMA_VERSION, 2);
+// Resource v3 migration owns full placement/backing, tint mode and one symbol per Cell/Void.
+assert.equal(RESOURCE_SCHEMA_VERSION, 3);
 const placement = normalizeIconPlacement({
   iconId: "icon:door",
   targetSpaceId: "space-a",
@@ -95,6 +95,7 @@ assert.equal(placement.placement, "top-right");
 assert.equal(placement.offsetX, 128);
 assert.equal(placement.offsetY, -128);
 assert.equal(placement.tint, "#aabbcc");
+assert.equal(placement.tintMode, "custom", "legacy visible tint migrates without a visual change");
 assert.equal(placement.backingOutline, true);
 
 const resources = normalizeResourceSettings({

@@ -4,7 +4,7 @@ import type { IconPlacementSettings } from "../icons/types";
 import type { MaterialBindings } from "../materials/types";
 
 export interface ResourceSettings {
-  schemaVersion: 2;
+  schemaVersion: 3;
   materialBindings: MaterialBindings;
   grid: GridSettings;
   annotationInstances: AnnotationInstance[];

@@ -171,6 +171,10 @@ export const resolveCellAppearance = (
       fill: resolvedPaint(defaults.void.fill, overrides?.void?.fill, "void-fill", (id) => nucleusFor(id).fill),
       edge: resolvedPaint(defaults.void.edge, overrides?.void?.edge, "void-edge", (id) => nucleusFor(id).ring),
       edgeWidth: overrides?.void?.edgeWidth ?? defaults.void.edgeWidth,
+      style: overrides?.void?.style ?? defaults.void.style,
+      dashLength: overrides?.void?.dashLength ?? defaults.void.dashLength,
+      gapLength: overrides?.void?.gapLength ?? defaults.void.gapLength,
+      secondaryLineSpacing: overrides?.void?.secondaryLineSpacing ?? defaults.void.secondaryLineSpacing,
       semantics: {
         subtractive: true,
         areaContribution: 0,

@@ -167,6 +167,27 @@ function PaintControls({ api, path = "paint", label = "Colour" }: {
   );
 }
 
+type TargetApi = Parameters<Parameters<typeof TargetSettings>[0]["children"]>[0];
+
+/** One current six-style control owner shared by Boundary and Void Edge. */
+function StrokeStyleControls({ api, label }: { api: TargetApi; label: string }) {
+  const style = api.value(["style"], "solid");
+  const technical = style.value !== "solid";
+  return <>
+    <ChipRow
+      options={BOUNDARY_STYLES.map((id) => ({ id, label: id === "segmented-bars" ? "Bars" : id }))}
+      value={style.value as typeof BOUNDARY_STYLES[number]}
+      onChange={(next) => api.commit({ style: next })}
+      ariaLabel={`${label} style`}
+    />
+    {technical && <>
+      <SliderRow label="Dash / bar length" value={Number(api.value(["dashLength"], 8).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ dashLength: value })} onChangeEnd={api.commitPreview} />
+      <SliderRow label="Gap length" value={Number(api.value(["gapLength"], 6).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ gapLength: value })} onChangeEnd={api.commitPreview} />
+    </>}
+    {style.value === "double" && <SliderRow label="Double-line spacing" value={Number(api.value(["secondaryLineSpacing"], 3).value)} min={0} max={24} step={0.25} onChange={(value) => api.preview({ secondaryLineSpacing: value })} onChangeEnd={api.commitPreview} />}
+  </>;
+}
+
 function CellSurfaceTarget() {
   return <TargetSettings target="cell">{(api) => {
     const visible = api.value(["visible"], true);
@@ -268,23 +289,16 @@ function OrganismAdvancedControls() {
 function BoundaryTarget() {
   return <TargetSettings target="boundary">{(api) => {
     const visible = api.value(["visible"], false);
-    const style = api.value(["style"], "solid");
     const width = api.value(["width"], 1.5);
     const offset = api.value(["offset"], 0);
     const alignment = api.value(["alignment"], "centre");
-    const technical = style.value !== "solid";
     return <>
       <WidgetSection title="Boundary" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
-        <ChipRow options={BOUNDARY_STYLES.map((id) => ({ id, label: id === "segmented-bars" ? "Bars" : id }))} value={style.value as typeof BOUNDARY_STYLES[number]} onChange={(next) => api.commit({ style: next })} ariaLabel="Boundary style" />
+        <StrokeStyleControls api={api} label="Boundary" />
         <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} />
         <ChipRow options={BOUNDARY_ALIGNMENTS.map((id) => ({ id, label: id }))} value={alignment.value as typeof BOUNDARY_ALIGNMENTS[number]} onChange={(next) => api.commit({ alignment: next })} ariaLabel="Boundary alignment" />
         <SliderRow label="Visual offset" value={Number(offset.value)} min={-24} max={24} step={0.5} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offset: value })} onChangeEnd={api.commitPreview} />
-        {technical && <>
-          <SliderRow label="Dash / bar length" value={Number(api.value(["dashLength"], 8).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ dashLength: value })} onChangeEnd={api.commitPreview} />
-          <SliderRow label="Gap length" value={Number(api.value(["gapLength"], 6).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ gapLength: value })} onChangeEnd={api.commitPreview} />
-        </>}
-        {style.value === "double" && <SliderRow label="Double-line spacing" value={Number(api.value(["secondaryLineSpacing"], 3).value)} min={0} max={24} step={0.25} onChange={(value) => api.preview({ secondaryLineSpacing: value })} onChangeEnd={api.commitPreview} />}
         <PaintControls api={api} label="Stroke colour" />
       </WidgetSection>
     </>;
@@ -422,6 +436,7 @@ export function VoidSettingsWidget() {
       </WidgetSection>
       <WidgetSection title="Void edge" defaultOpen>
         <SwitchRow label="Edge visible" on={Boolean(visible.value) && Boolean(edgeVisible.value)} onToggle={() => api.commit({ visible: true, edgeVisible: !edgeVisible.value })} />
+        <StrokeStyleControls api={api} label="Void edge" />
         <SliderRow label="Edge width" value={Number(edgeWidth.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ edgeWidth: value })} onChangeEnd={api.commitPreview} />
         <PaintControls api={api} path="edge" label="Edge colour" />
       </WidgetSection>

@@ -19,7 +19,7 @@ type ExpandedIconDefinition = IconDefinition & {
 };
 type ExpandedIconRegistry = typeof iconRegistry & {
   resolveId: (id: string) => string | null;
-  listByTarget: (target: "space") => readonly ExpandedIconDefinition[];
+  listByTarget: (target: "space" | "void") => readonly ExpandedIconDefinition[];
 };
 
 const definitions = BUILT_IN_ICONS as readonly ExpandedIconDefinition[];
@@ -42,12 +42,13 @@ for (const icon of definitions) {
   equal(icon.origin, "lucide", `${icon.id} has a verified origin`);
   equal(icon.usage, "drawable-symbol", `${icon.id} is a drawable symbol`);
   equal(icon.validationStatus, "approved", `${icon.id} is approved`);
-  equal(icon.placeableTargets.join(","), "space", `${icon.id} is explicitly placeable on Cells`);
+  equal(icon.placeableTargets.join(","), "space,void", `${icon.id} is explicitly placeable on Cells and Voids`);
   ok(icon.licence.length > 0 && icon.attribution.length > 0 && Boolean(icon.attributionUrl), `${icon.id} includes licence metadata`);
   ok(!/^(data:|blob:|https?:|javascript:)/i.test(icon.sourceKey), `${icon.id} stores no raw or remote asset`);
 }
 
 equal(registry.listByTarget("space").length, definitions.length, "drawable symbols are discoverable by Cell target");
+equal(registry.listByTarget("void").length, definitions.length, "drawable symbols are discoverable by Void target");
 equal(registry.resolveId("icon:door"), "icon:architecture:door", "legacy door id resolves canonically");
 equal(registry.resolveId("icon:stairs"), "icon:architecture:stairs", "legacy stairs id resolves canonically");
 equal(registry.resolveId("icon:tree"), "icon:landscape:tree", "legacy tree id resolves canonically");

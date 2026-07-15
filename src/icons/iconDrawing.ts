@@ -1,5 +1,7 @@
 import { icons, type LucideIcon } from "lucide-react";
 import type { IconDefinition, IconPlacementSettings } from "./types";
+import { resolveLabelContrast } from "../design/labelContrast";
+import type { Theme } from "../types";
 
 type IconNode = readonly [string, Readonly<Record<string, string | number>>][];
 type RenderableLucide = LucideIcon & {
@@ -12,6 +14,48 @@ export const getLucideIcon = (sourceKey: string): LucideIcon | null =>
 export const getLucideIconNode = (sourceKey: string): IconNode | null => {
   const component = getLucideIcon(sourceKey) as RenderableLucide | null;
   return component?.render?.({ size: 24 }, null)?.props?.iconNode ?? null;
+};
+
+export const resolveSymbolTint = (
+  placement: IconPlacementSettings,
+  surface: {
+    theme: Theme;
+    backgroundColor?: string;
+    surfaceOpacity?: number;
+    canvasColor?: string;
+    voidBackground?: boolean;
+  },
+): string => placement.tintMode === "custom"
+  ? placement.tint
+  : resolveLabelContrast({
+      mode: "auto",
+      theme: surface.theme,
+      backgroundColor: compositeSurfaceColour(
+        surface.backgroundColor,
+        surface.surfaceOpacity,
+        surface.canvasColor,
+      ),
+      voidBackground: surface.voidBackground,
+    }).color;
+
+const compositeSurfaceColour = (
+  foreground: string | undefined,
+  opacity: number | undefined,
+  background: string | undefined,
+): string | undefined => {
+  const parse = (value: string | undefined): [number, number, number] | null => {
+    if (!value || !/^#[0-9a-f]{6}$/i.test(value)) return null;
+    return [1, 3, 5].map((start) => Number.parseInt(value.slice(start, start + 2), 16)) as [number, number, number];
+  };
+  const foregroundRgb = parse(foreground);
+  const backgroundRgb = parse(background);
+  if (!foregroundRgb) return backgroundRgb ? background : foreground;
+  if (!backgroundRgb || opacity === undefined || opacity >= 1) return foreground;
+  const alpha = Math.min(1, Math.max(0, opacity));
+  const channel = (index: number) => Math.round(foregroundRgb[index] * alpha + backgroundRgb[index] * (1 - alpha))
+    .toString(16)
+    .padStart(2, "0");
+  return `#${channel(0)}${channel(1)}${channel(2)}`;
 };
 
 const number = (value: string | number | undefined, fallback = 0): number => {
@@ -66,7 +110,7 @@ export const drawSymbolPlacement = (
   ctx: CanvasRenderingContext2D,
   definition: IconDefinition,
   placement: IconPlacementSettings,
-  anchor: { x: number; y: number; radius: number; zoom: number },
+  anchor: { x: number; y: number; radius: number; zoom: number; tint?: string },
 ): void => {
   if (anchor.zoom < placement.hideBelowZoom) return;
   const node = getLucideIconNode(definition.sourceKey);
@@ -75,6 +119,7 @@ export const drawSymbolPlacement = (
   const x = anchor.x + presetX + placement.offsetX * anchor.zoom;
   const y = anchor.y + presetY + placement.offsetY * anchor.zoom;
   const iconScale = placement.scale;
+  const tint = anchor.tint ?? placement.tint;
   ctx.save();
   ctx.globalAlpha *= placement.opacity;
   if (placement.backing !== "none") {
@@ -84,7 +129,7 @@ export const drawSymbolPlacement = (
     ctx.save();
     ctx.globalAlpha *= placement.backingOpacity;
     ctx.fillStyle = "#f7f6f2";
-    ctx.strokeStyle = placement.tint;
+    ctx.strokeStyle = tint;
     ctx.lineWidth = placement.backingOutlineWidth * anchor.zoom;
     ctx.beginPath();
     if (placement.backing === "circle") ctx.arc(bx, by, size / 2, 0, Math.PI * 2);
@@ -97,7 +142,7 @@ export const drawSymbolPlacement = (
   ctx.rotate(placement.rotation * Math.PI / 180);
   ctx.scale(iconScale, iconScale);
   ctx.translate(-12, -12);
-  ctx.strokeStyle = placement.tint;
+  ctx.strokeStyle = tint;
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
@@ -114,7 +159,7 @@ const esc = (value: string | number): string => String(value)
 export const symbolSvgMarkup = (
   definition: IconDefinition,
   placement: IconPlacementSettings,
-  anchor: { x: number; y: number; radius: number; zoom: number },
+  anchor: { x: number; y: number; radius: number; zoom: number; tint?: string },
 ): string => {
   if (anchor.zoom < placement.hideBelowZoom) return "";
   const node = getLucideIconNode(definition.sourceKey);
@@ -123,12 +168,13 @@ export const symbolSvgMarkup = (
   const x = anchor.x + presetX + placement.offsetX * anchor.zoom;
   const y = anchor.y + presetY + placement.offsetY * anchor.zoom;
   const backingSize = placement.backingSize * anchor.zoom;
+  const tint = anchor.tint ?? placement.tint;
   const backing = placement.backing === "none" ? "" : placement.backing === "circle"
-    ? `<circle cx="${esc(x + placement.backingOffsetX * anchor.zoom)}" cy="${esc(y + placement.backingOffsetY * anchor.zoom)}" r="${esc(backingSize / 2)}" fill="#f7f6f2" fill-opacity="${esc(placement.backingOpacity)}" stroke="${placement.backingOutline ? esc(placement.tint) : "none"}" stroke-width="${esc(placement.backingOutlineWidth * anchor.zoom)}"/>`
-    : `<rect x="${esc(x + placement.backingOffsetX * anchor.zoom - backingSize / 2)}" y="${esc(y + placement.backingOffsetY * anchor.zoom - backingSize / 2)}" width="${esc(placement.backing === "pill" ? backingSize * 1.35 : backingSize)}" height="${esc(backingSize)}" rx="${esc(placement.backing === "square" ? 3 : backingSize / 2)}" fill="#f7f6f2" fill-opacity="${esc(placement.backingOpacity)}" stroke="${placement.backingOutline ? esc(placement.tint) : "none"}" stroke-width="${esc(placement.backingOutlineWidth * anchor.zoom)}"/>`;
+    ? `<circle cx="${esc(x + placement.backingOffsetX * anchor.zoom)}" cy="${esc(y + placement.backingOffsetY * anchor.zoom)}" r="${esc(backingSize / 2)}" fill="#f7f6f2" fill-opacity="${esc(placement.backingOpacity)}" stroke="${placement.backingOutline ? esc(tint) : "none"}" stroke-width="${esc(placement.backingOutlineWidth * anchor.zoom)}"/>`
+    : `<rect x="${esc(x + placement.backingOffsetX * anchor.zoom - backingSize / 2)}" y="${esc(y + placement.backingOffsetY * anchor.zoom - backingSize / 2)}" width="${esc(placement.backing === "pill" ? backingSize * 1.35 : backingSize)}" height="${esc(backingSize)}" rx="${esc(placement.backing === "square" ? 3 : backingSize / 2)}" fill="#f7f6f2" fill-opacity="${esc(placement.backingOpacity)}" stroke="${placement.backingOutline ? esc(tint) : "none"}" stroke-width="${esc(placement.backingOutlineWidth * anchor.zoom)}"/>`;
   const geometry = node.map(([tag, attrs]) => `<${tag} ${Object.entries(attrs)
     .filter(([key]) => key !== "key")
     .map(([key, value]) => `${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}="${esc(value)}"`)
     .join(" ")}/>`).join("");
-  return `<g opacity="${esc(placement.opacity)}">${backing}<g transform="translate(${esc(x)} ${esc(y)}) rotate(${esc(placement.rotation)}) scale(${esc(placement.scale)}) translate(-12 -12)" fill="none" stroke="${esc(placement.tint)}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${geometry}</g></g>`;
+  return `<g opacity="${esc(placement.opacity)}">${backing}<g transform="translate(${esc(x)} ${esc(y)}) rotate(${esc(placement.rotation)}) scale(${esc(placement.scale)}) translate(-12 -12)" fill="none" stroke="${esc(tint)}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${geometry}</g></g>`;
 };

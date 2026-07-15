@@ -1,5 +1,5 @@
 import { iconRegistry } from "./iconRegistry";
-import type { IconBacking, IconCategory, IconDefinition, IconOrigin, IconPlacementPreset, IconPlacementSettings, IconSourceType, IconTarget, IconUsage, IconValidationStatus } from "./types";
+import type { IconBacking, IconCategory, IconDefinition, IconOrigin, IconPlacementPreset, IconPlacementSettings, IconSourceType, IconTarget, IconTintMode, IconUsage, IconValidationStatus } from "./types";
 
 const SOURCE_TYPES = new Set<IconSourceType>(["lucide", "local-svg", "local-png", "uploaded"]);
 const CATEGORIES = new Set<IconCategory>(["architecture", "landscape", "diagram", "annotation", "wayfinding", "environmental", "accessibility", "service", "navigation", "custom", "shell", "tools", "insert", "utility"]);
@@ -8,7 +8,8 @@ const PLACEMENTS = new Set<IconPlacementPreset>(["centre", "above", "below", "to
 const ORIGINS = new Set<IconOrigin>(["lucide", "mooorf-original", "user-supplied"]);
 const USAGES = new Set<IconUsage>(["drawable-symbol", "ui-control"]);
 const VALIDATION_STATUSES = new Set<IconValidationStatus>(["approved", "pending", "rejected"]);
-const TARGETS = new Set<IconTarget>(["space"]);
+const TARGETS = new Set<IconTarget>(["space", "void"]);
+const TINT_MODES = new Set<IconTintMode>(["auto", "custom"]);
 const hex = (value: unknown, fallback: string): string => {
   if (typeof value !== "string") return fallback;
   const text = value.trim().toLowerCase();
@@ -49,6 +50,9 @@ export const normalizeIconPlacement = (value: unknown): IconPlacementSettings =>
     scale: Math.min(8, Math.max(0.1, finite(record.scale, 1))),
     rotation,
     opacity: Math.min(1, Math.max(0, finite(record.opacity, 1))),
+    // Schema 1/2 placements authored a visible tint. Treating an absent mode
+    // as custom is the deterministic no-visual-change migration.
+    tintMode: TINT_MODES.has(record.tintMode as IconTintMode) ? record.tintMode as IconTintMode : "custom",
     tint: hex(record.tint, "#171719"),
     backing: BACKINGS.has(record.backing as IconBacking) ? record.backing as IconBacking : "none",
     backingSize: Math.min(160, Math.max(8, finite(record.backingSize, 32))),

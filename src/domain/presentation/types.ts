@@ -165,6 +165,10 @@ export interface VoidPresentationDefaults {
   fill: PresentationPaintDefaults;
   edge: PresentationPaintDefaults;
   edgeWidth: number;
+  style: BoundaryStyle;
+  dashLength: number;
+  gapLength: number;
+  secondaryLineSpacing: number;
 }
 
 export interface VoidAppearanceOverride {
@@ -174,10 +178,14 @@ export interface VoidAppearanceOverride {
   fill?: PresentationPaintOverride;
   edge?: PresentationPaintOverride;
   edgeWidth?: number;
+  style?: BoundaryStyle;
+  dashLength?: number;
+  gapLength?: number;
+  secondaryLineSpacing?: number;
 }
 
 export interface ProjectPresentationDefaults {
-  schemaVersion: 4;
+  schemaVersion: 5;
   text: TextPresentationDefaults;
   cell: SurfacePresentationDefaults;
   boundary: BoundaryPresentationDefaults;
@@ -248,6 +256,10 @@ export interface ResolvedVoidAppearance {
   fill: ResolvedPresentationPaint;
   edge: ResolvedPresentationPaint;
   edgeWidth: number;
+  style: BoundaryStyle;
+  dashLength: number;
+  gapLength: number;
+  secondaryLineSpacing: number;
   semantics: {
     subtractive: true;
     areaContribution: 0;

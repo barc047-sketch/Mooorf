@@ -177,6 +177,51 @@ function applyRandomLayout(spaces: SpaceCell[], ctx: LayoutContext): SpaceCell[]
   });
 }
 
+function recenterLayout(spaces: SpaceCell[], centerX: number, centerY: number): SpaceCell[] {
+  const actualX = mean(spaces.map((space) => space.x));
+  const actualY = mean(spaces.map((space) => space.y));
+  const dx = centerX - actualX;
+  const dy = centerY - actualY;
+  return spaces.map((space) => ({ ...space, x: space.x + dx, y: space.y + dy }));
+}
+
+/**
+ * Places a newly-created batch around the viewport centre without a force
+ * simulation. Candidate points advance on the golden angle and expand until
+ * every Cell clears all existing and earlier batch circles.
+ */
+export function placeBatchCells(
+  existing: readonly SpaceCell[],
+  added: readonly SpaceCell[],
+  center: { x: number; y: number },
+  clearance = 4,
+): SpaceCell[] {
+  const occupied = existing.map((space) => ({
+    x: space.x,
+    y: space.y,
+    radius: areaToRadius(space.area),
+  }));
+
+  return added.map((space, index) => {
+    const radius = areaToRadius(space.area);
+    let candidate = { x: center.x, y: center.y };
+    for (let attempt = 0; attempt < 2048; attempt += 1) {
+      const angle = (index + attempt) * GOLDEN_ANGLE - Math.PI / 2;
+      const distance = attempt === 0 ? 0 : Math.sqrt(attempt) * Math.max(18, radius * 0.9);
+      candidate = {
+        x: center.x + Math.cos(angle) * distance,
+        y: center.y + Math.sin(angle) * distance,
+      };
+      const clear = occupied.every((other) =>
+        Math.hypot(candidate.x - other.x, candidate.y - other.y) >= radius + other.radius + clearance
+      );
+      if (clear) break;
+    }
+    occupied.push({ ...candidate, radius });
+    return { ...space, ...candidate };
+  });
+}
+
 export function applyLayoutPreset(
   spaces: SpaceCell[],
   presetId: LayoutPresetId,
@@ -184,7 +229,7 @@ export function applyLayoutPreset(
 ): SpaceCell[] {
   if (spaces.length === 0) return spaces;
   const ctx = contextWithOptions(spaces, presetId === "random" ? options : undefined);
-  if (presetId === "random") return applyRandomLayout(spaces, ctx);
+  if (presetId === "random") return recenterLayout(applyRandomLayout(spaces, ctx), ctx.centerX, ctx.centerY);
 
   const positioned = new Map<string, { x: number; y: number }>();
   const ranked = rankSpaces(spaces);
@@ -193,8 +238,8 @@ export function applyLayoutPreset(
     positioned.set(item.space.id, pointFor(presetId, item, ranked.length, ctx));
   }
 
-  return spaces.map((space) => {
+  return recenterLayout(spaces.map((space) => {
     const p = positioned.get(space.id);
     return p ? { ...space, x: p.x, y: p.y } : space;
-  });
+  }), ctx.centerX, ctx.centerY);
 }

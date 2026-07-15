@@ -152,7 +152,7 @@ equal(voidLayers.boundary, null, "Void never aliases the Boundary layer");
 equal(voidLayers.core, null, "Void never aliases the Core layer");
 equal(voidLayers.void?.radiusPx, 30, "Void appearance uses but never changes subtractive geometry");
 equal(voidLayers.void?.edgeWidthPx, 3, "Void edge width is world-scaled presentation only");
-deepEqual(voidLayers.void?.lineDashPx, [10, 10], "Void technical dash remains world-scaled");
+deepEqual(voidLayers.void?.lineDashPx, [], "Void Edge defaults to a solid world-scaled stroke");
 equal("innerRadiusPx" in (voidLayers.void ?? {}), false, "Void projection contains no unconditional inner-circle instruction");
 equal("innerEdgeOpacity" in (voidLayers.void ?? {}), false, "Void projection contains no hidden inner-edge presentation owner");
 

@@ -90,7 +90,7 @@ equal(project.kind, "mooorf-project", "project discriminator");
 equal(project.schemaVersion, PROJECT_FILE_VERSION, "project schema version");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].color, "#123456", "complete project preserves explicit colors");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].appearance?.boundary?.width, 3, "project preserves sparse Cell appearance");
-equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.presentationDefaults.schemaVersion, 3, "project preserves presentation defaults");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.presentationDefaults.schemaVersion, 5, "project preserves presentation defaults");
 const solidPresentationDefaults = {
   ...presentationDefaults,
   membrane: {
@@ -110,7 +110,7 @@ equal(importedSolid.solidMaterialId, "system:charcoal", "project export/import p
 equal(importedSolid.paint.opacity, 0.44, "project export/import preserves Solid opacity");
 const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", createdAt: 1, spaces, camera: snapshot.camera, rendererMode: settings.rendererMode, morphMode: settings.morphMode, attachMode: settings.attachMode, mergeDistance: settings.mergeDistance, blobOn: settings.blobOn, paletteMode: settings.paletteMode, colorSource: settings.colorSource, layoutPreset: settings.layoutPreset, annotationMode: settings.annotationMode, organism: settings.organism, theme: "day", uiScale: settings.uiScale, widgetScale: settings.widgetScale, annotationDetail: settings.annotationDetail, showGrid: settings.showGrid, nucleusPaletteId: settings.nucleusPaletteId, organismPaletteId: settings.organismPaletteId, resources: settings.resources, presentationDefaults };
 const parsedSavedView = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [savedView]))).savedViews[0];
-equal(parsedSavedView.presentationDefaults?.schemaVersion, 3, "saved-view presentation defaults round-trip");
+equal(parsedSavedView.presentationDefaults?.schemaVersion, 5, "saved-view presentation defaults round-trip");
 equal(parsedSavedView.spaces[0].appearance?.boundary?.visible, true, "saved-view sparse appearance round-trips");
 const legacySavedView = {
   ...savedView,
@@ -148,7 +148,7 @@ throws(() => parseProjectEnvelope(JSON.stringify({
 
 const config = buildConfigEnvelope(snapshot, new Date("2026-07-11T00:00:00.000Z"));
 equal(parseConfigEnvelope(JSON.stringify(config)).kind, "mooorf-config", "settings-only config validates");
-equal(parseConfigEnvelope(JSON.stringify(config)).settings.presentationDefaults.schemaVersion, 3, "config presentation defaults round-trip");
+equal(parseConfigEnvelope(JSON.stringify(config)).settings.presentationDefaults.schemaVersion, 5, "config presentation defaults round-trip");
 const legacyConfig = {
   ...config,
   settings: Object.fromEntries(Object.entries(config.settings).filter(([key]) => key !== "presentationDefaults")),
