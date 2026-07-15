@@ -1,7 +1,7 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "WAITING_REVIEW",
   "task": "C0 M1 Correction 4 Global I Inspector Shortcut",
   "brief": "docs/worker-briefs/C0_M1_CORRECTION_4_GLOBAL_I_SHORTCUT.md",
   "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
@@ -9,19 +9,28 @@
   "source_branch": "feature/c0-4f-a-runtime-layer-separation",
   "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
   "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
-  "feature_sha": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
+  "feature_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
   "previous_reviewed_head": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
-  "corrected_feature_sha": null,
+  "corrected_feature_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
   "report_paths": [
     "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
     "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md"
   ],
   "owner_observed_issue_disposition": [
-    "Owner reports the approved global I shortcut is absent while Escape, right-click and rendered Dock/Rail controls work.",
-    "Correction 4 is adding one editable-safe application-shell shortcut that reuses the canonical Inspector widget lifecycle and preserves all pointer/keyboard launcher paths."
+    "The absent global I shortcut was reproduced at the reviewed head and corrected through one application-shell listener plus the canonical Inspector widget lifecycle.",
+    "The Owner manually confirmed that the global I shortcut works in the live preview.",
+    "Correction 4 preserves lowercase i, uppercase I, second-I close, closed/minimized/background/off-screen recovery, editing/modifier/repeat guards, Escape, right-click, Dock/Rail mouse/Enter/Space and exactly one Inspector in Canvas and Table."
   ],
   "verification_summary": [
-    "PENDING: red-first shortcut contracts, physical built-browser keyboard coverage, affected M1 tests, typecheck, exact diff check, exactly one final production build and deterministic 1440x900 plus 1280x800 QA."
+    "PASS: npx --no-install tsx src/interaction/inspectorShortcut.test.ts — Inspector shortcut policy contracts passed.",
+    "PASS: npx --no-install tsx src/domain/presentation/m1ProductContracts.test.ts — C0 M1 product contracts passed.",
+    "PASS: complete repository src/**/*.test.ts set, including affected M1 and C0.4F-A behavioral, renderer, history, persistence, export, interaction and widget contracts.",
+    "PASS: node --test scripts/audit-utils.test.mjs — 4/4.",
+    "PASS: npx tsc -b --pretty false — zero diagnostics after the final TypeScript source change.",
+    "PASS: git diff --check f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6...HEAD at corrected feature bd160b8c615cdafbbdd8a76332be46b69a6e765e.",
+    "PASS: exactly one final npm run build — 2890 modules, main application chunk 985.98 kB / 316.66 kB gzip, accepted Vite large-chunk warning only; no second build was run.",
+    "OWNER CONFIRMED: global I works in the live preview.",
+    "PARTIAL AUTOMATED BROWSER: Canvas lifecycle/editing guards and bounded Table checkpoints passed. The exhaustive 1440x900 plus 1280x800 CDP run was stopped after repeated harness stalls on controlled Table/textarea/number-field interactions; no complete uninterrupted two-viewport automated pass is claimed and no product failure was reproduced."
   ],
   "known_limitations": [
     "Membrane Field and Edge are shared project fields and therefore edit Project Defaults rather than disconnected per-Cell overrides.",
@@ -30,7 +39,8 @@
     "M2 Membrane Field Edge Softness remains the existing field/body feather owner; independent Membrane Edge Softness is a future separate Edge owner and must not alias it.",
     "Optional Void Inner Echo is M2-only, default off, and requires canonical live/export parity.",
     "Material Browser remains assigned to M4.",
-    "The in-app browser does not expose file-saver transport as a download event; product completion state and deterministic export contracts were verified."
+    "The in-app browser does not expose file-saver transport as a download event; product completion state and deterministic export contracts were verified.",
+    "The exhaustive two-viewport Correction 4 CDP harness repeatedly stalled on controlled Table, textarea and number-field interactions. This is a QA-harness limitation, not a reproduced shortcut product failure; the Owner manually confirmed the shortcut in the live preview."
   ],
   "previous_task": {
     "id": "C0.4F-A",
@@ -63,8 +73,8 @@
     "merge to main",
     "beginning M2"
   ],
-  "updated_at": "2026-07-15T17:29:06+05:30",
+  "updated_at": "2026-07-15T19:27:46+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Codex implements and verifies only the bounded global I Inspector shortcut, pushes one corrected head, then returns to WAITING_REVIEW.",
+  "next_worker_action": "Owner reviews corrected feature bd160b8c615cdafbbdd8a76332be46b69a6e765e. Codex is stopped; no merge, M2 work or browser-harness tuning is authorized.",
   "next_gate": "Owner review of the Correction 4 fixed head; explicit merge authority remains required."
 }
