@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "reviewed_at": "2026-07-15T17:45:00+05:30",
+  "task": "AG2 — Prototype Coverage and Icon Gap Audit, Correction 1",
+  "branch": "research/m2-prototype-and-icon-gap-audit",
+  "base_sha": "2482b11ca5f72b2898ea0b2f516d35fecb08ced2",
+  "fixed_head": "55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51",
+  "status_branch": "status/antigravity",
+  "status_sha": "1fb0d6e3a663426fe6863be96205f47957a4f749",
+  "verdict": "ACCEPTED RESEARCH INPUT",
+  "branch_relation": "Correction 1 is exactly one commit above the first AG2 head with no divergence.",
+  "verified": [
+    "all six required research deliverables remain present under docs/research",
+    "coverage ledger now maps 50 features: 24 IMPLEMENTED, 5 PARTIAL, 20 PLANNED, 1 MISSING, 0 REJECTED",
+    "global keyboard I Inspector shortcut is truthfully recorded as MISSING at M1 head f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6 and assigned to M1 Correction 4",
+    "Save as Preset and Material Browser handoff are assigned to M4 rather than falsely marked implemented",
+    "Copy/Paste Style and baseline Dock are correctly marked PARTIAL",
+    "Symbol tab seam is distinguished from a live production Symbol tab",
+    "machine-local file references were replaced with repository-relative paths and exact refs",
+    "eight complete original custom briefs are separated from twelve pending custom-gap candidates",
+    "156 active geometries and 176 searchable IDs are explicitly a projected research ceiling, not automatic M2 scope",
+    "status/antigravity exactly matches supplied status SHA and reports WAITING_REVIEW"
+  ],
+  "production_policy": {
+    "merge_research_branch": false,
+    "use_method": "Selective contract input only; never merge the research branch wholesale.",
+    "m2_initial_symbol_scope": "Verified baseline and Owner-approved staged additions; projected ceiling remains deferred research inventory."
+  },
+  "open_owner_decisions": [
+    "neutral prayer/worship symbol representation",
+    "expansion joint as custom stencil versus standard dashed double-line",
+    "Symbol level-of-detail threshold location: standard versus advanced disclosure"
+  ],
+  "next_gate": "M1 remains blocked until Correction 4 implements and proves the global I/i shortcut. AG2 requires no further correction unless new evidence appears."
+}
