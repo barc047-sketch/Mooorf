@@ -4,15 +4,21 @@ This document details the second-pass drawable-symbol gap audit for the MOOORF s
 
 ## Catalog Summary and Baseline
 
-- **Existing Projected Geometries**: 144
-- **Existing Searchable IDs**: 164 (including aliases)
-- **New Recommended Geometries**: 20 (after auditing structural, sanitary, MEP, circulation, furniture, site, program, and annotation gaps)
-- **Total Projected Geometries**: 164
-- **Total Projected Searchable IDs**: 184 (including aliases)
+- **Baseline/Current symbols**: 77
+- **Proposed Lucide Candidates to ADD**: 59
+- **Proposed Lucide Candidates to ALIAS**: 14
+- **Twelve Additional Custom-Gap Candidates (Pending Owner Approval)**: 12
+- **Eight Original Custom Symbols (Approved Briefs)**: 8
+- **Projected Research Ceiling**: **156 active geometries** / **176 searchable IDs** (including 20 custom-related symbols, 59 new Lucide symbols, 14 new aliases, and 6 baseline aliases)
+
+> [!IMPORTANT]
+> The final count of 156 active geometries and 176 searchable IDs is a projected research ceiling. It is **not** automatically approved M2 scope. Baseline and verified Lucide candidates will be staged first. Custom symbols require explicit Owner approval, and later structural/MEP/program symbols can be released as later domain packs.
 
 ---
 
-## Gap Audit Matrix
+## Gap Audit Matrix: Twelve Additional Custom-Gap Candidates
+
+The following 12 additional custom-gap candidates are research specifications representing critical floor-planning gaps. They are **not** production-approved and require explicit Owner approval before implementation.
 
 ### 1. Structural Family
 
@@ -188,47 +194,7 @@ This document details the second-pass drawable-symbol gap audit for the MOOORF s
 
 ---
 
-### 4. Furniture and Fixtures Family
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:furniture:dining-table-layout` |
-| **Display Name** | **Dining Table Plan** |
-| **Proposed Category** | `architecture` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| dining-table, table-chairs, seating-layout, furniture, dining-group |
-| **Accessible Label** | Dining table and chairs layout |
-| **Architectural Use** | Shows dining furniture arrangements, spacing, and circulation requirements. |
-| **Placeable Target** | `space` interior |
-| **Visual Warning** | Do not confuse with a spreadsheet table. Must show table outline with perimeter chairs. |
-| **Collision Check** | Clean from Lucide `Table` (spreadsheet layout). |
-| **Priority** | **USEFUL** |
-| **Recommendation** | **ADD CUSTOM** - Circular or rectangular central table with 4 or 6 offset chair boxes. |
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:furniture:kitchen-counter-sink` |
-| **Display Name** | **Kitchen Counter and Sink** |
-| **Proposed Category** | `architecture` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| kitchen-counter, counter-sink, cooktop, pantry-layout, kitchen-cabinet |
-| **Accessible Label** | Kitchen counter and sink layout |
-| **Architectural Use** | Indicates kitchen pantry worktops, built-in sinks, and appliance layouts. |
-| **Placeable Target** | `space` perimeter |
-| **Visual Warning** | Must not look like a simple office desk. Must show faucet and basin outlines. |
-| **Collision Check** | Different from bathroom `sink-layout` or `wardrobe-layout`. |
-| **Priority** | **USEFUL** |
-| **Recommendation** | **ADD CUSTOM** - Counter edge line with integrated double-basin sink and faucet outline. |
-
----
-
-### 5. Circulation Family
+### 4. Circulation Family
 
 | Field | Details |
 | :--- | :--- |
@@ -250,7 +216,7 @@ This document details the second-pass drawable-symbol gap audit for the MOOORF s
 
 ---
 
-### 6. Site and Mobility Family
+### 5. Site and Mobility Family
 
 | Field | Details |
 | :--- | :--- |
@@ -272,24 +238,6 @@ This document details the second-pass drawable-symbol gap audit for the MOOORF s
 
 | Field | Details |
 | :--- | :--- |
-| **Canonical ID** | `icon:site:bollard` |
-| **Display Name** | **Security Bollard** |
-| **Proposed Category** | `landscape` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| bollard, post, barrier, security-bollard, boundary-post, traffic-bollard |
-| **Accessible Label** | Traffic security bollard |
-| **Architectural Use** | Marks traffic control bollards, security posts, and pedestrian zone protection. |
-| **Placeable Target** | `space` exterior edge |
-| **Visual Warning** | Do not confuse with structural columns. Typically drawn as small circle with cross mark. |
-| **Collision Check** | Avoids column collision by using smaller scale and double concentric circles. |
-| **Priority** | **USEFUL** |
-| **Recommendation** | **ADD CUSTOM** - Small concentric double circle indicating post top and foot base. |
-
-| Field | Details |
-| :--- | :--- |
 | **Canonical ID** | `icon:site:fence-layout` |
 | **Display Name** | **Fence Line Layout** |
 | **Proposed Category** | `landscape` |
@@ -305,137 +253,3 @@ This document details the second-pass drawable-symbol gap audit for the MOOORF s
 | **Collision Check** | Distinct from cell boundaries or wall hatch lines. |
 | **Priority** | **USEFUL** |
 | **Recommendation** | **ADD CUSTOM** - Vector line segment intersected by short perpendicular post ticks at 4px spacing. |
-
----
-
-### 7. Programmatic/Special Space Family
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:program:healthcare` |
-| **Display Name** | **Healthcare Clinic** |
-| **Proposed Category** | `accessibility` |
-| **Source Type** | `LUCIDE` |
-| **Exact Lucide Key** | `HeartPulse` |
-| **Verified Availability**| Yes (`lucide-react@1.23.0`) |
-| **Licence/Provenance** | ISC License (Lucide Contributors) |
-| **Search Tags / Aliases**| clinic, hospital, first-aid, medical, doctor, wellness |
-| **Accessible Label** | Medical clinic and healthcare symbol |
-| **Architectural Use** | Marks medical rooms, nursing stations, wellness rooms, or first-aid zones. |
-| **Placeable Target** | `space` |
-| **Visual Warning** | Avoid mixing with accessibility `heart` or `help` symbols. |
-| **Collision Check** | Deduplicated from simple `Heart`. |
-| **Priority** | **ESSENTIAL** |
-| **Recommendation** | **ADD LUCIDE** - Use `HeartPulse` for healthcare and medical clinic zones. |
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:program:industrial` |
-| **Display Name** | **Industrial Facility** |
-| **Proposed Category** | `service` |
-| **Source Type** | `LUCIDE` |
-| **Exact Lucide Key** | `Factory` |
-| **Verified Availability**| Yes (`lucide-react@1.23.0`) |
-| **Licence/Provenance** | ISC License (Lucide Contributors) |
-| **Search Tags / Aliases**| industrial, factory, mechanical-room, plant-room, workshop, warehouse |
-| **Accessible Label** | Industrial plant and factory symbol |
-| **Architectural Use** | Marks plant rooms, manufacturing floors, warehouse zones, and heavy services. |
-| **Placeable Target** | `space` |
-| **Visual Warning** | Must look industrial, with saw-tooth factory roof silhouette. |
-| **Collision Check** | Distinct from civic landmark or office workspace. |
-| **Priority** | **ESSENTIAL** |
-| **Recommendation** | **ADD LUCIDE** - Use `Factory` to represent industrial and heavy mechanical zones. |
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:program:worship-neutral` |
-| **Display Name** | **Quiet Sanctuary / Worship** |
-| **Proposed Category** | `accessibility` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| worship, prayer, sanctuary, meditation, quiet, faith |
-| **Accessible Label** | Multi-faith quiet sanctuary symbol |
-| **Architectural Use** | Indicates multi-faith prayer rooms, meditation spaces, or quiet sanctuaries. |
-| **Placeable Target** | `space` |
-| **Visual Warning** | Must remain neutral. Do not use church, mosque, or specific religious silhouettes. |
-| **Collision Check** | Distinct from generic quiet ear-off or wellness heart symbols. |
-| **Priority** | **USEFUL** |
-| **Recommendation** | **ADD CUSTOM** - Simple outline circle enclosing a stylized flame or radiant energy waves, representing light and reflection neutrally. |
-
----
-
-### 8. Technical Annotation Family
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:annotation:level-marker` |
-| **Display Name** | **Elevation Level Marker** |
-| **Proposed Category** | `annotation` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| level-marker, elevation, height-datum, floor-level, datum |
-| **Accessible Label** | Floor elevation level marker |
-| **Architectural Use** | Indicates finished floor levels, datums, or heights in section/elevation views. |
-| **Placeable Target** | `space` or level lines |
-| **Visual Warning** | Technical drafting representation. Quarters filled black/white diagonally. |
-| **Collision Check** | Distinct from center alignment or compass targets. |
-| **Priority** | **ESSENTIAL** |
-| **Recommendation** | **ADD CUSTOM** - Circle with crosshairs, top-right and bottom-left quadrants filled solid. |
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:annotation:elevation-marker` |
-| **Display Name** | **Elevation Reference Tag** |
-| **Proposed Category** | `annotation` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| elevation-marker, view-tag, direction-tag, detail-tag |
-| **Accessible Label** | Elevation view reference tag |
-| **Architectural Use** | Directs drawings to specific interior elevation views. |
-| **Placeable Target** | `space` center |
-| **Visual Warning** | Arrowhead pointing to the elevation direction with a coordinate circle. |
-| **Collision Check** | Clean from general direction arrows. |
-| **Priority** | **ESSENTIAL** |
-| **Recommendation** | **ADD CUSTOM** - Square box with pointed arrow heads pointing in active elevation directions. |
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:annotation:revision-marker` |
-| **Display Name** | **Revision Cloud Tag** |
-| **Proposed Category** | `annotation` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| revision-tag, revision-delta, change-marker, markup-tag |
-| **Accessible Label** | Drawing revision marker |
-| **Architectural Use** | Directs markup to specific revised drawing segments. |
-| **Placeable Target** | `space` or `boundary` |
-| **Visual Warning** | Standard delta symbol: equilateral triangle enclosing a revision number. |
-| **Collision Check** | Distinct from generic warning triangles. |
-| **Priority** | **USEFUL** |
-| **Recommendation** | **ADD CUSTOM** - Technical delta triangle outline with clear central numeral area. |
-
-| Field | Details |
-| :--- | :--- |
-| **Canonical ID** | `icon:annotation:detail-marker` |
-| **Display Name** | **Detail Callout Marker** |
-| **Proposed Category** | `annotation` |
-| **Source Type** | `CUSTOM` |
-| **Exact Lucide Key** | N/A |
-| **Verified Availability**| N/A |
-| **Licence/Provenance** | Proprietary MOOORF Original |
-| **Search Tags / Aliases**| detail-tag, callout-tag, detail-bubble, magnifying-tag |
-| **Accessible Label** | Drawing detail reference callout |
-| **Architectural Use** | Refers drawing reader to larger scale detail sheets (e.g. wall sections). |
-| **Placeable Target** | `space` or `boundary` detail points |
-| **Visual Warning** | Standard drafting format: circle split horizontally by a dividing line. |
-| **Collision Check** | Distinct from simple cell cores or level markers. |
-| **Priority** | **ESSENTIAL** |
-| **Recommendation** | **ADD CUSTOM** - 24px split circle, top half for detail number, bottom half for sheet reference. |

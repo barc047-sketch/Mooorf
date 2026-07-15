@@ -1,7 +1,7 @@
 {
   "source_refs": {
     "production_baseline": "main@c4600472ea76f651800c19b91cf8f67954ca992e",
-    "m1_snapshot": "feature/c0-m1-inspector-layer-editing-recovery@c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+    "m1_snapshot": "feature/c0-m1-inspector-layer-editing-recovery@f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
     "registry_ref": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
     "prior_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4"
   },
@@ -9,13 +9,14 @@
     "baseline_symbols": 77
   },
   "projected_counts": {
-    "new_lucide_geometries": 59,
-    "new_lucide_aliases": 14,
-    "new_custom_geometries": 8,
-    "new_custom_gap_geometries": 12,
+    "baseline_active_geometries": 77,
+    "verified_lucide_candidates_to_add": 59,
+    "verified_lucide_aliases_to_add": 14,
+    "approved_original_custom_geometries": 8,
+    "pending_custom_gap_candidates": 12,
     "rejected_candidates": 5,
-    "final_active_geometries": 156,
-    "final_searchable_ids": 176
+    "projected_ceiling_active_geometries": 156,
+    "projected_ceiling_searchable_ids": 176
   },
   "unresolved_owner_decisions": [
     "Verify whether neutral prayer/worship symbols require a specialized custom SVG or if generic sunrise is acceptable.",
@@ -2650,7 +2651,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "Lucide has only Forklift or ChevronsUp. Custom path required.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2675,7 +2676,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "Lucide lacks stairs plan symbol. Existing stairs symbol is a technical workaround.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2700,7 +2701,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "Lucide has no escalator symbols. Custom path needed.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2725,7 +2726,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "None. Lucide has only folder/archive drawers.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2751,7 +2752,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "Lucide has no sink/basin symbols. Custom path required.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2776,7 +2777,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "None. Lucide has no fence gate swing symbols.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2801,7 +2802,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "None. Lucide lacks floor drain symbols.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2826,7 +2827,7 @@
       "attribution": "MOOORF Original",
       "similarityWarning": "Lucide has only pizza slice (Slice) or scissors, both inappropriate. Custom design required.",
       "priority": "ESSENTIAL",
-      "recommendation": "NEEDS CUSTOM DESIGN",
+      "recommendation": "APPROVED_CUSTOM_BRIEF",
       "milestone": "M2"
     },
     {
@@ -2852,9 +2853,9 @@
       "attribution": "MOOORF Original",
       "attributionUrl": "",
       "similarityWarning": "Do not confuse with generic UI dots or Core presentation elements.",
-      "priority": "ESSENTIAL",
-      "recommendation": "ADD",
-      "milestone": "M2"
+      "priority": "USEFUL",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
+      "milestone": "M3A"
     },
     {
       "id": "icon:structural:beam",
@@ -2880,7 +2881,7 @@
       "attributionUrl": "",
       "similarityWarning": "Must not look like standard cell boundaries; represented as dashed parallel lines.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -2907,7 +2908,7 @@
       "attributionUrl": "",
       "similarityWarning": "Must be visually distinct from single line boundaries; uses double parallel lines with hatch.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -2934,7 +2935,7 @@
       "attributionUrl": "",
       "similarityWarning": "Avoid confusion with standard toilets or sinks; must show the clear projection cup.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -2962,7 +2963,7 @@
       "attributionUrl": "",
       "similarityWarning": "Do not confuse with simple rectangular tables. Must include drain circle and bevel edge.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -2988,8 +2989,8 @@
       "attributionUrl": "",
       "similarityWarning": "Must follow standard symbol: rectangle divided diagonally, one half solid black.",
       "priority": "ESSENTIAL",
-      "recommendation": "ADD",
-      "milestone": "M2"
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
+      "milestone": "M3A"
     },
     {
       "id": "icon:mep:hvac-supply",
@@ -3015,7 +3016,7 @@
       "attributionUrl": "",
       "similarityWarning": "Avoid collision with simple crosshairs. Square with a smaller square and arrows.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -3041,7 +3042,7 @@
       "attributionUrl": "",
       "similarityWarning": "Must follow standard: square with a single diagonal slash, indicating return.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -3067,59 +3068,7 @@
       "attributionUrl": "",
       "similarityWarning": "Small size readability is critical; represented as circle with small outer ticks.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
-      "milestone": "M3A"
-    },
-    {
-      "id": "icon:furniture:dining-table-layout",
-      "name": "Dining Table Plan",
-      "sourceKey": "custom:dining-table-layout",
-      "category": "architecture",
-      "candidateCategory": "FURNITURE",
-      "tags": [
-        "dining-table",
-        "table-chairs",
-        "seating-layout",
-        "furniture",
-        "dining-group"
-      ],
-      "accessibleLabel": "Dining table and chairs layout",
-      "architecturalUse": "Shows dining furniture arrangements, spacing, and circulation requirements.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Do not confuse with a spreadsheet table. Must show table outline with perimeter chairs.",
-      "priority": "USEFUL",
-      "recommendation": "ADD",
-      "milestone": "M3A"
-    },
-    {
-      "id": "icon:furniture:kitchen-counter-sink",
-      "name": "Kitchen Counter and Sink",
-      "sourceKey": "custom:kitchen-counter-sink",
-      "category": "architecture",
-      "candidateCategory": "FURNITURE",
-      "tags": [
-        "kitchen-counter",
-        "counter-sink",
-        "cooktop",
-        "pantry-layout",
-        "kitchen-cabinet"
-      ],
-      "accessibleLabel": "Kitchen counter and sink layout",
-      "architecturalUse": "Indicates kitchen pantry worktops, built-in sinks, and appliance layouts.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Must not look like a simple office desk. Must show faucet and basin outlines.",
-      "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -3145,7 +3094,7 @@
       "attributionUrl": "",
       "similarityWarning": "Must show gradient arrow starting from low point pointing up.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -3170,34 +3119,7 @@
       "attributionUrl": "",
       "similarityWarning": "Avoid collision with simple wall segments. Must show backrest and armrest slats.",
       "priority": "USEFUL",
-      "recommendation": "ADD",
-      "milestone": "M3A"
-    },
-    {
-      "id": "icon:site:bollard",
-      "name": "Security Bollard",
-      "sourceKey": "custom:bollard",
-      "category": "landscape",
-      "candidateCategory": "SITE",
-      "tags": [
-        "bollard",
-        "post",
-        "barrier",
-        "security-bollard",
-        "boundary-post",
-        "traffic-bollard"
-      ],
-      "accessibleLabel": "Traffic security bollard",
-      "architecturalUse": "Marks traffic control bollards, security posts, and pedestrian zone protection.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Do not confuse with structural columns. Typically drawn as small circle with cross mark.",
-      "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
     },
     {
@@ -3223,190 +3145,8 @@
       "attributionUrl": "",
       "similarityWarning": "Must look like standard fence notation (a line with regular cross marks).",
       "priority": "USEFUL",
-      "recommendation": "ADD",
+      "recommendation": "PENDING_CUSTOM_GAP_RESEARCH",
       "milestone": "M3A"
-    },
-    {
-      "id": "icon:program:healthcare",
-      "name": "Healthcare Clinic",
-      "sourceKey": "HeartPulse",
-      "category": "accessibility",
-      "candidateCategory": "PROGRAM",
-      "tags": [
-        "clinic",
-        "hospital",
-        "first-aid",
-        "medical",
-        "doctor",
-        "wellness"
-      ],
-      "accessibleLabel": "Medical clinic and healthcare symbol",
-      "architecturalUse": "Marks medical rooms, nursing stations, wellness rooms, or first-aid zones.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "ISC",
-      "attribution": "Lucide Contributors",
-      "attributionUrl": "https://lucide.dev/license",
-      "similarityWarning": "Avoid mixing with accessibility heart or help symbols.",
-      "priority": "ESSENTIAL",
-      "recommendation": "ADD",
-      "milestone": "M2"
-    },
-    {
-      "id": "icon:program:industrial",
-      "name": "Industrial Facility",
-      "sourceKey": "Factory",
-      "category": "service",
-      "candidateCategory": "PROGRAM",
-      "tags": [
-        "industrial",
-        "factory",
-        "mechanical-room",
-        "plant-room",
-        "workshop",
-        "warehouse"
-      ],
-      "accessibleLabel": "Industrial plant and factory symbol",
-      "architecturalUse": "Marks plant rooms, manufacturing floors, warehouse zones, and heavy services.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "ISC",
-      "attribution": "Lucide Contributors",
-      "attributionUrl": "https://lucide.dev/license",
-      "similarityWarning": "Must look industrial, with saw-tooth factory roof silhouette.",
-      "priority": "ESSENTIAL",
-      "recommendation": "ADD",
-      "milestone": "M2"
-    },
-    {
-      "id": "icon:program:worship-neutral",
-      "name": "Quiet Sanctuary / Worship",
-      "sourceKey": "custom:worship-neutral",
-      "category": "accessibility",
-      "candidateCategory": "PROGRAM",
-      "tags": [
-        "worship",
-        "prayer",
-        "sanctuary",
-        "meditation",
-        "quiet",
-        "faith"
-      ],
-      "accessibleLabel": "Multi-faith quiet sanctuary symbol",
-      "architecturalUse": "Indicates multi-faith prayer rooms, meditation spaces, or quiet sanctuaries.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Must remain neutral. Do not use church, mosque, or specific religious silhouettes.",
-      "priority": "USEFUL",
-      "recommendation": "ADD",
-      "milestone": "M3A"
-    },
-    {
-      "id": "icon:annotation:level-marker",
-      "name": "Elevation Level Marker",
-      "sourceKey": "custom:level-marker",
-      "category": "annotation",
-      "candidateCategory": "ANNOTATION",
-      "tags": [
-        "level-marker",
-        "elevation",
-        "height-datum",
-        "floor-level",
-        "datum"
-      ],
-      "accessibleLabel": "Floor elevation level marker",
-      "architecturalUse": "Indicates finished floor levels, datums, or heights in section/elevation views.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Technical drafting representation. Quarters filled black/white diagonally.",
-      "priority": "ESSENTIAL",
-      "recommendation": "ADD",
-      "milestone": "M2"
-    },
-    {
-      "id": "icon:annotation:elevation-marker",
-      "name": "Elevation Reference Tag",
-      "sourceKey": "custom:elevation-marker",
-      "category": "annotation",
-      "candidateCategory": "ANNOTATION",
-      "tags": [
-        "elevation-marker",
-        "view-tag",
-        "direction-tag",
-        "detail-tag"
-      ],
-      "accessibleLabel": "Elevation view reference tag",
-      "architecturalUse": "Directs drawings to specific interior elevation views.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Arrowhead pointing to the elevation direction with a coordinate circle.",
-      "priority": "ESSENTIAL",
-      "recommendation": "ADD",
-      "milestone": "M2"
-    },
-    {
-      "id": "icon:annotation:revision-marker",
-      "name": "Revision Cloud Tag",
-      "sourceKey": "custom:revision-marker",
-      "category": "annotation",
-      "candidateCategory": "ANNOTATION",
-      "tags": [
-        "revision-tag",
-        "revision-delta",
-        "change-marker",
-        "markup-tag"
-      ],
-      "accessibleLabel": "Drawing revision marker",
-      "architecturalUse": "Directs drawing view to revised segments.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Standard delta symbol: equilateral triangle enclosing a revision number.",
-      "priority": "USEFUL",
-      "recommendation": "ADD",
-      "milestone": "M3A"
-    },
-    {
-      "id": "icon:annotation:detail-marker",
-      "name": "Detail Callout Marker",
-      "sourceKey": "custom:detail-marker",
-      "category": "annotation",
-      "candidateCategory": "ANNOTATION",
-      "tags": [
-        "detail-tag",
-        "callout-tag",
-        "detail-bubble",
-        "magnifying-tag"
-      ],
-      "accessibleLabel": "Drawing detail reference callout",
-      "architecturalUse": "Refers drawing reader to larger scale detail sheets.",
-      "placeableTargets": [
-        "space"
-      ],
-      "licence": "Proprietary",
-      "attribution": "MOOORF Original",
-      "attributionUrl": "",
-      "similarityWarning": "Standard drafting format: circle split horizontally by a dividing line.",
-      "priority": "ESSENTIAL",
-      "recommendation": "ADD",
-      "milestone": "M2"
     }
   ],
   "ui_command_icons": [
@@ -3702,7 +3442,7 @@
       "ariaLabel": "Select spaces and elements",
       "collisionCheck": "Clean from snap cursor",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:target",
@@ -3716,7 +3456,7 @@
       "ariaLabel": "Target cell for editing",
       "collisionCheck": "Distinct from Select",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:arrange",
@@ -3730,7 +3470,7 @@
       "ariaLabel": "Arrange element layering",
       "collisionCheck": "Distinct from zoning grids",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:connect",
@@ -3744,7 +3484,7 @@
       "ariaLabel": "Establish connection path",
       "collisionCheck": "Distinguish from share link",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:material",
@@ -3758,7 +3498,7 @@
       "ariaLabel": "Open Material Browser",
       "collisionCheck": "Distinguish from color picker",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M4"
     },
     {
       "id": "cmd:launcher:preset",
@@ -3772,7 +3512,7 @@
       "ariaLabel": "Apply visual presets",
       "collisionCheck": "Avoids bookmarks",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M4"
     },
     {
       "id": "cmd:launcher:markup",
@@ -3786,7 +3526,7 @@
       "ariaLabel": "Open drawing markup tools",
       "collisionCheck": "Clear of UI pencils",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:detail",
@@ -3800,7 +3540,7 @@
       "ariaLabel": "Open detail sheet viewer",
       "collisionCheck": "Distinct from panel collapse",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:inspector",
@@ -3814,7 +3554,7 @@
       "ariaLabel": "Open Cell Inspector panel",
       "collisionCheck": "Specifically distinct from Info",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:addcell",
@@ -3828,7 +3568,7 @@
       "ariaLabel": "Add new Space Cell",
       "collisionCheck": "Avoids double additions",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:addcluster",
@@ -3842,7 +3582,7 @@
       "ariaLabel": "Create Cell Cluster",
       "collisionCheck": "Avoids generic directory box",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:addvoid",
@@ -3856,7 +3596,7 @@
       "ariaLabel": "Stamp subtractive layout Void",
       "collisionCheck": "Avoids trash deletions",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:import",
@@ -3870,7 +3610,7 @@
       "ariaLabel": "Import MOOORF project",
       "collisionCheck": "Clear of general cloud files",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:export",
@@ -3884,7 +3624,7 @@
       "ariaLabel": "Export drawing project",
       "collisionCheck": "Avoids web share links",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:savedviews",
@@ -3898,7 +3638,7 @@
       "ariaLabel": "Open Saved Views gallery",
       "collisionCheck": "Distinguish from views",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     },
     {
       "id": "cmd:launcher:random",
@@ -3912,7 +3652,7 @@
       "ariaLabel": "Randomize cell arrangement",
       "collisionCheck": "Avoids game dice",
       "customGlyphRequired": false,
-      "milestone": "M1"
+      "milestone": "M3A"
     }
   ]
 }

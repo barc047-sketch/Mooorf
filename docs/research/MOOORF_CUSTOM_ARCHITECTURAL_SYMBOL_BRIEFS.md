@@ -1,6 +1,9 @@
 # MOOORF Custom Architectural Symbol Briefs
 
-This document defines the vector specifications and construction briefs for the eight original MOOORF custom architectural symbols. These specifications serve as implementation-ready design blueprints for the production SVG implementation. Do not use generic pictograms.
+This document defines the vector specifications and construction briefs for the **eight original MOOORF custom architectural symbols**. These specifications serve as implementation-ready design blueprints for the production SVG implementation.
+
+> [!NOTE]
+> This document only contains the briefs for the 8 approved original custom symbols. The 12 additional custom-gap candidates identified in the gap audit (`M2_DRAWABLE_SYMBOL_GAP_PASS_2.md`) are separate research candidates and do **not** have full briefs here, as they are pending Owner approval.
 
 ---
 
