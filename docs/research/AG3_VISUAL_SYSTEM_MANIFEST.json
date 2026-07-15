@@ -1,0 +1,437 @@
+{
+  "source_refs": {
+    "production_base": "main@bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+    "m2_contract": "docs/mooorf-ai-team-operating-protocol:docs/worker-briefs/C0_M2_CODEX_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES.md",
+    "m2_owner_preview": "docs/mooorf-ai-team-operating-protocol:docs/plans/C0_M2_OWNER_PREVIEW_INSPECTOR_ADVANCED_SYMBOLS.md",
+    "current_shader": "src/experiments/organism-lab/organism-shader.ts",
+    "palette_library": "src/design/palettes.ts",
+    "accepted_ag2": "research/m2-prototype-and-icon-gap-audit@55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51"
+  },
+  "shader_controls": [
+    {
+      "key": "mass",
+      "uniform": "uMass",
+      "visualEffect": "Scales the overall field potential; grows/shrinks membrane body globally.",
+      "min": 0.4,
+      "default": 1.04,
+      "max": 2.2,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": false
+    },
+    {
+      "key": "isoLevel",
+      "uniform": "uIso",
+      "visualEffect": "Contour threshold for the outer membrane edge.",
+      "min": 0.4,
+      "default": 1.0,
+      "max": 2.0,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": false
+    },
+    {
+      "key": "edgeSoftness",
+      "uniform": "uSoftness",
+      "visualEffect": "Feathers the outer membrane outline into a soft glow.",
+      "min": 0.004,
+      "default": 0.02,
+      "max": 0.3,
+      "step": 0.002,
+      "controlType": "slider",
+      "visibility": "basic",
+      "performanceTier": "low",
+      "powerGate": false
+    },
+    {
+      "key": "surfaceTension",
+      "uniform": "uTension",
+      "visualEffect": "Controls sharpness of fusion joints between merging cells.",
+      "min": 0.5,
+      "default": 1.0,
+      "max": 1.7,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "medium",
+      "powerGate": false
+    },
+    {
+      "key": "connectionBias",
+      "uniform": "uBias",
+      "visualEffect": "Scales the long-range tail attraction and corridor bridging between cells.",
+      "min": 0.0,
+      "default": 0.37,
+      "max": 1.0,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "basic",
+      "performanceTier": "low",
+      "powerGate": false
+    },
+    {
+      "key": "pocketThreshold",
+      "uniform": "uPocketIso",
+      "visualEffect": "Contour threshold that carves hollow spaces inside dense cell clusters.",
+      "min": 2.0,
+      "default": 7.8,
+      "max": 14.0,
+      "step": 0.05,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": true,
+      "gateCondition": "pocketAmount = 0"
+    },
+    {
+      "key": "pocketSoftness",
+      "uniform": "uPocketSoft",
+      "visualEffect": "Feathers the inner boundaries of pocket voids.",
+      "min": 0.05,
+      "default": 0.48,
+      "max": 2.5,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": false
+    },
+    {
+      "key": "timeScale",
+      "uniform": "timeScale",
+      "visualEffect": "Global speed multiplier for continuous CPU idle-motion simulation.",
+      "min": 0.0,
+      "default": 1.0,
+      "max": 2.5,
+      "step": 0.05,
+      "controlType": "slider",
+      "visibility": "basic",
+      "performanceTier": "low",
+      "powerGate": true,
+      "gateCondition": "timeScale = 0 pauses rAF loop"
+    },
+    {
+      "key": "response",
+      "uniform": "response",
+      "visualEffect": "Damping rate for the cells target-to-render follow inertia.",
+      "min": 1.0,
+      "default": 6.0,
+      "max": 18.0,
+      "step": 0.1,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": false
+    },
+    {
+      "key": "drift",
+      "uniform": "drift",
+      "visualEffect": "Slow, random floating offset movement away from home grid nodes.",
+      "min": 0.0,
+      "default": 0.25,
+      "max": 1.0,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": true,
+      "gateCondition": "drift = 0 skips CPU offset math"
+    },
+    {
+      "key": "breathing",
+      "uniform": "breathing",
+      "visualEffect": "Pulsating size expansion and contraction of cell radii over time.",
+      "min": 0.0,
+      "default": 0.35,
+      "max": 1.0,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": true,
+      "gateCondition": "breathing = 0 skips radius pulsing"
+    },
+    {
+      "key": "wobble",
+      "uniform": "wobble",
+      "visualEffect": "High-frequency outline shiver and wobble.",
+      "min": 0.0,
+      "default": 0.16,
+      "max": 1.0,
+      "step": 0.01,
+      "controlType": "slider",
+      "visibility": "advanced",
+      "performanceTier": "low",
+      "powerGate": true,
+      "gateCondition": "wobble = 0 skips CPU shiver math"
+    }
+  ],
+  "curated_palettes": {
+    "cell_palettes": [
+      {
+        "id": "black-bone",
+        "label": "Black Bone",
+        "group": "core",
+        "use": "Monochrome architectural and structural lines."
+      },
+      {
+        "id": "graphite-fog",
+        "label": "Graphite Fog",
+        "group": "monochrome",
+        "use": "Quiet technical gray for back-of-house areas."
+      },
+      {
+        "id": "architecture-warm",
+        "label": "Architecture Warm",
+        "group": "warm",
+        "use": "Terracotta and umber for public/gathering spaces."
+      },
+      {
+        "id": "architecture-cool",
+        "label": "Architecture Cool",
+        "group": "cool",
+        "use": "Steel/slate-blue for service and wet-zone spaces."
+      },
+      {
+        "id": "sage-stone",
+        "label": "Sage & Stone",
+        "group": "architecture",
+        "use": "Landscape sage green for outdoor/garden plans."
+      },
+      {
+        "id": "oxblood-editorial",
+        "label": "Oxblood Editorial",
+        "group": "editorial",
+        "use": "Brand maroon for highlight nodes and main lobbies."
+      },
+      {
+        "id": "clay-porcelain",
+        "label": "Clay & Porcelain",
+        "group": "warm",
+        "use": "Warm neutral for residential/hotel layouts."
+      }
+    ],
+    "membrane_palettes": [
+      {
+        "id": "core-field",
+        "label": "Core Field",
+        "blend": "solid",
+        "use": "Classic high-contrast editorial floor plan style."
+      },
+      {
+        "id": "ink",
+        "label": "Ink",
+        "blend": "solid",
+        "use": "Monotone deep ink technical look."
+      },
+      {
+        "id": "porcelain",
+        "label": "Porcelain",
+        "blend": "solid",
+        "use": "Light body on charcoal background presentation style."
+      },
+      {
+        "id": "graphite",
+        "label": "Graphite",
+        "blend": "solid",
+        "use": "Professional grey base for multi-layered layouts."
+      },
+      {
+        "id": "wine",
+        "label": "Wine",
+        "blend": "solid",
+        "use": "Brand maroon membrane body."
+      },
+      {
+        "id": "sage",
+        "label": "Sage",
+        "blend": "solid",
+        "use": "Landscape and site plan body."
+      },
+      {
+        "id": "category-blend",
+        "label": "Category Blend",
+        "blend": "category-blend",
+        "use": "Dynamic local blending based on localized cell programs."
+      }
+    ]
+  },
+  "staged_symbols": {
+    "m2_essential_students": [
+      "icon:architecture:door",
+      "icon:architecture:window",
+      "icon:furniture:bed",
+      "icon:furniture:chair",
+      "icon:furniture:sofa",
+      "icon:landscape:tree",
+      "icon:landscape:flower",
+      "icon:wayfinding:north-arrow",
+      "icon:wayfinding:entrance"
+    ],
+    "m2_essential_professionals": [
+      "icon:structural:column",
+      "icon:structural:beam",
+      "icon:wayfinding:stairs",
+      "icon:wayfinding:egress",
+      "icon:annotation:dimension",
+      "icon:annotation:north"
+    ],
+    "original_custom_briefs": [
+      "icon:circulation:elevator-cab",
+      "icon:circulation:stairs-plan",
+      "icon:circulation:escalator-section",
+      "icon:furniture:wardrobe-layout",
+      "icon:furniture:sink-layout",
+      "icon:landscape:gate-layout",
+      "icon:service:drainage-drain",
+      "icon:annotation:section-mark"
+    ],
+    "pending_custom_gap_candidates": [
+      "icon:structural:wall",
+      "icon:sanitary:urinal-plan",
+      "icon:sanitary:bathtub-plan",
+      "icon:mep:electrical-panel",
+      "icon:mep:hvac-supply",
+      "icon:mep:hvac-return",
+      "icon:mep:sprinkler",
+      "icon:circulation:ramp-plan",
+      "icon:site:bench-layout",
+      "icon:site:fence-layout"
+    ],
+    "rejected_candidates": [
+      "icon:circulation:step-forward",
+      "icon:circulation:step-back",
+      "icon:landscape:sunlight",
+      "icon:diagram:share",
+      "icon:annotation:section"
+    ]
+  },
+  "preset_recipes": [
+    {
+      "name": "Technical Diagram",
+      "cellPaletteId": "black-bone",
+      "membraneMaterialId": "system:ink",
+      "mass": 1.0,
+      "isoLevel": 1.2,
+      "edgeSoftness": 0.005,
+      "surfaceTension": 1.4,
+      "connectionBias": 0.0,
+      "shadowState": "Off",
+      "motionState": "Off",
+      "performanceTier": "low"
+    },
+    {
+      "name": "Soft Organism",
+      "cellPaletteId": "editorial-aurora",
+      "membraneMaterialId": "organism:core-field",
+      "mass": 1.1,
+      "isoLevel": 0.95,
+      "edgeSoftness": 0.08,
+      "surfaceTension": 0.8,
+      "connectionBias": 0.5,
+      "shadowState": "Soft",
+      "motionState": "On",
+      "performanceTier": "medium"
+    },
+    {
+      "name": "Dense Tissue",
+      "cellPaletteId": "dark-premium",
+      "membraneMaterialId": "organism:wine",
+      "mass": 1.4,
+      "isoLevel": 0.8,
+      "edgeSoftness": 0.03,
+      "surfaceTension": 0.6,
+      "connectionBias": 0.7,
+      "shadowState": "Defined",
+      "motionState": "On",
+      "performanceTier": "medium"
+    },
+    {
+      "name": "Editorial Blob",
+      "cellPaletteId": "oxblood-editorial",
+      "membraneMaterialId": "organism:wine",
+      "mass": 1.25,
+      "isoLevel": 1.0,
+      "edgeSoftness": 0.015,
+      "surfaceTension": 0.9,
+      "connectionBias": 0.45,
+      "shadowState": "Soft",
+      "motionState": "Off",
+      "performanceTier": "low"
+    },
+    {
+      "name": "Static Presentation",
+      "cellPaletteId": "clay-porcelain",
+      "membraneMaterialId": "organism:porcelain",
+      "mass": 1.05,
+      "isoLevel": 1.0,
+      "edgeSoftness": 0.02,
+      "surfaceTension": 1.0,
+      "connectionBias": 0.35,
+      "shadowState": "Defined",
+      "motionState": "Off",
+      "performanceTier": "low"
+    },
+    {
+      "name": "High-Performance / Large Project",
+      "cellPaletteId": "graphite-fog",
+      "membraneMaterialId": "organism:graphite",
+      "mass": 1.0,
+      "isoLevel": 1.0,
+      "edgeSoftness": 0.0,
+      "surfaceTension": 1.0,
+      "connectionBias": 0.0,
+      "shadowState": "Off",
+      "motionState": "Off",
+      "performanceTier": "low"
+    },
+    {
+      "name": "Monochrome Print",
+      "cellPaletteId": "black-bone",
+      "membraneMaterialId": "system:ink",
+      "mass": 1.0,
+      "isoLevel": 1.0,
+      "edgeSoftness": 0.0,
+      "surfaceTension": 1.2,
+      "connectionBias": 0.2,
+      "shadowState": "Off",
+      "motionState": "Off",
+      "performanceTier": "low"
+    },
+    {
+      "name": "Category Gradient",
+      "cellPaletteId": "auto",
+      "membraneMaterialId": "organism:category-blend",
+      "mass": 1.1,
+      "isoLevel": 1.0,
+      "edgeSoftness": 0.025,
+      "surfaceTension": 1.0,
+      "connectionBias": 0.4,
+      "shadowState": "Soft",
+      "motionState": "On",
+      "performanceTier": "high"
+    },
+    {
+      "name": "Privacy Study",
+      "cellPaletteId": "medical-clean",
+      "membraneMaterialId": "organism:slate-blue",
+      "mass": 1.1,
+      "isoLevel": 1.05,
+      "edgeSoftness": 0.02,
+      "surfaceTension": 1.1,
+      "connectionBias": 0.3,
+      "shadowState": "Off",
+      "motionState": "Off",
+      "performanceTier": "low"
+    }
+  ],
+  "unresolved_owner_decisions": [
+    "Verify whether neutral prayer/worship symbols require a specialized custom SVG or if generic sunrise is acceptable.",
+    "Decide if expansion joint line markings should be customized or standard dashed double-lines.",
+    "Resolve whether level of detail (LoD) threshold sliders are standard or advanced configurations."
+  ]
+}
