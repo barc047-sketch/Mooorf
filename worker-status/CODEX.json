@@ -1,7 +1,7 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "WAITING_REVIEW",
   "task": "C0 M2 Correction 1 — Owner Review Regressions and Symbol/Void Completion",
   "brief": "docs/worker-briefs/C0_M2_CORRECTION_1_OWNER_REVIEW_REGRESSIONS.md",
   "launch_prompt": "docs/worker-briefs/C0_M2_CORRECTION_1_LAUNCH_PROMPT.md",
@@ -9,7 +9,7 @@
   "source_branch": "main",
   "source_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
   "planned_work_branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
-  "feature_sha": "1cc8ec0c7ab756bc6b091b87014da2c3e27383d2",
+  "feature_sha": "a537102f9a9b71d0397266b7a22daef20e49282d",
   "owner_authorization": "GO CODEX M2 CORRECTION 1",
   "assignment_summary": [
     "repair visible Random and current layout preset execution through the canonical store owner with all-versus-selected scope and one history transaction",
@@ -50,7 +50,7 @@
     "exactly_one_final_build": true,
     "exhaustive_cdp_required": false,
     "browser_harness_tuning_limit_minutes": 10,
-    "owner_manual_checklist_items": "3-7"
+    "owner_manual_checklist_items": "5"
   },
   "expected_reports": [
     "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
@@ -60,16 +60,28 @@
     "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
     "docs/C0_M2_CONTROL_OWNERSHIP_MAP.md"
   ],
-  "verification_summary": [],
-  "known_limitations": [],
+  "verification_summary": [
+    "7/7 focused C0 M2 Correction 1 contracts passed",
+    "24/24 affected history, persistence, migration, renderer, import and export tests passed across 18 focused files",
+    "npx tsc -b --pretty false passed",
+    "git diff --check 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2...a537102f9a9b71d0397266b7a22daef20e49282d passed",
+    "exactly one npm run build passed with only the accepted existing Vite chunk-size warning",
+    "bounded 1280x800 real-browser smoke passed for one Inspector, 133 symbols, canonical apply, pointer/keyboard preview stability, favourites and zero shell overflow",
+    "verified production preview remains live at http://127.0.0.1:4173/ with zero console errors"
+  ],
+  "known_limitations": [
+    "Organism SVG remains truthfully unavailable; Organism symbol export uses PNG/PDF while Classic owns true-vector SVG",
+    "Fast Owner-QA intentionally used one bounded browser viewport; the five-item Owner review remains the acceptance gate",
+    "the existing Vite large-chunk warning remains unchanged"
+  ],
   "previous_task": {
     "id": "C0 M1",
     "status": "MERGED",
     "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
     "merge_method": "protected non-forced fast-forward"
   },
-  "updated_at": "2026-07-15T21:37:14+05:30",
+  "updated_at": "2026-07-15T22:00:03+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Codex executes the bounded C0 M2 Correction 1 brief from exact feature base 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2 under Fast Owner-QA, then pushes one fixed head and stops at WAITING_REVIEW.",
-  "next_gate": "One fixed correction head with focused verification and the five-item Owner checklist; explicit merge authority remains required."
+  "next_worker_action": "STOP. Owner reviews the fixed correction head against the five-item checklist; Codex must not merge or begin M3, M4 or M5.",
+  "next_gate": "Owner acceptance of Correction 1 and a separate exact merge command; merge authority remains withheld."
 }
