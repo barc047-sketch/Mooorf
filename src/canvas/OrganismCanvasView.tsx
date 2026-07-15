@@ -31,6 +31,8 @@ import {
   createMotionState,
   dragDeltaWorldToStore,
   hitTestNuclei,
+  motionStateForRuntime,
+  resetMotionState,
   screenToWorld,
   spacesToNuclei,
   type DragPosition,
@@ -209,6 +211,11 @@ export default function OrganismCanvasView() {
       dirty = true;
       renderLoop?.invalidate();
     };
+    const updateResolvedOrganism = (next: ReturnType<typeof resolveOrganism>) => {
+      if (next.motionActive !== resolved.motionActive) resetMotionState(motionState);
+      resolved = next;
+      renderLoop?.setContinuous(resolved.motionActive);
+    };
     let dpr = 1;
     let w = 0;
     let h = 0;
@@ -331,9 +338,8 @@ export default function OrganismCanvasView() {
       const nextSettings = effectiveCanvasSettings(s);
       if (nextSettings !== settings) {
         settings = nextSettings;
-        resolved = resolveOrganism(settings, reducedMotion);
+        updateResolvedOrganism(resolveOrganism(settings, reducedMotion));
         derivedDirty = true;
-        renderLoop?.setContinuous(resolved.motionActive);
       }
       if (spacesChanged) derivedDirty = true;
       if (s.camera !== lastCommitted) {
@@ -365,9 +371,8 @@ export default function OrganismCanvasView() {
 
     const onReducedMotion = () => {
       reducedMotion = reducedMotionQuery.matches;
-      resolved = resolveOrganism(settings, reducedMotion);
+      updateResolvedOrganism(resolveOrganism(settings, reducedMotion));
       derivedDirty = true;
-      renderLoop?.setContinuous(resolved.motionActive);
       invalidate();
     };
     reducedMotionQuery.addEventListener("change", onReducedMotion);
@@ -460,7 +465,7 @@ export default function OrganismCanvasView() {
         selectedId,
         translatedPositions.length > 0 ? translatedPositions : drag,
         resolved.adapter,
-        motionState,
+        motionStateForRuntime(resolved.motionActive, motionState),
         settings.paletteMode,
         settings.nucleusPaletteId,
         settings.colorSource,

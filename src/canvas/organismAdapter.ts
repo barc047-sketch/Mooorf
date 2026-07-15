@@ -47,6 +47,22 @@ export const createMotionState = (): OrganismMotionState => ({
   smooth: new Map(),
 });
 
+/** Static runtime projects canonical geometry directly; only active Motion may
+ * read or write the renderer-owned smoothing cache. */
+export const motionStateForRuntime = (
+  active: boolean,
+  state: OrganismMotionState,
+): OrganismMotionState | undefined => active ? state : undefined;
+
+/** Reset transition-only runtime data so reactivation starts from the current
+ * canonical geometry instead of reviving positions from an earlier frame. */
+export const resetMotionState = (state: OrganismMotionState): void => {
+  state.time = 0;
+  state.pendingDt = 0;
+  state.settling = false;
+  state.smooth.clear();
+};
+
 /** Advance the clock once per frame; mapping consumes pendingDt exactly once. */
 export function advanceMotion(
   state: OrganismMotionState,
