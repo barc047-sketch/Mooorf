@@ -106,6 +106,7 @@ const validateSpace = (
   return {
     id: clean(value.id, `Space row ${index + 1} id`, 160),
     name: clean(value.name, `Space row ${index + 1} name`),
+    body: value.body === undefined ? "" : clean(value.body, `Space row ${index + 1} body`, 1200),
     kind,
     area,
     category: clean(value.category, `Space row ${index + 1} category`),
@@ -148,6 +149,9 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
     blobOn: value.blobOn,
     organism,
     resources,
+    annotationDetail: value.annotationDetail as unknown as ProjectExportSettings["annotationDetail"],
+    labelColourMode: value.labelColourMode as ProjectExportSettings["labelColourMode"],
+    labelCustomColour: value.labelCustomColour as string,
   });
   return {
     ...(value as unknown as ProjectExportSettings),
@@ -232,6 +236,9 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     blobOn: typeof value.blobOn === "boolean" ? value.blobOn : true,
     organism,
     resources,
+    annotationDetail: value.annotationDetail as SavedCanvasSnapshot["annotationDetail"],
+    labelColourMode: value.labelColourMode as SavedCanvasSnapshot["labelColourMode"],
+    labelCustomColour: value.labelCustomColour as string,
   });
   return {
     ...(value as unknown as SavedCanvasSnapshot),
@@ -304,6 +311,9 @@ export const buildProjectEnvelope = (
       blobOn: view.blobOn ?? true,
       organism: view.organism,
       resources,
+      annotationDetail: view.annotationDetail,
+      labelColourMode: view.labelColourMode,
+      labelCustomColour: view.labelCustomColour,
     });
     return {
       ...view,

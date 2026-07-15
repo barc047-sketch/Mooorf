@@ -2,10 +2,11 @@
   position: absolute;
   z-index: 28;
   left: clamp(52px, var(--editor-x), calc(100% - 324px));
-  top: clamp(14px, var(--editor-y), calc(100% - 132px));
+  top: clamp(14px, var(--editor-y), calc(100% - 190px));
   width: min(292px, calc(100% - 72px));
-  height: 38px;
-  display: flex;
+  min-height: 104px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px 72px auto;
   align-items: center;
   gap: 8px;
   padding: 4px 9px;
@@ -31,3 +32,19 @@
 .inline-cell-editor .inline-cell-area { flex: 0 0 72px; font-variant-numeric: tabular-nums; text-align: right; }
 .inline-cell-divider { width: 1px; height: 18px; background: var(--hairline); opacity: .7; }
 .inline-cell-unit { font-size: 9px; color: var(--fog); }
+.inline-cell-editor .inline-cell-body {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 46px;
+  max-height: 58px;
+  resize: none;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  outline: 0;
+  padding: 7px 2px 2px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.3;
+}

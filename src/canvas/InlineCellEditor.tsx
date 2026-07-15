@@ -14,6 +14,7 @@ export default function InlineCellEditor({ space, position, onClose }: {
   const commitSpaceEdit = useLab((state) => state.commitSpaceEdit);
   const [name, setName] = useState(space.name);
   const [area, setArea] = useState(String(space.area));
+  const [body, setBody] = useState(space.body ?? "");
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const closedRef = useRef(false);
@@ -21,9 +22,9 @@ export default function InlineCellEditor({ space, position, onClose }: {
   const commit = useCallback(() => {
     if (closedRef.current) return;
     closedRef.current = true;
-    commitSpaceEdit(space.id, normalizeInlineCellDraft(name, area, space.area));
+    commitSpaceEdit(space.id, normalizeInlineCellDraft(name, area, space.area, body));
     onClose();
-  }, [area, commitSpaceEdit, name, onClose, space.area, space.id]);
+  }, [area, body, commitSpaceEdit, name, onClose, space.area, space.id]);
 
   const cancel = useCallback(() => {
     if (closedRef.current) return;
@@ -60,6 +61,7 @@ export default function InlineCellEditor({ space, position, onClose }: {
       return;
     }
     if (event.key === "Enter") {
+      if (event.shiftKey && event.target instanceof HTMLTextAreaElement) return;
       event.preventDefault();
       event.stopPropagation();
       commit();
@@ -83,6 +85,16 @@ export default function InlineCellEditor({ space, position, onClose }: {
       <label className="sr-only" htmlFor={`inline-area-${space.id}`}>Area</label>
       <input id={`inline-area-${space.id}`} className="inline-cell-area" type="number" min={1} inputMode="decimal" value={area} onChange={(event) => setArea(event.target.value)} aria-label="Space area" />
       <span className="inline-cell-unit">m²</span>
+      <label className="sr-only" htmlFor={`inline-body-${space.id}`}>Body</label>
+      <textarea
+        id={`inline-body-${space.id}`}
+        className="inline-cell-body"
+        rows={3}
+        value={body}
+        onChange={(event) => setBody(event.target.value)}
+        aria-label="Body or subtext"
+        placeholder="Body / subtext"
+      />
     </form>
   );
 }

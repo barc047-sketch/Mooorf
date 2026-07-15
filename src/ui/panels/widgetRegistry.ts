@@ -10,6 +10,7 @@ import {
   Eye,
   LayoutGrid,
   ListOrdered,
+  Minus,
   Palette,
   Scale,
   Settings2,
@@ -57,21 +58,54 @@ export interface WidgetDefinition extends WidgetPanelDefinition {
 }
 
 export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = {
-  annotation: {
-    id: "annotation",
-    label: "Annotation",
-    responsibility: "Label modes, text scale, visible fields, position, bounding box.",
+  inspector: {
+    id: "inspector",
+    label: "Inspector",
+    responsibility: "Canonical Cell content, coordinated text and six-target appearance editing.",
     launcher: "rail",
     status: "live",
+    icon: SlidersHorizontal,
+    geometry: { variant: "vertical", width: 332, minWidth: 320, minHeight: 360, maxHeight: 748, aspectIntent: "tall" },
+  },
+  "cell-settings": {
+    id: "cell-settings", label: "Cell Settings", responsibility: "Cell fill visibility, colour, material reference and opacity.", launcher: "widget", status: "live", icon: Palette,
+    geometry: { variant: "standard", width: 304, minWidth: 280, maxHeight: 560, aspectIntent: "balanced" },
+  },
+  "boundary-settings": {
+    id: "boundary-settings", label: "Boundary Settings", responsibility: "All canonical Boundary stroke styles, geometry and paint.", launcher: "widget", status: "live", icon: SlidersHorizontal,
+    geometry: { variant: "vertical", width: 320, minWidth: 292, maxHeight: 720, aspectIntent: "tall" },
+  },
+  "membrane-settings": {
+    id: "membrane-settings", label: "Membrane Settings", responsibility: "Membrane fill plus proven legacy fusion and reach ownership.", launcher: "widget", status: "live", icon: Activity,
+    geometry: { variant: "vertical", width: 310, minWidth: 282, maxHeight: 660, aspectIntent: "tall" },
+  },
+  "membrane-edge-settings": {
+    id: "membrane-edge-settings", label: "Membrane Edge Settings", responsibility: "Independent Membrane edge visibility, width and paint.", launcher: "widget", status: "live", icon: Activity,
+    geometry: { variant: "standard", width: 304, minWidth: 280, maxHeight: 580, aspectIntent: "balanced" },
+  },
+  "core-settings": {
+    id: "core-settings", label: "Core Settings", responsibility: "Core dot visibility, size, colour, opacity and automatic contrast.", launcher: "widget", status: "live", icon: Eye,
+    geometry: { variant: "standard", width: 304, minWidth: 280, maxHeight: 580, aspectIntent: "balanced" },
+  },
+  "void-settings": {
+    id: "void-settings", label: "Void Settings", responsibility: "Void appearance only; subtraction and geometry remain data-owned.", launcher: "widget", status: "live", icon: Minus,
+    geometry: { variant: "vertical", width: 310, minWidth: 282, maxHeight: 680, aspectIntent: "tall" },
+  },
+  annotation: {
+    id: "annotation",
+    label: "Legacy Label Display",
+    responsibility: "Compatibility-only label modes and placement; M1 text appearance is Inspector-owned.",
+    launcher: "widget",
+    status: "prepared",
     icon: Type,
     geometry: { variant: "standard", width: 288, minWidth: 260, maxHeight: 520, aspectIntent: "balanced" },
   },
   organism: {
     id: "organism",
-    label: "Morph & Motion",
-    responsibility: "Morph style, Membrane reach, Cells, Motion, pockets, and selection.",
-    launcher: "both",
-    status: "live",
+    label: "Legacy Morph & Motion",
+    responsibility: "Compatibility body only; supported Morph/Fusion/Reach moved to Membrane Settings.",
+    launcher: "widget",
+    status: "prepared",
     icon: SlidersHorizontal,
     geometry: { variant: "standard", width: 292, minWidth: 268, maxHeight: 610, aspectIntent: "balanced" },
   },
@@ -86,10 +120,10 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   },
   palette: {
     id: "palette",
-    label: "Palette",
-    responsibility: "Palette mode, Cell family ramps, Membrane palettes, and program mapping.",
-    launcher: "both",
-    status: "live",
+    label: "Legacy Palette",
+    responsibility: "Compatibility body only; M1 paint controls reuse canonical palette resolution.",
+    launcher: "widget",
+    status: "prepared",
     icon: Palette,
     geometry: { variant: "standard", width: 304, minWidth: 276, maxHeight: 600, aspectIntent: "balanced" },
   },
@@ -191,11 +225,4 @@ export const getWidgetDefinition = (id: WidgetId): WidgetDefinition => WIDGET_DE
 
 export const WIDGET_PANEL_DEFINITIONS: readonly WidgetPanelDefinition[] = [
   ...Object.values(WIDGET_DEFINITIONS),
-  {
-    id: "selected-space",
-    label: "Selected Space",
-    responsibility: "Future selected Cell property editor.",
-    launcher: "rail",
-    status: "future",
-  },
 ];

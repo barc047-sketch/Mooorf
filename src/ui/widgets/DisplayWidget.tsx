@@ -36,7 +36,6 @@ export default function DisplayWidget() {
   const uiScale = useLab((s) => s.settings.uiScale);
   const widgetScale = useLab((s) => s.settings.widgetScale);
   const organism = useLab((s) => s.settings.organism);
-  const morphEnabled = useLab((s) => s.settings.blobOn);
   const cellShadow = useLab((s) => s.settings.cellShadow);
   const performanceQuality = useLab((s) => s.settings.performanceQuality);
   const setSettings = useLab((s) => s.setSettings);
@@ -56,11 +55,6 @@ export default function DisplayWidget() {
 
       <WidgetSection title="Canvas" hint="ground overlays" defaultOpen>
         <SwitchRow
-          label="Morph"
-          on={morphEnabled}
-          onToggle={() => setSettings({ blobOn: !morphEnabled })}
-        />
-        <SwitchRow
           label="Technical grid"
           on={showGrid}
           onToggle={() => setSettings({ showGrid: !showGrid })}
@@ -69,11 +63,6 @@ export default function DisplayWidget() {
           label="Show labels"
           on={organism.showLabels}
           onToggle={() => setOrganism({ showLabels: !organism.showLabels })}
-        />
-        <SwitchRow
-          label="Show nuclei dots"
-          on={organism.showNuclei}
-          onToggle={() => setOrganism({ showNuclei: !organism.showNuclei })}
         />
       </WidgetSection>
 

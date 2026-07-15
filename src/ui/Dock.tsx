@@ -1,69 +1,21 @@
-import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { motion } from "motion/react";
 import {
   Bookmark,
   ChevronLeft,
   ChevronRight,
   Download,
-  Magnet,
   Minus,
-  Paintbrush,
-  Palette,
   Plus,
   Shuffle,
-  SlidersHorizontal,
   Upload,
 } from "lucide-react";
 import { useLab } from "../state/store";
-import type { AttachMode, MorphMode, PaletteMode } from "../types";
-import {
-  ATTACH_HINTS,
-  ATTACH_LABELS,
-  MORPH_DESCRIPTIONS,
-  MORPH_LABELS,
-  PALETTE_DESCRIPTIONS,
-  PALETTE_LABELS,
-} from "./controlMeta";
 import "./shell.css";
 
-/* V6K bottom dock — quick actions only. Left: Morph style/attachment/
-   density quick switches. Center: creation cluster. Right: palette, saved
-   views, import/export, widget launcher, random arrangement. Detailed
-   settings live in the floating widgets. */
-
-const MAIN_MORPHS = [
-  "cellular-reverse",
-  "plain-black",
-  "plain-white",
-] as const satisfies readonly MorphMode[];
-const EXTRA_MORPHS = [
-  "graphite",
-  "wine",
-  "auto",
-] as const satisfies readonly MorphMode[];
-const ATTACH_MODES = [
-  "tight",
-  "soft",
-  "long",
-  "extreme",
-] as const satisfies readonly AttachMode[];
-const PALETTE_MODES = [
-  "core",
-  "surreal",
-  "architecture",
-  "auto",
-] as const satisfies readonly PaletteMode[];
-const MORPH_CODES: Record<MorphMode, string> = {
-  "cellular-reverse": "CEL",
-  "plain-black": "BLK",
-  "plain-white": "WHT",
-  graphite: "GRA",
-  wine: "WIN",
-  auto: "AUT",
-};
-
-type PanelId = "style" | "attach" | "palette" | null;
-type PopAlign = "left" | "center" | "right";
+/* Bottom dock — creation in the centre and non-editing project utilities on
+   the right. M1 appearance ownership lives in the Inspector and six detailed
+   widgets, so no duplicate Morph/palette controls remain here. */
 
 interface DockButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
@@ -102,102 +54,17 @@ function DockButton({ active, className = "", children, ...props }: DockButtonPr
   );
 }
 
-function DockPopover({
-  open,
-  label,
-  align = "center",
-  className = "",
-  children,
-}: {
-  open: boolean;
-  label: string;
-  align?: PopAlign;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          key={label}
-          className={["dock-pop", "glass", `dock-pop--${align}`, className]
-            .filter(Boolean)
-            .join(" ")}
-          role="menu"
-          aria-label={label}
-          initial={{ opacity: 0, y: 7, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 5, scale: 0.97 }}
-          transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {children}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
 export default function Dock() {
   const addSpace = useLab((s) => s.addSpace);
   const addVoid = useLab((s) => s.addVoid);
   const addSpaces = useLab((s) => s.addSpaces);
   const applyLayoutPreset = useLab((s) => s.applyLayoutPreset);
-  const mergeDistance = useLab((s) => s.settings.mergeDistance);
-  const morphMode = useLab((s) => s.settings.morphMode);
-  const attachMode = useLab((s) => s.settings.attachMode);
-  const paletteMode = useLab((s) => s.settings.paletteMode);
-  const setSettings = useLab((s) => s.setSettings);
   const openWidgets = useLab((s) => s.openWidgets);
   const openWidget = useLab((s) => s.openWidget);
-  const [panel, setPanel] = useState<PanelId>(null);
-  const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const dockRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!panel) return;
-    const onDown = (e: PointerEvent) => {
-      if (!dockRef.current?.contains(e.target as Node)) setPanel(null);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setPanel(null);
-    };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [panel]);
-
-  const togglePanel = (id: Exclude<PanelId, null>) =>
-    setPanel((open) => (open === id ? null : id));
-
-  const setMorph = (mode: MorphMode) => setSettings({ morphMode: mode });
-  const setAttach = (mode: AttachMode) => setSettings({ attachMode: mode });
-  const setPalette = (mode: PaletteMode) => setSettings({ paletteMode: mode });
-
-  const morphRow = (m: MorphMode) => (
-    <button
-      key={m}
-      type="button"
-      className="pop-row pop-row--rich"
-      role="menuitemradio"
-      aria-checked={morphMode === m}
-      data-active={morphMode === m}
-      onClick={() => setMorph(m)}
-    >
-      <span className="pop-swatch" data-mode={m} />
-      <span className="pop-row-text">
-        <span>{MORPH_LABELS[m]}</span>
-        <span className="pop-row-desc">{MORPH_DESCRIPTIONS[m]}</span>
-      </span>
-    </button>
-  );
 
   return (
     <motion.div
-      ref={dockRef}
       className="dock"
       initial={{ x: "-50%", y: 24, opacity: 0 }}
       animate={{ x: "-50%", y: 0, opacity: 1 }}
@@ -205,99 +72,6 @@ export default function Dock() {
       role="toolbar"
       aria-label="Canvas tools"
     >
-      <DockGroup side="left" collapsed={!leftOpen}>
-        <DockButton
-          className="dock-collapse-btn"
-          title={leftOpen ? "Collapse quick controls" : "Expand quick controls"}
-          aria-label={leftOpen ? "Collapse quick controls" : "Expand quick controls"}
-          onClick={() => {
-            setPanel(null);
-            setLeftOpen((open) => !open);
-          }}
-        >
-          {leftOpen ? <ChevronLeft size={15} strokeWidth={1.5} /> : <ChevronRight size={15} strokeWidth={1.5} />}
-        </DockButton>
-
-        {leftOpen && (
-          <div className="dock-group-items" data-side="left">
-            <div className="dock-pop-anchor">
-              <DockPopover open={panel === "style"} label="Morph style" align="left">
-                {MAIN_MORPHS.map(morphRow)}
-                <span className="pop-divider" role="separator" />
-                {EXTRA_MORPHS.map(morphRow)}
-              </DockPopover>
-              <DockButton
-                className="dock-mode-btn style-mode-btn"
-                active={panel === "style"}
-                title={`Morph style: ${MORPH_LABELS[morphMode]}`}
-                aria-label={`Morph style: ${MORPH_LABELS[morphMode]}`}
-                aria-haspopup="menu"
-                aria-expanded={panel === "style"}
-                data-mode={morphMode}
-                onClick={() => togglePanel("style")}
-              >
-                <Paintbrush size={16} strokeWidth={1.5} />
-                <span className="dock-mode-code dock-style-code">{MORPH_CODES[morphMode]}</span>
-                <span className="morph-color-swatch" data-mode={morphMode} />
-              </DockButton>
-            </div>
-
-            <div className="dock-pop-anchor">
-              <DockPopover
-                open={panel === "attach"}
-                label="Attachment"
-                align="center"
-                className="dock-pop-attach"
-              >
-                <div className="pop-chips">
-                  {ATTACH_MODES.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      className="pop-chip"
-                      role="menuitemradio"
-                      aria-checked={attachMode === m}
-                      data-active={attachMode === m}
-                      data-extreme={m === "extreme" ? "true" : undefined}
-                      title={`${ATTACH_LABELS[m]} — ${ATTACH_HINTS[m]}`}
-                      onClick={() => setAttach(m)}
-                    >
-                      {ATTACH_LABELS[m]}
-                    </button>
-                  ))}
-                </div>
-                <p className="pop-caption">{ATTACH_HINTS[attachMode]}</p>
-              </DockPopover>
-              <DockButton
-                className="dock-mode-btn attach-mode-btn"
-                active={panel === "attach"}
-                title={`Attachment: ${ATTACH_LABELS[attachMode]}`}
-                aria-label={`Attachment: ${ATTACH_LABELS[attachMode]}`}
-                aria-haspopup="menu"
-                aria-expanded={panel === "attach"}
-                data-mode={attachMode}
-                onClick={() => togglePanel("attach")}
-              >
-                <Magnet size={16} strokeWidth={1.5} />
-                <span className="dock-mode-code">{attachMode[0].toUpperCase()}</span>
-              </DockButton>
-            </div>
-
-            <div className="dock-merge" title="Reach / density fine-tune">
-              <span className="dock-merge-label">density</span>
-              <input
-                type="range"
-                min={0}
-                max={300}
-                value={mergeDistance}
-                onChange={(e) => setSettings({ mergeDistance: Number(e.target.value) })}
-                aria-label="Reach density fine-tune"
-              />
-            </div>
-          </div>
-        )}
-      </DockGroup>
-
       <DockGroup side="center">
         <DockButton
           className="nucleus-orb"
@@ -332,58 +106,6 @@ export default function Dock() {
       <DockGroup side="right" collapsed={!rightOpen}>
         {rightOpen && (
           <div className="dock-group-items" data-side="right">
-            <div className="dock-pop-anchor">
-              <DockPopover
-                open={panel === "palette"}
-                label="Palette"
-                align="right"
-                className="dock-pop-palette"
-              >
-                {PALETTE_MODES.map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    className="pop-row pop-row--rich"
-                    role="menuitemradio"
-                    aria-checked={paletteMode === mode}
-                    data-active={paletteMode === mode}
-                    onClick={() => setPalette(mode)}
-                  >
-                    <span className="palette-swatch" data-palette={mode} />
-                    <span className="pop-row-text">
-                      <span>{PALETTE_LABELS[mode]}</span>
-                      <span className="pop-row-desc">{PALETTE_DESCRIPTIONS[mode]}</span>
-                    </span>
-                  </button>
-                ))}
-                <span className="pop-divider" role="separator" />
-                <button
-                  type="button"
-                  className="pop-row"
-                  role="menuitem"
-                  onClick={() => {
-                    setPanel(null);
-                    openWidget("palette");
-                  }}
-                >
-                  All palettes →
-                </button>
-              </DockPopover>
-              <DockButton
-                className="dock-mode-btn palette-mode-btn"
-                active={panel === "palette"}
-                title={`Palette: ${PALETTE_LABELS[paletteMode]}`}
-                aria-label={`Palette: ${PALETTE_LABELS[paletteMode]}`}
-                aria-haspopup="menu"
-                aria-expanded={panel === "palette"}
-                data-palette={paletteMode}
-                onClick={() => togglePanel("palette")}
-              >
-                <Palette size={16} strokeWidth={1.5} />
-                <span className="palette-mini-swatch" data-palette={paletteMode} />
-              </DockButton>
-            </div>
-
             <DockButton
               active={openWidgets.includes("saved")}
               title="Saved views"
@@ -421,16 +143,6 @@ export default function Dock() {
             >
               <Download size={16} strokeWidth={1.5} />
             </DockButton>
-            <DockButton
-              active={openWidgets.includes("organism")}
-              title="Morph and Motion"
-              aria-label="Morph and Motion"
-              aria-haspopup="dialog"
-              aria-expanded={openWidgets.includes("organism")}
-              onClick={() => openWidget("organism")}
-            >
-              <SlidersHorizontal size={16} strokeWidth={1.5} />
-            </DockButton>
           </div>
         )}
         <DockButton
@@ -438,7 +150,6 @@ export default function Dock() {
           title={rightOpen ? "Collapse utility controls" : "Expand utility controls"}
           aria-label={rightOpen ? "Collapse utility controls" : "Expand utility controls"}
           onClick={() => {
-            setPanel(null);
             setRightOpen((open) => !open);
           }}
         >

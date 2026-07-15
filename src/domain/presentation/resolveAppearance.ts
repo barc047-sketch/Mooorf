@@ -96,6 +96,12 @@ export const resolveCellAppearance = (
     );
   };
   return {
+    text: {
+      preset: overrides?.text?.preset ?? defaults.text.preset,
+      size: overrides?.text?.size ?? defaults.text.size,
+      colourMode: overrides?.text?.colourMode ?? defaults.text.colourMode,
+      colour: overrides?.text?.colour ?? defaults.text.colour,
+    },
     cell: {
       visible: overrides?.cell?.visible ?? defaults.cell.visible,
       paint: resolvedPaint(defaults.cell.paint, overrides?.cell?.paint, "space-fill", (id) => nucleusFor(id).fill),
@@ -129,6 +135,8 @@ export const resolveCellAppearance = (
     },
     void: {
       visible: overrides?.void?.visible ?? defaults.void.visible,
+      fillVisible: overrides?.void?.fillVisible ?? defaults.void.fillVisible,
+      edgeVisible: overrides?.void?.edgeVisible ?? defaults.void.edgeVisible,
       fill: resolvedPaint(defaults.void.fill, overrides?.void?.fill, "void-fill", (id) => nucleusFor(id).fill),
       edge: resolvedPaint(defaults.void.edge, overrides?.void?.edge, "void-edge", (id) => nucleusFor(id).ring),
       edgeWidth: overrides?.void?.edgeWidth ?? defaults.void.edgeWidth,

@@ -65,6 +65,7 @@ import {
   projectCircleLayers,
   projectRuntimePresentation,
 } from "./presentationLayers";
+import { textStylePreset } from "../domain/presentation/editing";
 import "./organismCanvas.css";
 
 const CAPTURE_TIMEOUT_MS = 5000;
@@ -101,7 +102,7 @@ export default function OrganismCanvasView() {
   const presentationCanvasRef = useRef<HTMLCanvasElement>(null);
   const labelLayerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const spaces = useLab((s) => s.spaces);
+  const spaces = useLab((s) => s.appearancePreview ?? s.spaces);
   const selectedId = useLab((s) => s.selectedId);
   const selectedIds = useLab((s) => s.selectedIds);
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
@@ -114,10 +115,9 @@ export default function OrganismCanvasView() {
   const colorSource = useLab((s) => s.settings.colorSource);
   const organismPaletteId = useLab((s) => s.settings.organismPaletteId);
   const morphMode = useLab((s) => s.settings.morphMode);
-  const presentationDefaults = useLab((s) => s.settings.presentationDefaults);
+  const presentationDefaults = useLab((s) => s.presentationDefaultsPreview ?? s.settings.presentationDefaults);
   const showGrid = useLab((s) => s.settings.showGrid);
   const labelScaleMode = useLab((s) => s.settings.labelScaleMode);
-  const labelColourMode = useLab((s) => s.settings.labelColourMode);
   const labelCustomColour = useLab((s) => s.settings.labelCustomColour);
   const themeMode = useLab((s) => s.theme);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
@@ -175,10 +175,16 @@ export default function OrganismCanvasView() {
     announceReadiness("renderer-ready");
 
     const cam = { ...useLab.getState().camera };
-    let spaces = useLab.getState().spaces;
+    const initialState = useLab.getState();
+    let spaces = initialState.appearancePreview ?? initialState.spaces;
     let selectedId = useLab.getState().selectedId;
     let selectedIdSet = new Set(useLab.getState().selectedIds);
-    let settings = useLab.getState().settings;
+    const initialRuntimeSettings = initialState.membraneRuntimePreview
+      ? { ...initialState.settings, ...initialState.membraneRuntimePreview }
+      : initialState.settings;
+    let settings = initialState.presentationDefaultsPreview
+      ? { ...initialRuntimeSettings, presentationDefaults: initialState.presentationDefaultsPreview }
+      : initialRuntimeSettings;
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let reducedMotion = reducedMotionQuery.matches;
     let resolved = resolveOrganism(settings, reducedMotion);
@@ -300,12 +306,17 @@ export default function OrganismCanvasView() {
     let smooth: SmoothFrame | null = null;
 
     const unsub = useLab.subscribe((s) => {
-      const spacesChanged = s.spaces !== spaces;
-      spaces = s.spaces;
+      const nextSpaces = s.appearancePreview ?? s.spaces;
+      const spacesChanged = nextSpaces !== spaces;
+      spaces = nextSpaces;
       selectedId = s.selectedId;
       selectedIdSet = new Set(s.selectedIds);
-      if (s.settings !== settings) {
-        settings = s.settings;
+      const runtimeSettings = s.membraneRuntimePreview ? { ...s.settings, ...s.membraneRuntimePreview } : s.settings;
+      const nextSettings = s.presentationDefaultsPreview
+        ? { ...runtimeSettings, presentationDefaults: s.presentationDefaultsPreview }
+        : runtimeSettings;
+      if (nextSettings !== settings) {
+        settings = nextSettings;
         resolved = resolveOrganism(settings, reducedMotion);
         derivedDirty = true;
         renderLoop?.setContinuous(resolved.motionActive);
@@ -499,7 +510,7 @@ export default function OrganismCanvasView() {
       });
       layer.style.setProperty(
         "--label-scale",
-        String(resolveLabelScale(settings.labelScaleMode, cam.zoom, settings.annotationDetail.textScale))
+        String(resolveLabelScale(settings.labelScaleMode, cam.zoom, 1))
       );
       layer.querySelectorAll<HTMLElement>(".organism-label-anchor").forEach((anchor) => {
         const id = anchor.dataset.nucleusId;
@@ -1017,12 +1028,14 @@ export default function OrganismCanvasView() {
         data-bbox={annotationDetail.boundingBox ? "true" : undefined}
         data-shadow={annotationDetail.textShadow ? "true" : "false"}
         data-scale-mode={labelScaleMode}
-        style={{ "--label-scale": annotationDetail.textScale } as CSSProperties}
+        style={{ "--label-scale": 1 } as CSSProperties}
       >
         {spaces.slice(0, MAX_NUCLEI).map((space) => {
           const kind: SpaceKind = space.kind === "void" ? "void" : "space";
           const legacyColor = getNucleusColor(space, paletteMode, areaRange, nucleusPaletteId, colorSource);
           const appearance = labelPresentation.byId.get(space.id);
+          const text = appearance?.text ?? presentationDefaults.text;
+          const preset = textStylePreset(text.preset);
           const mappedColor = {
             ...legacyColor,
             fill: kind === "void"
@@ -1033,8 +1046,8 @@ export default function OrganismCanvasView() {
               : appearance?.boundary.paint.colour ?? legacyColor.ring,
           };
           const labelContrast = resolveLabelContrast({
-            mode: labelColourMode,
-            customColor: labelCustomColour,
+            mode: text.colourMode === "custom" ? "custom" : "auto",
+            customColor: text.colourMode === "custom" ? text.colour : labelCustomColour,
             backgroundColor: mappedColor.fill,
             voidBackground: kind === "void",
             theme: themeMode,
@@ -1047,6 +1060,16 @@ export default function OrganismCanvasView() {
             "--nucleus-muted": mappedColor.muted,
             "--label-ink": labelContrast.color,
             "--label-keyline": labelContrast.keyline,
+            "--m1-text-size": text.size,
+            "--m1-heading-scale": preset.heading.scale,
+            "--m1-heading-weight": preset.heading.weight,
+            "--m1-heading-tracking": `${preset.heading.tracking}em`,
+            "--m1-area-scale": preset.area.scale,
+            "--m1-area-weight": preset.area.weight,
+            "--m1-body-scale": preset.body.scale,
+            "--m1-body-weight": preset.body.weight,
+            "--m1-body-leading": preset.body.lineHeight,
+            "--m1-text-align": preset.align,
           } as CSSProperties;
           const meta = [
             annotationDetail.showArea ? `${Math.round(space.area)} m²` : null,
@@ -1071,16 +1094,9 @@ export default function OrganismCanvasView() {
             >
               <span className="organism-cell-keyline" aria-hidden="true" />
               <span className="organism-label">
-                {annotationMode === "pill" ? (
-                  annotationDetail.showName ? space.name : meta || space.name
-                ) : (
-                  <>
-                    {annotationDetail.showName && (
-                      <span className="organism-label-main">{space.name}</span>
-                    )}
-                    {meta && <span className="organism-label-meta">{meta}</span>}
-                  </>
-                )}
+                {annotationDetail.showName && <span className="organism-label-main">{space.name}</span>}
+                {meta && <span className="organism-label-meta">{meta}</span>}
+                {space.body?.trim() && <span className="organism-label-body">{space.body.trim()}</span>}
               </span>
             </div>
           );

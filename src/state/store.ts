@@ -58,7 +58,12 @@ import {
   normalizePerformanceQuality,
 } from "./visualSettings";
 import { resolveWidgetOpen } from "../ui/widgets/widgetLifecycle";
-import type { ProjectPresentationDefaults } from "../domain/presentation/types";
+import type {
+  CellAppearanceOverrides,
+  PresentationTargetId,
+  ProjectPresentationDefaults,
+  TextAppearanceOverride,
+} from "../domain/presentation/types";
 import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
 import {
   cloneCellAppearanceOverrides,
@@ -66,6 +71,12 @@ import {
   normalizeCellAppearanceOverrides,
   normalizeProjectPresentationDefaults,
 } from "../domain/presentation/validation";
+import {
+  applyAppearancePatch,
+  applyTextAppearancePatch,
+  cloneStyle,
+  resetAppearanceChannel,
+} from "../domain/presentation/editing";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -77,11 +88,26 @@ const TRANSFORM_HISTORY_LIMIT = 50;
 interface SpaceEditSnapshot {
   name: string;
   area: number;
+  body?: string;
+}
+
+interface CellHistorySnapshot extends SpaceEditSnapshot {
+  id: string;
+  body: string;
+  appearance?: CellAppearanceOverrides;
+}
+
+interface MembraneRuntimeSnapshot {
+  morphMode: MorphMode;
+  attachMode: AttachMode;
+  mergeDistance: number;
 }
 
 type SpaceHistoryEntry =
   | { kind: "transform"; before: SpacePosition[]; after: SpacePosition[] }
-  | { kind: "edit"; id: string; before: SpaceEditSnapshot; after: SpaceEditSnapshot };
+  | { kind: "cells"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[] }
+  | { kind: "defaults"; before: ProjectPresentationDefaults; after: ProjectPresentationDefaults }
+  | { kind: "membrane-runtime"; before: MembraneRuntimeSnapshot; after: MembraneRuntimeSnapshot };
 
 export interface LabSettings {
   uiScale: number;
@@ -145,6 +171,12 @@ interface LabState {
   transformRedoStack: SpaceHistoryEntry[];
   /** V6K widget system — array order is stacking order (last = front) */
   openWidgets: WidgetId[];
+  /** M1 shared ephemeral target and preview owners. Never persisted/exported. */
+  activeAppearanceTarget: PresentationTargetId;
+  appearancePreview: SpaceCell[] | null;
+  presentationDefaultsPreview: ProjectPresentationDefaults | null;
+  membraneRuntimePreview: MembraneRuntimeSnapshot | null;
+  styleClipboard: CellAppearanceOverrides | null;
 
   toggleTheme: () => void;
   setView: (view: ViewMode) => void;
@@ -186,6 +218,26 @@ interface LabState {
   addDemo: (n?: number) => void;
   updateSpace: (id: string, patch: Partial<SpaceCell>) => void;
   commitSpaceEdit: (id: string, patch: SpaceEditSnapshot) => void;
+  commitSpaceContent: (ids: readonly string[], patch: Partial<SpaceEditSnapshot>) => void;
+  setActiveAppearanceTarget: (target: PresentationTargetId) => void;
+  commitAppearancePatch: (ids: readonly string[], target: PresentationTargetId, patch: Record<string, unknown>) => void;
+  previewAppearancePatch: (ids: readonly string[], target: PresentationTargetId, patch: Record<string, unknown>) => void;
+  commitAppearancePreview: () => void;
+  cancelAppearancePreview: () => void;
+  commitTextAppearancePatch: (ids: readonly string[], patch: Partial<TextAppearanceOverride>) => void;
+  previewTextAppearancePatch: (ids: readonly string[], patch: Partial<TextAppearanceOverride>) => void;
+  resetAppearanceTarget: (ids: readonly string[], target: PresentationTargetId | "text") => void;
+  resetAllAppearance: (ids: readonly string[]) => void;
+  copyStyle: (id: string) => void;
+  pasteStyle: (ids: readonly string[]) => void;
+  commitProjectPresentationDefaults: (defaults: ProjectPresentationDefaults) => void;
+  previewProjectPresentationDefaults: (defaults: ProjectPresentationDefaults) => void;
+  commitPresentationDefaultsPreview: () => void;
+  cancelPresentationDefaultsPreview: () => void;
+  commitMembraneRuntime: (patch: Partial<MembraneRuntimeSnapshot>) => void;
+  previewMembraneRuntime: (patch: Partial<MembraneRuntimeSnapshot>) => void;
+  commitMembraneRuntimePreview: () => void;
+  cancelMembraneRuntimePreview: () => void;
   moveSpace: (id: string, x: number, y: number) => void;
   commitSpaceTransform: (before: readonly SpacePosition[], after: readonly SpacePosition[]) => void;
   undoSpaceTransform: () => void;
@@ -216,6 +268,7 @@ const closedContext = {
 
 const cloneSpace = (space: SpaceCell): SpaceCell => ({
   ...space,
+  body: typeof space.body === "string" ? space.body : "",
   kind: normalizeSpaceKind(space.kind),
   appearance: cloneCellAppearanceOverrides(space.appearance),
 });
@@ -287,9 +340,52 @@ const applyHistoryEntry = (
   direction: "before" | "after"
 ): SpaceCell[] => {
   if (entry.kind === "transform") return applySpacePositions(spaces, entry[direction]);
-  const value = entry[direction];
-  return spaces.map((space) => space.id === entry.id ? { ...space, ...value } : space);
+  if (entry.kind === "defaults" || entry.kind === "membrane-runtime") return [...spaces];
+  const values = new Map(entry[direction].map((value) => [value.id, value]));
+  return spaces.map((space) => {
+    const value = values.get(space.id);
+    if (!value) return space;
+    return {
+      ...space,
+      name: value.name,
+      area: value.area,
+      body: value.body,
+      appearance: cloneCellAppearanceOverrides(value.appearance),
+    };
+  });
 };
+
+const snapshotCells = (spaces: readonly SpaceCell[], ids: ReadonlySet<string>): CellHistorySnapshot[] =>
+  spaces.flatMap((space) => ids.has(space.id) ? [{
+    id: space.id,
+    name: space.name,
+    area: space.area,
+    body: space.body ?? "",
+    appearance: cloneCellAppearanceOverrides(space.appearance),
+  }] : []);
+
+const sameCellSnapshots = (left: readonly CellHistorySnapshot[], right: readonly CellHistorySnapshot[]): boolean =>
+  JSON.stringify(left) === JSON.stringify(right);
+
+const normalizeBody = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value.replace(/\r\n?/g, "\n").slice(0, 1200) : fallback;
+
+const updateCellsWithHistory = (
+  spaces: readonly SpaceCell[],
+  ids: readonly string[],
+  update: (space: SpaceCell) => SpaceCell
+): { spaces: SpaceCell[]; entry: SpaceHistoryEntry } | null => {
+  const idSet = new Set(ids);
+  const before = snapshotCells(spaces, idSet);
+  if (!before.length) return null;
+  const nextSpaces = spaces.map((space) => idSet.has(space.id) ? update(space) : space);
+  const after = snapshotCells(nextSpaces, idSet);
+  if (sameCellSnapshots(before, after)) return null;
+  return { spaces: nextSpaces, entry: { kind: "cells", before, after } };
+};
+
+const pushHistory = (stack: readonly SpaceHistoryEntry[], entry: SpaceHistoryEntry): SpaceHistoryEntry[] =>
+  [...stack, entry].slice(-TRANSFORM_HISTORY_LIMIT);
 
 const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => {
   const resources = snapshot.resources
@@ -308,6 +404,9 @@ const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => {
     blobOn: snapshot.blobOn ?? true,
     organism: snapshot.organism,
     resources,
+    annotationDetail: snapshot.annotationDetail,
+    labelColourMode: snapshot.labelColourMode,
+    labelCustomColour: snapshot.labelCustomColour,
   });
   return {
     ...snapshot,
@@ -345,6 +444,7 @@ const validSpace = (value: unknown): value is SpaceCell =>
   isRecord(value) &&
   typeof value.id === "string" &&
   typeof value.name === "string" &&
+  (value.body === undefined || typeof value.body === "string") &&
   (value.kind === undefined || value.kind === "space" || value.kind === "void") &&
   typeof value.area === "number" &&
   typeof value.category === "string" &&
@@ -440,6 +540,7 @@ const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
   return {
     id: uid(),
     name: kind === "void" ? "Void Nucleus" : "New Space",
+    body: "",
     kind,
     area: kind === "void" ? 36 : 20,
     category: kind === "void" ? "Void" : "Uncategorized",
@@ -500,6 +601,11 @@ export const useLab = create<LabState>((set) => ({
   transformUndoStack: [],
   transformRedoStack: [],
   openWidgets: [],
+  activeAppearanceTarget: "cell",
+  appearancePreview: null,
+  presentationDefaultsPreview: null,
+  membraneRuntimePreview: null,
+  styleClipboard: null,
 
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "day" ? "night" : "day" })),
@@ -701,11 +807,13 @@ export const useLab = create<LabState>((set) => ({
       if (!source) return {};
       const duplicate = makeCell(s.spaces.length, {
         name: `${source.name} Copy`,
+        body: source.body ?? "",
         kind: source.kind,
         area: source.area,
         category: source.category,
         privacy: source.privacy,
         color: source.color,
+        appearance: cloneCellAppearanceOverrides(source.appearance),
         x: source.x + 18,
         y: source.y + 18,
       });
@@ -735,21 +843,252 @@ export const useLab = create<LabState>((set) => ({
 
   commitSpaceEdit: (id, patch) =>
     set((s) => {
-      const current = s.spaces.find((space) => space.id === id);
-      if (!current) return {};
-      const after = {
+      const result = updateCellsWithHistory(s.spaces, [id], (current) => ({
+        ...current,
         name: patch.name.trim() || current.name,
         area: Number.isFinite(patch.area) && patch.area > 0 ? patch.area : current.area,
-      };
-      const before = { name: current.name, area: current.area };
-      if (before.name === after.name && before.area === after.area) return {};
-      const entry: SpaceHistoryEntry = { kind: "edit", id, before, after };
+        body: normalizeBody(patch.body, current.body ?? ""),
+      }));
+      if (!result) return {};
       return {
-        spaces: applyHistoryEntry(s.spaces, entry, "after"),
-        transformUndoStack: [...s.transformUndoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
+        spaces: result.spaces,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
         transformRedoStack: [],
       };
     }),
+
+  commitSpaceContent: (ids, patch) =>
+    set((s) => {
+      const result = updateCellsWithHistory(s.spaces, ids, (current) => ({
+        ...current,
+        name: typeof patch.name === "string" ? patch.name.trim() || current.name : current.name,
+        area: typeof patch.area === "number" && Number.isFinite(patch.area) && patch.area > 0 ? patch.area : current.area,
+        body: patch.body === undefined ? current.body ?? "" : normalizeBody(patch.body, current.body ?? ""),
+      }));
+      if (!result) return {};
+      return {
+        spaces: result.spaces,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  setActiveAppearanceTarget: (activeAppearanceTarget) => set({ activeAppearanceTarget }),
+
+  commitAppearancePatch: (ids, target, patch) =>
+    set((s) => {
+      const defaults = s.settings.presentationDefaults;
+      const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
+        ...space,
+        appearance: applyAppearancePatch(space.appearance, defaults, target, patch),
+      }));
+      if (!result) return { appearancePreview: null };
+      return {
+        spaces: result.spaces,
+        appearancePreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  previewAppearancePatch: (ids, target, patch) =>
+    set((s) => {
+      const idSet = new Set(ids);
+      const defaults = s.settings.presentationDefaults;
+      return {
+        appearancePreview: s.spaces.map((space) => idSet.has(space.id) ? {
+          ...space,
+          appearance: applyAppearancePatch(space.appearance, defaults, target, patch),
+        } : space),
+      };
+    }),
+
+  commitAppearancePreview: () =>
+    set((s) => {
+      if (!s.appearancePreview) return {};
+      const beforeById = new Map(s.spaces.map((space) => [space.id, space]));
+      const changedIds = s.appearancePreview
+        .filter((space) => JSON.stringify(space.appearance) !== JSON.stringify(beforeById.get(space.id)?.appearance))
+        .map((space) => space.id);
+      const result = updateCellsWithHistory(s.spaces, changedIds, (space) =>
+        s.appearancePreview!.find((preview) => preview.id === space.id) ?? space
+      );
+      if (!result) return { appearancePreview: null };
+      return {
+        spaces: result.spaces,
+        appearancePreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  cancelAppearancePreview: () => set({ appearancePreview: null }),
+
+  commitTextAppearancePatch: (ids, patch) =>
+    set((s) => {
+      const defaults = s.settings.presentationDefaults;
+      const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
+        ...space,
+        appearance: applyTextAppearancePatch(space.appearance, defaults, patch),
+      }));
+      if (!result) return {};
+      return {
+        spaces: result.spaces,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  previewTextAppearancePatch: (ids, patch) =>
+    set((s) => {
+      const idSet = new Set(ids);
+      const defaults = s.settings.presentationDefaults;
+      return {
+        appearancePreview: s.spaces.map((space) => idSet.has(space.id) ? {
+          ...space,
+          appearance: applyTextAppearancePatch(space.appearance, defaults, patch),
+        } : space),
+      };
+    }),
+
+  resetAppearanceTarget: (ids, target) =>
+    set((s) => {
+      const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
+        ...space,
+        appearance: resetAppearanceChannel(space.appearance, target),
+      }));
+      if (!result) return {};
+      return {
+        spaces: result.spaces,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  resetAllAppearance: (ids) =>
+    set((s) => {
+      const result = updateCellsWithHistory(s.spaces, ids, (space) => ({ ...space, appearance: undefined }));
+      if (!result) return {};
+      return {
+        spaces: result.spaces,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  copyStyle: (id) =>
+    set((s) => {
+      const source = s.spaces.find((space) => space.id === id);
+      return source ? { styleClipboard: cloneStyle(source.appearance) } : {};
+    }),
+
+  pasteStyle: (ids) =>
+    set((s) => {
+      if (!s.styleClipboard) return {};
+      const defaults = s.settings.presentationDefaults;
+      const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
+        ...space,
+        appearance: normalizeCellAppearanceOverrides(s.styleClipboard, defaults),
+      }));
+      if (!result) return {};
+      return {
+        spaces: result.spaces,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  commitProjectPresentationDefaults: (defaults) =>
+    set((s) => {
+      const after = normalizeProjectPresentationDefaults(defaults, s.settings);
+      const before = cloneProjectPresentationDefaults(s.settings.presentationDefaults);
+      if (JSON.stringify(before) === JSON.stringify(after)) return { presentationDefaultsPreview: null };
+      const entry: SpaceHistoryEntry = { kind: "defaults", before, after };
+      return {
+        settings: { ...s.settings, presentationDefaults: after },
+        presentationDefaultsPreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  previewProjectPresentationDefaults: (defaults) =>
+    set((s) => ({
+      presentationDefaultsPreview: normalizeProjectPresentationDefaults(defaults, s.settings),
+    })),
+
+  commitPresentationDefaultsPreview: () =>
+    set((s) => {
+      if (!s.presentationDefaultsPreview) return {};
+      const before = cloneProjectPresentationDefaults(s.settings.presentationDefaults);
+      const after = cloneProjectPresentationDefaults(s.presentationDefaultsPreview);
+      if (JSON.stringify(before) === JSON.stringify(after)) return { presentationDefaultsPreview: null };
+      const entry: SpaceHistoryEntry = { kind: "defaults", before, after };
+      return {
+        settings: { ...s.settings, presentationDefaults: after },
+        presentationDefaultsPreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  cancelPresentationDefaultsPreview: () => set({ presentationDefaultsPreview: null }),
+
+  commitMembraneRuntime: (patch) =>
+    set((s) => {
+      const before: MembraneRuntimeSnapshot = {
+        morphMode: s.settings.morphMode,
+        attachMode: s.settings.attachMode,
+        mergeDistance: s.settings.mergeDistance,
+      };
+      const after: MembraneRuntimeSnapshot = {
+        morphMode: patch.morphMode ?? before.morphMode,
+        attachMode: patch.attachMode ?? before.attachMode,
+        mergeDistance: typeof patch.mergeDistance === "number" && Number.isFinite(patch.mergeDistance)
+          ? clamp(patch.mergeDistance, 0, 300)
+          : before.mergeDistance,
+      };
+      if (JSON.stringify(before) === JSON.stringify(after)) return { membraneRuntimePreview: null };
+      const entry: SpaceHistoryEntry = { kind: "membrane-runtime", before, after };
+      return {
+        settings: { ...s.settings, ...after },
+        membraneRuntimePreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  previewMembraneRuntime: (patch) =>
+    set((s) => ({
+      membraneRuntimePreview: {
+        morphMode: patch.morphMode ?? s.settings.morphMode,
+        attachMode: patch.attachMode ?? s.settings.attachMode,
+        mergeDistance: typeof patch.mergeDistance === "number" && Number.isFinite(patch.mergeDistance)
+          ? clamp(patch.mergeDistance, 0, 300)
+          : s.settings.mergeDistance,
+      },
+    })),
+
+  commitMembraneRuntimePreview: () =>
+    set((s) => {
+      if (!s.membraneRuntimePreview) return {};
+      const before: MembraneRuntimeSnapshot = {
+        morphMode: s.settings.morphMode,
+        attachMode: s.settings.attachMode,
+        mergeDistance: s.settings.mergeDistance,
+      };
+      const after = { ...s.membraneRuntimePreview };
+      if (JSON.stringify(before) === JSON.stringify(after)) return { membraneRuntimePreview: null };
+      const entry: SpaceHistoryEntry = { kind: "membrane-runtime", before, after };
+      return {
+        settings: { ...s.settings, ...after },
+        membraneRuntimePreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  cancelMembraneRuntimePreview: () => set({ membraneRuntimePreview: null }),
 
   moveSpace: (id, x, y) =>
     set((s) => ({
@@ -763,7 +1102,7 @@ export const useLab = create<LabState>((set) => ({
       const entry: SpaceHistoryEntry = { kind: "transform", ...transform };
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "after"),
-        transformUndoStack: [...s.transformUndoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: [],
       };
     }),
@@ -774,6 +1113,14 @@ export const useLab = create<LabState>((set) => ({
       if (!entry) return {};
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "before"),
+        settings: entry.kind === "defaults"
+          ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.before) }
+          : entry.kind === "membrane-runtime"
+            ? { ...s.settings, ...entry.before }
+            : s.settings,
+        appearancePreview: null,
+        presentationDefaultsPreview: null,
+        membraneRuntimePreview: null,
         transformUndoStack: s.transformUndoStack.slice(0, -1),
         transformRedoStack: [...s.transformRedoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
       };
@@ -785,7 +1132,15 @@ export const useLab = create<LabState>((set) => ({
       if (!entry) return {};
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "after"),
-        transformUndoStack: [...s.transformUndoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
+        settings: entry.kind === "defaults"
+          ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.after) }
+          : entry.kind === "membrane-runtime"
+            ? { ...s.settings, ...entry.after }
+            : s.settings,
+        appearancePreview: null,
+        presentationDefaultsPreview: null,
+        membraneRuntimePreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: s.transformRedoStack.slice(0, -1),
       };
     }),
@@ -851,6 +1206,9 @@ export const useLab = create<LabState>((set) => ({
         blobOn: snapshot.blobOn ?? true,
         organism,
         resources,
+        annotationDetail: snapshot.annotationDetail,
+        labelColourMode: snapshot.labelColourMode,
+        labelCustomColour: snapshot.labelCustomColour,
       });
       const spaces = snapshot.spaces.map((space, index) => ({
         ...cloneSpace(space),

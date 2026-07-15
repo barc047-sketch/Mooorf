@@ -1,6 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
+- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (feature implementation complete; `WAITING_REVIEW`; do not merge or start M2)
 - [x] C0.4F-A Runtime Layer Separation (feature implementation complete; `WAITING_REVIEW`; do not merge)
 - [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
 - [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)
@@ -29,6 +30,23 @@
 - [x] V7.1C Continuous Interface Scale slider
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
+
+## C0-M1 — Production Inspector, Content and Layer Editing Recovery  ✅ IMPLEMENTED ON FEATURE BRANCH
+
+- [x] canonical inline/Inspector/minimal-Table Name, Area and Body editing with one transaction
+- [x] compact production Content/Appearance Inspector using the existing widget shell
+- [x] six coordinated Heading/Area/Body presets, proportional size, colour and Auto Contrast
+- [x] Project Default, sparse Local Override and Mixed inheritance states
+- [x] independent Cell, Boundary, Membrane, Membrane Edge, Core and Void detailed widgets
+- [x] all six Classic Boundary styles and truthful Organism solid fallback
+- [x] supported Morph/Fusion/Reach migrated to Membrane Settings; stale/duplicate ownership mapped
+- [x] one canonical history owner, ephemeral previews, exact Undo/Redo and copy/paste/reset isolation
+- [x] Body/text/appearance migration plus project/config/saved/recovery/export parity
+- [x] clean PNG/PDF and true-vector Classic SVG parity; no fake Membrane vector path
+- [x] focused/full contracts, typecheck, fixed-head diff check and exactly one final production build
+- [x] deterministic 1440×900 and 1280×800 browser QA with clean fresh console
+- [ ] Owner review of combined C0.4F-A + M1 result
+- [ ] M2 remains blocked and unstarted
 
 ## C0.4F-A — Runtime Layer Separation  ✅ IMPLEMENTED ON FEATURE BRANCH
 

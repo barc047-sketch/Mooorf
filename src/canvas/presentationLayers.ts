@@ -21,9 +21,9 @@ export interface RuntimePresentationSettings {
 
 export interface RuntimePresentationProjection {
   byId: ReadonlyMap<string, ResolvedCellAppearance>;
-  /** Membrane is one shared field/path, so its runtime owner is the project
-   * default. Per-Cell membrane editing remains deferred to the next editing
-   * milestone rather than being guessed differently by each renderer. */
+  /** Membrane is one audited shared field/path, so its runtime owner is the
+   * project default. The Inspector routes both shared targets to that owner
+   * instead of creating disconnected per-Cell overrides. */
   membrane: ResolvedSurfaceAppearance;
   membraneEdge: ResolvedMembraneEdgeAppearance;
 }
@@ -110,6 +110,8 @@ export interface CircleBoundaryProjection {
 }
 
 export interface CircleVoidProjection {
+  fillVisible: boolean;
+  edgeVisible: boolean;
   radiusPx: number;
   innerRadiusPx: number;
   fillColour: string;
@@ -192,7 +194,9 @@ export const projectCircleLayers = (
       cell: null,
       boundary: null,
       core: null,
-      void: appearance.void.visible ? {
+      void: appearance.void.visible && (appearance.void.fillVisible || appearance.void.edgeVisible) ? {
+        fillVisible: appearance.void.fillVisible,
+        edgeVisible: appearance.void.edgeVisible,
         radiusPx: radius,
         innerRadiusPx: radius * 0.42,
         fillColour: appearance.void.fill.colour,
@@ -263,14 +267,16 @@ export const drawCircleLayers = (
 
   if (drawVoid && layers.void) {
     const layer = layers.void;
-    ctx.save();
-    ctx.fillStyle = layer.fillColour;
-    ctx.globalAlpha *= layer.fillOpacity;
-    ctx.beginPath();
-    ctx.arc(x, y, layer.radiusPx, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    if (layer.edgeWidthPx > 0) {
+    if (layer.fillVisible) {
+      ctx.save();
+      ctx.fillStyle = layer.fillColour;
+      ctx.globalAlpha *= layer.fillOpacity;
+      ctx.beginPath();
+      ctx.arc(x, y, layer.radiusPx, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    if (layer.edgeVisible && layer.edgeWidthPx > 0) {
       ctx.save();
       ctx.strokeStyle = layer.edgeColour;
       ctx.lineWidth = layer.edgeWidthPx;

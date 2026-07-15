@@ -83,6 +83,7 @@
   letter-spacing: 0.03em;
   white-space: nowrap;
   overflow: hidden;
+  text-align: var(--m1-text-align, left);
   text-overflow: ellipsis;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -90,10 +91,17 @@
 }
 
 .organism-label-main,
-.organism-label-meta {
+.organism-label-meta,
+.organism-label-body {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.organism-label-main {
+  font-size: calc(10.5px * var(--m1-text-size, 1) * var(--m1-heading-scale, 1));
+  font-weight: var(--m1-heading-weight, 600);
+  letter-spacing: var(--m1-heading-tracking, .015em);
 }
 
 .organism-label-meta {
@@ -102,6 +110,22 @@
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
   letter-spacing: 0.02em;
+  font-size: calc(8.5px * var(--m1-text-size, 1) * var(--m1-area-scale, .68));
+  font-weight: var(--m1-area-weight, 600);
+}
+
+.organism-label-body {
+  display: -webkit-box;
+  max-width: 168px;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--label-ink, var(--ink)) 76%, transparent);
+  font-size: calc(10px * var(--m1-text-size, 1) * var(--m1-body-scale, .62));
+  font-weight: var(--m1-body-weight, 450);
+  line-height: var(--m1-body-leading, 1.24);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .organism-label-layer[data-mode="editorial"] .organism-label {
@@ -128,9 +152,6 @@
 /* Optional one-pixel keyline only; Auto Contrast owns the primary colour. */
 .organism-label-layer[data-mode="editorial"] .organism-label-main {
   color: var(--label-ink, var(--ink));
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.015em;
   text-shadow: 0 1px 0 color-mix(in srgb, var(--label-keyline, var(--bg)) 46%, transparent);
 }
 

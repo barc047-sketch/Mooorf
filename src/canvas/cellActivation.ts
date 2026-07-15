@@ -27,11 +27,12 @@ export const markInlineEditorCommitPointer = (event: PointerEvent): void => {
 export const isInlineEditorCommitPointer = (event: PointerEvent): boolean =>
   inlineEditorCommitPointers.has(event);
 
-export const normalizeInlineCellDraft = (name: string, area: string, fallbackArea: number) => {
+export const normalizeInlineCellDraft = (name: string, area: string, fallbackArea: number, body = "") => {
   const parsed = Number.parseFloat(area);
   return {
     name: name.trim() || "Untitled Space",
     area: Number.isFinite(parsed) ? Math.max(1, parsed) : Math.max(1, fallbackArea),
+    body: body.replace(/\r\n?/g, "\n").slice(0, 1200),
   };
 };
 

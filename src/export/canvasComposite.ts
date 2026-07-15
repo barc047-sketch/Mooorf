@@ -1,6 +1,7 @@
-import { requestCanvasCapture, type CaptureRequestOptions } from "../canvas/exportCapture";
+import { requestCanvasCapture, type CaptureRequestOptions, type CaptureResult } from "../canvas/exportCapture";
 import { resolvePaddingPx, validateExportDimensions } from "./resolution";
 import type { ExportBackground, ExportVisualOptions } from "./types";
+import { useLab } from "../state/store";
 
 const resolveBackgroundColor = (background: ExportBackground): string | null => {
   if (background === "transparent") return null;
@@ -28,7 +29,22 @@ export const captureAndComposite = async (
     includeLabels: visual.labels === "include",
     includeSelection: visual.selection === "include",
   };
-  const capture = await requestCanvasCapture(requestOptions);
+  const ephemeral = useLab.getState();
+  const appearancePreview = ephemeral.appearancePreview;
+  const presentationDefaultsPreview = ephemeral.presentationDefaultsPreview;
+  const membraneRuntimePreview = ephemeral.membraneRuntimePreview;
+  if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview) {
+    useLab.setState({ appearancePreview: null, presentationDefaultsPreview: null, membraneRuntimePreview: null });
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  }
+  let capture: CaptureResult;
+  try {
+    capture = await requestCanvasCapture(requestOptions);
+  } finally {
+    if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview) {
+      useLab.setState({ appearancePreview, presentationDefaultsPreview, membraneRuntimePreview });
+    }
+  }
   const dims = validateExportDimensions(capture.cssWidth, capture.cssHeight, visual.resolution);
   if (!dims.ok) {
     throw new Error(dims.error ?? "Export dimensions are invalid.");

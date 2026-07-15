@@ -1,7 +1,6 @@
 import { motion } from "motion/react";
 import {
   Frame,
-  Minus,
   Moon,
   Plus,
   Shapes,
@@ -105,28 +104,10 @@ export default function Rail() {
         >
           <Plus size={14} strokeWidth={1.6} />
         </button>
-        <button
-          type="button"
-          className="rail-btn rail-btn-disabled"
-          data-tooltip="Add Void — dock"
-          title="Add Void shortcut"
-          aria-label="Add Void shortcut"
-          disabled
-        >
-          <Minus size={14} strokeWidth={1.5} />
-        </button>
       </RailSection>
 
-      <RailSection caption="note">
-        {launcher("annotation")}
-      </RailSection>
-
-      <RailSection caption="organism">
-        {launcher("organism")}
-      </RailSection>
-
-      <RailSection caption="color">
-        {launcher("palette")}
+      <RailSection caption="inspect">
+        {launcher("inspector", "Open production Inspector")}
       </RailSection>
 
       <RailSection caption="layout">

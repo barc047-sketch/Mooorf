@@ -3,6 +3,7 @@ import {
   BOUNDARY_ALIGNMENTS,
   BOUNDARY_STYLES,
   PRESENTATION_TARGET_CONTRACTS,
+  TEXT_STYLE_PRESET_IDS,
   type BoundaryAlignment,
   type BoundaryStyle,
   type CellAppearanceOverrides,
@@ -11,6 +12,8 @@ import {
   type PresentationPaintOverride,
   type PresentationTargetId,
   type ProjectPresentationDefaults,
+  type TextColourMode,
+  type TextStylePresetId,
 } from "./types";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -44,6 +47,12 @@ const boundaryStyle = (value: unknown, fallback: BoundaryStyle): BoundaryStyle =
 const boundaryAlignment = (value: unknown, fallback: BoundaryAlignment): BoundaryAlignment =>
   BOUNDARY_ALIGNMENTS.includes(value as BoundaryAlignment) ? value as BoundaryAlignment : fallback;
 
+const textPreset = (value: unknown, fallback: TextStylePresetId): TextStylePresetId =>
+  TEXT_STYLE_PRESET_IDS.includes(value as TextStylePresetId) ? value as TextStylePresetId : fallback;
+
+const textColourMode = (value: unknown, fallback: TextColourMode): TextColourMode =>
+  value === "auto" || value === "custom" ? value : fallback;
+
 const normalizePaintDefaults = (value: unknown, fallback: PresentationPaintDefaults): PresentationPaintDefaults => {
   const record = isRecord(value) ? value : {};
   const colour = record.colour === null ? null : canonicalHex(record.colour) ?? fallback.colour;
@@ -64,6 +73,7 @@ export const normalizeProjectPresentationDefaults = (
     throw new Error("Future presentation schema versions are not supported.");
   }
   const cell = isRecord(value.cell) ? value.cell : {};
+  const text = isRecord(value.text) ? value.text : {};
   const boundary = isRecord(value.boundary) ? value.boundary : {};
   const membrane = isRecord(value.membrane) ? value.membrane : {};
   const membraneEdge = isRecord(value.membraneEdge) ? value.membraneEdge : {};
@@ -71,6 +81,12 @@ export const normalizeProjectPresentationDefaults = (
   const voidDefaults = isRecord(value.void) ? value.void : {};
   return {
     schemaVersion: PRESENTATION_SCHEMA_VERSION,
+    text: {
+      preset: textPreset(text.preset, fallback.text.preset),
+      size: finiteOr(text.size, fallback.text.size, 0.65, 1.8),
+      colourMode: textColourMode(text.colourMode, fallback.text.colourMode),
+      colour: canonicalHex(text.colour) ?? fallback.text.colour,
+    },
     cell: {
       visible: typeof cell.visible === "boolean" ? cell.visible : fallback.cell.visible,
       paint: normalizePaintDefaults(cell.paint, fallback.cell.paint),
@@ -108,6 +124,8 @@ export const normalizeProjectPresentationDefaults = (
     },
     void: {
       visible: typeof voidDefaults.visible === "boolean" ? voidDefaults.visible : fallback.void.visible,
+      fillVisible: typeof voidDefaults.fillVisible === "boolean" ? voidDefaults.fillVisible : fallback.void.fillVisible,
+      edgeVisible: typeof voidDefaults.edgeVisible === "boolean" ? voidDefaults.edgeVisible : fallback.void.edgeVisible,
       fill: normalizePaintDefaults(voidDefaults.fill, fallback.void.fill),
       edge: normalizePaintDefaults(voidDefaults.edge, fallback.void.edge),
       edgeWidth: finiteOr(voidDefaults.edgeWidth, fallback.void.edgeWidth, 0, 64),
@@ -162,6 +180,19 @@ export const normalizeCellAppearanceOverrides = (
     visible: changedBoolean(value.cell.visible, defaults.cell.visible),
     paint: normalizePaintOverride(value.cell.paint, defaults.cell.paint),
   }) : undefined;
+  const text = isRecord(value.text) ? compact({
+    preset: TEXT_STYLE_PRESET_IDS.includes(value.text.preset as TextStylePresetId) && value.text.preset !== defaults.text.preset
+      ? value.text.preset as TextStylePresetId
+      : undefined,
+    size: changedNumber(value.text.size, defaults.text.size, 0.65, 1.8),
+    colourMode: (value.text.colourMode === "auto" || value.text.colourMode === "custom") && value.text.colourMode !== defaults.text.colourMode
+      ? value.text.colourMode as TextColourMode
+      : undefined,
+    colour: (() => {
+      const colour = canonicalHex(value.text.colour);
+      return colour && colour !== defaults.text.colour ? colour : undefined;
+    })(),
+  }) : undefined;
   const boundary = isRecord(value.boundary) ? compact({
     visible: changedBoolean(value.boundary.visible, defaults.boundary.visible),
     style: BOUNDARY_STYLES.includes(value.boundary.style as BoundaryStyle) && value.boundary.style !== defaults.boundary.style
@@ -199,11 +230,13 @@ export const normalizeCellAppearanceOverrides = (
   }) : undefined;
   const voidTarget = isRecord(value.void) ? compact({
     visible: changedBoolean(value.void.visible, defaults.void.visible),
+    fillVisible: changedBoolean(value.void.fillVisible, defaults.void.fillVisible),
+    edgeVisible: changedBoolean(value.void.edgeVisible, defaults.void.edgeVisible),
     fill: normalizePaintOverride(value.void.fill, defaults.void.fill),
     edge: normalizePaintOverride(value.void.edge, defaults.void.edge),
     edgeWidth: changedNumber(value.void.edgeWidth, defaults.void.edgeWidth, 0, 64),
   }) : undefined;
-  return compact({ cell, boundary, membrane, membraneEdge, core, void: voidTarget });
+  return compact({ text, cell, boundary, membrane, membraneEdge, core, void: voidTarget });
 };
 
 const keyForTarget = (target: PresentationTargetId): PresentationDefaultsKey =>
@@ -218,6 +251,7 @@ export const resetCellAppearanceTarget = (
   if (!value) return undefined;
   const next: CellAppearanceOverrides = {
     ...value,
+    text: value.text ? { ...value.text } : undefined,
     cell: value.cell ? { ...value.cell, paint: value.cell.paint ? { ...value.cell.paint } : undefined } : undefined,
     boundary: value.boundary ? { ...value.boundary, paint: value.boundary.paint ? { ...value.boundary.paint } : undefined } : undefined,
     membrane: value.membrane ? { ...value.membrane, paint: value.membrane.paint ? { ...value.membrane.paint } : undefined } : undefined,
@@ -238,6 +272,7 @@ export const cloneCellAppearanceOverrides = (
 ): CellAppearanceOverrides | undefined => {
   if (!value) return undefined;
   return {
+    text: value.text ? { ...value.text } : undefined,
     cell: value.cell ? { ...value.cell, paint: value.cell.paint ? { ...value.cell.paint } : undefined } : undefined,
     boundary: value.boundary ? { ...value.boundary, paint: value.boundary.paint ? { ...value.boundary.paint } : undefined } : undefined,
     membrane: value.membrane ? { ...value.membrane, paint: value.membrane.paint ? { ...value.membrane.paint } : undefined } : undefined,

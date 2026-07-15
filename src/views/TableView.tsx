@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { AreaRange } from "../design/colorMapping";
@@ -44,12 +44,16 @@ const MIN_AREA = 1;
 // Area edits go through a local draft so the field can be cleared while
 // typing without writing NaN into the store; only valid parses commit.
 function AreaCell({ cell }: { cell: SpaceCell }) {
-  const updateSpace = useLab((s) => s.updateSpace);
+  const commitSpaceEdit = useLab((s) => s.commitSpaceEdit);
   const [draft, setDraft] = useState<string | null>(null);
 
   const commit = (raw: string) => {
     const n = Number.parseFloat(raw);
-    if (Number.isFinite(n)) updateSpace(cell.id, { area: Math.max(MIN_AREA, n) });
+    if (Number.isFinite(n)) commitSpaceEdit(cell.id, {
+      name: cell.name,
+      area: Math.max(MIN_AREA, n),
+      body: cell.body ?? "",
+    });
   };
 
   return (
@@ -60,10 +64,69 @@ function AreaCell({ cell }: { cell: SpaceCell }) {
       value={draft ?? String(cell.area)}
       onChange={(e) => {
         setDraft(e.target.value);
-        commit(e.target.value);
       }}
-      onBlur={() => setDraft(null)}
+      onBlur={(event) => {
+        commit(event.target.value);
+        setDraft(null);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setDraft(null);
+          event.currentTarget.blur();
+        } else if (event.key === "Enter") {
+          commit(event.currentTarget.value);
+          setDraft(null);
+          event.currentTarget.blur();
+        }
+      }}
       aria-label={`Area of ${cell.name}`}
+    />
+  );
+}
+
+function TextCell({ cell, field }: { cell: SpaceCell; field: "name" | "body" }) {
+  const commitSpaceEdit = useLab((s) => s.commitSpaceEdit);
+  const canonical = field === "name" ? cell.name : cell.body ?? "";
+  const [draft, setDraft] = useState(canonical);
+  useEffect(() => setDraft(canonical), [canonical]);
+
+  const commit = () => commitSpaceEdit(cell.id, {
+    name: field === "name" ? draft : cell.name,
+    area: cell.area,
+    body: field === "body" ? draft : cell.body ?? "",
+  });
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (event.key === "Escape") {
+      setDraft(canonical);
+      event.currentTarget.blur();
+    } else if (event.key === "Enter" && !(field === "body" && event.shiftKey)) {
+      event.preventDefault();
+      commit();
+      event.currentTarget.blur();
+    }
+  };
+
+  if (field === "body") {
+    return (
+      <textarea
+        className="table-body-input"
+        rows={2}
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={onKeyDown}
+        aria-label={`Body of ${cell.name}`}
+      />
+    );
+  }
+  return (
+    <Input
+      className="h-7 w-40"
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={onKeyDown}
+      aria-label="Space name"
     />
   );
 }
@@ -99,15 +162,13 @@ function Row({
         </span>
       </TableCell>
       <TableCell>
-        <Input
-          className="h-7 w-40"
-          value={cell.name}
-          onChange={(e) => updateSpace(cell.id, { name: e.target.value })}
-          aria-label="Space name"
-        />
+        <TextCell cell={cell} field="name" />
       </TableCell>
       <TableCell>
         <AreaCell cell={cell} />
+      </TableCell>
+      <TableCell>
+        <TextCell cell={cell} field="body" />
       </TableCell>
       <TableCell>
         <div className="table-category-cell">
@@ -195,7 +256,7 @@ export default function TableView() {
 
   return (
     <div className="table-view h-full w-full overflow-y-auto px-6 pt-24 pb-40">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-3 flex items-end justify-between">
           <div>
             <p className="eyebrow">PROGRAM</p>
@@ -216,6 +277,7 @@ export default function TableView() {
                 <TableHead className="w-16">type</TableHead>
                 <TableHead>name</TableHead>
                 <TableHead>area m²</TableHead>
+                <TableHead>body</TableHead>
                 <TableHead>category</TableHead>
                 <TableHead>privacy</TableHead>
                 <TableHead className="w-14">x</TableHead>
@@ -239,7 +301,7 @@ export default function TableView() {
               {spaces.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={11}
                     className="py-10 text-center text-muted-foreground"
                   >
                     No spaces yet — add one above.

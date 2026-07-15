@@ -23,8 +23,24 @@ import AreaLeadersWidget from "./stats/AreaLeadersWidget";
 import DataHealthWidget from "./stats/DataHealthWidget";
 import InstrumentLauncher from "./stats/InstrumentLauncher";
 import { getWidgetDefinition } from "../panels/widgetRegistry";
+import InspectorWidget from "./InspectorWidget";
+import {
+  BoundarySettingsWidget,
+  CellSettingsWidget,
+  CoreSettingsWidget,
+  MembraneEdgeSettingsWidget,
+  MembraneSettingsWidget,
+  VoidSettingsWidget,
+} from "./AppearanceSettingsWidgets";
 
 const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
+  inspector: () => <InspectorWidget />,
+  "cell-settings": () => <CellSettingsWidget />,
+  "boundary-settings": () => <BoundarySettingsWidget />,
+  "membrane-settings": () => <MembraneSettingsWidget />,
+  "membrane-edge-settings": () => <MembraneEdgeSettingsWidget />,
+  "core-settings": () => <CoreSettingsWidget />,
+  "void-settings": () => <VoidSettingsWidget />,
   annotation: () => <AnnotationWidget />,
   organism: () => <OrganismWidget />,
   layout: () => <LayoutWidget />,

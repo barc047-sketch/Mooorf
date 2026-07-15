@@ -181,6 +181,75 @@
   scrollbar-color: var(--hairline) transparent;
 }
 
+/* C0 M1 — compact production Inspector and separated appearance widgets. */
+.m1-inspector,
+.m1-settings { display: flex; flex-direction: column; gap: 8px; padding: 7px 2px 2px; color: var(--ink); }
+.m1-context,
+.m1-scope-row,
+.m1-section-title { display: flex; align-items: center; gap: 8px; }
+.m1-context { min-height: 42px; padding: 6px 7px 8px; border-bottom: 1px solid color-mix(in srgb, var(--hairline) 54%, transparent); }
+.m1-context > div { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.m1-context small { font-size: 7px; letter-spacing: .13em; color: var(--fog); }
+.m1-context strong { overflow: hidden; font-size: 11px; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
+.m1-signal { width: 7px; height: 7px; border-radius: 50%; background: var(--fog); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fog) 14%, transparent); }
+.m1-signal[data-selected="true"] { background: var(--ink-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-soft) 14%, transparent); }
+.m1-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 2px; border-radius: 7px; background: color-mix(in srgb, var(--glass-dark) 28%, transparent); }
+.m1-tabs button { height: 27px; border: 0; border-radius: 5px; background: transparent; color: var(--fog); font: inherit; font-size: 9px; text-transform: capitalize; cursor: pointer; }
+.m1-tabs button[data-active="true"] { color: var(--ink); background: color-mix(in srgb, var(--glass-light) 68%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 52%, transparent); }
+.m1-pane { display: flex; flex-direction: column; gap: 8px; }
+.m1-section { display: flex; flex-direction: column; gap: 7px; padding: 9px; border: 1px solid color-mix(in srgb, var(--hairline) 50%, transparent); border-radius: 9px; background: color-mix(in srgb, var(--glass-panel) 50%, transparent); }
+.m1-section h3 { margin: 0; font-size: 9px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+.m1-section-title { justify-content: space-between; }
+.m1-field { display: grid; gap: 4px; font-size: 8.5px; color: var(--fog); }
+.m1-field > span { display: flex; justify-content: space-between; }
+.m1-field i { font-style: normal; letter-spacing: .05em; }
+.m1-field input,
+.m1-field textarea { width: 100%; min-width: 0; border: 1px solid color-mix(in srgb, var(--hairline) 62%, transparent); border-radius: 6px; outline: 0; padding: 6px 7px; background: color-mix(in srgb, var(--glass-light) 52%, transparent); color: var(--ink); font: inherit; font-size: 10px; }
+.m1-field textarea { min-height: 52px; max-height: 68px; resize: vertical; line-height: 1.3; }
+.m1-field input:focus-visible,
+.m1-field textarea:focus-visible,
+.m1-tabs button:focus-visible,
+.m1-btn:focus-visible,
+.m1-primary-btn:focus-visible,
+.m1-link-btn:focus-visible,
+.m1-target-grid button:focus-visible { outline: 2px solid color-mix(in srgb, var(--ink) 54%, transparent); outline-offset: 1px; }
+.m1-state-badge { flex: none; padding: 3px 5px; border: 1px solid color-mix(in srgb, var(--hairline) 62%, transparent); border-radius: 999px; color: var(--fog); font-size: 7px; line-height: 1; letter-spacing: .05em; text-transform: uppercase; }
+.m1-state-badge[data-state="local-override"] { color: var(--ink); border-color: color-mix(in srgb, var(--ink-soft) 42%, transparent); }
+.m1-state-badge[data-state="mixed"] { border-style: dashed; }
+.m1-empty-note,
+.m1-mixed-note,
+.m1-compat-note { margin: 0; color: var(--fog); font-size: 8.5px; line-height: 1.4; }
+.m1-compat-note { padding: 0 7px 6px; }
+.m1-colour-row { display: flex; align-items: center; justify-content: space-between; min-height: 29px; color: var(--ink-soft); font-size: 9.5px; }
+.m1-colour-row input[type="color"] { width: 34px; height: 22px; padding: 2px; border: 1px solid var(--hairline); border-radius: 6px; background: transparent; cursor: pointer; }
+.m1-colour-row input:disabled { opacity: .38; cursor: not-allowed; }
+.m1-swatch-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.m1-swatch-row button { width: 20px; height: 20px; padding: 0; border: 1px solid color-mix(in srgb, var(--hairline) 72%, transparent); border-radius: 50%; cursor: pointer; }
+.m1-swatch-row button[data-active="true"] { box-shadow: 0 0 0 2px var(--glass-panel-strong), 0 0 0 3px var(--ink-soft); }
+.m1-target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.m1-target-grid button { display: flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--hairline) 48%, transparent); border-radius: 6px; background: transparent; color: var(--fog); font: inherit; font-size: 8.5px; text-align: left; cursor: pointer; }
+.m1-target-grid button[data-active="true"] { color: var(--ink); border-color: color-mix(in srgb, var(--ink-soft) 38%, transparent); background: color-mix(in srgb, var(--glass-light) 54%, transparent); }
+.m1-target-dot,
+.m1-state-dot { width: 6px; height: 6px; border: 1px solid currentColor; border-radius: 50%; opacity: .7; }
+.m1-state-dot[data-on="true"] { background: currentColor; }
+.m1-primary-btn,
+.m1-btn,
+.m1-link-btn { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 28px; border: 1px solid color-mix(in srgb, var(--hairline) 58%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--glass-light) 42%, transparent); color: var(--ink-soft); font: inherit; font-size: 8.5px; cursor: pointer; }
+.m1-primary-btn { width: 100%; color: var(--ink); background: color-mix(in srgb, var(--glass-light) 72%, transparent); }
+.m1-link-btn { justify-content: flex-start; min-height: 22px; padding: 0; border: 0; background: none; color: var(--fog); }
+.m1-btn:disabled { opacity: .34; cursor: not-allowed; }
+.m1-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.m1-action-row { display: flex; justify-content: flex-end; padding: 2px 7px 4px; }
+.m1-scope-row { justify-content: space-between; min-height: 28px; padding: 0 7px; color: var(--fog); font-size: 8.5px; }
+
+@media (min-width: 1360px) {
+  .wframe[data-widget="inspector"] { right: 18px; }
+}
+
+@media (max-width: 1320px) {
+  .wframe[data-widget="inspector"] { right: 12px; max-height: min(690px, calc(100dvh - 112px)); }
+}
+
 /* ——— V7.1D Widget Scale — internal control density ———
    Scoped under .wframe-body so dock/rail instances of these same shared
    classes (Dock.tsx pop-chip, dock-merge slider) are never affected. */

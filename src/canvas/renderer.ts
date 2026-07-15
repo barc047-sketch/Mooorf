@@ -22,6 +22,7 @@ import {
   projectCircleLayers,
   projectRuntimePresentation,
 } from "./presentationLayers";
+import { textStylePreset } from "../domain/presentation/editing";
 
 // Pure canvas draw layer — no React, no store. CanvasView feeds it snapshots.
 
@@ -88,6 +89,32 @@ const easeOutBack = (t: number) => {
 };
 
 export const SPAWN_MS = 450;
+
+const boundedBodyLines = (
+  ctx: CanvasRenderingContext2D,
+  body: string,
+  maxWidth: number,
+  maxLines = 3
+): string[] => {
+  const words = body.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  const lines: string[] = [];
+  for (const word of words) {
+    const candidate = lines.length ? `${lines[lines.length - 1]} ${word}` : word;
+    if (ctx.measureText(candidate).width <= maxWidth || !lines.length) {
+      if (!lines.length) lines.push(candidate);
+      else lines[lines.length - 1] = candidate;
+    } else if (lines.length < maxLines) {
+      lines.push(word);
+    } else {
+      const last = lines[maxLines - 1];
+      let clipped = last;
+      while (clipped && ctx.measureText(`${clipped}…`).width > maxWidth) clipped = clipped.slice(0, -1);
+      lines[maxLines - 1] = `${clipped.trimEnd()}…`;
+      break;
+    }
+  }
+  return lines.slice(0, maxLines);
+};
 
 export interface DrawSceneOptions {
   /** V7.2 export adapter — omit to keep the live canvas's existing behavior. */
@@ -259,29 +286,53 @@ export function drawScene(
 
     // Label — only when legible.
     if (includeLabels) {
-      const labelScale = resolveLabelScale(blob.labelScaleMode, z, blob.annotationDetail.textScale);
+      const text = appearance.text;
+      const preset = textStylePreset(text.preset);
+      const labelScale = resolveLabelScale(blob.labelScaleMode, z, 1) * text.size;
       const contrast = resolveLabelContrast({
-        mode: blob.labelColourMode,
-        customColor: blob.labelCustomColour,
+        mode: text.colourMode === "custom" ? "custom" : "auto",
+        customColor: text.colourMode === "custom" ? text.colour : blob.labelCustomColour,
         backgroundColor: mappedColor.fill,
         voidBackground: isVoid,
         theme,
       });
-      const nameSize = 11 * labelScale;
-      ctx.textAlign = "center";
+      const nameSize = 11 * labelScale * preset.heading.scale;
+      const areaSize = Math.max(7, 11 * labelScale * preset.area.scale);
+      const bodySize = Math.max(7, 11 * labelScale * preset.body.scale);
+      ctx.textAlign = preset.align;
       ctx.textBaseline = "middle";
       ctx.lineJoin = "round";
       ctx.lineWidth = Math.max(0.75, labelScale * 0.85);
       ctx.strokeStyle = `${contrast.keyline}55`;
       ctx.fillStyle = contrast.color;
-      ctx.font = `500 ${nameSize}px ${FONT}`;
-      const labelWidth = Math.max(56, r * 1.7);
-      if (blob.annotationDetail.textShadow) ctx.strokeText(c.name, sx, sy - nameSize * 0.35, labelWidth);
-      ctx.fillText(c.name, sx, sy - nameSize * 0.35, labelWidth);
-      ctx.globalAlpha *= 0.68;
-      ctx.font = `400 ${Math.max(9, nameSize * 0.72)}px ${FONT}`;
-      if (blob.annotationDetail.textShadow) ctx.strokeText(`${c.area} m²`, sx, sy + nameSize * 0.78, labelWidth);
-      ctx.fillText(`${c.area} m²`, sx, sy + nameSize * 0.78, labelWidth);
+      const labelWidth = Math.max(56, r * 1.62);
+      const anchorX = preset.align === "left" ? sx - labelWidth / 2 : sx;
+      const body = c.body?.trim() ?? "";
+      const rowCount = (blob.annotationDetail.showName ? 1 : 0) + (blob.annotationDetail.showArea ? 1 : 0) + (body ? Math.min(3, body.split(/\s+/).length) : 0);
+      let y = sy - Math.min(r * 0.42, Math.max(0, rowCount - 1) * bodySize * 0.5);
+      if (blob.annotationDetail.showName) {
+        ctx.font = `${preset.heading.weight} ${nameSize}px ${FONT}`;
+        if (blob.annotationDetail.textShadow) ctx.strokeText(c.name, anchorX, y, labelWidth);
+        ctx.fillText(c.name, anchorX, y, labelWidth);
+        y += nameSize * 0.9;
+      }
+      if (blob.annotationDetail.showArea) {
+        ctx.globalAlpha *= 0.72;
+        ctx.font = `${preset.area.weight} ${areaSize}px ${FONT}`;
+        if (blob.annotationDetail.textShadow) ctx.strokeText(`${c.area} m²`, anchorX, y, labelWidth);
+        ctx.fillText(`${c.area} m²`, anchorX, y, labelWidth);
+        y += areaSize * 1.15;
+      }
+      if (body) {
+        ctx.globalAlpha *= 0.82;
+        ctx.font = `${preset.body.weight} ${bodySize}px ${FONT}`;
+        const lines = boundedBodyLines(ctx, body, labelWidth, 3);
+        for (const line of lines) {
+          if (blob.annotationDetail.textShadow) ctx.strokeText(line, anchorX, y, labelWidth);
+          ctx.fillText(line, anchorX, y, labelWidth);
+          y += bodySize * preset.body.lineHeight;
+        }
+      }
       ctx.globalAlpha = 1;
     }
 

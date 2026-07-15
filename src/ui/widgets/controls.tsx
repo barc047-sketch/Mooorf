@@ -14,6 +14,7 @@ export function SliderRow({
   fmt,
   ariaValueText,
   onChange,
+  onChangeEnd,
 }: {
   label: string;
   value: number;
@@ -23,6 +24,7 @@ export function SliderRow({
   fmt?: (v: number) => string;
   ariaValueText?: string;
   onChange: (v: number) => void;
+  onChangeEnd?: () => void;
 }) {
   return (
     <label className="org-slider">
@@ -37,6 +39,9 @@ export function SliderRow({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        onPointerUp={onChangeEnd}
+        onKeyUp={onChangeEnd}
+        onBlur={onChangeEnd}
         aria-label={label}
         aria-valuetext={ariaValueText}
       />

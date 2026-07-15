@@ -52,10 +52,13 @@ export default function CanvasView() {
 
     // Live mirrors (refs, not React state)
     const cam = { ...st.camera };
-    let spaces = st.spaces;
+    let spaces = st.appearancePreview ?? st.spaces;
     let selectedId = st.selectedId;
     let selectedIds = st.selectedIds;
-    let settings = st.settings; // blobOn + mergeDistance drive the blob layer
+    const initialSettings = st.membraneRuntimePreview ? { ...st.settings, ...st.membraneRuntimePreview } : st.settings;
+    let settings = st.presentationDefaultsPreview
+      ? { ...initialSettings, presentationDefaults: st.presentationDefaultsPreview }
+      : initialSettings; // ephemeral previews project through canonical renderer inputs
     let tokens = readTokens();
     let drag: DragOverride | null = null;
     let dirty = true;
@@ -73,10 +76,13 @@ export default function CanvasView() {
     let lastCommitted = st.camera; // reference marker for our own commits
 
     const unsub = useLab.subscribe((s) => {
-      spaces = s.spaces;
+      spaces = s.appearancePreview ?? s.spaces;
       selectedId = s.selectedId;
       selectedIds = s.selectedIds;
-      settings = s.settings;
+      const runtimeSettings = s.membraneRuntimePreview ? { ...s.settings, ...s.membraneRuntimePreview } : s.settings;
+      settings = s.presentationDefaultsPreview
+        ? { ...runtimeSettings, presentationDefaults: s.presentationDefaultsPreview }
+        : runtimeSettings;
       if (s.camera !== lastCommitted) {
         lastCommitted = s.camera;
         camTarget = s.camera; // adopt external change (eased in loop)
@@ -107,6 +113,7 @@ export default function CanvasView() {
      * a fresh offscreen canvas at the requested scale/options. No dependency
      * on the live canvas's buffer, so no readback timing concerns. */
     const unregisterCapture = registerCanvasCapture(async ({ scale, includeLabels, includeSelection }) => {
+      const canonical = useLab.getState();
       const cssW = host.clientWidth;
       const cssH = host.clientHeight;
       const off = document.createElement("canvas");
@@ -120,12 +127,12 @@ export default function CanvasView() {
         cssH,
         scale,
         cam,
-        spaces,
+        canonical.spaces,
         includeSelection ? selectedId : null,
         null,
         tokens,
         Date.now(),
-        settings,
+        canonical.settings,
         { includeLabels, selectedIds: includeSelection ? selectedIds : [], isExport: true }
       );
       return { canvas: off, cssWidth: cssW, cssHeight: cssH };

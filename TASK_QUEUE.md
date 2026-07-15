@@ -4,6 +4,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Urgent / Next
 
+- Owner review: audit the pushed combined C0.4F-A + C0-M1 fixed head; do not merge or begin M2 without the exact command
 - Independent review: audit pushed C0.4F-A runtime-layer branch; do not merge or begin C0.4F-B without the Owner's exact command
 - Antigravity: delta-audit the pushed V8.2C0.2 icon/grid registry branch; approve merge before C0.3 begins
 - Antigravity: audit pushed V8.2C0 Canvas performance/contrast/glass branch at 1440 and 1280
@@ -19,6 +20,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
+- C0-M1 Production Inspector, Content and Layer Editing Recovery: canonical Name/Area/Body editing across Canvas/Inspector/Table; coordinated text defaults/overrides; six detailed target widgets; supported Morph/Fusion/Reach migration; one history/preview/persistence/export path; 1440/1280 QA; waiting review
 - C0.4F-A Runtime Layer Separation: one canonical projection; explicit temporary selection; complete Classic six-style Boundary support; bounded Organism Membrane/Edge adapter with truthful non-solid fallback; world-scaled presentation-only strokes; schema v2 migration; build and 1440/1280 QA green
 - V8.2C0.2 Icon and Grid Asset Registry: 77 approved Lucide/ISC drawable symbols; eight canonical grids with truthful active/future support; legacy alias normalization and ID-only persistence; no UI, Canvas runtime, package, or product-store change
 - V8.2C0 Canvas Performance + Contrast Reset: rAF/coalesced local input previews; one release transaction; screen/adaptive/world labels; deterministic Auto Contrast; optional Cell Shadow; stable shadow-free UI glass; instant widget refocus; plain startup; projected-centre radials; migration/export parity; future shell work deferred

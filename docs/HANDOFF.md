@@ -1,5 +1,14 @@
 # Handoff
 
+## C0-M1 — Production Inspector, Content and Layer Editing Recovery
+
+- Canonical Name/Area/Body editing now shares one history-aware action across inline Canvas editing, the compact Content/Appearance Inspector and the minimal Table.
+- Six coordinated text presets, proportional Text Size, Text Colour/Auto Contrast, Project Default/local/mixed states and six independent detailed settings widgets reuse the audited presentation domain and production widget shell.
+- Cell, Boundary, Core and Void support sparse per-Cell overrides. Shared Membrane/Membrane Edge edit their truthful Project Defaults; supported Morph/Fusion/Reach moved into Membrane Settings with one-step history.
+- Both live renderers, clean raster capture and Classic SVG consume canonical final presentation. Body is bounded and geometry-neutral; previews and selection never persist or export.
+- Focused/full contracts, app typecheck, fixed-head diff check, exactly one final production build and deterministic 1440×900/1280×800 QA pass. Accepted limitations are Organism solid Boundary fallback, no fake vector Membrane and deferred prototype orbit.
+- Full evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md` and `docs/C0_M1_CONTROL_OWNERSHIP_MAP.md`. Branch must remain `WAITING_REVIEW`; do not merge or begin M2.
+
 ## C0.4F-A — Runtime Layer Separation
 
 - One renderer-neutral runtime projection now feeds both Classic and Organism from the canonical C0.4.1 presentation resolver and central store. Selection is a separate temporary projection and remains absent from appearance persistence and clean export.

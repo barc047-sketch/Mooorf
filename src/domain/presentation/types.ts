@@ -67,6 +67,33 @@ export const BOUNDARY_ALIGNMENTS = ["inner", "centre", "outer"] as const;
 
 export type BoundaryAlignment = typeof BOUNDARY_ALIGNMENTS[number];
 
+export const TEXT_STYLE_PRESET_IDS = [
+  "technical",
+  "editorial",
+  "minimal",
+  "compact",
+  "presentation",
+  "diagram",
+] as const;
+
+export type TextStylePresetId = typeof TEXT_STYLE_PRESET_IDS[number];
+export type TextColourMode = "auto" | "custom";
+
+export interface TextPresentationDefaults {
+  preset: TextStylePresetId;
+  /** Coordinated scale for Heading, Area and Body. */
+  size: number;
+  colourMode: TextColourMode;
+  colour: string;
+}
+
+export interface TextAppearanceOverride {
+  preset?: TextStylePresetId;
+  size?: number;
+  colourMode?: TextColourMode;
+  colour?: string;
+}
+
 export interface BoundaryPresentationDefaults extends SurfacePresentationDefaults {
   style: BoundaryStyle;
   width: number;
@@ -108,6 +135,8 @@ export interface CoreAppearanceOverride extends SurfaceAppearanceOverride {
 
 export interface VoidPresentationDefaults {
   visible: boolean;
+  fillVisible: boolean;
+  edgeVisible: boolean;
   fill: PresentationPaintDefaults;
   edge: PresentationPaintDefaults;
   edgeWidth: number;
@@ -115,6 +144,8 @@ export interface VoidPresentationDefaults {
 
 export interface VoidAppearanceOverride {
   visible?: boolean;
+  fillVisible?: boolean;
+  edgeVisible?: boolean;
   fill?: PresentationPaintOverride;
   edge?: PresentationPaintOverride;
   edgeWidth?: number;
@@ -122,6 +153,7 @@ export interface VoidAppearanceOverride {
 
 export interface ProjectPresentationDefaults {
   schemaVersion: 2;
+  text: TextPresentationDefaults;
   cell: SurfacePresentationDefaults;
   boundary: BoundaryPresentationDefaults;
   membrane: SurfacePresentationDefaults;
@@ -133,6 +165,7 @@ export interface ProjectPresentationDefaults {
 /** Sparse by construction: an omitted target or field inherits the project
  * default. Reset is the explicit removal operation in validation.ts. */
 export interface CellAppearanceOverrides {
+  text?: TextAppearanceOverride;
   cell?: SurfaceAppearanceOverride;
   boundary?: BoundaryAppearanceOverride;
   membrane?: SurfaceAppearanceOverride;
@@ -177,6 +210,8 @@ export interface ResolvedCoreAppearance extends ResolvedSurfaceAppearance {
 
 export interface ResolvedVoidAppearance {
   visible: boolean;
+  fillVisible: boolean;
+  edgeVisible: boolean;
   fill: ResolvedPresentationPaint;
   edge: ResolvedPresentationPaint;
   edgeWidth: number;
@@ -190,6 +225,7 @@ export interface ResolvedVoidAppearance {
 }
 
 export interface ResolvedCellAppearance {
+  text: TextPresentationDefaults;
   cell: ResolvedSurfaceAppearance;
   boundary: ResolvedBoundaryAppearance;
   membrane: ResolvedSurfaceAppearance;

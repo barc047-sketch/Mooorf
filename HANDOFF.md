@@ -5,6 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
+- C0-M1 Production Inspector, Content and Layer Editing Recovery (feature branch complete; waiting Owner review; not merged)
 - C0.4F-A Runtime Layer Separation (feature branch complete; waiting independent review; not merged)
 - V8.2C0.2 Icon and Grid Asset Registry
 - V8.2C0 Canvas Performance + Contrast Reset
@@ -49,6 +50,7 @@ Complete:
 - V7.3 File Intake + Canvas Interaction System (desktop/laptop/iPad)
 
 Next:
+- Owner review of combined C0.4F-A + C0-M1 fixed head; do not merge or start M2 without the exact next command
 - Independent review of C0.4F-A; do not merge or start C0.4F-B without the Owner's exact command
 - Antigravity delta audit of the pushed V8.2C0.2 registry branch; C0.3 remains blocked pending audit/merge approval
 - Antigravity independent V8.2C0 reference/performance/migration audit on the pushed feature branch
@@ -62,6 +64,8 @@ Not started:
 - Relationship Health / Floor Summary (await live relationship/floor data)
 
 ## Current Decision
+
+C0-M1 restores one canonical Name/Area/Body editing path across Canvas, Inspector and minimal Table; adds a compact Content/Appearance Inspector with coordinated text defaults/overrides and six independent target widgets; and routes supported Morph/Fusion/Reach into the Membrane owner. Shared Membrane/Edge remain project-default fields, Body remains geometry-neutral, previews/selection remain ephemeral, and clean raster/Classic vector export uses canonical final values. Full evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md`. The feature is `WAITING_REVIEW`; no merge or M2 is authorized.
 
 C0.4F-A routes both live renderers through one canonical runtime presentation projection. Classic supports all six Boundary styles; Organism preserves the current field shader, adds bounded Membrane/Edge controls, and truthfully falls non-solid Boundary styles back to solid through a pointer-transparent overlay. Technical strokes are world-scaled and presentation-only. Selection remains temporary and clean-export-excluded. Full evidence: `docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md`. The branch is `WAITING_REVIEW`; no merge or C0.4F-B work is authorized.
 

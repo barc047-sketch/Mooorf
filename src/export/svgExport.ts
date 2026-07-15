@@ -1,5 +1,4 @@
 import { areaToRadius } from "../lib/geometry";
-import { getAreaRange, getNucleusColor } from "../design/colorMapping";
 import type {
   AnnotationDetail,
   Camera,
@@ -7,6 +6,7 @@ import type {
   ColorSource,
   LabelColourMode,
   LabelScaleMode,
+  MorphMode,
   PaletteMode,
   PerformanceQuality,
   SpaceCell,
@@ -15,6 +15,10 @@ import type {
 import { resolveLabelScale } from "../canvas/labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
 import { resolveCellShadow } from "../canvas/cellShadow";
+import type { ProjectPresentationDefaults } from "../domain/presentation/types";
+import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
+import { textStylePreset } from "../domain/presentation/editing";
+import { projectCircleLayers, projectRuntimePresentation } from "../canvas/presentationLayers";
 
 const FONT =
   '"Inter Tight","Neue Haas Grotesk Display Pro","Helvetica Neue",Helvetica,Arial,sans-serif';
@@ -27,6 +31,25 @@ const escapeXml = (value: string): string =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
+const wrapSvgBody = (body: string, maxWidth: number, fontSize: number, maxLines: number): string[] => {
+  const words = body.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  const maxCharacters = Math.max(4, Math.floor(maxWidth / Math.max(1, fontSize * 0.54)));
+  const lines: string[] = [];
+  for (const word of words) {
+    const candidate = lines.length ? `${lines[lines.length - 1]} ${word}` : word;
+    if (candidate.length <= maxCharacters || !lines.length) {
+      if (!lines.length) lines.push(candidate);
+      else lines[lines.length - 1] = candidate;
+    } else if (lines.length < maxLines) {
+      lines.push(word);
+    } else {
+      lines[maxLines - 1] = `${lines[maxLines - 1].slice(0, Math.max(1, maxCharacters - 1)).trimEnd()}…`;
+      break;
+    }
+  }
+  return lines.slice(0, maxLines);
+};
+
 export interface ClassicSvgOptions {
   spaces: readonly SpaceCell[];
   camera: Camera;
@@ -34,6 +57,9 @@ export interface ClassicSvgOptions {
   cssHeight: number;
   paletteMode: PaletteMode;
   nucleusPaletteId: string;
+  organismPaletteId?: string;
+  morphMode?: MorphMode;
+  presentationDefaults?: ProjectPresentationDefaults;
   colorSource?: ColorSource;
   labelScaleMode?: LabelScaleMode;
   labelColourMode?: LabelColourMode;
@@ -56,7 +82,7 @@ export interface ClassicSvgOptions {
  * keeps this a truthful vector export rather than silently rasterizing it.
  * See docs/DECISIONS.md V7.2 SVG truthfulness note. */
 export const buildClassicSvg = (options: ClassicSvgOptions): string => {
-  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, colorSource = "category", labelScaleMode = "screen", labelColourMode = "auto", labelCustomColour = "#171719", annotationDetail, cellShadow, performanceQuality = "automatic", theme = "day", background, includeLabels, paddingPx } =
+  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, organismPaletteId = "mode", morphMode = "cellular-reverse", presentationDefaults = createProjectPresentationDefaults(), colorSource = "category", labelScaleMode = "screen", annotationDetail, cellShadow, performanceQuality = "automatic", theme = "day", background, includeLabels, paddingPx } =
     options;
   const w = Math.max(1, Math.round(cssWidth));
   const h = Math.max(1, Math.round(cssHeight));
@@ -66,7 +92,14 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
   const z = camera.zoom || 1;
   const toX = (x: number) => (x - camera.x) * z + w / 2 + pad;
   const toY = (y: number) => (y - camera.y) * z + h / 2 + pad;
-  const areaRange = getAreaRange(spaces);
+  const presentation = projectRuntimePresentation(spaces, {
+    presentationDefaults,
+    paletteMode,
+    colorSource,
+    nucleusPaletteId,
+    organismPaletteId,
+    morphMode,
+  }, theme);
 
   const parts: string[] = [];
   parts.push(
@@ -85,28 +118,57 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
     if (!Number.isFinite(r) || r <= 0) continue;
     const cx = toX(cell.x);
     const cy = toY(cell.y);
-    const color = getNucleusColor(cell, paletteMode, areaRange, nucleusPaletteId, colorSource);
+    const appearance = presentation.byId.get(cell.id);
+    if (!appearance) continue;
+    const layers = projectCircleLayers(cell, appearance, r, z, "classic");
     const isVoid = cell.kind === "void";
 
-    if (isVoid) {
-      parts.push(
-        `<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(0,0,0,0.035)" stroke="${color.ring}" stroke-width="${Math.max(1.2, 1.5 * z)}" stroke-dasharray="${5 * z},${5 * z}" />`
-      );
+    if (layers.void) {
+      const layer = layers.void;
+      if (layer.fillVisible) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.radiusPx}" fill="${layer.fillColour}" fill-opacity="${layer.fillOpacity}" />`);
+      if (layer.edgeVisible) {
+        parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.radiusPx}" fill="none" stroke="${layer.edgeColour}" stroke-opacity="${layer.edgeOpacity}" stroke-width="${layer.edgeWidthPx}" stroke-dasharray="${layer.lineDashPx.join(" ")}" />`);
+        parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.innerRadiusPx}" fill="none" stroke="${layer.edgeColour}" stroke-opacity="${layer.innerEdgeOpacity}" stroke-width="${Math.max(0.75, layer.edgeWidthPx * 0.72)}" stroke-dasharray="${layer.lineDashPx.join(" ")}" />`);
+      }
     } else {
-      parts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color.fill}"${resolvedShadow.enabled && resolvedShadow.includeInExport ? ' filter="url(#cell-shadow)"' : ""} />`);
+      if (layers.cell) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layers.cell.radiusPx}" fill="${layers.cell.colour}" fill-opacity="${layers.cell.opacity}"${resolvedShadow.enabled && resolvedShadow.includeInExport ? ' filter="url(#cell-shadow)"' : ""} />`);
+      if (layers.boundary) {
+        for (const stroke of layers.boundary.strokes) {
+          parts.push(`<circle cx="${cx}" cy="${cy}" r="${stroke.radiusPx}" fill="none" stroke="${stroke.colour}" stroke-opacity="${stroke.opacity}" stroke-width="${stroke.widthPx}" stroke-dasharray="${stroke.lineDashPx.join(" ")}" stroke-linecap="${stroke.lineCap}" data-boundary-style="${stroke.renderedStyle}" />`);
+        }
+      }
+      if (layers.core) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layers.core.radiusPx}" fill="${layers.core.colour}" fill-opacity="${layers.core.opacity}" />`);
     }
 
     if (includeLabels) {
-      const contrast = resolveLabelContrast({ mode: labelColourMode, customColor: labelCustomColour, backgroundColor: color.fill, voidBackground: isVoid, theme });
-      const nameSize = 11 * resolveLabelScale(labelScaleMode, z, annotationDetail?.textScale ?? 1);
+      const text = appearance.text;
+      const preset = textStylePreset(text.preset);
+      const backgroundColor = isVoid ? appearance.void.fill.colour : appearance.cell.paint.colour;
+      const contrast = resolveLabelContrast({ mode: text.colourMode === "custom" ? "custom" : "auto", customColor: text.colour, backgroundColor, voidBackground: isVoid, theme });
+      const scale = resolveLabelScale(labelScaleMode, z, 1) * text.size;
+      const nameSize = 11 * scale * preset.heading.scale;
+      const areaSize = Math.max(7, 11 * scale * preset.area.scale);
+      const bodySize = Math.max(7, 11 * scale * preset.body.scale);
       const nameFill = contrast.color;
       const metaFill = contrast.color;
-      parts.push(
-        `<text x="${cx}" y="${cy - nameSize * 0.35}" text-anchor="middle" dominant-baseline="middle" font-family='${FONT}' font-size="${nameSize}" font-weight="500" fill="${nameFill}">${escapeXml(cell.name)}</text>`
-      );
-      parts.push(
-        `<text x="${cx}" y="${cy + nameSize * 0.78}" text-anchor="middle" dominant-baseline="middle" font-family='${FONT}' font-size="${Math.max(7, nameSize * 0.72)}" fill="${metaFill}" fill-opacity="0.68">${escapeXml(`${cell.area} m²`)}</text>`
-      );
+      const maxWidth = Math.max(56, r * 1.62);
+      const anchor = preset.align === "left" ? "start" : "middle";
+      const x = preset.align === "left" ? cx - maxWidth / 2 : cx;
+      const bodyLines = wrapSvgBody(cell.body ?? "", maxWidth, bodySize, 3);
+      const rows = (annotationDetail?.showName === false ? 0 : 1) + (annotationDetail?.showArea === false ? 0 : 1) + bodyLines.length;
+      let y = cy - Math.min(r * 0.42, Math.max(0, rows - 1) * bodySize * 0.5);
+      if (annotationDetail?.showName !== false) {
+        parts.push(`<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family='${FONT}' font-size="${nameSize}" font-weight="${preset.heading.weight}" letter-spacing="${preset.heading.tracking}em" fill="${nameFill}">${escapeXml(cell.name)}</text>`);
+        y += nameSize * 0.9;
+      }
+      if (annotationDetail?.showArea !== false) {
+        parts.push(`<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family='${FONT}' font-size="${areaSize}" font-weight="${preset.area.weight}" letter-spacing="${preset.area.tracking}em" fill="${metaFill}" fill-opacity="0.72">${escapeXml(`${cell.area} m²`)}</text>`);
+        y += areaSize * 1.15;
+      }
+      for (const line of bodyLines) {
+        parts.push(`<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-family='${FONT}' font-size="${bodySize}" font-weight="${preset.body.weight}" letter-spacing="${preset.body.tracking}em" fill="${metaFill}" fill-opacity="0.76">${escapeXml(line)}</text>`);
+        y += bodySize * preset.body.lineHeight;
+      }
     }
   }
 

@@ -86,6 +86,13 @@ export interface AnnotationDetail {
 /* V6K — floating widget system. Order in the open list = stacking order.
    V7/V7.1 adds the Project Pulse gateway and independent instruments. */
 export type WidgetId =
+  | "inspector"
+  | "cell-settings"
+  | "boundary-settings"
+  | "membrane-settings"
+  | "membrane-edge-settings"
+  | "core-settings"
+  | "void-settings"
   | "annotation"
   | "organism"
   | "layout"
@@ -171,6 +178,8 @@ export type OrgPanelFocus = "annotation" | "style" | "organism" | "display" | nu
 export interface SpaceCell {
   id: string;
   name: string;
+  /** M1 architectural subtext. It is content only and never drives geometry. */
+  body?: string;
   kind?: SpaceKind; // omitted/undefined means a normal additive space nucleus
   area: number; // m²
   category: string;
