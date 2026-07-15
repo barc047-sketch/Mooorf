@@ -1,7 +1,7 @@
 {
   "worker": "Antigravity",
   "model": "Gemini 3.5 Flash",
-  "status": "ASSIGNED_AWAITING_WORKER_START",
+  "status": "RUNNING",
   "task": "AG3 — Visual Systems Research Atlas",
   "brief": "docs/worker-briefs/AG3_ANTIGRAVITY_VISUAL_SYSTEMS_RESEARCH_ATLAS.md",
   "launch_prompt": "docs/worker-briefs/AG3_ANTIGRAVITY_LAUNCH_PROMPT.md",
@@ -49,7 +49,8 @@
     "do not turn the projected symbol ceiling into automatic M2 scope",
     "push one fixed research head and stop at WAITING_REVIEW"
   ],
-  "updated_at": "2026-07-15T20:15:00+05:30",
+  "updated_at": "2026-07-15T20:42:00+05:30",
   "blocked_reason": null,
+  "last_checkpoint": "Starting AG3 research. Checked out research/ag3-visual-systems-atlas at base bd160b8c615cdafbbdd8a76332be46b69a6e765e.",
   "next_worker_action": "Read the AG3 contract, verify the exact branch/base, set this status to RUNNING, complete the six research deliverables, push one fixed research head, return to WAITING_REVIEW and stop."
 }
