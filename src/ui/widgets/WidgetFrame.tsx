@@ -5,12 +5,13 @@
    the drag position. Offsets are session-remembered per widget id (UI state
    only — never product data). */
 
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import { motion } from "motion/react";
 import { Minus, X, type LucideIcon } from "lucide-react";
 import { useLab } from "../../state/store";
 import type { WidgetId } from "../../types";
 import type { WidgetGeometry } from "../panels/widgetRegistry";
+import { clampWidgetOffset } from "./widgetLifecycle";
 import "./widgets.css";
 
 const SNAP_PX = 22; // magnetic: near-home drops tidy back into the stack
@@ -57,12 +58,14 @@ export default function WidgetFrame({
 }: WidgetFrameProps) {
   const closeWidget = useLab((s) => s.closeWidget);
   const focusWidget = useLab((s) => s.focusWidget);
+  const minimized = useLab((s) => s.minimizedWidgets.includes(id));
+  const setWidgetMinimized = useLab((s) => s.setWidgetMinimized);
+  const launchRevision = useLab((s) => s.widgetLaunchRevisions[id] ?? 0);
   const uiScale = useLab((s) => s.settings.uiScale);
   const widgetScale = useLab((s) => s.settings.widgetScale);
   /* V7.1D — outer frame footprint reflects both scales, each applied once. */
   const scale = uiScale * widgetScale;
   const frameRef = useRef<HTMLElement>(null);
-  const [minimized, setMinimized] = useState(false);
   const drag = useRef({ on: false, sx: 0, sy: 0, bx: 0, by: 0 });
   const offset = useRef(offsetMemory.get(id) ?? { dx: 0, dy: 0 });
   const mountedScale = useRef(scale);
@@ -135,6 +138,27 @@ export default function WidgetFrame({
     if (clampedDx !== dx || clampedDy !== dy) applyOffset(clampedDx, clampedDy, true);
   }, [scale]);
 
+  /* A launcher click is a generic open/focus/expand/reveal command. Re-clamp
+   * remembered session geometry after the frame is laid out so both the Dock
+   * and Rail recover the full body in one click. */
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el || launchRevision === 0) return;
+    const rect = el.getBoundingClientRect();
+    const visible = clampWidgetOffset({
+      x: rect.left,
+      y: rect.top,
+      frameWidth: rect.width,
+      frameHeight: rect.height,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      margin: 12,
+    });
+    const dx = offset.current.dx + visible.x - rect.left;
+    const dy = offset.current.dy + visible.y - rect.top;
+    if (dx !== offset.current.dx || dy !== offset.current.dy) applyOffset(dx, dy, true);
+  }, [launchRevision, minimized]);
+
   return (
     <motion.section
       ref={frameRef}
@@ -188,7 +212,7 @@ export default function WidgetFrame({
           className="wframe-btn"
           aria-label={minimized ? `Expand ${title}` : `Minimize ${title}`}
           aria-expanded={!minimized}
-          onClick={() => setMinimized((m) => !m)}
+          onClick={() => setWidgetMinimized(id, !minimized)}
         >
           <Minus size={12} strokeWidth={1.6} />
         </button>

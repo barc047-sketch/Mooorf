@@ -52,6 +52,23 @@ export interface SurfaceAppearanceOverride {
   paint?: PresentationPaintOverride;
 }
 
+export const MEMBRANE_COLOUR_MODES = ["cell-gradient", "solid"] as const;
+export type MembraneColourMode = typeof MEMBRANE_COLOUR_MODES[number];
+
+export type MembraneSolidMaterialId =
+  | "system:black"
+  | "system:ink"
+  | "system:mooorf-red"
+  | "system:charcoal"
+  | "custom";
+
+export interface MembranePresentationDefaults extends SurfacePresentationDefaults {
+  /** Cell Gradient is the legacy/current spatial Cell-colour path. */
+  colourMode: MembraneColourMode;
+  /** Registry material reference, or `custom` to consume paint.colour. */
+  solidMaterialId: MembraneSolidMaterialId;
+}
+
 export const BOUNDARY_STYLES = [
   "solid",
   "dashed",
@@ -152,11 +169,11 @@ export interface VoidAppearanceOverride {
 }
 
 export interface ProjectPresentationDefaults {
-  schemaVersion: 2;
+  schemaVersion: 3;
   text: TextPresentationDefaults;
   cell: SurfacePresentationDefaults;
   boundary: BoundaryPresentationDefaults;
-  membrane: SurfacePresentationDefaults;
+  membrane: MembranePresentationDefaults;
   membraneEdge: MembraneEdgePresentationDefaults;
   core: CorePresentationDefaults;
   void: VoidPresentationDefaults;
@@ -187,6 +204,11 @@ export interface ResolvedPresentationPaint {
 export interface ResolvedSurfaceAppearance {
   visible: boolean;
   paint: ResolvedPresentationPaint;
+}
+
+export interface ResolvedMembraneAppearance extends ResolvedSurfaceAppearance {
+  colourMode: MembraneColourMode;
+  solidMaterialId: MembraneSolidMaterialId;
 }
 
 export interface ResolvedBoundaryAppearance extends ResolvedSurfaceAppearance {
@@ -228,7 +250,7 @@ export interface ResolvedCellAppearance {
   text: TextPresentationDefaults;
   cell: ResolvedSurfaceAppearance;
   boundary: ResolvedBoundaryAppearance;
-  membrane: ResolvedSurfaceAppearance;
+  membrane: ResolvedMembraneAppearance;
   membraneEdge: ResolvedMembraneEdgeAppearance;
   core: ResolvedCoreAppearance;
   void: ResolvedVoidAppearance;

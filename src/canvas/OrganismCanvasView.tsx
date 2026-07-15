@@ -63,6 +63,7 @@ import { resolveCellShadow } from "./cellShadow";
 import {
   drawOrganismCircleOverlay,
   projectCircleLayers,
+  projectMembraneField,
   projectOrganismDebugPresentation,
   projectRuntimePresentation,
 } from "./presentationLayers";
@@ -290,6 +291,7 @@ export default function OrganismCanvasView() {
       bgColor: [1, 1, 1],
       accentColor: [0.55, 0.08, 0.14],
       colorMix: 0,
+      spatialColorMix: 1,
       nucleusDots: 0,
       membraneOpacity: 1,
       membraneEdgeOpacity: 0,
@@ -800,13 +802,17 @@ export default function OrganismCanvasView() {
       const palette = cachedPalette;
       const params = resolved.params;
       const eff = cachedField;
-      const membraneColour = hexToRgb01(cachedPresentation.membrane.paint.colour);
-      const edgeColour = hexToRgb01(cachedPresentation.membraneEdge.paint.colour);
-      const usesPaletteBody = cachedPresentation.membrane.paint.colour.toLowerCase() === palette.bodyHex.toLowerCase();
-      const bodyTarget = membraneColour;
-      const bodyBTarget = usesPaletteBody ? palette.bodyB : membraneColour;
-      const accentTarget = edgeColour;
-      const colorMixTarget = usesPaletteBody ? palette.blend : 0;
+      const membraneField = projectMembraneField({
+        membrane: cachedPresentation.membrane,
+        paletteBodyHex: palette.bodyHex,
+        paletteBodyBHex: palette.bodyBHex,
+        membraneEdgeColour: cachedPresentation.membraneEdge.paint.colour,
+        paletteBlend: palette.blend,
+      });
+      const bodyTarget = hexToRgb01(membraneField.bodyHex);
+      const bodyBTarget = hexToRgb01(membraneField.bodyBHex);
+      const accentTarget = hexToRgb01(membraneField.accentHex);
+      const colorMixTarget = membraneField.colorMix;
       const morphPresentationActive = cachedPresentation.membrane.visible || cachedPresentation.membraneEdge.visible;
 
       if (!smooth) {
@@ -918,6 +924,7 @@ export default function OrganismCanvasView() {
       frame.bgColor = smooth.bg;
       frame.accentColor = smooth.accent;
       frame.colorMix = smooth.colorMix;
+      frame.spatialColorMix = membraneField.spatialColorMix;
       frame.nucleusDots = smooth.dots;
       frame.membraneOpacity = cachedPresentation.membrane.visible
         ? cachedPresentation.membrane.paint.opacity

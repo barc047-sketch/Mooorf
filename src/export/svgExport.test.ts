@@ -32,6 +32,7 @@ ok(svg.includes('width="800"') && svg.includes('height="600"'), "dimensions matc
 ok(svg.includes("<circle"), "nuclei render as true vector circles, not raster");
 ok(svg.includes("Studio &lt;One&gt; &amp; &quot;Two&quot;"), "label text is XML-escaped");
 ok(svg.includes('stroke-dasharray'), "void nuclei render with the dashed ring, matching drawScene");
+equal((svg.match(/<circle cx="500" cy="300"/g) ?? []).length, 2, "Void SVG emits one outer fill and one outer edge with no inner echo");
 ok(!svg.includes("data:image"), "no embedded raster data URI — truthful vector output");
 
 const noLabels = buildClassicSvg({

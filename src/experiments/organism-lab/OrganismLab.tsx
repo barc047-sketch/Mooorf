@@ -171,6 +171,7 @@ export default function OrganismLab() {
       bgColor: [1, 1, 1],
       accentColor: [0.55, 0.08, 0.14],
       colorMix: 0,
+      spatialColorMix: 1,
       nucleusDots: 1,
       membraneOpacity: 1,
       membraneEdgeOpacity: 0,

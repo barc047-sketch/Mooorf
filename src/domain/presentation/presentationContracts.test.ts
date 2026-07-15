@@ -57,7 +57,7 @@ equal(PRESENTATION_TARGET_CONTRACTS.length, PRESENTATION_TARGET_IDS.length, "eve
 ok(PRESENTATION_TARGET_CONTRACTS.every((target) => target.materialTargets.length > 0), "every target maps to material ownership");
 ok(!PRESENTATION_TARGET_IDS.includes("selection" as never), "selection is not persisted appearance");
 
-equal(defaults.schemaVersion, 2, "presentation defaults schema version");
+equal(defaults.schemaVersion, 3, "presentation defaults schema version");
 for (const target of PRESENTATION_TARGET_CONTRACTS) ok(defaults[target.defaultsKey], `${target.id} defaults are complete`);
 equal(defaults.cell.visible, true, "Cell is visible by default");
 equal(defaults.boundary.visible, false, "Boundary preserves the current off baseline");
@@ -67,6 +67,7 @@ equal(defaults.boundary.dashLength, 8, "Boundary dash/bar length has a determini
 equal(defaults.boundary.gapLength, 6, "Boundary gap length has a deterministic default");
 equal(defaults.boundary.secondaryLineSpacing, 3, "double Boundary spacing has a deterministic default");
 equal(defaults.membrane.visible, false, "new-project Morph baseline remains off");
+equal(defaults.membrane.colourMode, "cell-gradient", "legacy/current Cell Gradient remains the Membrane default");
 equal(defaults.membraneEdge.visible, false, "Membrane Edge is independently owned and inactive");
 equal(defaults.core.visible, true, "Core preserves the current nucleus-dot baseline");
 equal(defaults.core.shape, "dot", "Core only supports the dot baseline");
@@ -170,7 +171,7 @@ const migratedV1 = normalizeProjectPresentationDefaults({
     paint: defaults.boundary.paint,
   },
 }, legacy);
-equal(migratedV1.schemaVersion, 2, "presentation schema v1 migrates to v2");
+equal(migratedV1.schemaVersion, 3, "presentation schema v1 migrates to the current version");
 equal(migratedV1.boundary.alignment, "centre", "schema v1 Boundary gains alignment");
 equal(migratedV1.boundary.dashLength, 8, "schema v1 Boundary gains dash/bar length");
 

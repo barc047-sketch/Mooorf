@@ -44,6 +44,24 @@ const organismMaterials: MaterialDefinition[] = ORGANISM_PALETTES.map((palette) 
 
 const systemMaterials: MaterialDefinition[] = [
   {
+    id: "system:black", name: "Black", category: "solid", description: "Absolute black Membrane Field material.",
+    preview: { kind: "swatch", values: ["#000000"] }, compatibleTargets: ["organism"],
+    parameters: [], performanceTier: "low", rendererSupport: { classic: true, organism: true }, exportFallback: "preserve",
+    source: { type: "system", key: "black" }, licence, attribution, builtIn: true, version: 1, tags: ["black", "solid", "membrane"],
+  },
+  {
+    id: "system:mooorf-red", name: "MOOORF Red", category: "solid", description: "Canonical MOOORF red Membrane Field material.",
+    preview: { kind: "swatch", values: ["#c31616"] }, compatibleTargets: ["organism"],
+    parameters: [], performanceTier: "low", rendererSupport: { classic: true, organism: true }, exportFallback: "preserve",
+    source: { type: "system", key: "mooorf-red" }, licence, attribution, builtIn: true, version: 1, tags: ["red", "brand", "solid", "membrane"],
+  },
+  {
+    id: "system:charcoal", name: "Charcoal", category: "solid", description: "Neutral charcoal Membrane Field material.",
+    preview: { kind: "swatch", values: ["#2f2f2f"] }, compatibleTargets: ["organism"],
+    parameters: [], performanceTier: "low", rendererSupport: { classic: true, organism: true }, exportFallback: "preserve",
+    source: { type: "system", key: "charcoal" }, licence, attribution, builtIn: true, version: 1, tags: ["charcoal", "neutral", "solid", "membrane"],
+  },
+  {
     id: "system:void", name: "Void", category: "solid", description: "Canonical subtractive void material.",
     preview: { kind: "swatch", values: ["#070707", "#8c877e"] }, compatibleTargets: ["void-fill", "void-edge"],
     parameters: [], performanceTier: "low", rendererSupport: { classic: true, organism: true }, exportFallback: "preserve",
@@ -56,8 +74,8 @@ const systemMaterials: MaterialDefinition[] = [
     source: { type: "system", key: "theme-canvas" }, licence, attribution, builtIn: true, version: 1, tags: ["canvas", "theme"],
   },
   {
-    id: "system:ink", name: "Technical Ink", category: "solid", description: "Neutral technical stroke and text material.",
-    preview: { kind: "swatch", values: ["#171719"] }, compatibleTargets: ["grid", "line", "relationship", "text", "frame"],
+    id: "system:ink", name: "Ink", category: "solid", description: "Neutral technical ink material.",
+    preview: { kind: "swatch", values: ["#171719"] }, compatibleTargets: ["organism", "grid", "line", "relationship", "text", "frame"],
     parameters: [], performanceTier: "low", rendererSupport: { classic: true, organism: true }, exportFallback: "preserve",
     source: { type: "system", key: "technical-ink" }, licence, attribution, builtIn: true, version: 1, tags: ["ink", "technical"],
   },

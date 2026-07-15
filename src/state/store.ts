@@ -173,6 +173,10 @@ interface LabState {
   transformRedoStack: SpaceHistoryEntry[];
   /** V6K widget system — array order is stacking order (last = front) */
   openWidgets: WidgetId[];
+  /** Ephemeral widget-window lifecycle. Launchers can restore minimized and
+   * off-screen frames without persisting UI state into project data. */
+  minimizedWidgets: WidgetId[];
+  widgetLaunchRevisions: Partial<Record<WidgetId, number>>;
   /** M1 shared ephemeral target and preview owners. Never persisted/exported. */
   activeAppearanceTarget: PresentationTargetId;
   appearancePreview: SpaceCell[] | null;
@@ -191,6 +195,7 @@ interface LabState {
   openWidget: (id: WidgetId) => void;
   closeWidget: (id: WidgetId) => void;
   focusWidget: (id: WidgetId) => void;
+  setWidgetMinimized: (id: WidgetId, minimized: boolean) => void;
   setActiveTool: (id: ToolId) => void;
   setTemporaryTool: (id: ToolId) => void;
   clearTemporaryTool: () => void;
@@ -604,6 +609,8 @@ export const useLab = create<LabState>((set) => ({
   transformUndoStack: [],
   transformRedoStack: [],
   openWidgets: [],
+  minimizedWidgets: [],
+  widgetLaunchRevisions: {},
   activeAppearanceTarget: "cell",
   appearancePreview: null,
   presentationDefaultsPreview: null,
@@ -689,10 +696,20 @@ export const useLab = create<LabState>((set) => ({
     })),
 
   openWidget: (id) =>
-    set((s) => ({ openWidgets: resolveWidgetOpen(s.openWidgets, id).stack })),
+    set((s) => ({
+      openWidgets: resolveWidgetOpen(s.openWidgets, id).stack,
+      minimizedWidgets: s.minimizedWidgets.filter((widgetId) => widgetId !== id),
+      widgetLaunchRevisions: {
+        ...s.widgetLaunchRevisions,
+        [id]: (s.widgetLaunchRevisions[id] ?? 0) + 1,
+      },
+    })),
 
   closeWidget: (id) =>
-    set((s) => ({ openWidgets: s.openWidgets.filter((w) => w !== id) })),
+    set((s) => ({
+      openWidgets: s.openWidgets.filter((w) => w !== id),
+      minimizedWidgets: s.minimizedWidgets.filter((widgetId) => widgetId !== id),
+    })),
 
   focusWidget: (id) =>
     set((s) =>
@@ -700,6 +717,15 @@ export const useLab = create<LabState>((set) => ({
         ? {}
         : { openWidgets: [...s.openWidgets.filter((w) => w !== id), id] }
     ),
+
+  setWidgetMinimized: (id, minimized) =>
+    set((s) => ({
+      minimizedWidgets: minimized
+        ? s.minimizedWidgets.includes(id)
+          ? s.minimizedWidgets
+          : [...s.minimizedWidgets, id]
+        : s.minimizedWidgets.filter((widgetId) => widgetId !== id),
+    })),
 
   setActiveTool: (activeTool) => set({ activeTool }),
 

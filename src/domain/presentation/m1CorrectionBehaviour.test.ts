@@ -3,6 +3,7 @@ import { buildProjectSnapshot } from "../../export/projectSnapshot";
 import { useLab } from "../../state/store";
 import type { SpaceCell } from "../../types";
 import * as editing from "./editing";
+import { createProjectPresentationDefaults } from "./defaults";
 
 type AppearanceFamily = {
   id: "cell" | "membrane" | "void";
@@ -114,5 +115,14 @@ const invalidCellLayers: SpaceCell = {
   },
 };
 assert.equal(invalidCellLayers.kind, "void", "Void regression fixture remains subtractive despite irrelevant Cell overrides");
+
+const edgeOnlyVoid = editing.applyAppearancePatch(
+  undefined,
+  createProjectPresentationDefaults(),
+  "void",
+  { visible: true, edgeVisible: false }
+);
+assert.deepEqual(edgeOnlyVoid, { void: { edgeVisible: false } }, "Void edge edit remains truly sparse and cannot mask inherited Fill opacity");
+assert.equal(Object.prototype.hasOwnProperty.call(edgeOnlyVoid?.void ?? {}, "fill"), false, "sparse Void edge edit does not create an undefined Fill owner");
 
 console.info("C0 M1 family, status and Void behaviour passed");

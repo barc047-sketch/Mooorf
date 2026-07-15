@@ -128,7 +128,6 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
       if (layer.fillVisible) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.radiusPx}" fill="${layer.fillColour}" fill-opacity="${layer.fillOpacity}" />`);
       if (layer.edgeVisible) {
         parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.radiusPx}" fill="none" stroke="${layer.edgeColour}" stroke-opacity="${layer.edgeOpacity}" stroke-width="${layer.edgeWidthPx}" stroke-dasharray="${layer.lineDashPx.join(" ")}" />`);
-        parts.push(`<circle cx="${cx}" cy="${cy}" r="${layer.innerRadiusPx}" fill="none" stroke="${layer.edgeColour}" stroke-opacity="${layer.innerEdgeOpacity}" stroke-width="${Math.max(0.75, layer.edgeWidthPx * 0.72)}" stroke-dasharray="${layer.lineDashPx.join(" ")}" />`);
       }
     } else {
       if (layers.cell) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layers.cell.radiusPx}" fill="${layers.cell.colour}" fill-opacity="${layers.cell.opacity}"${resolvedShadow.enabled && resolvedShadow.includeInExport ? ' filter="url(#cell-shadow)"' : ""} />`);

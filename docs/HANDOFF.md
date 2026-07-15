@@ -2,6 +2,10 @@
 
 ## C0-M1 — Production Inspector, Content and Layer Editing Recovery
 
+- Correction 2 fixes reviewed head `484ddeb859fcb18256a6acf7b7287e2be917aedc`: every widget launcher now generically mounts, focuses, expands and reveals its target; both Dock/Rail `i` buttons restore the full Inspector body in one click.
+- Void no longer draws the unconditional hard-coded inner circle in Canvas2D or Classic SVG. Outer fill/edge, subtraction, selection, dragging, hit testing, persistence and existing PNG/PDF/SVG ownership remain intact.
+- Membrane Field keeps the current Cell-derived gradient as default `Cell Gradient` and adds a persisted, patch-free `Solid` mode using canonical Black, Ink, MOOORF Red, Charcoal and Custom material paths. Schema v3 migrates v1/v2 to the unchanged default.
+- M2 ownership is explicit: Field Edge Softness remains the existing field/body feather path; independent Membrane Edge Softness will be a separate Edge control. Optional Void Inner Echo is M2-only, default off, and requires live/export parity.
 - Correction 1 fixes reviewed head `e9bd67e8c7778dccdd4afb4c1508db0792e70b21`: Table/Inspector Escape is an explicit zero-transaction cancel, and Inspector status derives actual Project Default/Local Override/Mixed inheritance.
 - There is one Inspector with live Content and Appearance. Symbol remains a future M2 tab inside it. Appearance exposes only Cell, Membrane and Void; three family Detail widgets retain six separate canonical internal targets.
 - Cell Detail nests Surface, Boundary and Core/nucleus. Membrane Detail nests shared Field and Edge plus supported Fusion/Reach. Void Detail nests Fill and Edge without changing subtraction, geometry or hit testing.

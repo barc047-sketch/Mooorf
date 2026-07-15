@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import {
   BOUNDARY_ALIGNMENTS,
   BOUNDARY_STYLES,
+  type MembraneColourMode,
+  type MembraneSolidMaterialId,
   type PresentationTargetId,
 } from "../../domain/presentation/types";
 import {
@@ -12,6 +14,7 @@ import { cloneProjectPresentationDefaults, normalizeProjectPresentationDefaults 
 import { useLab } from "../../state/store";
 import { getAreaRange, getNucleusColor } from "../../design/colorMapping";
 import { MORPHS } from "../controlMeta";
+import { listMembraneSolidMaterials } from "../../materials/materialRegistry";
 import { ChipRow, SliderRow, SwitchRow, WidgetSection } from "./controls";
 
 const asRecord = (value: unknown): Record<string, unknown> =>
@@ -110,6 +113,23 @@ function TargetSettings({ target, children }: { target: PresentationTargetId; ch
   );
 }
 
+function OpacityControl({ api, path = "paint" }: {
+  api: Parameters<Parameters<typeof TargetSettings>[0]["children"]>[0];
+  path?: "paint" | "fill" | "edge";
+}) {
+  const opacity = api.value([path, "opacity"], 1);
+  return <SliderRow
+    label={`Opacity${opacity.mixed ? " · Mixed" : ""}`}
+    value={typeof opacity.value === "number" ? opacity.value : 1}
+    min={0}
+    max={1}
+    step={0.01}
+    fmt={(value) => `${Math.round(value * 100)}%`}
+    onChange={(value) => api.preview({ [path]: { opacity: value } })}
+    onChangeEnd={api.commitPreview}
+  />;
+}
+
 function PaintControls({ api, path = "paint", label = "Colour" }: {
   api: Parameters<Parameters<typeof TargetSettings>[0]["children"]>[0];
   path?: "paint" | "fill" | "edge";
@@ -121,7 +141,6 @@ function PaintControls({ api, path = "paint", label = "Colour" }: {
   const nucleusPaletteId = useLab((state) => state.settings.nucleusPaletteId);
   const colorSource = useLab((state) => state.settings.colorSource);
   const colour = api.value([path, "colour"], null);
-  const opacity = api.value([path, "opacity"], 1);
   const displayColour = typeof colour.value === "string" ? colour.value : "#6f7f75";
   const reference = spaces.find((space) => selectedIds.includes(space.id)) ?? spaces.find((space) => space.kind !== "void");
   const mapped = reference ? getNucleusColor(reference, paletteMode, getAreaRange(spaces), nucleusPaletteId, colorSource) : null;
@@ -140,16 +159,7 @@ function PaintControls({ api, path = "paint", label = "Colour" }: {
       <div className="m1-swatch-row" aria-label={`${label} project palette choices`}>
         {swatches.map((swatch) => <button key={swatch} type="button" title={swatch} aria-label={`Use ${swatch}`} style={{ background: swatch }} data-active={colour.value === swatch} onClick={() => api.commit({ [path]: { colour: swatch } })} />)}
       </div>
-      <SliderRow
-        label={`Opacity${opacity.mixed ? " · Mixed" : ""}`}
-        value={typeof opacity.value === "number" ? opacity.value : 1}
-        min={0}
-        max={1}
-        step={0.01}
-        fmt={(value) => `${Math.round(value * 100)}%`}
-        onChange={(value) => api.preview({ [path]: { opacity: value } })}
-        onChangeEnd={api.commitPreview}
-      />
+      <OpacityControl api={api} path={path} />
     </>
   );
 }
@@ -199,10 +209,51 @@ function MembraneFieldTarget() {
   const commitRuntimePreview = useLab((state) => state.commitMembraneRuntimePreview);
   return <TargetSettings target="membrane">{(api) => {
     const visible = api.value(["visible"], false);
+    const colourMode = api.value(["colourMode"], "cell-gradient");
+    const solidMaterialId = api.value(["solidMaterialId"], "system:black");
+    const customColour = api.value(["paint", "colour"], null);
+    const solidOptions = [
+      ...listMembraneSolidMaterials().map((material) => ({
+        id: material.id as Exclude<MembraneSolidMaterialId, "custom">,
+        label: material.name,
+      })),
+      { id: "custom" as const, label: "Custom" },
+    ];
     return <>
       <WidgetSection title="Membrane Field" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
-        <PaintControls api={api} label="Fill colour" />
+        <span className="org-subcap">colour source</span>
+        <ChipRow
+          options={[
+            { id: "cell-gradient", label: "Cell Gradient" },
+            { id: "solid", label: "Solid" },
+          ] as const}
+          value={colourMode.value as MembraneColourMode}
+          onChange={(next) => api.commit({ colourMode: next })}
+          ariaLabel="Membrane colour source"
+        />
+        {colourMode.value === "cell-gradient" ? (
+          <PaintControls api={api} label="Gradient base colour" />
+        ) : (
+          <>
+            <span className="org-subcap">solid colour</span>
+            <ChipRow
+              options={solidOptions}
+              value={solidMaterialId.value as MembraneSolidMaterialId}
+              onChange={(next) => api.commit({
+                colourMode: "solid",
+                solidMaterialId: next,
+                ...(next === "custom" && typeof customColour.value !== "string"
+                  ? { paint: { colour: "#6f7f75" } }
+                  : {}),
+              })}
+              ariaLabel="Solid Membrane colour"
+            />
+            {solidMaterialId.value === "custom"
+              ? <PaintControls api={api} label="Custom colour" />
+              : <OpacityControl api={api} />}
+          </>
+        )}
       </WidgetSection>
       <WidgetSection title="Fusion" hint="existing runtime owner" defaultOpen>
         <span className="org-subcap">field character</span>

@@ -63,11 +63,14 @@ export default function Dock() {
   const addSpaces = useLab((s) => s.addSpaces);
   const applyLayoutPreset = useLab((s) => s.applyLayoutPreset);
   const openWidgets = useLab((s) => s.openWidgets);
+  const minimizedWidgets = useLab((s) => s.minimizedWidgets);
   const openWidget = useLab((s) => s.openWidget);
   const activeAppearanceTarget = useLab((s) => s.activeAppearanceTarget);
   const [rightOpen, setRightOpen] = useState(true);
   const activeFamily = appearanceFamilyForTarget(activeAppearanceTarget);
   const detail = appearanceFamilyDefinition(activeFamily);
+  const isExpanded = (id: Parameters<typeof openWidget>[0]) =>
+    openWidgets.includes(id) && !minimizedWidgets.includes(id);
 
   return (
     <motion.div
@@ -80,21 +83,21 @@ export default function Dock() {
     >
       <DockGroup side="left">
         <DockButton
-          active={openWidgets.includes("inspector")}
+          active={isExpanded("inspector")}
           title="Open Inspector"
           aria-label="Open Inspector"
           aria-haspopup="dialog"
-          aria-expanded={openWidgets.includes("inspector")}
+          aria-expanded={isExpanded("inspector")}
           onClick={() => openWidget("inspector")}
         >
           <Info size={16} strokeWidth={1.5} />
         </DockButton>
         <DockButton
-          active={openWidgets.includes(detail.detailWidgetId)}
+          active={isExpanded(detail.detailWidgetId)}
           title={`Open ${detail.label} Detail`}
           aria-label={`Open ${detail.label} Detail`}
           aria-haspopup="dialog"
-          aria-expanded={openWidgets.includes(detail.detailWidgetId)}
+          aria-expanded={isExpanded(detail.detailWidgetId)}
           onClick={() => openWidget(detail.detailWidgetId)}
         >
           <SlidersHorizontal size={16} strokeWidth={1.5} />
@@ -136,11 +139,11 @@ export default function Dock() {
         {rightOpen && (
           <div className="dock-group-items" data-side="right">
             <DockButton
-              active={openWidgets.includes("saved")}
+              active={isExpanded("saved")}
               title="Saved views"
               aria-label="Saved views"
               aria-haspopup="dialog"
-              aria-expanded={openWidgets.includes("saved")}
+              aria-expanded={isExpanded("saved")}
               onClick={() => openWidget("saved")}
             >
               <Bookmark size={16} strokeWidth={1.5} />
@@ -153,21 +156,21 @@ export default function Dock() {
               <Shuffle size={16} strokeWidth={1.5} />
             </DockButton>
             <DockButton
-              active={openWidgets.includes("import")}
+              active={isExpanded("import")}
               title="File Intake"
               aria-label="File Intake"
               aria-haspopup="dialog"
-              aria-expanded={openWidgets.includes("import")}
+              aria-expanded={isExpanded("import")}
               onClick={() => openWidget("import")}
             >
               <Upload size={16} strokeWidth={1.5} />
             </DockButton>
             <DockButton
-              active={openWidgets.includes("export")}
+              active={isExpanded("export")}
               title="Export"
               aria-label="Export"
               aria-haspopup="dialog"
-              aria-expanded={openWidgets.includes("export")}
+              aria-expanded={isExpanded("export")}
               onClick={() => openWidget("export")}
             >
               <Download size={16} strokeWidth={1.5} />

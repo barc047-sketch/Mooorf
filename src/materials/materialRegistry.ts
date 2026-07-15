@@ -15,3 +15,17 @@ export const materialRegistry = Object.freeze({
 });
 
 export const listMaterialsForTarget = (target: MaterialTarget) => materialRegistry.listByTarget(target);
+
+/** Bounded M1 Membrane presets. Definitions and swatches remain owned by the
+ * audited registry so M4 can consume the same IDs without migration. */
+export const MEMBRANE_SOLID_MATERIAL_IDS = [
+  "system:black",
+  "system:ink",
+  "system:mooorf-red",
+  "system:charcoal",
+] as const;
+
+export const listMembraneSolidMaterials = (): readonly MaterialDefinition[] =>
+  MEMBRANE_SOLID_MATERIAL_IDS.map((id) => materialRegistry.get(id)).filter(
+    (material): material is MaterialDefinition => material !== null
+  );

@@ -10,13 +10,16 @@ Scope: every M1 Content, Appearance, Morph, Core, Void, selection and launcher c
 | Inspector Name/Area/Body draft exit | local component blur handlers | REBIND | same shared content edit session | `commitSpaceContent`; multi-selection remains one transaction |
 | Table Category and Privacy | `TableView` | KEEP | minimal Table | existing `updateSpace`; outside M1 appearance ownership |
 | Inspector header status | selection-count shortcut | REMOVE + REBIND | actual channel/family inheritance projection | `resolveInheritanceState` / `resolveFamilyInheritanceState` |
-| Inspector/info launcher | indirect/stale visible path | REBIND | Rail and bounded Dock `i` | `openWidget("inspector")`; truthful aria/open state |
+| Inspector/info launcher | indirect/stale visible path | REBIND + REPAIR | Rail and bounded Dock `i` | generic `openWidget("inspector")`; mount/focus/expand/reveal and truthful aria/open state |
+| Every registered widget launcher | separate mount/focus behavior | REBIND + PROTECT | existing `WidgetHost`/`WidgetFrame` lifecycle | one store-owned launch revision expands and viewport-clamps the requested widget; no duplicate host |
 | Active-family Detail launcher | absent | MERGE | bounded Dock and Inspector Appearance | `appearanceFamilyDefinition(activeFamily).detailWidgetId` |
 | Six top-level target buttons | Inspector Appearance | RESTRUCTURE | Cell/Membrane/Void primary families | projection only; six internal target IDs remain unchanged |
 | Standalone Cell settings | one-target widget | MERGE | Cell Detail → Cell Surface | sparse `appearance.cell` or `presentationDefaults.cell` |
 | Standalone Boundary settings | separate widget | MOVE | Cell Detail → Boundary | sparse `appearance.boundary` or `presentationDefaults.boundary` |
 | Standalone Core settings | separate widget | MOVE | Cell Detail → Core / nucleus | sparse `appearance.core` or `presentationDefaults.core` |
 | Standalone Membrane settings | one-target widget | MERGE | Membrane Detail → Field/Fusion/Reach | audited shared `presentationDefaults.membrane` plus existing runtime settings |
+| Membrane colour source | always Cell-derived | MERGE + REPAIR | Membrane Detail → Field | persisted `presentationDefaults.membrane.colourMode`; `cell-gradient` remains default, `solid` disables spatial Cell colour mixing |
+| Membrane Solid presets | absent | MERGE | Membrane Detail → Field | canonical material registry IDs: Black, Ink, MOOORF Red, Charcoal; Custom reuses canonical paint colour/opacity |
 | Standalone Membrane Edge settings | separate widget | MOVE | Membrane Detail → Edge | audited shared `presentationDefaults.membraneEdge` |
 | Standalone Void settings | one-target widget | MERGE | Void Detail → Fill/Edge | sparse `appearance.void` or `presentationDefaults.void` |
 | Family Reset | target-only reset | MERGE | Inspector Appearance | `resetAppearanceFamily`; one history transaction across owned internal targets |
@@ -38,11 +41,15 @@ Scope: every M1 Content, Appearance, Morph, Core, Void, selection and launcher c
 | Core explanation | absent | MERGE | Cell Detail → Core / nucleus | explicitly separate from selection, Boundary, Membrane and debug geometry |
 | Add Void Rail/Dock duplication | duplicate creation launchers | REMOVE AS DUPLICATE | Dock Add Void | existing `addVoid`; canonical `kind: "void"` selected on add |
 | Void appearance | incomplete | MERGE + PROTECT | Void Detail → Fill/Edge | presentation only; subtraction/geometry/hit testing unchanged |
+| Unconditional Void inner circle | Canvas2D/SVG hard-coded echo | REMOVE | none in M1 | outer fill/edge and subtractive nucleus remain; no inner live/export layer |
+| Optional Void Inner Echo | no truthful control | DEFER | M2 advanced Void instrument, default OFF | only implement with canonical state and live/export parity |
 | Selected Cell keyline | renderer overlays | KEEP + PROTECT | renderer-neutral ephemeral selection overlay | excluded from style, persistence and clean export |
 | Prototype selection orbit | prototype evidence | DEFER | M2 in the same Inspector | no persisted selection appearance added in M1 |
 | Export clean/include selection | Export widget | KEEP + PROTECT | existing Export widget | clean capture clears all M1 previews; no new export path |
 | Material Browser/recents/favourites/hover | prototype evidence | DEFER | M4 | no M1 control or schema |
 | Symbol tab/catalogue | approved prototype/research | DEFER | M2 tab inside the same Inspector | audited registry/research compatibility preserved; no M1 Symbol UI |
+| Membrane Field Edge Softness | existing field/body softness | DEFER UI | M2 Membrane → Field → Field Edge Softness | existing `settings.organism.edgeSoftness`; affects field-body feather only |
+| Independent Membrane Edge Softness | absent | DEFER | M2 Membrane → Edge → Edge Softness | future independent presentation-band owner; must not alias Field Edge Softness |
 
 ## Invariants
 
@@ -53,4 +60,6 @@ Scope: every M1 Content, Appearance, Morph, Core, Void, selection and launcher c
 - Text Style, Text Size and Text Colour are owned only by text defaults plus sparse text overrides.
 - Selection, content drafts and every appearance/runtime preview remain ephemeral and clean-export-excluded.
 - Void remains subtractive and never renders Cell Surface, Boundary or Core.
+- Void live/export presentation contains only its outer fill and outer edge; M1 has no unconditional inner echo.
+- `Cell Gradient` remains the default Membrane colour mode; Solid mode resolves through canonical registry IDs and never contains Cell-derived colour patches.
 - No legacy widget, mock store, fake export, fake Cell, prototype shell or duplicate registry is exposed.

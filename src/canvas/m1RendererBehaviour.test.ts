@@ -135,6 +135,15 @@ assert.equal(voidLayers.cell, null, "Cell Surface never renders on Void");
 assert.equal(voidLayers.boundary, null, "Boundary never renders on Void");
 assert.equal(voidLayers.core, null, "Core never renders on Void");
 assert.ok(voidLayers.void, "Void Fill and Edge remain renderable");
+const voidCtx = new RecordingContext();
+presentation.drawCircleLayers(voidCtx as unknown as CanvasRenderingContext2D, 100, 100, voidLayers, {
+  cell: false,
+  boundary: false,
+  core: false,
+});
+assert.equal(voidCtx.fills.length, 1, "Void renderer preserves one outer fill");
+assert.equal(voidCtx.strokes.length, 1, "Void renderer draws only the outer edge");
+assert.equal(voidCtx.arcs.length, 2, "Void renderer emits no unconditional inner-circle arc");
 
 const drawOrganismOverlay = (presentation as Record<string, unknown>).drawOrganismCircleOverlay as ((
   ctx: CanvasRenderingContext2D,

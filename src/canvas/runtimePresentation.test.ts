@@ -153,6 +153,7 @@ equal(voidLayers.core, null, "Void never aliases the Core layer");
 equal(voidLayers.void?.radiusPx, 30, "Void appearance uses but never changes subtractive geometry");
 equal(voidLayers.void?.edgeWidthPx, 3, "Void edge width is world-scaled presentation only");
 deepEqual(voidLayers.void?.lineDashPx, [10, 10], "Void technical dash remains world-scaled");
-equal(voidLayers.void?.innerEdgeOpacity, 0.68, "Void inner echo preserves its quiet adapter baseline");
+equal("innerRadiusPx" in (voidLayers.void ?? {}), false, "Void projection contains no unconditional inner-circle instruction");
+equal("innerEdgeOpacity" in (voidLayers.void ?? {}), false, "Void projection contains no hidden inner-edge presentation owner");
 
 console.info("runtime presentation contracts passed");

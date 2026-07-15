@@ -37,6 +37,7 @@ export default function Rail() {
   const addSpace = useLab((s) => s.addSpace);
   const resetView = useLab((s) => s.resetView);
   const openWidgets = useLab((s) => s.openWidgets);
+  const minimizedWidgets = useLab((s) => s.minimizedWidgets);
   const openWidget = useLab((s) => s.openWidget);
 
   const launcher = (
@@ -44,16 +45,17 @@ export default function Rail() {
     title = `${getWidgetDefinition(id).label} widget`
   ) => {
     const Icon = getWidgetDefinition(id).icon;
+    const expanded = openWidgets.includes(id) && !minimizedWidgets.includes(id);
     return (
       <button
         type="button"
         className="rail-btn"
-        data-active={openWidgets.includes(id)}
+        data-active={expanded}
         data-tooltip={title}
         title={title}
         aria-label={title}
         aria-haspopup="dialog"
-        aria-expanded={openWidgets.includes(id)}
+        aria-expanded={expanded}
         onClick={() => openWidget(id)}
       >
         <Icon size={14} strokeWidth={1.5} />

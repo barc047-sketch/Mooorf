@@ -44,6 +44,7 @@ uniform vec3 uBodyColorB;
 uniform vec3 uAccentColor;
 uniform vec3 uBgColor;
 uniform float uColorMix;
+uniform float uSpatialColorMix;
 uniform float uNucleusDots;
 uniform float uMembraneOpacity;
 uniform float uMembraneEdgeOpacity;
@@ -171,7 +172,7 @@ void main() {
   bodyMix = mix(bodyMix, uAccentColor, colorMix * edge * 0.22);
   float spatialWeight = 0.0;
   vec3 spatialColor = spatialColorAt(p, spatialWeight);
-  float spatialDominance = spatialWeight > 0.0001 ? 0.88 : 0.0;
+  float spatialDominance = spatialWeight > 0.0001 ? 0.88 * clamp(uSpatialColorMix, 0.0, 1.0) : 0.0;
   bodyMix = mix(bodyMix, spatialColor, spatialDominance);
   vec3 col = uBgColor;
   if (uShadowEnabled > 0.5) {
@@ -259,6 +260,8 @@ export interface OrganismRenderFrame {
   bgColor: RGB;
   accentColor: RGB;
   colorMix: number;
+  /** 1 = Cell Gradient; 0 = truthful Solid with no spatial Cell patches. */
+  spatialColorMix: number;
   /** 0..1 embedded nucleus dot visibility */
   nucleusDots: number;
   /** Shared field/path presentation controls; per-Cell layers remain outside the shader. */
@@ -303,6 +306,7 @@ const UNIFORM_NAMES = [
   "uAccentColor",
   "uBgColor",
   "uColorMix",
+  "uSpatialColorMix",
   "uNucleusDots",
   "uMembraneOpacity",
   "uMembraneEdgeOpacity",
@@ -410,6 +414,7 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform3f(loc["uAccentColor"] ?? null, frame.accentColor[0], frame.accentColor[1], frame.accentColor[2]);
       gl.uniform3f(loc["uBgColor"] ?? null, frame.bgColor[0], frame.bgColor[1], frame.bgColor[2]);
       gl.uniform1f(loc["uColorMix"] ?? null, frame.colorMix);
+      gl.uniform1f(loc["uSpatialColorMix"] ?? null, frame.spatialColorMix);
       gl.uniform1f(loc["uNucleusDots"] ?? null, frame.nucleusDots);
       gl.uniform1f(loc["uMembraneOpacity"] ?? null, frame.membraneOpacity);
       gl.uniform1f(loc["uMembraneEdgeOpacity"] ?? null, frame.membraneEdgeOpacity);

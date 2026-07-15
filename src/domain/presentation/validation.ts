@@ -2,11 +2,14 @@ import { createProjectPresentationDefaults, PRESENTATION_SCHEMA_VERSION, type Le
 import {
   BOUNDARY_ALIGNMENTS,
   BOUNDARY_STYLES,
+  MEMBRANE_COLOUR_MODES,
   PRESENTATION_TARGET_CONTRACTS,
   TEXT_STYLE_PRESET_IDS,
   type BoundaryAlignment,
   type BoundaryStyle,
   type CellAppearanceOverrides,
+  type MembraneColourMode,
+  type MembraneSolidMaterialId,
   type PresentationDefaultsKey,
   type PresentationPaintDefaults,
   type PresentationPaintOverride,
@@ -15,6 +18,7 @@ import {
   type TextColourMode,
   type TextStylePresetId,
 } from "./types";
+import { MEMBRANE_SOLID_MATERIAL_IDS } from "../../materials/materialRegistry";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -52,6 +56,17 @@ const textPreset = (value: unknown, fallback: TextStylePresetId): TextStylePrese
 
 const textColourMode = (value: unknown, fallback: TextColourMode): TextColourMode =>
   value === "auto" || value === "custom" ? value : fallback;
+
+const membraneColourMode = (value: unknown, fallback: MembraneColourMode): MembraneColourMode =>
+  MEMBRANE_COLOUR_MODES.includes(value as MembraneColourMode) ? value as MembraneColourMode : fallback;
+
+const membraneSolidMaterialId = (
+  value: unknown,
+  fallback: MembraneSolidMaterialId
+): MembraneSolidMaterialId =>
+  value === "custom" || MEMBRANE_SOLID_MATERIAL_IDS.includes(value as Exclude<MembraneSolidMaterialId, "custom">)
+    ? value as MembraneSolidMaterialId
+    : fallback;
 
 const normalizePaintDefaults = (value: unknown, fallback: PresentationPaintDefaults): PresentationPaintDefaults => {
   const record = isRecord(value) ? value : {};
@@ -109,6 +124,8 @@ export const normalizeProjectPresentationDefaults = (
     },
     membrane: {
       visible: typeof membrane.visible === "boolean" ? membrane.visible : fallback.membrane.visible,
+      colourMode: membraneColourMode(membrane.colourMode, fallback.membrane.colourMode),
+      solidMaterialId: membraneSolidMaterialId(membrane.solidMaterialId, fallback.membrane.solidMaterialId),
       paint: normalizePaintDefaults(membrane.paint, fallback.membrane.paint),
     },
     membraneEdge: {
@@ -166,8 +183,10 @@ const changedNumber = (
   return normalized !== fallback ? normalized : undefined;
 };
 
-const compact = <T extends Record<string, unknown>>(value: T): T | undefined =>
-  Object.values(value).some((item) => item !== undefined) ? value : undefined;
+const compact = <T extends Record<string, unknown>>(value: T): T | undefined => {
+  const entries = Object.entries(value).filter(([, item]) => item !== undefined);
+  return entries.length ? Object.fromEntries(entries) as T : undefined;
+};
 
 /** Extracts only supported scalar/reference fields. Unknown nested objects,
  * including material definitions, are intentionally discarded. */

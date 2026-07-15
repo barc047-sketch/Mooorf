@@ -13,6 +13,7 @@ import type {
   ProjectPresentationDefaults,
   ResolvedPresentationPaint,
   ResolvedCellAppearance,
+  ResolvedMembraneAppearance,
 } from "./types";
 
 export interface PresentationResolveContext extends LegacyMaterialContext {
@@ -62,6 +63,36 @@ const resolvedPaint = (
     ...reference,
     colour: override?.colour ?? defaults.colour ?? fallbackColour(reference.materialId),
     opacity: override?.opacity ?? defaults.opacity,
+  };
+};
+
+const resolvedMembrane = (
+  defaults: ProjectPresentationDefaults["membrane"],
+  override: CellAppearanceOverrides["membrane"],
+  fallbackColour: (materialId: string) => string
+): ResolvedMembraneAppearance => {
+  const paint = resolvedPaint(defaults.paint, override?.paint, "organism", fallbackColour);
+  if (defaults.colourMode !== "solid" || defaults.solidMaterialId === "custom") {
+    return {
+      visible: override?.visible ?? defaults.visible,
+      colourMode: defaults.colourMode,
+      solidMaterialId: defaults.solidMaterialId,
+      paint,
+    };
+  }
+  const material = materialRegistry.get(defaults.solidMaterialId);
+  const colour = material?.compatibleTargets.includes("organism") ? material.preview.values[0] : null;
+  return {
+    visible: override?.visible ?? defaults.visible,
+    colourMode: defaults.colourMode,
+    solidMaterialId: defaults.solidMaterialId,
+    paint: colour ? {
+      requestedMaterialId: defaults.solidMaterialId,
+      materialId: defaults.solidMaterialId,
+      status: "resolved",
+      colour,
+      opacity: paint.opacity,
+    } : paint,
   };
 };
 
@@ -118,10 +149,7 @@ export const resolveCellAppearance = (
         overrides?.boundary?.secondaryLineSpacing ?? defaults.boundary.secondaryLineSpacing,
       paint: resolvedPaint(defaults.boundary.paint, overrides?.boundary?.paint, "space-boundary", (id) => nucleusFor(id).ring),
     },
-    membrane: {
-      visible: overrides?.membrane?.visible ?? defaults.membrane.visible,
-      paint: resolvedPaint(defaults.membrane.paint, overrides?.membrane?.paint, "organism", (id) => organismFor(id).bodyHex),
-    },
+    membrane: resolvedMembrane(defaults.membrane, overrides?.membrane, (id) => organismFor(id).bodyHex),
     membraneEdge: {
       visible: overrides?.membraneEdge?.visible ?? defaults.membraneEdge.visible,
       width: overrides?.membraneEdge?.width ?? defaults.membraneEdge.width,

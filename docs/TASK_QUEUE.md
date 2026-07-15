@@ -1,7 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
-- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 1 complete; `WAITING_REVIEW`; do not merge or start M2)
+- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 2 complete; `WAITING_REVIEW`; do not merge or start M2)
 - [x] C0.4F-A Runtime Layer Separation (feature implementation complete; `WAITING_REVIEW`; do not merge)
 - [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
 - [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)
@@ -41,10 +41,13 @@
 - [x] one Inspector; Cell/Membrane/Void primary families over six separate canonical targets
 - [x] Cell Detail nests Surface/Boundary/Core; Membrane Detail nests Field/Edge; Void Detail nests Fill/Edge
 - [x] restored bounded Dock baseline plus one-click Inspector/info and active-family Detail launchers
+- [x] generic launcher lifecycle mounts, focuses, expands and viewport-reveals Inspector and every registered widget
+- [x] both Dock and Rail `i` restore the full Inspector body in one click
 - [x] all six distinct Boundary styles in Classic and Organism, with real rounded dash-dot and zero fallback
 - [x] supported Morph/Fusion/Reach migrated to Membrane Detail; stale/duplicate ownership mapped
 - [x] Project Default Core-off suppresses every production centre dot, including debug mode
-- [x] working Void path regression-protected without redesign
+- [x] working Void path regression-protected; unconditional hard-coded live/SVG inner circle removed without changing subtraction/interaction
+- [x] Membrane `Cell Gradient` remains unchanged/default; canonical persisted `Solid` Black/Ink/MOOORF Red/Charcoal/Custom is patch-free
 - [x] one canonical history owner, ephemeral previews, exact Undo/Redo and copy/paste/reset isolation
 - [x] Body/text/appearance migration plus project/config/saved/recovery/export parity
 - [x] clean PNG/PDF and true-vector Classic SVG parity; no fake Membrane vector path
@@ -53,7 +56,7 @@
 - [ ] Owner review of combined C0.4F-A + M1 result
 - [ ] M2 remains blocked and unstarted
 
-Deferred map remains locked: Symbol tab, advanced Cell/Boundary/Core and Membrane/Edge instruments, approved selection orbit and Antigravity symbol catalogue belong to M2 inside the same Inspector; full Material Browser, recents/favourites, hover preview/revert and Material Studio belong to M4.
+Deferred map remains locked: Symbol tab, advanced Cell/Boundary/Core instruments, Membrane Field Edge Softness (existing field/body feather owner), independent Membrane Edge Softness (future separate Edge owner), optional default-off Void Inner Echo with live/export parity, approved selection orbit and Antigravity symbol catalogue belong to M2 inside the same Inspector; full Material Browser, recents/favourites, hover preview/revert and Material Studio belong to M4.
 
 ## C0.4F-A — Runtime Layer Separation  ✅ IMPLEMENTED ON FEATURE BRANCH
 

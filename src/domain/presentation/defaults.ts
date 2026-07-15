@@ -3,7 +3,7 @@ import type { ResourceSettings } from "../../resources/types";
 import type { MaterialBinding } from "../../materials/types";
 import type { PresentationPaintDefaults, ProjectPresentationDefaults } from "./types";
 
-export const PRESENTATION_SCHEMA_VERSION = 2 as const;
+export const PRESENTATION_SCHEMA_VERSION = 3 as const;
 
 export interface LegacyPresentationSettings {
   blobOn?: boolean;
@@ -59,7 +59,12 @@ export const createProjectPresentationDefaults = (
       secondaryLineSpacing: 3,
       paint: paint(bindings.spaceBoundary),
     },
-    membrane: { visible: legacy.blobOn === true, paint: paint(bindings.organism) },
+    membrane: {
+      visible: legacy.blobOn === true,
+      colourMode: "cell-gradient",
+      solidMaterialId: "system:black",
+      paint: paint(bindings.organism),
+    },
     membraneEdge: { visible: false, width: 1, paint: paint(bindings.organismEdge) },
     core: {
       visible: legacy.organism?.showNuclei !== false,

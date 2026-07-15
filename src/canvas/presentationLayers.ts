@@ -5,8 +5,8 @@ import type {
   ProjectPresentationDefaults,
   ResolvedBoundaryAppearance,
   ResolvedCellAppearance,
+  ResolvedMembraneAppearance,
   ResolvedMembraneEdgeAppearance,
-  ResolvedSurfaceAppearance,
 } from "../domain/presentation/types";
 import type { ColorSource, MorphMode, PaletteMode, SpaceCell, Theme } from "../types";
 
@@ -24,7 +24,7 @@ export interface RuntimePresentationProjection {
   /** Membrane is one audited shared field/path, so its runtime owner is the
    * project default. The Inspector routes both shared targets to that owner
    * instead of creating disconnected per-Cell overrides. */
-  membrane: ResolvedSurfaceAppearance;
+  membrane: ResolvedMembraneAppearance;
   membraneEdge: ResolvedMembraneEdgeAppearance;
 }
 
@@ -77,6 +77,52 @@ export const projectRuntimePresentation = (
 
 export type RuntimeRendererKind = "classic" | "organism";
 
+export interface MembraneFieldProjectionInput {
+  membrane: Pick<ResolvedMembraneAppearance, "colourMode" | "paint">;
+  paletteBodyHex: string;
+  paletteBodyBHex: string;
+  membraneEdgeColour: string;
+  paletteBlend: number;
+}
+
+export interface MembraneFieldProjection {
+  bodyHex: string;
+  bodyBHex: string;
+  accentHex: string;
+  colorMix: number;
+  /** 1 preserves the current Cell-derived spatial path; 0 disables it. */
+  spatialColorMix: 0 | 1;
+}
+
+/** Shared CPU projection consumed by production Organism and executable
+ * renderer tests. Solid mode disables both palette blending and spatial Cell
+ * colour dominance while leaving the independent Membrane Edge colour intact. */
+export const projectMembraneField = ({
+  membrane,
+  paletteBodyHex,
+  paletteBodyBHex,
+  membraneEdgeColour,
+  paletteBlend,
+}: MembraneFieldProjectionInput): MembraneFieldProjection => {
+  if (membrane.colourMode === "solid") {
+    return {
+      bodyHex: membrane.paint.colour,
+      bodyBHex: membrane.paint.colour,
+      accentHex: membraneEdgeColour,
+      colorMix: 0,
+      spatialColorMix: 0,
+    };
+  }
+  const usesPaletteBody = membrane.paint.colour.toLowerCase() === paletteBodyHex.toLowerCase();
+  return {
+    bodyHex: membrane.paint.colour,
+    bodyBHex: usesPaletteBody ? paletteBodyBHex : membrane.paint.colour,
+    accentHex: membraneEdgeColour,
+    colorMix: usesPaletteBody ? paletteBlend : 0,
+    spatialColorMix: 1,
+  };
+};
+
 export interface BoundaryStrokeProjection {
   requestedStyle: BoundaryStyle;
   renderedStyle: BoundaryStyle;
@@ -113,12 +159,10 @@ export interface CircleVoidProjection {
   fillVisible: boolean;
   edgeVisible: boolean;
   radiusPx: number;
-  innerRadiusPx: number;
   fillColour: string;
   fillOpacity: number;
   edgeColour: string;
   edgeOpacity: number;
-  innerEdgeOpacity: number;
   edgeWidthPx: number;
   lineDashPx: readonly number[];
 }
@@ -199,12 +243,10 @@ export const projectCircleLayers = (
         fillVisible: appearance.void.fillVisible,
         edgeVisible: appearance.void.edgeVisible,
         radiusPx: radius,
-        innerRadiusPx: radius * 0.42,
         fillColour: appearance.void.fill.colour,
         fillOpacity: appearance.void.fill.opacity,
         edgeColour: appearance.void.edge.colour,
         edgeOpacity: appearance.void.edge.opacity,
-        innerEdgeOpacity: appearance.void.edge.opacity * 0.68,
         edgeWidthPx: appearance.void.edgeWidth * Math.max(0, zoom),
         lineDashPx: [5 * Math.max(0, zoom), 5 * Math.max(0, zoom)],
       } : null,
@@ -285,15 +327,6 @@ export const drawCircleLayers = (
       ctx.setLineDash([...layer.lineDashPx]);
       ctx.beginPath();
       ctx.arc(x, y, layer.radiusPx, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-      ctx.save();
-      ctx.strokeStyle = layer.edgeColour;
-      ctx.lineWidth = layer.edgeWidthPx;
-      ctx.globalAlpha *= layer.innerEdgeOpacity;
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.arc(x, y, layer.innerRadiusPx, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
