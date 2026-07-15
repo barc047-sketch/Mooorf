@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "reviewed_at": "2026-07-15T15:45:07+05:30",
+  "repository": "barc047-sketch/Mooorf",
+  "task": "C0-M1-CORRECTION-2",
+  "feature_branch": "feature/c0-m1-inspector-layer-editing-recovery",
+  "previous_reviewed_head": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
+  "reviewed_feature_head": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+  "status_branch_head": "768a32e9f8520754ad8f006bcb57d38bb9f9ed85",
+  "production_main": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "relation": {
+    "correction_2_vs_previous": "one commit ahead, zero divergence",
+    "feature_vs_main": "four commits ahead, zero divergence",
+    "main_guard": "main identical to recorded production SHA",
+    "status_guard": "status/codex identical to reported status SHA"
+  },
+  "verdict": "MERGE CANDIDATE",
+  "verified_findings": [
+    "generic widget launcher state now mounts, focuses, expands and increments a launch revision",
+    "WidgetFrame consumes centralized minimized state and launch revisions to expand and viewport-clamp frames",
+    "Void projection contains only outer fill and outer edge; unconditional inner echo was removed",
+    "Membrane colour schema has canonical cell-gradient and solid modes",
+    "Solid mode uses canonical material IDs for Black, Ink, MOOORF Red, Charcoal and Custom",
+    "Solid Organism projection disables palette and spatial Cell colour mixing while Cell Gradient preserves it",
+    "M2 separately owns Field Edge Softness and independent Membrane Edge Softness",
+    "implementation report and ownership map were updated"
+  ],
+  "reported_verification": [
+    "31/31 source contracts passed",
+    "4/4 audit tests passed",
+    "typecheck passed",
+    "exact reviewed-head diff check passed",
+    "exactly one production build passed",
+    "1440x900 and 1280x800 QA passed with clean console"
+  ],
+  "review_limit": "The orchestration environment cannot access the worker localhost preview. Final visual acceptance remains with the Owner.",
+  "required_owner_smoke_test": [
+    "close and minimize Inspector, then confirm Dock and Rail i buttons restore the full body in one click",
+    "confirm a new Void has no unexplained inner circle and still subtracts and drags",
+    "confirm Cell Gradient is unchanged",
+    "confirm Solid Black, Ink, MOOORF Red, Charcoal and Custom show no Cell-derived colour patches"
+  ],
+  "merge_command": "MERGE C0-M1",
+  "merge_method": "re-verify exact refs, then non-forced fast-forward main to c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+  "merge_performed": false,
+  "m2_started": false
+}
