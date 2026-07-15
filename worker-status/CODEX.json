@@ -1,16 +1,16 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0 M1 Correction 1 Functional Recovery and Owner-Observed Regressions",
-  "brief": "docs/worker-briefs/C0_M1_CORRECTION_1_CANCEL_AND_STATUS_TRUTH.md",
+  "status": "RUNNING",
+  "task": "C0 M1 Correction 2 Inspector Restore, Void Echo and Membrane Colour Truth",
+  "brief": "docs/worker-briefs/C0_M1_CORRECTION_2_INSPECTOR_VOID_MEMBRANE_COLOUR.md",
   "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
   "contract_branch": "docs/mooorf-ai-team-operating-protocol",
   "source_branch": "feature/c0-4f-a-runtime-layer-separation",
   "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
   "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
   "feature_sha": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
-  "previous_reviewed_head": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
+  "previous_reviewed_head": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
   "corrected_feature_sha": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
   "report_paths": [
     "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
@@ -74,8 +74,8 @@
     "merge to main",
     "beginning M2"
   ],
-  "updated_at": "2026-07-15T12:44:20+05:30",
+  "updated_at": "2026-07-15T13:26:05+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Owner review only; do not merge and do not begin M2.",
-  "next_gate": "WAITING_REVIEW at corrected fixed head 484ddeb859fcb18256a6acf7b7287e2be917aedc"
+  "next_worker_action": "Implement and verify the bounded Correction 2 contract on the same feature branch; do not merge and do not begin M2.",
+  "next_gate": "Push one corrected fixed head, record exact proof, return to WAITING_REVIEW, and stop."
 }
