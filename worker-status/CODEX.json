@@ -1,26 +1,24 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0 M2 Advanced Appearance, Production Symbol Tab and Runtime Power Gates",
-  "brief": "docs/worker-briefs/C0_M2_CODEX_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES.md",
-  "launch_prompt": "docs/worker-briefs/C0_M2_CODEX_LAUNCH_PROMPT.md",
+  "status": "RUNNING",
+  "task": "C0 M2 Correction 1 — Owner Review Regressions and Symbol/Void Completion",
+  "brief": "docs/worker-briefs/C0_M2_CORRECTION_1_OWNER_REVIEW_REGRESSIONS.md",
+  "launch_prompt": "docs/worker-briefs/C0_M2_CORRECTION_1_LAUNCH_PROMPT.md",
   "contract_branch": "docs/mooorf-ai-team-operating-protocol",
   "source_branch": "main",
   "source_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
   "planned_work_branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
   "feature_sha": "1cc8ec0c7ab756bc6b091b87014da2c3e27383d2",
-  "owner_authorization": "GO CODEX M2",
+  "owner_authorization": "GO CODEX M2 CORRECTION 1",
   "assignment_summary": [
-    "preserve exactly one Inspector with Content, Appearance and Symbol tabs",
-    "advanced truthful Cell, Boundary, Core, Membrane Field, Membrane Edge and Void controls",
-    "canonical Cell Shadow Strength and advanced controls using the existing shadow owner",
-    "separate Field Edge Softness and Membrane Edge Softness only with independent state and visible renderer effects",
-    "preserve Cell Gradient and Solid Membrane colour modes",
-    "runtime power gates so Off skips feature-owned work",
-    "production Symbol tab using the audited 77-symbol baseline, 59 verified Lucide additions and 14 aliases while excluding 5 rejects",
-    "symbol search, categories, recents, favourites, hover preview, apply, replace and remove",
-    "symbol placement and backing with history, persistence, migration and export parity"
+    "repair visible Random and current layout preset execution through the canonical store owner with all-versus-selected scope and one history transaction",
+    "make batch Cell creation radius-aware, visibly non-overlapping, multi-selected and undoable as one action",
+    "separate canonical Symbol pane state from ephemeral Canvas preview to remove hover/focus flicker",
+    "remove the hard-coded dashed Void edge and share one current-six-style Stroke Style control/projection between Cell Boundary and Void Edge",
+    "add deterministic Auto Contrast versus Custom symbol tint with live, persistence, migration and export parity",
+    "support one presentation-only Symbol on a Void without affecting subtractive geometry, Area, radius or hit testing",
+    "preserve every Owner-confirmed M2 behavior"
   ],
   "research_inputs": {
     "claude_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
@@ -40,7 +38,11 @@
     "100+ space Table optimization",
     "Floors, Stats or Dashboard",
     "merge to main",
-    "beginning M3 or M4"
+    "beginning M3, M4 or M5",
+    "common rail or visible Undo/Redo buttons",
+    "right-click Copy/Paste Style",
+    "expanded arrangement catalogue, Quick Bar or snapping",
+    "Wavy or Corner-Bracket stroke styles"
   ],
   "qa_policy": {
     "document": "docs/governance/FAST_OWNER_QA_MODE.md",
@@ -58,28 +60,16 @@
     "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
     "docs/C0_M2_CONTROL_OWNERSHIP_MAP.md"
   ],
-  "verification_summary": [
-    "PASS: 14 focused executable suites covering icon registry, resource persistence/migration, M1 regressions, M2 schema/gates/history/product behavior, Classic and Organism renderers, SVG/export core and the V8.2 demand scheduler.",
-    "PASS: npx tsc -b --pretty false after the final TypeScript source change.",
-    "PASS: git diff --check bd160b8c615cdafbbdd8a76332be46b69a6e765e...HEAD at fixed feature 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2.",
-    "PASS WITH TRUTHFUL PIPELINE NOTE: exactly one npm run build invocation stopped at its TypeScript gate because the isolated Organism Lab frame lacked the new zero-default membraneEdgeSoftness field. The omission was fixed, full project-reference TypeScript passed, npm run build was not rerun, and the previously unreached Vite production stage was run exactly once with npx vite build: 2893 modules transformed; accepted large-chunk advisory only.",
-    "PASS: bounded rendered browser smoke at 1280x800 and 1440x900 proved exactly one Inspector, 133 enabled symbol cards, apply, hover preview/revert, favourite persistence and no document overflow.",
-    "PARTIAL LEGACY HARNESS: one broader pre-existing M1 browser path stalled at its controlled Area-editing guard and was stopped within Fast Owner-QA; the dedicated bounded M2 smoke passed and no product failure was reproduced."
-  ],
-  "known_limitations": [
-    "Organism SVG remains truthfully unavailable because the implicit WebGL membrane has no reusable vector path; Organism symbols export through PNG/PDF and Classic owns true-vector SVG.",
-    "Classic Membrane Edge softness uses a Canvas2D blur fallback while Organism owns the independent shader band.",
-    "Quick Bar, snapping UI/engine, Material Browser/Studio, custom architectural vectors, Connections, Annotation/Markup and broad Table redesign remain explicitly deferred.",
-    "The Vite build retains the accepted large-chunk advisory."
-  ],
+  "verification_summary": [],
+  "known_limitations": [],
   "previous_task": {
     "id": "C0 M1",
     "status": "MERGED",
     "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
     "merge_method": "protected non-forced fast-forward"
   },
-  "updated_at": "2026-07-15T20:44:14+05:30",
+  "updated_at": "2026-07-15T21:37:14+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Owner reviews fixed feature 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2 using the five-item Fast Owner-QA checklist. Codex is stopped; no merge, M3, M4 or further QA-harness tuning is authorized.",
-  "next_gate": "Owner review of the C0 M2 fixed head; explicit merge authority remains required."
+  "next_worker_action": "Codex executes the bounded C0 M2 Correction 1 brief from exact feature base 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2 under Fast Owner-QA, then pushes one fixed head and stops at WAITING_REVIEW.",
+  "next_gate": "One fixed correction head with focused verification and the five-item Owner checklist; explicit merge authority remains required."
 }
