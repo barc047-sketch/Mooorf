@@ -20,7 +20,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
-- C0-M1 Correction 3: actual rendered Dock/Rail Inspector commands are stable in Canvas/Table and recover one full Inspector from closed/minimized/background/off-screen states by pointer, Enter or Space; Corrections 1–2 editing, appearance, renderer, Void and Membrane outcomes remain protected; 1440/1280 QA; waiting review
+- C0-M1 Correction 4: global lowercase/uppercase `I` shares the canonical Inspector lifecycle in Canvas/Table, with second-`I` close plus editing/modifier/repeat guards; actual Dock/Rail pointer/Enter/Space ownership and Corrections 1–3 remain protected; Owner live-preview confirmation plus partial automated browser checkpoints recorded truthfully; waiting review
 - C0.4F-A Runtime Layer Separation: one canonical projection; explicit temporary selection; complete Classic six-style Boundary support; bounded Organism Membrane/Edge adapter with truthful non-solid fallback; world-scaled presentation-only strokes; schema v2 migration; build and 1440/1280 QA green
 - V8.2C0.2 Icon and Grid Asset Registry: 77 approved Lucide/ISC drawable symbols; eight canonical grids with truthful active/future support; legacy alias normalization and ID-only persistence; no UI, Canvas runtime, package, or product-store change
 - V8.2C0 Canvas Performance + Contrast Reset: rAF/coalesced local input previews; one release transaction; screen/adaptive/world labels; deterministic Auto Contrast; optional Cell Shadow; stable shadow-free UI glass; instant widget refocus; plain startup; projected-centre radials; migration/export parity; future shell work deferred
@@ -220,4 +220,4 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 - [x] Owner accepted visible Morph/Membrane and the current stage for progression
 - [ ] accepted limitation: deeper interaction optimization at approximately 50+ Cells is deferred; performance is not claimed fixed
 - [x] V8.2C0.2 Icon and Grid Asset Registry: implementation complete; audit/merge pending
-- [ ] V8.2C0.3 Icons & Symbols Inspector: blocked pending C0.2 audit/merge approval; shortcut `I` remains unassigned
+- [ ] V8.2C0.3 Icons & Symbols Inspector: blocked pending C0.2 audit/merge approval; `I` is now reserved for the one M1 Inspector and Symbol remains a tab inside it

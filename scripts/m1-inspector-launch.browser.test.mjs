@@ -9,10 +9,14 @@ const TEST_URL = process.env.M1_TEST_URL ?? "http://127.0.0.1:4173/";
 const CHROME_PATH = process.env.M1_CHROME_PATH
   ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const SCREENSHOT_DIR = process.env.M1_SCREENSHOT_DIR;
-const VIEWPORTS = [
+const REQUIRED_VIEWPORTS = [
   { width: 1440, height: 900 },
   { width: 1280, height: 800 },
 ];
+const VIEWPORTS = process.env.M1_VIEWPORT
+  ? REQUIRED_VIEWPORTS.filter(({ width, height }) => `${width}x${height}` === process.env.M1_VIEWPORT)
+  : REQUIRED_VIEWPORTS;
+assert.ok(VIEWPORTS.length > 0, `M1_VIEWPORT must be one of ${REQUIRED_VIEWPORTS.map(({ width, height }) => `${width}x${height}`).join(", ")}`);
 const DOCK_INSPECTOR = '[role="toolbar"][aria-label="Canvas tools"] [data-command="open-inspector"]';
 const RAIL_INSPECTOR = '[role="toolbar"][aria-label="Canvas navigation"] [data-command="open-inspector"]';
 const INSPECTOR = '[data-widget="inspector"]';
@@ -217,6 +221,164 @@ async function pressButton(client, sessionId, selector, key) {
   await client.send("Input.dispatchKeyEvent", { type: "keyUp", ...event }, sessionId);
 }
 
+async function focusKeyTarget(client, sessionId, selector) {
+  return evaluate(client, sessionId, `(() => {
+    const target = ${selector ? `document.querySelector(${JSON.stringify(selector)})` : `document.querySelector("main.stage")`};
+    if (!(target instanceof HTMLElement)) return null;
+    if (!target.matches("input, textarea, select, button, [contenteditable], [role]")) {
+      target.setAttribute("tabindex", "-1");
+    }
+    if (${selector ? "true" : "false"}) {
+      target.scrollIntoView({ behavior: "instant", block: "center", inline: "nearest" });
+    }
+    target.focus({ preventScroll: true });
+    if ((target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
+      && typeof target.selectionStart === "number") {
+      target.setSelectionRange(target.value.length, target.value.length);
+    }
+    return document.activeElement === target ? {
+      tag: target.tagName,
+      role: target.getAttribute("role"),
+      ariaLabel: target.getAttribute("aria-label"),
+      className: typeof target.className === "string" ? target.className : null,
+      editable: target.isContentEditable,
+    } : null;
+  })()`);
+}
+
+async function dispatchPhysicalKey(client, sessionId, {
+  key,
+  code,
+  virtualKey,
+  shift = false,
+  ctrl = false,
+  meta = false,
+  alt = false,
+  repeat = false,
+  raw = false,
+  text,
+}) {
+  const modifiers = (alt ? 1 : 0) | (ctrl ? 2 : 0) | (meta ? 4 : 0) | (shift ? 8 : 0);
+  const event = {
+    key,
+    code,
+    modifiers,
+    autoRepeat: repeat,
+    windowsVirtualKeyCode: virtualKey,
+    nativeVirtualKeyCode: virtualKey,
+    ...(text === undefined ? {} : { text, unmodifiedText: text.toLowerCase() }),
+  };
+  await client.send("Input.dispatchKeyEvent", { type: repeat || raw ? "rawKeyDown" : "keyDown", ...event }, sessionId);
+  await client.send("Input.dispatchKeyEvent", { type: "keyUp", ...event, autoRepeat: false }, sessionId);
+}
+
+async function pressGlobalI(client, sessionId, {
+  selector,
+  uppercase = false,
+  ctrl = false,
+  meta = false,
+  alt = false,
+  repeat = false,
+  textInput = true,
+  raw = false,
+  insertTextAfter = false,
+} = {}) {
+  const target = await focusKeyTarget(client, sessionId, selector);
+  assert.ok(target, `physical I target exists: ${selector ?? "main.stage"}`);
+  await dispatchPhysicalKey(client, sessionId, {
+    key: uppercase ? "I" : "i",
+    code: "KeyI",
+    virtualKey: 73,
+    shift: uppercase,
+    ctrl,
+    meta,
+    alt,
+    repeat,
+    raw,
+    text: textInput && !insertTextAfter ? uppercase ? "I" : "i" : undefined,
+  });
+  if (insertTextAfter) {
+    await client.send("Input.insertText", { text: uppercase ? "I" : "i" }, sessionId);
+  }
+  return target;
+}
+
+async function pressEscape(client, sessionId, selector) {
+  const target = await focusKeyTarget(client, sessionId, selector);
+  assert.ok(target, `Escape target exists: ${selector ?? "main.stage"}`);
+  await dispatchPhysicalKey(client, sessionId, {
+    key: "Escape",
+    code: "Escape",
+    virtualKey: 27,
+  });
+  return target;
+}
+
+async function pressBackspace(client, sessionId, selector) {
+  const target = await focusKeyTarget(client, sessionId, selector);
+  assert.ok(target, `Backspace target exists: ${selector}`);
+  await dispatchPhysicalKey(client, sessionId, {
+    key: "Backspace",
+    code: "Backspace",
+    virtualKey: 8,
+  });
+  return target;
+}
+
+async function inspectorSnapshot(client, sessionId) {
+  return evaluate(client, sessionId, `(() => {
+    const frames = [...document.querySelectorAll(${JSON.stringify(INSPECTOR)})];
+    const frame = frames[0];
+    const activeView = [...document.querySelectorAll('nav[aria-label="View mode"] button')]
+      .find((button) => button.getAttribute("data-active") === "true")?.textContent?.trim() ?? null;
+    if (!frame) return { count: frames.length, view: activeView, minimized: false, front: false, reachable: false, rect: null };
+    const rect = frame.getBoundingClientRect();
+    return {
+      count: frames.length,
+      view: activeView,
+      minimized: frame.getAttribute("data-min") === "true",
+      front: frame.getAttribute("data-depth") === "front",
+      reachable: rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight,
+      rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height },
+    };
+  })()`);
+}
+
+async function waitInspectorClosed(client, sessionId, context) {
+  await waitFor(
+    client,
+    sessionId,
+    `document.querySelectorAll(${JSON.stringify(INSPECTOR)}).length === 0`,
+    `${context}: Inspector did not close`
+  );
+}
+
+async function pointFromSelectedCell(client, sessionId) {
+  return waitFor(client, sessionId, `(() => {
+    const anchor = document.querySelector('.organism-label-anchor[data-primary="true"]');
+    const canvas = document.querySelector('canvas.organism-canvas, canvas[data-testid="space-canvas"]');
+    if (!canvas) return null;
+    const canvasRect = canvas.getBoundingClientRect();
+    const anchorRect = anchor?.getBoundingClientRect();
+    const x = anchorRect?.left ?? canvasRect.left + canvasRect.width / 2 + 85;
+    const y = anchorRect?.top ?? canvasRect.top + canvasRect.height / 2 + 30;
+    return x >= canvasRect.left && x <= canvasRect.right && y >= canvasRect.top && y <= canvasRect.bottom ? { x, y } : null;
+  })()`, "selected Cell did not expose a rendered Canvas point");
+}
+
+async function pointerAt(client, sessionId, point, { button = "left", clickCount = 1 } = {}) {
+  const buttons = button === "left" ? 1 : button === "right" ? 2 : 4;
+  await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: point.x, y: point.y }, sessionId);
+  await client.send("Input.dispatchMouseEvent", { type: "mousePressed", x: point.x, y: point.y, button, buttons, clickCount }, sessionId);
+  await client.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: point.x, y: point.y, button, buttons: 0, clickCount }, sessionId);
+}
+
+async function doubleClickAt(client, sessionId, point) {
+  await pointerAt(client, sessionId, point, { clickCount: 1 });
+  await delay(70);
+  await pointerAt(client, sessionId, point, { clickCount: 2 });
+}
+
 async function assertInspector(client, sessionId, viewport, context) {
   const state = await waitFor(client, sessionId, `(() => {
     const frames = [...document.querySelectorAll(${JSON.stringify(INSPECTOR)})];
@@ -227,14 +389,17 @@ async function assertInspector(client, sessionId, viewport, context) {
     if (transform !== "none" && transform !== "matrix(1, 0, 0, 1, 0, 0)") return null;
     const rect = frame.getBoundingClientRect();
     const bodyRect = body?.getBoundingClientRect();
+    const bodyStyle = body ? getComputedStyle(body) : null;
+    if (rect.left < -0.5 || rect.top < -0.5 || rect.right > innerWidth + 0.5 || rect.bottom > innerHeight + 0.5) return null;
+    if (!bodyRect || !bodyStyle || bodyStyle.display === "none" || bodyStyle.visibility === "hidden" || bodyRect.height <= 30) return null;
     return {
       count: frames.length,
       minimized: frame.getAttribute("data-min"),
       depth: frame.getAttribute("data-depth"),
       rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height },
       body: body && bodyRect ? {
-        display: getComputedStyle(body).display,
-        visibility: getComputedStyle(body).visibility,
+        display: bodyStyle.display,
+        visibility: bodyStyle.visibility,
         rect: { left: bodyRect.left, top: bodyRect.top, right: bodyRect.right, bottom: bodyRect.bottom, width: bodyRect.width, height: bodyRect.height },
       } : null,
       noSelection: frame.textContent?.includes("Select one or more Cells") ?? false,
@@ -282,6 +447,7 @@ async function dragInspectorPartlyOffscreen(client, sessionId) {
 async function installEventEvidence(client, sessionId) {
   await evaluate(client, sessionId, `(() => {
     window.__m1OwnerPathEvidence = [];
+    window.__m1ShortcutKeyEvidence = [];
     const record = (event) => {
       const command = event.target?.closest?.('[data-command="open-inspector"]');
       if (!command) return;
@@ -305,8 +471,245 @@ async function installEventEvidence(client, sessionId) {
     document.addEventListener("pointerdown", record, true);
     document.addEventListener("click", record, true);
     document.addEventListener("keydown", record, true);
+    document.addEventListener("keydown", (event) => {
+      if (event.key.toLowerCase() !== "i") return;
+      window.__m1ShortcutKeyEvidence.push({
+        key: event.key,
+        repeat: event.repeat,
+        ctrl: event.ctrlKey,
+        meta: event.metaKey,
+        alt: event.altKey,
+        shift: event.shiftKey,
+        target: {
+          tag: event.target?.tagName ?? null,
+          role: event.target?.getAttribute?.("role") ?? null,
+          ariaLabel: event.target?.getAttribute?.("aria-label") ?? null,
+          className: typeof event.target?.className === "string" ? event.target.className : null,
+          editable: event.target?.isContentEditable ?? false,
+        },
+        view: [...document.querySelectorAll('nav[aria-label="View mode"] button')]
+          .find((button) => button.getAttribute("data-active") === "true")?.textContent?.trim() ?? null,
+      });
+      // The app listener was registered during shell mount, before this QA
+      // listener. Suppress only Chrome's unrelated native modifier action
+      // after the application has had its real physical keydown opportunity.
+      if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) event.preventDefault();
+    }, true);
     return true;
   })()`);
+}
+
+async function runShortcutScenarios(client, sessionId, viewport, evidence) {
+  evidence.shortcutCases = [];
+  const mark = (label) => console.info(`[${viewport.width}x${viewport.height}] shortcut: ${label}`);
+  const record = async (label, pre, target) => {
+    const post = await inspectorSnapshot(client, sessionId);
+    evidence.shortcutCases.push({ label, target, pre, post });
+    return post;
+  };
+
+  await closeInspector(client, sessionId);
+  mark("closed/uppercase/minimized/background/off-screen");
+  await pointerClickTextButton(client, sessionId, 'nav[aria-label="View mode"] button', "canvas");
+  await waitFor(client, sessionId, `Boolean(document.querySelector('canvas.organism-canvas, canvas[data-testid="space-canvas"]'))`, "Canvas did not render for shortcut QA");
+
+  let pre = await inspectorSnapshot(client, sessionId);
+  let target = await pressGlobalI(client, sessionId);
+  await assertInspector(client, sessionId, viewport, "Canvas lowercase i closed-state open");
+  await record("canvas-closed-lowercase-open", pre, target);
+
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId);
+  await waitInspectorClosed(client, sessionId, "Canvas second-i toggle");
+  await record("canvas-frontmost-second-i-close", pre, target);
+
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId, { uppercase: true });
+  await assertInspector(client, sessionId, viewport, "Canvas uppercase I open");
+  await record("canvas-uppercase-open", pre, target);
+
+  await pointerClick(client, sessionId, 'button[aria-label="Minimize Inspector"]');
+  pre = await inspectorSnapshot(client, sessionId);
+  assert.equal(pre.minimized, true, "shortcut QA enters minimized Inspector state through real control");
+  target = await pressGlobalI(client, sessionId);
+  await assertInspector(client, sessionId, viewport, "Canvas minimized i recovery");
+  await record("canvas-minimized-expand", pre, target);
+
+  await pointerClick(client, sessionId, 'button[aria-label="Layout widget"]');
+  await waitFor(client, sessionId, `document.querySelector(${JSON.stringify(INSPECTOR)})?.getAttribute("data-depth") === "back"`, "shortcut QA could not place Layout in front");
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId);
+  const foreground = await assertInspector(client, sessionId, viewport, "Canvas background i focus");
+  assert.equal(foreground.depth, "front", "background Inspector comes forward instead of closing");
+  await record("canvas-background-focus", pre, target);
+
+  const offscreen = await dragInspectorPartlyOffscreen(client, sessionId);
+  pre = await inspectorSnapshot(client, sessionId);
+  assert.equal(pre.reachable, false, "shortcut QA places Inspector partly off-screen");
+  target = await pressGlobalI(client, sessionId);
+  const recovered = await assertInspector(client, sessionId, viewport, "Canvas off-screen i recovery");
+  evidence.shortcutOffscreen = { before: offscreen, after: recovered.rect };
+  await record("canvas-offscreen-reveal", pre, target);
+
+  await closeInspector(client, sessionId);
+  mark("modifier and repeat guards");
+  for (const guard of [
+    { label: "ctrl-i", options: { ctrl: true } },
+    { label: "meta-i", options: { meta: true } },
+    { label: "alt-i", options: { alt: true } },
+    { label: "repeat-i", options: { repeat: true } },
+  ]) {
+    mark(`${guard.label}: dispatch`);
+    pre = await inspectorSnapshot(client, sessionId);
+    target = await pressGlobalI(client, sessionId, guard.options);
+    const post = await record(`guard-${guard.label}`, pre, target);
+    assert.equal(post.count, 0, `${guard.label} does not open the Inspector`);
+    mark(`${guard.label}: passed`);
+  }
+
+  await pointerClick(client, sessionId, 'button[aria-label="Add Space"]');
+  mark("Inspector editing guards");
+  await waitFor(client, sessionId, `Boolean(document.querySelector('.organism-label-anchor[data-primary="true"]') || document.querySelector('canvas[data-testid="space-canvas"]'))`, "Add Space did not select a real Cell");
+  mark("Inspector editing guards: selection rendered");
+  await pressGlobalI(client, sessionId);
+  mark("Inspector editing guards: I dispatched");
+  await assertInspector(client, sessionId, viewport, "Inspector fields typing guard setup");
+  mark("Inspector editing guards: Inspector ready");
+  await pointerClickTextButton(client, sessionId, 'nav[aria-label="View mode"] button', "table");
+  await waitFor(client, sessionId, `Boolean(document.querySelector('table'))`, "Table did not render for Inspector field guards");
+  mark("Inspector editing guards: Table shell ready");
+
+  const inspectorFields = [
+    { label: "inspector-name", selector: `${INSPECTOR} input[aria-label="Space Name"]`, inserts: true },
+    { label: "inspector-area", selector: `${INSPECTOR} input[aria-label="Area · m²"]`, inserts: false },
+    { label: "inspector-body", selector: `${INSPECTOR} textarea[aria-label="Body / subtext"]`, inserts: true },
+  ];
+  for (const field of inspectorFields) {
+    await delay(120);
+    mark(`${field.label}: dispatch`);
+    const beforeValue = await evaluate(client, sessionId, `document.querySelector(${JSON.stringify(field.selector)})?.value`);
+    pre = await inspectorSnapshot(client, sessionId);
+    target = await pressGlobalI(client, sessionId, {
+      selector: field.selector,
+      uppercase: field.uppercase,
+      textInput: false,
+      raw: true,
+      insertTextAfter: field.inserts,
+    });
+    const afterValue = await evaluate(client, sessionId, `document.querySelector(${JSON.stringify(field.selector)})?.value`);
+    const post = await record(`typing-${field.label}`, pre, target);
+    assert.equal(post.count, 1, `${field.label} typing does not toggle the Inspector`);
+    if (field.inserts) assert.equal(afterValue, `${beforeValue}${field.uppercase ? "I" : "i"}`, `${field.label} receives normal text input`);
+    else assert.equal(afterValue, beforeValue, `${field.label} rejects a non-numeric character without toggling`);
+    if (field.inserts) {
+      await pressBackspace(client, sessionId, field.selector);
+      assert.equal(await evaluate(client, sessionId, `document.querySelector(${JSON.stringify(field.selector)})?.value`), beforeValue, `${field.label} draft is restored after physical typing proof`);
+    }
+    assert.equal((await inspectorSnapshot(client, sessionId)).count, 1, `${field.label} editing preserves the Inspector`);
+    mark(`${field.label}: passed`);
+  }
+
+  await delay(120);
+  mark("Inspector field guard cleanup: dispatch second i");
+  await pressGlobalI(client, sessionId, { selector: 'nav[aria-label="View mode"] button[data-active="true"]' });
+  mark("Inspector field guard cleanup: second i complete");
+  await waitInspectorClosed(client, sessionId, "Inspector field guard cleanup");
+  mark("Inspector field guard cleanup: Inspector closed");
+  mark("Table shortcut and editing guards");
+  await waitFor(client, sessionId, `Boolean(document.querySelector('table'))`, "Table did not render for shortcut QA");
+  mark("Table shortcut and editing guards: Table ready");
+
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId, { selector: "table" });
+  mark("Table shortcut and editing guards: I dispatched");
+  await assertInspector(client, sessionId, viewport, "Table lowercase i open");
+  mark("Table shortcut and editing guards: Inspector ready");
+  await record("table-closed-lowercase-open", pre, target);
+  await pressGlobalI(client, sessionId, { selector: "table" });
+  await waitInspectorClosed(client, sessionId, "Table second-i toggle");
+
+  const tableFields = [
+    { label: "table-name", selector: 'table input[aria-label="Space name"]', inserts: true },
+    { label: "table-area", selector: 'table input[type="number"]', inserts: false },
+    { label: "table-body", selector: 'table textarea[aria-label^="Body of"]', inserts: true },
+  ];
+  for (const field of tableFields) {
+    await delay(120);
+    mark(`${field.label}: dispatch`);
+    const beforeValue = await evaluate(client, sessionId, `document.querySelector(${JSON.stringify(field.selector)})?.value`);
+    pre = await inspectorSnapshot(client, sessionId);
+    target = await pressGlobalI(client, sessionId, {
+      selector: field.selector,
+      textInput: false,
+      raw: true,
+      insertTextAfter: field.inserts,
+    });
+    const afterValue = await evaluate(client, sessionId, `document.querySelector(${JSON.stringify(field.selector)})?.value`);
+    const post = await record(`typing-${field.label}`, pre, target);
+    assert.equal(post.count, 0, `${field.label} typing does not open the Inspector`);
+    if (field.inserts) assert.equal(afterValue, `${beforeValue}i`, `${field.label} receives normal text input`);
+    else assert.equal(afterValue, beforeValue, `${field.label} rejects a non-numeric character without toggling`);
+    mark(`${field.label}: passed`);
+  }
+
+  const combobox = 'table [role="combobox"]';
+  mark("table-combobox-role: dispatch");
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId, { selector: combobox, textInput: false, raw: true });
+  let post = await record("typing-table-combobox-role", pre, target);
+  assert.equal(post.count, 0, "combobox role does not open the Inspector");
+  await pressEscape(client, sessionId, combobox);
+  mark("table-combobox-role: passed");
+
+  await evaluate(client, sessionId, `(() => {
+    const editor = document.createElement("div");
+    editor.id = "m1-contenteditable-guard";
+    editor.contentEditable = "true";
+    editor.setAttribute("role", "textbox");
+    editor.textContent = "guard";
+    document.querySelector("main.stage")?.append(editor);
+    return true;
+  })()`);
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId, { selector: "#m1-contenteditable-guard", uppercase: true, textInput: false, raw: true, insertTextAfter: true });
+  post = await record("typing-contenteditable-textbox-role", pre, target);
+  assert.equal(post.count, 0, "contenteditable textbox role does not open the Inspector");
+  assert.match(await evaluate(client, sessionId, `document.querySelector("#m1-contenteditable-guard")?.textContent`), /I/, "contenteditable receives physical I text");
+
+  await pointerClickTextButton(client, sessionId, 'nav[aria-label="View mode"] button', "canvas");
+  mark("right-click, Escape and inline editor regressions");
+  await waitFor(client, sessionId, `Boolean(document.querySelector('.organism-label-anchor[data-primary="true"]') || document.querySelector('canvas[data-testid="space-canvas"]'))`, "selected Cell did not return after Table switch");
+  const cellPoint = await pointFromSelectedCell(client, sessionId);
+  await pointerAt(client, sessionId, cellPoint, { button: "right" });
+  await waitFor(client, sessionId, `Boolean(document.querySelector('[data-context-surface="object-radial"]'))`, "right-click radial regression");
+  await pressEscape(client, sessionId);
+  await waitFor(client, sessionId, `!document.querySelector('[data-context-surface="object-radial"]')`, "Escape did not close the right-click radial");
+
+  await doubleClickAt(client, sessionId, cellPoint);
+  const inlineName = '.inline-cell-editor input[aria-label="Space name"]';
+  await waitFor(client, sessionId, `Boolean(document.querySelector(${JSON.stringify(inlineName)}))`, "double activation did not open the inline Cell editor");
+  const inlineBefore = await evaluate(client, sessionId, `document.querySelector(${JSON.stringify(inlineName)})?.value`);
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId, { selector: inlineName, textInput: false, raw: true, insertTextAfter: true });
+  const inlineAfter = await evaluate(client, sessionId, `document.querySelector(${JSON.stringify(inlineName)})?.value`);
+  post = await record("typing-inline-cell-editor", pre, target);
+  assert.equal(post.count, 0, "inline Cell editor typing does not open the Inspector");
+  assert.equal(inlineAfter, `${inlineBefore}i`, "inline Cell editor receives physical i text");
+  await pressEscape(client, sessionId, inlineName);
+  await waitFor(client, sessionId, `!document.querySelector('.inline-cell-editor')`, "inline Cell editor Escape did not cancel");
+
+  for (const view of ["table", "canvas", "table"]) {
+    await pointerClickTextButton(client, sessionId, 'nav[aria-label="View mode"] button', view);
+    await waitFor(client, sessionId, `document.querySelector('nav[aria-label="View mode"] button[data-active="true"]')?.textContent?.trim() === ${JSON.stringify(view)}`, `view switch to ${view} did not settle`);
+  }
+  pre = await inspectorSnapshot(client, sessionId);
+  target = await pressGlobalI(client, sessionId, { selector: "table" });
+  await assertInspector(client, sessionId, viewport, "single listener after view switches");
+  post = await record("view-switch-single-listener", pre, target);
+  assert.equal(post.count, 1, "view switching retains exactly one global I listener effect");
+  mark("complete");
+
+  evidence.shortcutKeyEvents = await evaluate(client, sessionId, "window.__m1ShortcutKeyEvidence");
 }
 
 async function runViewport(client, viewport) {
@@ -394,6 +797,8 @@ async function runViewport(client, viewport) {
   await pressButton(client, sessionId, RAIL_INSPECTOR, " ");
   evidence.table.inspectorAfterSpace = (await assertInspector(client, sessionId, viewport, "Table Rail Space")).rect;
 
+  await runShortcutScenarios(client, sessionId, viewport, evidence);
+
   const allEvents = await evaluate(client, sessionId, "window.__m1OwnerPathEvidence");
   evidence.events = [
     allEvents.find((event) => event.type === "pointerdown" && event.path[0]?.className === "dock-btn"),
@@ -421,7 +826,7 @@ async function runViewport(client, viewport) {
       fromSurface: true,
     }, sessionId);
     await writeFile(
-      join(SCREENSHOT_DIR, `c0-m1-correction3-${viewport.width}x${viewport.height}.png`),
+      join(SCREENSHOT_DIR, `c0-m1-correction4-${viewport.width}x${viewport.height}.png`),
       Buffer.from(screenshot.data, "base64")
     );
   }
@@ -436,6 +841,8 @@ const chrome = spawn(CHROME_PATH, [
   "--disable-gpu",
   "--disable-background-networking",
   "--disable-component-update",
+  "--disable-extensions",
+  "--disable-features=MediaRouter,OptimizationHints,Translate",
   "--no-first-run",
   "--no-default-browser-check",
   "--remote-debugging-port=0",
@@ -451,7 +858,7 @@ try {
   const results = [];
   for (const viewport of VIEWPORTS) results.push(await runViewport(client, viewport));
   console.info(JSON.stringify({ url: TEST_URL, results }, null, 2));
-  console.info("C0 M1 real-shell Inspector launcher browser integration passed");
+  console.info("C0 M1 real-shell Inspector launcher and global I shortcut browser integration passed");
 } finally {
   client?.close();
   if (chrome.exitCode === null) {

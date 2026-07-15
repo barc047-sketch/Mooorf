@@ -2,6 +2,9 @@
 
 ## C0-M1 — Production Inspector, Content and Layer Editing Recovery
 
+- Correction 4 fixes reviewed head `f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6`: global lowercase/uppercase `I` now uses one stable `MainApp` listener and the canonical widget lifecycle in Canvas and Table.
+- Closed, minimized, background and partly off-screen Inspector states open/expand/focus/reveal; only one fully visible frontmost Inspector closes on second `I`. Inputs, textareas, selects, contenteditable, textbox/combobox/spinbutton roles, inline Cell, Table and Inspector editing fields retain printable `i`; Ctrl/Meta/Alt/repeat are ignored.
+- Dock/Rail pointer, Enter and Space remain open-only and advertise `Inspector (I)`. Escape, right-click, exactly one Inspector and view switching remain protected by executable contracts and prior launcher evidence; the Owner manually confirmed the global `I` shortcut in the live preview.
 - Correction 3 fixes reviewed head `c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9` at the actual Owner path. Dock/Rail no longer move beneath an early physical click, and both launchers plus the single `WidgetHost` remain mounted in Canvas and Table.
 - Both real `i` buttons share `data-command="open-inspector"`, truthful accessibility/focus state and click/Enter/Space behavior. Production-browser input proves one full Inspector for no-selection, closed, minimized, background and partly off-screen states at 1440×900 and 1280×800.
 - Correction 2 fixes reviewed head `484ddeb859fcb18256a6acf7b7287e2be917aedc`: every widget launcher now generically mounts, focuses, expands and reveals its target; both Dock/Rail `i` buttons restore the full Inspector body in one click.
@@ -14,7 +17,7 @@
 - The bounded Dock retains Add Space/Add 5/Add Void/Saved/Random/Import/Export and adds one-click Inspector/info plus active-family Detail access. No duplicate Morph/Palette state owner returned.
 - Classic and the pointer-transparent Organism overlay now render all six distinct Boundary styles, including rounded dash-dot and grouped segmented bars. Organism fallback count is zero.
 - Project Default Core-off stays centre-dot-free even when Cell field debug is on; production debug geometry is ring-only. The legacy embedded-dot amount remains zero and the isolated Lab keeps its diagnostic dot.
-- Focused/full executable contracts, app typecheck, reviewed-head diff check, exactly one final production build, clean PNG/SVG/PDF and deterministic 1440×900/1280×800 QA pass with browser warnings/errors `[]`.
+- Focused/full executable contracts, app typecheck, reviewed-head diff check, exactly one final production build and existing clean PNG/SVG/PDF evidence pass. Correction 4 Canvas lifecycle/editing checkpoints passed and the Owner manually confirmed global `I`; the exhaustive two-viewport CDP run was stopped after harness stalls on controlled Table/textarea/number-field interactions, without reproducing a product failure.
 - Full evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md` and `docs/C0_M1_CONTROL_OWNERSHIP_MAP.md`. Branch must remain `WAITING_REVIEW`; do not merge or begin M2.
 
 ## C0.4F-A — Runtime Layer Separation

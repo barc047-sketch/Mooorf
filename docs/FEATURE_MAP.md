@@ -21,7 +21,7 @@ Before a feature, check this map and `docs/COMPONENT_INVENTORY.md` so the implem
 - Icon ownership: exactly 77 installed Lucide/ISC drawable symbols use canonical `icon:<category>:<name>` IDs, approved provenance/validation metadata, accessibility/search fields, and explicit `space` targets. Existing shell/navigation/tool command registries remain separate presentation owners.
 - Grid ownership: the eight established IDs remain stable. Dotted reflects the one live Organism grid path, None is active/off, and the other six presets are Future metadata; snap/export fields describe compatibility but remain explicitly unimplemented.
 - Persistence: resource settings store canonical IDs and sparse values only. Six known legacy icon IDs normalize at catalogue/placement boundaries; unknown IDs are retained for recovery.
-- Deferred: C0.3 inspector UI, placement/transform/tint/backing, shortcut `I`, grid renderer/snapping/export work, target rails, and prototype/custom asset ingestion.
+- Deferred: C0.3 Symbol-tab UI, placement/transform/tint/backing, grid renderer/snapping/export work, target rails, and prototype/custom asset ingestion. Global `I` is now owned by the one production Inspector from M1 and must not be rebound by Symbol.
 - Risk: source/licence drift and falsely claiming metadata-only grids as rendered. Keep registry validation deterministic and runtime support truthful.
 
 ## Canvas Performance Reset (V8.2C0)

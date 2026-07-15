@@ -13,6 +13,7 @@ import TableView from "./views/TableView";
 import { Toaster } from "sonner";
 import FileIntakeProvider from "./import/FileIntakeProvider";
 import ContextSurfaceHost from "./ui/context/ContextSurfaceHost";
+import { activateInspector, shouldHandleInspectorShortcut } from "./interaction/inspectorShortcut";
 import "./App.css";
 
 /* V6E experiment route — hidden URL, separate lazy chunk, zero cost to the
@@ -58,6 +59,18 @@ function MainApp() {
     return () => {
       live = false;
     };
+  }, []);
+
+  // MainApp owns one global Inspector shortcut listener. View switches only
+  // replace stage content, so Canvas and Table never accumulate listeners.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!shouldHandleInspectorShortcut(event)) return;
+      event.preventDefault();
+      activateInspector("toggle");
+    };
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => document.removeEventListener("keydown", onKeyDown, true);
   }, []);
 
   // Apply theme tokens at the document root so the whole app + canvas react.

@@ -11,6 +11,7 @@ Scope: every M1 Content, Appearance, Morph, Core, Void, selection and launcher c
 | Table Category and Privacy | `TableView` | KEEP | minimal Table | existing `updateSpace`; outside M1 appearance ownership |
 | Inspector header status | selection-count shortcut | REMOVE + REBIND | actual channel/family inheritance projection | `resolveInheritanceState` / `resolveFamilyInheritanceState` |
 | Inspector/info launcher | indirect/stale visible path plus translating Motion hit target | REBIND + REPAIR | shared `InspectorLauncherButton` in Rail and bounded Dock | stable `data-command="open-inspector"`; fixed geometry, truthful aria/open/focus state and click/Enter/Space delegate to generic `openWidget("inspector")` |
+| Global Inspector `I` shortcut | absent; previously unassigned | MERGE | one `MainApp` capture listener and shared Inspector command | lowercase/uppercase `I`; canonical open/expand/focus/reveal, close only when fully visible/frontmost; editing/modifier/repeat guards; no duplicate listener on view switch |
 | Inspector shell availability | Canvas-only `Rail`/`Dock`/`WidgetHost` composition | MOVE + PROTECT | application shell after loader completion | one existing host and both real launchers remain mounted in Canvas and Table; no duplicate Inspector or host |
 | Every registered widget launcher | separate mount/focus behavior | REBIND + PROTECT | existing `WidgetHost`/`WidgetFrame` lifecycle | one store-owned launch revision expands and viewport-clamps the requested widget; no duplicate host |
 | Active-family Detail launcher | absent | MERGE | bounded Dock and Inspector Appearance | `appearanceFamilyDefinition(activeFamily).detailWidgetId` |
@@ -64,3 +65,10 @@ Scope: every M1 Content, Appearance, Morph, Core, Void, selection and launcher c
 - Void live/export presentation contains only its outer fill and outer edge; M1 has no unconditional inner echo.
 - `Cell Gradient` remains the default Membrane colour mode; Solid mode resolves through canonical registry IDs and never contains Cell-derived colour patches.
 - No legacy widget, mock store, fake export, fake Cell, prototype shell or duplicate registry is exposed.
+- `I` is owned by the one production Inspector. The future M2 Symbol tab is inside that Inspector and must not register a competing shortcut or listener.
+
+## Correction 4 verification disposition
+
+- The Owner manually confirmed the global `I` shortcut in the live preview.
+- Focused shortcut policy and M1 product contracts passed; the complete affected source-contract set, TypeScript build check and the single permitted production build had already passed after the final source change.
+- Physical browser checkpoints passed for Canvas lifecycle/editing guards and bounded Table interactions. The exhaustive two-viewport CDP run was stopped after repeated harness stalls on controlled Table, textarea and number-field interactions. This is a QA-harness limitation, not a reproduced product failure, and no complete uninterrupted automated two-viewport Correction 4 pass is claimed.

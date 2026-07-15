@@ -19,6 +19,7 @@ const registry = source("../../ui/panels/widgetRegistry.ts");
 const rail = source("../../ui/Rail.tsx");
 const dock = source("../../ui/Dock.tsx");
 const launcher = source("../../ui/InspectorLauncherButton.tsx");
+const shortcut = source("../../interaction/inspectorShortcut.ts");
 const app = source("../../App.tsx");
 const composite = source("../../export/canvasComposite.ts");
 
@@ -47,7 +48,11 @@ assert.match(details, /MORPHS/, "supported legacy Morph choices move into Membra
 assert.match(rail, /InspectorLauncherButton surface="rail"/, "visible rail i path renders the shared production Inspector command");
 assert.match(dock, /InspectorLauncherButton surface="dock"/, "bottom bar renders the same production Inspector command");
 assert.match(launcher, /data-command="open-inspector"[\s\S]*aria-haspopup="dialog"[\s\S]*aria-expanded/, "the shared command has stable and truthful launcher semantics");
-assert.match(launcher, /openWidget\("inspector"\)/, "the shared rendered command reuses the canonical widget lifecycle");
+assert.match(launcher, /activateInspector\("open"\)/, "the shared rendered command uses the single Inspector command owner");
+assert.match(launcher, /Inspector \(I\)/, "both shared launchers advertise the approved shortcut");
+assert.match(shortcut, /state\.closeWidget\("inspector"\)[\s\S]*state\.openWidget\("inspector"\)/, "the shortcut command reuses the canonical widget lifecycle");
+assert.match(shortcut, /input[\s\S]*textarea[\s\S]*select[\s\S]*contenteditable[\s\S]*textbox[\s\S]*combobox[\s\S]*spinbutton[\s\S]*data-text-editor[\s\S]*inline-cell-editor/, "printable i remains owned by every current and future-marked editing surface");
+assert.match(app, /addEventListener\("keydown", onKeyDown, true\)[\s\S]*removeEventListener\("keydown", onKeyDown, true\)/, "MainApp owns one stable global Inspector shortcut listener");
 assert.match(app, /<ViewToggle \/>[\s\S]*<Rail \/>[\s\S]*<Dock \/>[\s\S]*<WidgetHost \/>[\s\S]*view === "canvas"/, "real launchers and the one WidgetHost remain mounted in Canvas and Table");
 assert.match(dock, /appearanceFamilyDefinition[\s\S]*detailWidgetId/, "bottom bar Detail follows the active Appearance family");
 assert.doesNotMatch(rail, /launcher\("annotation"|launcher\("organism"|launcher\("palette"/, "stale duplicate rail owners are removed");

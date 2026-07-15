@@ -2,15 +2,21 @@
 
 ## Fixed-head identity
 
-- Task: `C0-M1-CORRECTION-3`
+- Task: `C0-M1-CORRECTION-4`
 - Source base: `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`
 - Feature branch: `feature/c0-m1-inspector-layer-editing-recovery`
-- Previous reviewed head: `c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9`
-- Correction contract: `origin/docs/mooorf-ai-team-operating-protocol@0f2671218fdb219db31c62d3bc1836da7fc07d09:docs/worker-briefs/C0_M1_CORRECTION_3_OWNER_PATH_INSPECTOR_LAUNCH.md`
+- Previous reviewed head: `f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6`
+- Correction contract: `origin/docs/mooorf-ai-team-operating-protocol@756fd923cb973e25c53782ccb5fc5b341ee51530:docs/worker-briefs/C0_M1_CORRECTION_4_GLOBAL_I_SHORTCUT.md`
 - Corrected fixed head: the immutable pushed SHA is recorded in `worker-status/CODEX.json` on `status/codex` because a commit cannot contain its own SHA.
 - Production guard: `origin/main` remained `c4600472ea76f651800c19b91cf8f67954ca992e`; no merge was performed.
 
 ## Corrected outcome
+
+### Correction 4 — global Inspector shortcut
+
+The reviewed build had no global keyboard owner for Inspector activation. `MainApp` now installs one capture-phase `keydown` listener for its entire lifetime, so switching between Canvas and Table cannot duplicate it. Lowercase `i` and uppercase `I` route through one shared Inspector command and the canonical widget lifecycle: closed, minimized, background and partly off-screen states open, expand, focus and reveal; only one fully visible, expanded, frontmost Inspector closes on the next `I`.
+
+Printable input remains owned by `input`, `textarea`, `select`, `contenteditable`, textbox/combobox/spinbutton roles, the inline Cell editor, Table fields and Inspector Name/Area/Body fields. Ctrl/Meta/Alt modifiers and repeated keydowns are ignored. Dock/Rail pointer, Enter and Space use the same command in open-only mode, so launcher activation never toggles a visible Inspector closed. Escape and right-click ownership are unchanged. Both visible launchers advertise `Inspector (I)` while retaining `data-command="open-inspector"` and the truthful `Open Inspector` accessible name.
 
 ### Correction 3 — actual Owner path
 
@@ -60,11 +66,13 @@ Membrane Field colour now has two truthful modes. `Cell Gradient` is the unchang
 8. No duplicate store, registry, history owner, renderer settings model, export path, fake Cell, prototype shell or mock data path was added.
 9. Widget minimized state and launch revisions are ephemeral central-store UI state; launcher recovery does not create another widget host or persistence owner.
 10. Presentation schema v3 adds only Membrane colour mode and solid material identity. v1/v2 projects migrate deterministically to the unchanged `Cell Gradient` default.
+11. `src/interaction/inspectorShortcut.ts` is the single keyboard/launcher command boundary. It reads rendered reachability only to choose close versus canonical reveal; it creates no state, host, history or settings owner.
 
 ## Owner-observed issue disposition
 
 | Owner-observed issue | Reproduction at reviewed head | Corrected disposition | Evidence |
 | --- | --- | --- | --- |
+| Global `I` shortcut was absent | Reproduced on reviewed head with physical lowercase `i` on the real Canvas shell: Inspector count remained `0` | FIXED | One stable `MainApp` listener; focused policy/product contracts and built-shell checkpoints cover the shortcut states and guards. The Owner manually confirmed the global `I` shortcut in the live preview. A complete uninterrupted two-viewport CDP pass is not claimed. |
 | Actual rendered Dock/Rail `i` did not reliably open the Inspector | Reproduced with a physical coordinate click during the translating entrance; Table removed both launchers and `WidgetHost` entirely | FIXED AT REAL SHELL | Shared stable command with fixed Motion geometry; real CDP pointer/Enter/Space events click the rendered Dock/Rail buttons in Canvas and Table and prove one full viewport-contained Inspector |
 | Inspector and Table Escape committed through blur | Reproduced: edited Name survived Escape in both surfaces | FIXED | Shared explicit `active/cancelled/committed` edit session; executable zero-history/one-transaction tests plus built-browser cancellation |
 | Inspector single selection always said Local and multi-selection always Mixed | Reproduced with one default Cell | FIXED | Header and family badges derive actual sparse text/family inheritance; one default Cell reports Project Default |
@@ -95,6 +103,7 @@ The exhaustive ownership table is [C0_M1_CONTROL_OWNERSHIP_MAP.md](C0_M1_CONTROL
 | Duplicate Rail Add Void | REMOVE AS DUPLICATE | Dock Add Void remains live |
 | Prototype selection orbit | DEFER | Existing ephemeral clean selection keyline remains |
 | Prototype mock store, fake Cells, shell and export | REJECT | Never merged or copied |
+| Global Inspector shortcut | MERGE | `MainApp` listener → shared Inspector command → canonical widget lifecycle; `I` is no longer available to the future Symbol tab |
 | Membrane colour source | MERGE | Membrane Detail → Field; canonical `presentationDefaults.membrane.colourMode` and material registry |
 | Unconditional Void inner echo | REMOVE | No live/export owner; optional default-off Inner Echo is explicitly deferred to M2 advanced Void instruments |
 
@@ -109,11 +118,11 @@ Executed after source correction and before the single production build:
 | Focused `contentEditSession`, M1 correction behavior, M1 renderer behavior and M1 product contracts | PASS |
 | Affected C0.4F-A runtime presentation, renderer integration, Organism wiring, SVG/export/import/resource/interaction/widget contracts | PASS |
 | `npx tsc -b --pretty false` | PASS, zero diagnostics |
-| Real-shell Inspector launcher browser integration test | PASS at 1440×900 and 1280×800; physical pointer, Enter and Space through actual rendered Dock/Rail controls in Canvas/Table |
-| `git diff --check c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9...HEAD` | PASS as the final post-commit handoff gate |
+| Real-shell Inspector launcher/shortcut browser integration test | PARTIAL + OWNER CONFIRMED; Canvas lifecycle/editing-guard checkpoints and bounded Table checkpoints passed. The Owner manually confirmed global `I` in the live preview. The exhaustive two-viewport CDP run was stopped after repeated harness stalls on controlled Table/textarea/number-field interactions; no product failure was reproduced. |
+| `git diff --check f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6...HEAD` | PASS as the final post-commit handoff gate |
 | `npm run build` | PASS; exactly one final production build, accepted Vite large-chunk warning only |
 
-The final build emitted the main application chunk at `984.47 kB` (`316.13 kB` gzip). No second production build was run.
+The final build emitted the main application chunk at `985.98 kB` (`316.66 kB` gzip). No second production build was run.
 
 Executable correction coverage includes Escape/blur/Enter/Shift+Enter transitions, one family-reset transaction, inheritance status, closed/background/minimized/offscreen widget recovery, Void add/select/undo/redo/project snapshot, exact Void live/SVG layer projection, sparse Void sibling inheritance, Cell opacity, all six Classic and Organism strokes, distinct segmented bars, rounded dash-dot, Core-off drawing, production debug ring projection, Cell Gradient compatibility, patch-free preset/custom Solid Membrane projection, one-transaction history, persistence/import/saved-view round trips, and the Organism plain-mode Cell mask/paint adapter. Source-presence checks remain supplementary only.
 
@@ -121,7 +130,16 @@ Executable correction coverage includes Escape/blur/Enter/Shift+Enter transition
 
 The built artifact was tested at `http://127.0.0.1:4173/`.
 
-The Correction 3 harness launched system Chrome against that production artifact and used CDP physical pointer and keyboard input. It contains no store action, `openWidget` helper, `useLab.getState()`, `window.lab` or isolated lifecycle call. For every case it asserted exactly one `[data-widget="inspector"]`, a rendered non-minimized body, and viewport containment.
+The Correction 4 harness launched system Chrome against that production artifact and used CDP physical pointer and keyboard input. It contains no store action, `openWidget` helper, `useLab.getState()`, `window.lab` or isolated lifecycle call. Its completed checkpoints asserted exactly one `[data-widget="inspector"]`, a rendered non-minimized body, frontmost state and viewport containment.
+
+### Correction 4 keyboard evidence and QA limitation
+
+- The Owner manually confirmed that the global `I` shortcut works in the live preview.
+- Completed physical-keyboard checkpoints covered Canvas closed/open, lowercase `i`, uppercase `I`, second-`I` close, minimized expansion, background focus, off-screen reveal, modifier/repeat guards and Inspector Name/Area/Body editing guards. Canvas lifecycle and editing guards reached passing checkpoints.
+- Bounded Table checkpoints reached passing states during partial runs, including shortcut activation/close and controlled editing fields. The implementation uses the same application-shell listener in Canvas and Table and contract coverage asserts that view switching does not register a duplicate listener.
+- The exhaustive two-viewport CDP run was stopped because the browser test harness repeatedly stalled while driving controlled Table, textarea and number-field interactions. It did not complete one uninterrupted 1440×900 plus 1280×800 Correction 4 run, and this report does not claim that it did.
+- The stalls are recorded as a QA-harness limitation. They did not reproduce a shortcut product failure, and no further harness tuning or product modification was performed after the Owner's confirmation.
+- Focused executable policy/product contracts and the preserved implementation cover lowercase/uppercase activation, second-`I` close, closed/minimized/background/off-screen restoration, editable-field guards, modifier/repeat guards, Escape, right-click, Dock/Rail pointer/Enter/Space and exactly one Inspector across Canvas and Table.
 
 ### Correction 3 actual-control evidence
 
@@ -175,6 +193,7 @@ The browser harness does not expose `file-saver` output as a normal browser down
 - Copy/Paste/Reset,
 - defaults/local/mixed,
 - direct Inspector and Detail access.
+- global lowercase/uppercase `I` activation through the canonical widget lifecycle, with truthful second-`I` close and complete editing/modifier guards.
 - generic one-click widget lifecycle recovery,
 - default Cell Gradient plus truthful Solid Membrane colour,
 - Void outer fill/edge without an unconditional inner echo.

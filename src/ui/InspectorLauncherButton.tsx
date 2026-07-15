@@ -2,6 +2,7 @@
 import type { KeyboardEvent } from "react";
 import { Info } from "lucide-react";
 import { useLab } from "../state/store";
+import { activateInspector } from "../interaction/inspectorShortcut";
 
 interface InspectorLauncherButtonProps {
   surface: "dock" | "rail";
@@ -16,8 +17,7 @@ export default function InspectorLauncherButton({ surface }: InspectorLauncherBu
     !state.minimizedWidgets.includes("inspector")
       && state.openWidgets[state.openWidgets.length - 1] === "inspector"
   );
-  const openWidget = useLab((state) => state.openWidget);
-  const activate = () => openWidget("inspector");
+  const activate = () => activateInspector("open");
   const activateFromKeyboard = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
@@ -31,8 +31,8 @@ export default function InspectorLauncherButton({ surface }: InspectorLauncherBu
       data-command="open-inspector"
       data-active={expanded ? "true" : undefined}
       data-focused={focused ? "true" : undefined}
-      data-tooltip={surface === "rail" ? "Open Inspector" : undefined}
-      title="Open Inspector"
+      data-tooltip={surface === "rail" ? "Inspector (I)" : undefined}
+      title="Inspector (I)"
       aria-label="Open Inspector"
       aria-haspopup="dialog"
       aria-expanded={expanded}

@@ -405,7 +405,7 @@ Must preserve: Palmer-style warm cream day canvas, Graph Noir Red night mode, to
 - Organism caches area range, resolved Cell colours, palette, style, field, shadow, and selection derivations until their dependencies change. Morph Off and Shadow Off skip their optional work.
 - Inline Name/Area edits reuse central graph ownership and the existing bounded Undo/Redo history as an edit variant; no second history or editor state system exists.
 - ORG/CLS and renderer names are internal. SVG uses the existing Classic vector adapter for Cells/labels regardless of the live renderer; Membrane remains raster-only.
-- V8.2C0.2 asset registry and V8.2C0.3 Icons & Symbols Inspector remain deferred; shortcut `I` remains unassigned here.
+- V8.2C0.2 asset registry and V8.2C0.3 Icons & Symbols Inspector remain deferred. Correction 4 later assigns global `I` to the one production Inspector; the future Symbol surface remains a tab inside it and cannot claim a competing listener.
 
 # V8.2C0.2 — Verified icon/grid registry ownership
 

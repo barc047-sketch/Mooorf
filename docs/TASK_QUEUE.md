@@ -1,7 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
-- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 3 complete; actual Dock/Rail Owner path works in Canvas/Table; `WAITING_REVIEW`; do not merge or start M2)
+- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 4 complete; global `I` uses the canonical Inspector lifecycle in Canvas/Table; `WAITING_REVIEW`; do not merge or start M2)
 - [x] C0.4F-A Runtime Layer Separation (feature implementation complete; `WAITING_REVIEW`; do not merge)
 - [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
 - [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)
@@ -43,6 +43,7 @@
 - [x] restored bounded Dock baseline plus one-click Inspector/info and active-family Detail launchers
 - [x] generic launcher lifecycle mounts, focuses, expands and viewport-reveals Inspector and every registered widget
 - [x] both Dock and Rail `i` restore the full Inspector body in one click
+- [x] global lowercase/uppercase `I` opens/expands/focuses/reveals Inspector and closes only a fully visible frontmost Inspector; all editing/modifier/repeat guards are executable
 - [x] all six distinct Boundary styles in Classic and Organism, with real rounded dash-dot and zero fallback
 - [x] supported Morph/Fusion/Reach migrated to Membrane Detail; stale/duplicate ownership mapped
 - [x] Project Default Core-off suppresses every production centre dot, including debug mode
@@ -52,7 +53,7 @@
 - [x] Body/text/appearance migration plus project/config/saved/recovery/export parity
 - [x] clean PNG/PDF and true-vector Classic SVG parity; no fake Membrane vector path
 - [x] executable behavioral/renderer coverage, full contracts, typecheck, reviewed-head diff check and exactly one final production build
-- [x] deterministic 1440×900 and 1280×800 browser QA with clean fresh console
+- [x] Owner live-preview confirmation plus passing Canvas lifecycle/editing and bounded Table browser checkpoints; exhaustive two-viewport CDP completion not claimed because the harness stalled on controlled Table/textarea/number-field interactions without reproducing a product failure
 - [ ] Owner review of combined C0.4F-A + M1 result
 - [ ] M2 remains blocked and unstarted
 
