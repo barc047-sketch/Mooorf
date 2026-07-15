@@ -1,4 +1,4 @@
-# Codex Correction Contract — C0 M1 Cancel Semantics and Inspector Status Truth
+# Codex Correction Contract — C0 M1 Functional Recovery and Owner-Observed Regressions
 
 **TASK:** `C0-M1-CORRECTION-1`
 **STATUS:** Required correction under the already-authorized M1 contract
@@ -7,85 +7,210 @@
 **CURRENT REVIEWED HEAD:** `e9bd67e8c7778dccdd4afb4c1508db0792e70b21`
 **PRODUCTION MAIN:** must remain `c4600472ea76f651800c19b91cf8f67954ca992e`
 
-## Why correction is required
+## 1. Why correction is required
 
-The fixed-head review found a real data-integrity defect not covered by the source-string contract tests.
+Fixed-head review plus Owner browser use found real functional and discoverability regressions. M1 is not merge-ready.
 
-### Defect 1 — Escape commits instead of cancelling
+### A. Escape commits instead of cancelling
 
-In `src/views/TableView.tsx`:
+Table and Inspector Name/Area/Body fields clear local draft and blur on Escape while their blur handlers still commit. Escape must restore the exact canonical value and create zero history entries.
 
-- `AreaCell` handles Escape by clearing local draft and calling `blur()`.
-- Its `onBlur` handler immediately calls `commit(event.target.value)`.
-- The edited DOM value can therefore be committed on Escape.
+### B. Inspector status is semantically false
 
-In `TextCell`:
+The Inspector header labels every single selection `Local` and every multi-selection `Mixed` using selection count rather than actual scope/inheritance.
 
-- Escape calls `setDraft(canonical)` and then `blur()`.
-- `onBlur={commit}` runs before React has rendered the restored canonical draft.
-- The closure still contains the edited draft, so Name or Body can be committed on Escape.
+### C. Bottom-bar access regressed
 
-In `src/ui/widgets/InspectorWidget.tsx` `ContentField`:
+M1 removed the complete left quick-control group and reduced the dock from the audited base. The Owner reports missing buttons. The correction must restore a coherent functional baseline without implementing the final M3 dock redesign.
 
-- Escape also calls `setDraft(canonical)` and `blur()`.
-- `onBlur={commit}` can commit the edited Name, Area or Body instead of cancelling.
+Required baseline:
 
-This violates the locked M1 contract: Escape must restore the exact pre-edit value and create no history transaction.
+- keep Add Cell, Add Cluster and Add Void,
+- keep Saved Views, Random Arrangement, Import and Export,
+- provide one visible one-click Inspector launcher,
+- provide one visible one-click `Detail` launcher that opens the dedicated widget for the active target,
+- do not reintroduce duplicate Morph/Palette state owners,
+- do not expose false Connect/Material/Preset/Markup functionality before their milestones,
+- no launcher may disappear unless its replacement is directly reachable.
 
-### Defect 2 — Inspector context badge is semantically false
+### D. Inspector / “i” access is not direct enough
 
-The Inspector header currently labels every single selected Cell `Local` and every multi-selection `Mixed`, regardless of whether appearance/text values inherit Project Defaults or are actually mixed.
+The Owner must not need to navigate left rail → Inspector → Appearance → Open Detailed Settings for every edit.
 
-The header must either:
+Required behaviour:
 
-- use truthful scope-only labels such as `Selected` and `Multi`, while inheritance is shown in the relevant sections, or
-- compute and display an actual canonical inheritance state.
+- one visible Inspector/info launcher opens the Inspector immediately,
+- with a selected Cell it opens in that Cell context,
+- with no selection it opens Project Defaults,
+- a direct Detail launcher opens the active target widget,
+- selecting a target in Inspector and pressing Detail opens the corresponding widget,
+- the launcher must have a truthful icon, tooltip, aria-label and active/open state,
+- no dead `i`/info button remains anywhere.
 
-It must never imply a Local Override or Mixed state solely from selection count.
+### E. Cell and Boundary settings are reported non-working
 
-## Required correction
+Every exposed control must create a visible canonical result in both live renderer paths where technically supported.
 
-1. Add explicit cancel guards for Inspector and Table content fields so Escape:
-   - restores the canonical pre-edit draft,
-   - suppresses the following blur commit,
-   - creates zero history entries,
-   - works for Name, Area and Body.
-2. Preserve outside-click/normal blur commit.
-3. Preserve Enter commit and Shift+Enter Body line breaks.
-4. Ensure Enter creates exactly one effective history transaction; a blur following Enter must not create another transaction.
-5. Correct the Inspector header badge to truthful scope/inheritance language.
-6. Add behavioral tests that execute the cancel/commit state machine. Do not satisfy this correction with regex/source-presence assertions alone.
-7. Add focused coverage for:
-   - Table Name Escape,
-   - Table Area Escape,
-   - Table Body Escape,
-   - Inspector Name Escape,
-   - Inspector Area Escape,
-   - Inspector Body Escape,
-   - normal blur commit,
-   - Enter one-transaction commit,
-   - Shift+Enter Body does not commit,
-   - header status truth.
-8. Update the M1 implementation report and control ownership map only where needed.
+Required proof matrix:
 
-## Verification
+**Cell**
+
+- visible,
+- fill colour,
+- opacity,
+- Project Default,
+- Local Override,
+- Mixed multi-selection,
+- reset,
+- undo/redo,
+- persistence and export.
+
+**Boundary**
+
+- visible,
+- solid,
+- dashed,
+- dotted,
+- dash-dot,
+- double,
+- segmented bars,
+- width,
+- inner/centre/outer alignment,
+- offset,
+- dash/bar length,
+- gap,
+- double spacing,
+- colour,
+- opacity,
+- reset,
+- undo/redo,
+- persistence and export.
+
+A control that updates state but produces no visible renderer change is a failure.
+
+### F. Organism dash-dot and other technical strokes must work
+
+The previous audited solid fallback was accepted only as a temporary limitation. The Owner now requires technical strokes to render in Organism.
+
+Use the existing pointer-transparent Canvas2D Organism overlay to render all six Boundary styles truthfully around Cells. Do not redesign the WebGL field shader and do not fake dash-dot metadata while drawing solid.
+
+Required:
+
+- Classic and Organism both visibly distinguish all six styles,
+- dash-dot must contain a dash and a rounded dot separated by deterministic gaps,
+- zoom scaling remains deterministic,
+- selection, hit testing, area and Cell geometry remain unchanged,
+- SVG/PDF/PNG must remain truthful for exposed styles,
+- remove/update the old fallback warning and tests only after parity is real.
+
+### G. Void is reported non-working
+
+Prove and repair the complete Void workflow:
+
+1. Add Void from the bottom dock.
+2. The new Void appears at the intended Canvas location and becomes selected.
+3. It remains a canonical `kind: "void"` object.
+4. It subtracts from the Organism field.
+5. It remains selectable, draggable and editable.
+6. Void Settings visibly control fill, fill opacity, edge, edge width, edge colour and edge opacity.
+7. Cell, Boundary and Core presentation never render on a Void.
+8. Save/load, project export/import, PNG, SVG where supported, and PDF preserve it.
+9. Undo/redo remains deterministic.
+
+Do not alter architectural area/clearance/subtraction semantics through appearance controls.
+
+### H. Unexplained white dots
+
+The likely owner is the Core/nucleus presentation layer. The correction must identify the exact renderer owner in QA and make it understandable:
+
+- use the canonical term `Core` with optional supporting text `nucleus`,
+- add a clear tooltip/help sentence where the Core control appears,
+- prove Core visible/size/colour/opacity/Auto Contrast controls work,
+- prove Core can be turned off,
+- never confuse Core with Selection or Boundary,
+- do not remove or change the default merely by assumption; document the exact source of the white dots.
+
+### I. Earlier approved Inspector features must remain durably mapped
+
+M1 must fully deliver its promised Content/Appearance features. It must not falsely claim the complete prior Inspector prototype is already implemented.
+
+Before handoff, the report must explicitly list:
+
+- implemented now: Content, Name/Area/Body, text presets, target selection, six dedicated widgets, Copy/Paste/Reset, defaults/overrides/mixed;
+- deferred to M2: advanced per-target instruments, approved selection orbit, production Symbol tab and Antigravity symbol catalogue;
+- deferred to M4: full Material Browser, recents/favourites and hover material preview.
+
+No approved prototype feature may become unassigned.
+
+## 2. Required correction
+
+1. Add explicit cancel/commit state machines for Table and Inspector Name/Area/Body.
+2. Correct Inspector status language.
+3. Restore the bounded bottom-bar access baseline.
+4. Repair the Inspector/info and Detail launch paths.
+5. Repair and prove every Cell and Boundary control.
+6. Render all six Boundary styles truthfully in Organism using the existing overlay.
+7. Repair and prove Void end-to-end.
+8. Identify and explain the white Core/nucleus dots; prove Core controls.
+9. Update the implementation report and ownership map with exact final owners and deferred destinations.
+
+## 3. Behavioral tests
+
+Add executable tests for:
+
+- Table Name/Area/Body Escape,
+- Inspector Name/Area/Body Escape,
+- normal blur commit,
+- Enter exactly one transaction,
+- Shift+Enter Body no commit,
+- truthful Inspector header status,
+- Inspector launcher and direct Detail launcher,
+- Cell control renderer effect in Classic and Organism,
+- all six Boundary styles in Classic and Organism,
+- dash-dot pattern sequence,
+- Add Void → selected canonical Void,
+- Void subtraction invariant,
+- Void appearance controls,
+- Core visibility and white-dot ownership,
+- persistence/export/undo round-trip for affected targets.
+
+Regex/source-presence checks alone are insufficient for interaction and renderer behaviour.
+
+## 4. Browser QA
+
+At both `1440×900` and `1280×800`, record deterministic evidence for:
+
+- all missing/restored bottom actions,
+- one-click Inspector/info access,
+- one-click active Detail access,
+- Cell settings visibly changing the selected Cell,
+- Boundary all-six-style matrix in Classic and Organism,
+- dash-dot clearly distinct,
+- Add Void, drag Void, edit Void, confirm subtraction,
+- Core toggle explaining/removing the white dot,
+- Table and Inspector Escape cancellation,
+- no console errors,
+- no dock/rail/widget collision.
+
+## 5. Verification
 
 Run:
 
-- all new focused behavioral tests,
-- affected existing M1 tests,
+- new focused behavioural/renderer tests,
+- all affected M1 and C0.4F-A contracts,
 - application typecheck,
 - `git diff --check e9bd67e8c7778dccdd4afb4c1508db0792e70b21...HEAD`,
-- one final production build after corrections,
-- deterministic browser QA at 1440×900 and 1280×800 covering Escape in Table and Inspector, not only inline editing.
+- exactly one final production build after all corrections,
+- the deterministic browser QA matrix above.
 
-## Completion
+## 6. Completion
 
-Push the corrected fixed head to the same branch, update `worker-status/CODEX.json` on `status/codex` with:
+Push one corrected fixed head to the same branch. Update `worker-status/CODEX.json` on `status/codex` with:
 
 - status `WAITING_REVIEW`,
 - previous reviewed head `e9bd67e8c7778dccdd4afb4c1508db0792e70b21`,
 - corrected feature SHA,
-- focused correction tests and QA evidence.
+- exact test/build/QA evidence,
+- owner-observed issue disposition table.
 
 Stop. Do not merge. Do not start M2.
