@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T13:18:00+05:30",
+  "updated_at": "2026-07-15T15:45:07+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0-M1-CORRECTION-2",
-  "current_gate": "Owner visual review found three remaining defects after Correction 1: Inspector launcher does not restore a minimized/full Inspector, Void has a hard-coded unexplained inner echo, and Membrane colour cannot produce a true solid body because Cell spatial colour dominance is always applied. M1 merge is blocked pending same-branch Correction 2.",
+  "current_phase": "C0-M1-CORRECTION-2-REVIEWED",
+  "current_gate": "Correction 2 fixed head is a MERGE CANDIDATE. Owner must complete the final visual smoke test and explicitly command MERGE C0-M1. M2 remains blocked.",
   "owner_approval_required": true,
   "production_guard": {
     "main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
@@ -39,29 +39,40 @@
     "branch": "feature/c0-m1-inspector-layer-editing-recovery",
     "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
     "correction_1_feature_sha": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
-    "correction_1_status_sha": "1bb8e12adb43f1fdf929ea7da9153f7a30c423bd",
-    "worker_status": "WAITING_REVIEW — REOPENED FOR CORRECTION 2",
-    "review_verdict": "CORRECTION REQUIRED",
-    "correction_2_contract": "docs/worker-briefs/C0_M1_CORRECTION_2_INSPECTOR_VOID_MEMBRANE_COLOUR.md",
-    "correction_2_launch_prompt": "docs/worker-briefs/C0_M1_CORRECTION_2_LAUNCH_PROMPT.md",
-    "correction_2_base": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
-    "owner_confirmed_working": [
-      "Boundary including dash-dot",
-      "Core-off white centre-dot fix",
-      "Void creation, subtraction and drag",
-      "Escape cancellation and truthful status",
-      "Cell/Membrane/Void grouped Inspector architecture",
-      "remaining Correction 1 functionality except Inspector launcher restore"
+    "correction_2_feature_sha": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+    "correction_2_status_sha": "768a32e9f8520754ad8f006bcb57d38bb9f9ed85",
+    "worker_status": "WAITING_REVIEW",
+    "review_verdict": "MERGE CANDIDATE",
+    "review_record": "custom-gpt/state/reviews/C0_M1_CORRECTION_2_FIXED_HEAD_REVIEW.json",
+    "branch_relation": "Correction 2 is one commit above Correction 1; final feature is four commits ahead of main with zero divergence",
+    "verified_correction_2": [
+      "generic widget launcher mount/focus/expand/reveal semantics",
+      "Dock and Rail i buttons share one canonical launcher action",
+      "WidgetFrame minimized state is centralized and launcher-restorable",
+      "default Void inner echo removed from live and Classic SVG projection",
+      "Void outer fill/edge and subtraction remain protected",
+      "Membrane Cell Gradient preserved as default",
+      "Solid Black, Ink, MOOORF Red, Charcoal and Custom use canonical persisted material state",
+      "Solid mode disables Cell spatial colour mixing",
+      "M2 separately owns Field Edge Softness and independent Membrane Edge Softness"
     ],
-    "required_correction_2": [
-      "generic launcher open/focus/unminimize/reveal semantics",
-      "Dock and Rail i buttons display the full Inspector in one click",
-      "remove the default hard-coded Void inner echo while preserving outer fill/edge and subtraction",
-      "explicit Membrane Cell Gradient and Solid colour modes",
-      "Solid presets Black, Ink, MOOORF Red, Charcoal and Custom",
-      "history, persistence and export truth for colour mode",
-      "record separate M2 Field Edge Softness and Membrane Edge Softness ownership"
+    "reported_verification": [
+      "31/31 source contracts passed",
+      "4/4 audit tests passed",
+      "typecheck passed",
+      "exact reviewed-head diff check passed",
+      "exactly one production build passed",
+      "1440x900 and 1280x800 QA passed with clean console"
     ],
+    "review_limit": "Assistant cannot access the worker localhost preview; final visual acceptance remains with the Owner.",
+    "required_owner_smoke_test": [
+      "closed and minimized Inspector restores fully from Dock and Rail i buttons",
+      "new Void has no unexplained inner circle and still subtracts/drags",
+      "Cell Gradient remains visually unchanged",
+      "Solid Black, Ink, MOOORF Red, Charcoal and Custom have no Cell colour patches"
+    ],
+    "merge_command": "MERGE C0-M1",
+    "merge_method": "re-verify exact refs, then non-forced fast-forward main to c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
     "merge_allowed": false,
     "m2_allowed": false
   },
