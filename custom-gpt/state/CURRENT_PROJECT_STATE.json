@@ -1,218 +1,104 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T05:58:00+05:30",
+  "updated_at": "2026-07-15T10:24:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0-M1-DISPATCHED",
-  "current_gate": "Owner authorized GO CODEX M1. Contract and launch prompt are locked; awaiting Codex RUNNING evidence on status/codex and feature branch creation from exact audited head 21388c0d",
+  "current_phase": "C0-M1-CORRECTION-1",
+  "current_gate": "M1 fixed-head review found cancellation and status-truth defects. Correct the same feature branch before merge; M2 remains blocked.",
   "owner_approval_required": true,
   "orchestration_mode": {
     "status": "OWNER_REVIEWED_SEQUENTIAL_FAST_TRACK",
-    "durable_memory": "GitHub exact refs, provenance ledger, worker status files, current state and append-only orchestration event log",
-    "event_log": "custom-gpt/state/ORCHESTRATION_EVENT_LOG.md",
-    "rule": "Never rely on chat memory alone; every prototype, research output and future destination must be recorded by exact ref",
-    "owner_speed_directive": "Build one bounded Codex milestone at a time. Present the next exact scope to the Owner before creating or dispatching its contract. No routine extra audit loop.",
+    "durable_memory": "GitHub exact refs, provenance ledger, fixed-head review records, worker status files and current state",
+    "rule": "Every implementation head is reviewed against code, not only worker claims or source-string tests",
+    "owner_speed_directive": "Use narrow same-branch corrections for proven defects. No routine extra audit loop and no new milestone until the current milestone is complete.",
     "dispatch_protocol": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md",
-    "corrected_milestone_map": "docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md",
-    "limit_awareness": "Local worker execution is not observable until status/branch/head evidence is pushed"
+    "milestone_map": "docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md"
   },
-  "c0_4f_a": {
-    "title": "Runtime layer separation and essential Boundary strokes",
-    "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
-    "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "implementation_status": "WAITING_REVIEW",
+  "production_guard": {
+    "main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+    "verified_relation": "main is identical to the recorded SHA",
+    "merge_allowed": false
+  },
+  "runtime_foundation": {
+    "branch": "feature/c0-4f-a-runtime-layer-separation",
+    "sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "audit_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
     "audit_verdict": "MERGE CANDIDATE",
-    "meaning_of_verdict": "The one-commit layer-separation scope is technically safe and architecture-compliant; it does not mean the complete user-facing settings workflow is finished",
-    "merge_policy": "Do not merge this head alone. M1 builds directly on the audited head and the combined usable result is reviewed for merge later."
-  },
-  "provenance_ledger": {
-    "runtime_foundation": "feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c -> M1 base",
-    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 Content/Inspector, M2 Symbol, M3 rails, M4 Material Browser",
-    "audited_icon_grid_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2 -> M2 symbols, M7 grid",
-    "antigravity_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4 -> M2, M5, M6, M7 and custom-symbol milestone",
-    "antigravity_fast_track_atlas": "research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee -> contract input for every milestone",
-    "reuse_rule": "Selective forward-port only; prototype, audit and research branches are never merged wholesale"
-  },
-  "editing_workspace_plan": {
-    "master_plan": "docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md",
-    "sequential_map": "docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md",
-    "architecture": {
-      "organism_targets": ["Cell", "Boundary", "Membrane", "Membrane Edge", "Core", "Void"],
-      "separate_families": ["Connection System", "Markup and Annotation System", "Selection and Arrange Commands"],
-      "connection_rule": "Connection is not a seventh Organism target",
-      "annotation_rule": "Annotation Card is standalone markup"
-    }
+    "merge_policy": "Merge only together with a corrected and accepted M1 result"
   },
   "active_milestone": {
     "id": "M1",
     "title": "Production Inspector, Content and Layer Editing Recovery",
-    "status": "AUTHORIZED_AND_DISPATCHED_AWAITING_WORKER_START",
-    "contract": "docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md",
-    "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
-    "contract_branch": "docs/mooorf-ai-team-operating-protocol",
-    "planned_branch": "feature/c0-m1-inspector-layer-editing-recovery",
-    "exact_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "production_main_remains": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "prototype_input": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
-    "includes": [
-      "compact production Inspector with Content and Appearance",
-      "double-click Space Name, Area and Body/subtext editing",
-      "minimal Table sync for Name/Area/Body only",
-      "Enter/outside commit, Escape cancel, Shift+Enter Body line break",
-      "Area remains numeric and area-driven; Body never changes Cell geometry",
-      "Text Style presets, proportional Text Size, Text Colour and Auto Contrast",
-      "Project Default / Local Override / Mixed",
-      "map every visible appearance control",
-      "rebind, move or remove every broken/stale/no-op setting",
-      "six dedicated settings widgets",
-      "Copy/Paste/Reset Style",
-      "optional renderer-neutral non-exported dotted selection orbit",
-      "history, persistence, migration and export parity",
-      "migrate Morph/Attachment/Density to Membrane ownership where valid",
-      "1440 and 1280 QA"
+    "branch": "feature/c0-m1-inspector-layer-editing-recovery",
+    "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+    "reviewed_feature_sha": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
+    "reviewed_status_sha": "159fcfb6758b5fa3780a33109037269d658a61d5",
+    "branch_relation": "one commit ahead of C0.4F-A; combined result two commits ahead of main; no divergence",
+    "worker_status": "WAITING_REVIEW",
+    "review_verdict": "CORRECTION REQUIRED",
+    "review_record": "custom-gpt/state/reviews/C0_M1_FIXED_HEAD_REVIEW_1.json",
+    "correction_contract": "docs/worker-briefs/C0_M1_CORRECTION_1_CANCEL_AND_STATUS_TRUTH.md",
+    "correction_launch_prompt": "docs/worker-briefs/C0_M1_CORRECTION_1_LAUNCH_PROMPT.md",
+    "findings": [
+      {
+        "id": "M1-R1",
+        "severity": "HIGH",
+        "summary": "Escape in Table and Inspector Name/Area/Body fields can trigger blur commit instead of cancelling; current tests do not execute the cancel/blur state machine."
+      },
+      {
+        "id": "M1-R2",
+        "severity": "MEDIUM",
+        "summary": "Inspector header labels every single selection Local and every multi-selection Mixed solely from selection count."
+      }
     ],
-    "excludes": [
-      "production Symbol library",
-      "bottom dock redesign",
-      "Quick Materials and full Material Browser",
-      "Connections",
-      "Annotation Card/Studio",
-      "broad Table/import redesign",
-      "advanced procedural Membrane shaders",
-      "merge to main",
-      "beginning M2"
-    ],
-    "required_outputs": [
-      "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md",
-      "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
-      "one fixed feature head",
-      "status/codex WAITING_REVIEW evidence"
-    ]
+    "required_next_action": "Continue the same Codex session on the same branch, implement Correction 1, add behavioral tests, push a new fixed head and return to WAITING_REVIEW.",
+    "merge_allowed": false,
+    "m2_allowed": false
   },
-  "sequential_milestones": [
+  "verified_m1_deliverables": [
+    "canonical Name/Area/Body editing owners",
+    "minimal Table sync",
+    "Content and Appearance Inspector",
+    "six dedicated appearance widgets",
+    "Project Default / Local Override / Mixed section states",
+    "history, persistence, migration and export work recorded",
+    "control ownership map and implementation report",
+    "reported tests, typecheck, build and 1440/1280 QA"
+  ],
+  "provenance_ledger": {
+    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 Content/Inspector, M2 Symbol, M3 rails, M4 Material Browser",
+    "audited_icon_grid_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2 -> M2 symbols and M7 grid",
+    "antigravity_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4 -> M2, M5, M6, M7 and custom vectors",
+    "antigravity_fast_track_atlas": "research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee -> contract input for every milestone",
+    "reuse_rule": "Selective forward-port only; never merge prototype, research or audit branches wholesale"
+  },
+  "future_milestones": [
     {
       "id": "M2",
       "title": "Symbol Registry Forward-Port and Production Symbol Inspector",
-      "planned_branch": "feature/c0-m2-symbol-registry-inspector",
-      "status": "PLANNED — OWNER PREVIEW AFTER M1",
+      "status": "BLOCKED UNTIL M1 IS CORRECTED, ACCEPTED AND MERGED",
       "inputs": {
         "baseline": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
         "research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4",
         "prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97"
-      },
-      "symbol_plan": {
-        "forward_port_existing": 77,
-        "verified_lucide_additions": 59,
-        "aliases": 14,
-        "rejects_excluded": 5,
-        "custom_vectors_deferred_for_owner_visual_review": 8,
-        "target_active_geometry_after_customs": 144,
-        "target_searchable_ids_after_customs": 164
       }
     },
-    {
-      "id": "M3",
-      "title": "Bottom Dock and Shared Contextual Rails",
-      "planned_branch": "feature/c0-m3-canvas-shell-context-rails",
-      "status": "PLANNED",
-      "prototype_mapping": "Claude contextual bottom-rail and right-panel composition; no full-shell merge"
-    },
-    {
-      "id": "M4",
-      "title": "Quick Materials, Presets and Material Browser",
-      "planned_branch": "feature/c0-m4-materials-presets-browser",
-      "status": "PLANNED",
-      "prototype_mapping": "Claude Material Browser layout, circular previews, search/categories, recents/favourites and hover preview/revert"
-    },
-    {
-      "id": "M5",
-      "title": "Straight Connection Foundation",
-      "planned_branch": "feature/c0-m5-straight-connections",
-      "status": "PLANNED",
-      "research_mapping": "Antigravity diagram/link symbols feed drawable library and preset vocabulary but never replace graph Connections"
-    },
-    {
-      "id": "M6",
-      "title": "Markup and Annotation Foundation",
-      "planned_branch": "feature/c0-m6-annotation-markup",
-      "status": "PLANNED",
-      "research_mapping": "Annotation-category symbols feed Markup; custom section-cut waits for original-vector Owner approval"
-    },
-    {
-      "id": "M7",
-      "title": "Arrange, Grid and Snapping",
-      "planned_branch": "feature/c0-m7-arrange-grid-snap",
-      "status": "PLANNED",
-      "research_mapping": "C0.2 grid registry becomes visible only with truthful render/snap/export support"
-    },
-    {
-      "id": "M8",
-      "title": "Table and Import Completion",
-      "planned_branch": "feature/c0-m8-table-import",
-      "status": "PLANNED",
-      "note": "M1 implements direct Name/Area/Body editing and minimal sync; M8 completes bulk Table fields, sync hardening and CSV/XLS/XLSX"
-    },
-    {
-      "id": "M9",
-      "title": "Floors, Stats and Dashboard",
-      "planned_branch": "feature/c0-m9-floors-dashboard",
-      "status": "PLANNED"
-    }
-  ],
-  "custom_symbol_milestone": {
-    "status": "PLANNED AFTER M2 OR WITH M6",
-    "rule": "Create original MOOORF-owned vectors; do not substitute misleading generic icons",
-    "candidates": ["elevator cab", "stairs plan", "escalator section", "wardrobe plan", "sink plan", "gate swing", "floor drain", "section cut"]
-  },
-  "dispatch_rule": {
-    "before_each_milestone": "Assistant presents exact visible changes, moves/removals, exclusions, branch and acceptance checks; Owner may add changes",
-    "authorization": "Only explicit Owner GO creates the final contract and Codex launch prompt",
-    "completion": "Codex stops at WAITING_REVIEW; Assistant verifies GitHub evidence; Owner explicitly approves merge or correction",
-    "audit": "No separate audit by default unless a BLOCKER/HIGH-risk contradiction appears"
-  },
-  "workers": {
-    "codex": {
-      "execution": "ASSIGNED_AWAITING_WORKER_START",
-      "status_branch_commit": "22897a0a51b34742a9fe1319ba755c4dafbef0ed",
-      "current_assignment": "M1 Production Inspector, Content and Layer Editing Recovery",
-      "contract": "docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md",
-      "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
-      "next_base": "21388c0d765cd4bbc675d0321d94e77db9a41e5c"
-    },
-    "antigravity": {
-      "execution": "DONE",
-      "audit_verdict": "MERGE CANDIDATE",
-      "symbol_research_head": "9aa52779deac12701ba30eed1ff6e919e88091f4",
-      "symbol_research_status": "MAPPED INTO M2, M5, M6, M7 AND CUSTOM-SYMBOL MILESTONE"
-    },
-    "claude": {
-      "execution": "HOLD",
-      "prototype_head": "462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
-      "reuse_status": "MAPPED INTO M1, M2, M3 AND M4",
-      "reuse_rule": "Selective visual/interaction evidence only; never merge prototype shell or mock state"
-    }
-  },
-  "locked_sequence": [
-    "Owner authorized GO CODEX M1",
-    "User starts Codex with docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
-    "Codex verifies exact source 21388c0d and updates status/codex to RUNNING",
-    "Codex creates feature/c0-m1-inspector-layer-editing-recovery from exact audited head",
-    "Codex completes M1 and pushes one fixed head",
-    "Codex updates status/codex to WAITING_REVIEW and stops",
-    "Assistant verifies combined C0.4F-A plus M1 evidence",
-    "Owner explicitly approves merge or correction",
-    "After merge, Assistant presents M2 Symbol Registry and Inspector before dispatch"
+    { "id": "M3", "title": "Bottom Dock and Shared Contextual Rails", "status": "PLANNED" },
+    { "id": "M4", "title": "Quick Materials, Presets and Material Browser", "status": "PLANNED" },
+    { "id": "M5", "title": "Straight Connection Foundation", "status": "PLANNED" },
+    { "id": "M6", "title": "Markup and Annotation Foundation", "status": "PLANNED" },
+    { "id": "M7", "title": "Arrange, Grid and Snapping", "status": "PLANNED" },
+    { "id": "M8", "title": "Table and Import Completion", "status": "PLANNED" },
+    { "id": "M9", "title": "Floors, Stats and Dashboard", "status": "PLANNED" }
   ],
   "protected": [
     "main without explicit Owner merge approval",
     "Master Graph/store as sole data source",
-    "audit branches must never be merged",
-    "research and prototype branches must never be merged wholesale",
+    "audit/research/prototype branches never merged wholesale",
     "UI-command icons remain separate from drawable symbols",
-    "Rejected and unverified symbol assets remain excluded",
-    "Selection UI must never persist or export"
+    "Selection UI never persists or exports",
+    "M2 cannot start until corrected M1 is accepted"
   ],
   "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
 }
