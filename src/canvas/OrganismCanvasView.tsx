@@ -58,6 +58,7 @@ import {
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
+import { performanceRuntime } from "../runtime/performanceRuntime";
 import { projectClientPoint } from "./labelPresentation";
 import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
@@ -1027,6 +1028,12 @@ export default function OrganismCanvasView() {
       try {
         renderer?.render(frame);
         drawPresentationOverlay(nuclei, pendingCapture?.scale ?? dpr);
+        performanceRuntime.reportFrame({
+          renderer: "organism",
+          timestamp: now,
+          visibleCells: count,
+          totalCells: spaces.length,
+        });
         if (!firstUsableFrame) {
           firstUsableFrame = true;
           announceReadiness("ready");

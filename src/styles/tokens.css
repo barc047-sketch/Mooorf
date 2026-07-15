@@ -67,6 +67,9 @@
   --glass-pill-radius: var(--r-pill);
   --glass-noise: rgba(255, 255, 255, 0.028);
   --glass-edge: rgba(255, 255, 255, 0.26);
+  --shell-control-bottom: var(--sp-24);
+  --shell-control-height: calc(34px * var(--ui-scale));
+  --shell-control-radius: var(--r-pill);
   --instrument-track: rgba(34, 34, 34, 0.16);
   --instrument-thumb: #222222;
   --instrument-halo: rgba(119, 113, 102, 0.12);
@@ -113,6 +116,9 @@
   --glass-contact-shadow: 0 10px 22px -18px rgba(0, 0, 0, 0.38);
   --glass-noise: rgba(255, 255, 255, 0.045);
   --glass-edge: rgba(255, 255, 255, 0.52);
+  --runtime-activity-core: #222222;
+  --runtime-activity-hot: #0b0b0b;
+  --runtime-activity-halo: rgba(34, 34, 34, 0.24);
   --instrument-track: color-mix(in srgb, var(--ink) 15%, transparent);
   --instrument-thumb: color-mix(in srgb, var(--ink) 90%, var(--chrome-accent));
   --instrument-halo: color-mix(in srgb, var(--chrome-accent) 12%, transparent);
@@ -162,6 +168,9 @@
   --glass-contact-shadow: 0 12px 26px -19px rgba(0, 0, 0, 0.72);
   --glass-noise: rgba(255, 255, 255, 0.032);
   --glass-edge: rgba(255, 255, 255, 0.16);
+  --runtime-activity-core: #ffffff;
+  --runtime-activity-hot: #ffffff;
+  --runtime-activity-halo: rgba(200, 224, 255, 0.42);
   --instrument-track: color-mix(in srgb, var(--ink) 15%, transparent);
   --instrument-thumb: color-mix(in srgb, var(--ink) 88%, var(--chrome-accent));
   --instrument-halo: color-mix(in srgb, var(--chrome-accent) 11%, transparent);

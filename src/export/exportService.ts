@@ -16,6 +16,7 @@ import {
 import type { ExportPresentationOptions, ExportVisualOptions } from "./types";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
 import { cloneProjectPresentationDefaults } from "../domain/presentation/validation";
+import { createDownloadFeedback, type DownloadFeedback } from "../runtime/downloadActivity";
 
 export type PackProgressStage =
   | "Capturing canvas"
@@ -53,9 +54,28 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
   };
 };
 
-export const download = async (blob: Blob, filename: string) => {
-  const { saveAs } = await import("file-saver");
-  saveAs(blob, filename);
+export const download = async (
+  blob: Blob,
+  filename: string,
+  feedback: DownloadFeedback = createDownloadFeedback(filename),
+) => {
+  await feedback.complete(async () => {
+    const { saveAs } = await import("file-saver");
+    saveAs(blob, filename);
+  });
+};
+
+const withDownloadFeedback = async <T>(
+  filename: string,
+  operation: (feedback: DownloadFeedback) => Promise<T>,
+): Promise<T> => {
+  const feedback = createDownloadFeedback(filename);
+  try {
+    return await operation(feedback);
+  } catch (error) {
+    feedback.fail(error);
+    throw error;
+  }
 };
 
 export const buildCurrentProjectSnapshot = (project: string) => {
@@ -67,55 +87,67 @@ export const buildCurrentProjectSnapshot = (project: string) => {
 };
 
 export const exportPng = async (project: string, visual: ExportVisualOptions): Promise<void> => {
-  const composite = await captureAndComposite(visual);
-  const blob: Blob | null = await new Promise((resolve) => composite.canvas.toBlob(resolve, "image/png"));
-  if (!blob) throw new Error("Could not encode the canvas as PNG.");
-  await download(blob, buildCanvasFilename(project, "png"));
+  const filename = buildCanvasFilename(project, "png");
+  return withDownloadFeedback(filename, async (feedback) => {
+    const composite = await captureAndComposite(visual);
+    const blob: Blob | null = await new Promise((resolve) => composite.canvas.toBlob(resolve, "image/png"));
+    if (!blob) throw new Error("Could not encode the canvas as PNG.");
+    await download(blob, filename, feedback);
+  });
 };
 
 export const exportSvg = async (project: string): Promise<void> => {
-  const state = useLab.getState();
-  const host = document.querySelector<HTMLElement>(".canvas-host, .organism-canvas-host");
-  const cssWidth = host?.clientWidth ?? window.innerWidth;
-  const cssHeight = host?.clientHeight ?? window.innerHeight;
-  const cs = getComputedStyle(document.documentElement);
-  const svg = buildClassicSvg({
-    spaces: state.spaces,
-    camera: state.camera,
-    cssWidth,
-    cssHeight,
-    paletteMode: state.settings.paletteMode,
-    nucleusPaletteId: state.settings.nucleusPaletteId,
-    organismPaletteId: state.settings.organismPaletteId,
-    morphMode: state.settings.morphMode,
-    presentationDefaults: state.settings.presentationDefaults,
-    colorSource: state.settings.colorSource,
-    labelScaleMode: state.settings.labelScaleMode,
-    labelColourMode: state.settings.labelColourMode,
-    labelCustomColour: state.settings.labelCustomColour,
-    annotationDetail: state.settings.annotationDetail,
-    cellShadow: state.settings.cellShadow,
-    performanceQuality: state.settings.performanceQuality,
-    resources: state.settings.resources,
-    theme: state.theme,
-    background: (cs.getPropertyValue("--bg").trim() || "#ffffff"),
-    includeLabels: true,
-    paddingPx: 0,
+  const filename = buildCanvasFilename(project, "svg");
+  return withDownloadFeedback(filename, async (feedback) => {
+    const state = useLab.getState();
+    const host = document.querySelector<HTMLElement>(".canvas-host, .organism-canvas-host");
+    const cssWidth = host?.clientWidth ?? window.innerWidth;
+    const cssHeight = host?.clientHeight ?? window.innerHeight;
+    const cs = getComputedStyle(document.documentElement);
+    const svg = buildClassicSvg({
+      spaces: state.spaces,
+      camera: state.camera,
+      cssWidth,
+      cssHeight,
+      paletteMode: state.settings.paletteMode,
+      nucleusPaletteId: state.settings.nucleusPaletteId,
+      organismPaletteId: state.settings.organismPaletteId,
+      morphMode: state.settings.morphMode,
+      presentationDefaults: state.settings.presentationDefaults,
+      colorSource: state.settings.colorSource,
+      labelScaleMode: state.settings.labelScaleMode,
+      labelColourMode: state.settings.labelColourMode,
+      labelCustomColour: state.settings.labelCustomColour,
+      annotationDetail: state.settings.annotationDetail,
+      cellShadow: state.settings.cellShadow,
+      performanceQuality: state.settings.performanceQuality,
+      resources: state.settings.resources,
+      theme: state.theme,
+      background: (cs.getPropertyValue("--bg").trim() || "#ffffff"),
+      includeLabels: true,
+      paddingPx: 0,
+    });
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    await download(blob, filename, feedback);
   });
-  const blob = new Blob([svg], { type: "image/svg+xml" });
-  await download(blob, buildCanvasFilename(project, "svg"));
 };
 
 export const exportCsv = async (project: string): Promise<void> => {
-  const csv = spacesToCsv(useLab.getState().spaces);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  await download(blob, buildDataFilename(project, "csv"));
+  const filename = buildDataFilename(project, "csv");
+  return withDownloadFeedback(filename, async (feedback) => {
+    const csv = spacesToCsv(useLab.getState().spaces);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    await download(blob, filename, feedback);
+  });
 };
 
 export const exportJson = async (project: string): Promise<void> => {
-  const snapshot = buildCurrentProjectSnapshot(project);
-  const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
-  await download(blob, buildDataFilename(project, "json"));
+  const filename = buildDataFilename(project, "json");
+  return withDownloadFeedback(filename, async (feedback) => {
+    const snapshot = buildCurrentProjectSnapshot(project);
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
+    await download(blob, filename, feedback);
+  });
 };
 
 export const exportPdf = async (
@@ -123,22 +155,25 @@ export const exportPdf = async (
   visual: ExportVisualOptions,
   presentation: ExportPresentationOptions
 ): Promise<void> => {
-  const composite = await captureAndComposite(visual);
-  const state = useLab.getState();
-  const bytes = await buildPresentationPdf({
-    canvas: composite.canvas,
-    page: presentation.page,
-    orientation: presentation.orientation,
-    title: presentation.title || project,
-    metadata: {
-      programmedAreaM2: presentation.includeAreaMeta ? computeProgrammedArea(state.spaces) : undefined,
-      spaceCount: presentation.includeCountMeta ? state.spaces.length : undefined,
-      renderer: presentation.includeCountMeta || presentation.includeAreaMeta ? state.settings.rendererMode : undefined,
-      exportDate: presentation.includeDateMeta ? new Date() : undefined,
-    },
+  const filename = buildPresentationFilename(project, presentation.page);
+  return withDownloadFeedback(filename, async (feedback) => {
+    const composite = await captureAndComposite(visual);
+    const state = useLab.getState();
+    const bytes = await buildPresentationPdf({
+      canvas: composite.canvas,
+      page: presentation.page,
+      orientation: presentation.orientation,
+      title: presentation.title || project,
+      metadata: {
+        programmedAreaM2: presentation.includeAreaMeta ? computeProgrammedArea(state.spaces) : undefined,
+        spaceCount: presentation.includeCountMeta ? state.spaces.length : undefined,
+        renderer: presentation.includeCountMeta || presentation.includeAreaMeta ? state.settings.rendererMode : undefined,
+        exportDate: presentation.includeDateMeta ? new Date() : undefined,
+      },
+    });
+    const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+    await download(blob, filename, feedback);
   });
-  const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
-  await download(blob, buildPresentationFilename(project, presentation.page));
 };
 
 export interface PresentationPackResult {
@@ -153,6 +188,8 @@ export const buildPresentationPack = async (
   presentation: ExportPresentationOptions,
   onProgress?: (stage: PackProgressStage) => void
 ): Promise<PresentationPackResult> => {
+  const filename = buildPackFilename(project);
+  return withDownloadFeedback(filename, async (feedback) => {
   onProgress?.("Capturing canvas");
   const composite = await captureAndComposite(visual);
   const state = useLab.getState();
@@ -210,10 +247,11 @@ export const buildPresentationPack = async (
   for (const file of files) zip.file(file.name, file.data);
   zip.file("manifest.json", JSON.stringify(manifest, null, 2));
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  await download(zipBlob, buildPackFilename(project));
+  await download(zipBlob, filename, feedback);
 
   onProgress?.("Complete");
   return { filesIncluded: [...files.map((f) => f.name), "manifest.json"] };
+  });
 };
 
 /** Cheap readiness probe the widget can use to disable actions when no

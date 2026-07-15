@@ -1271,7 +1271,7 @@
 .zoom-controls {
   position: absolute;
   right: var(--sp-24);
-  bottom: var(--sp-24);
+  bottom: var(--shell-control-bottom);
   z-index: var(--z-shell);
   display: flex;
   align-items: center;
@@ -1285,10 +1285,12 @@
 }
 
 .zoom-cluster {
+  position: relative;
   display: flex;
   gap: 2px;
-  padding: 2px;
-  border-radius: var(--r-pill);
+  height: var(--shell-control-height);
+  padding: calc(2px * var(--ui-scale));
+  border-radius: var(--shell-control-radius);
 }
 
 /* Bottom-left HUD caption */
@@ -2090,8 +2092,8 @@
 }
 
 @media (max-width: 1024px) {
-  .zoom-controls {
-    bottom: calc(var(--sp-24) + 54px);
+  :root {
+    --shell-control-bottom: calc(var(--sp-24) + 54px);
   }
 }
 

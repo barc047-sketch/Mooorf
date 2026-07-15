@@ -1,0 +1,263 @@
+.runtime-edge-line {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: var(--z-file-drop);
+  width: 100vw;
+  height: 4px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.runtime-edge-line-fill {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--runtime-activity-core);
+  box-shadow: 0 0 8px var(--runtime-activity-halo);
+  transform: scaleX(var(--runtime-progress));
+  transform-origin: left center;
+  transition: transform 160ms linear;
+}
+
+.runtime-edge-line-fill::after {
+  content: "";
+  position: absolute;
+  inset: 1px 0 auto;
+  height: 1px;
+  background: var(--runtime-activity-hot);
+  opacity: 0.88;
+}
+
+.runtime-edge-line[data-kind="compute"] .runtime-edge-line-fill {
+  background: linear-gradient(
+    90deg,
+    var(--runtime-activity-core),
+    color-mix(in srgb, var(--runtime-activity-core) 74%, var(--chrome-accent)),
+    var(--runtime-activity-core)
+  );
+}
+
+.runtime-edge-line[data-indeterminate="true"] .runtime-edge-line-fill {
+  width: 26%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--runtime-activity-core) 54%, transparent) 22%,
+    var(--runtime-activity-core) 72%,
+    var(--runtime-activity-hot)
+  );
+  transform: translateX(-110%);
+  transition: none;
+  animation: runtime-edge-scan 980ms linear infinite;
+}
+
+@keyframes runtime-edge-scan {
+  0% { opacity: 0; transform: translateX(-110%); }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(495%); }
+}
+
+@keyframes runtime-edge-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.runtime-status-area {
+  --runtime-status-left: var(--sp-24);
+  position: fixed;
+  left: var(--runtime-status-left);
+  bottom: var(--shell-control-bottom);
+  z-index: var(--z-file-drop);
+  display: flex;
+  align-items: flex-end;
+  max-width: calc(100vw - (2 * var(--sp-24)));
+  pointer-events: none;
+}
+
+.runtime-status-bar,
+.runtime-notification {
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.runtime-status-bar {
+  position: relative;
+  flex: 0 0 auto;
+  width: max-content;
+  height: var(--shell-control-height);
+  max-width: min(440px, calc(100vw - 48px));
+  border-radius: var(--shell-control-radius);
+  overflow: hidden;
+  pointer-events: auto;
+  font-weight: 400;
+}
+
+.runtime-status-bar[data-expanded="true"] {
+  width: min(340px, calc(100vw - 48px));
+  height: auto;
+  border-radius: var(--glass-card-radius);
+}
+
+.runtime-status-toggle {
+  display: grid;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font-family: var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.runtime-status-bar[data-expanded="true"] .runtime-status-toggle {
+  height: auto;
+  min-height: var(--shell-control-height);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.runtime-status-toggle:focus-visible,
+.runtime-notification:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--chrome-accent) 64%, transparent);
+  outline-offset: 2px;
+}
+
+.runtime-status-compact {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: calc(9px * var(--ui-scale));
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0.075em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-status-bar[data-active="true"] .runtime-status-compact {
+  color: var(--ink);
+}
+
+.runtime-status-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+  transform: translateY(0);
+  opacity: 1;
+  animation: runtime-status-expand 130ms var(--ease-out) both;
+}
+
+.runtime-status-details > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.runtime-status-details small {
+  color: var(--text-muted);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.11em;
+}
+
+.runtime-status-value {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0.045em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-notification {
+  --runtime-status-left: var(--sp-24);
+  position: fixed;
+  left: var(--runtime-status-left);
+  bottom: calc(var(--shell-control-bottom) + var(--shell-control-height) + 10px);
+  z-index: var(--z-file-drop);
+  display: grid;
+  gap: 3px;
+  min-width: 190px;
+  max-width: min(320px, calc(100vw - 48px));
+  padding: 9px 11px;
+  border-radius: var(--glass-card-radius);
+  text-align: left;
+  cursor: pointer;
+  animation: runtime-notification-in 150ms var(--ease-out) both;
+}
+
+.runtime-notification[data-expanded="true"] {
+  bottom: calc(var(--shell-control-bottom) + 148px);
+}
+
+.runtime-notification strong {
+  color: var(--text-primary);
+  font: 650 9px/1 var(--font-ui);
+  letter-spacing: 0.09em;
+}
+
+.runtime-notification span {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font: 500 10px/1.2 var(--font-ui);
+  letter-spacing: 0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-notification[data-kind="warning"] strong { color: var(--warning-data); }
+.runtime-notification[data-kind="error"] strong { color: #b5493f; }
+
+@keyframes runtime-status-expand {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes runtime-notification-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (orientation: portrait) {
+  .runtime-edge-line {
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 100vw;
+    width: 100dvh;
+    transform: rotate(90deg);
+    transform-origin: left top;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .runtime-edge-line[data-indeterminate="true"] .runtime-edge-line-fill {
+    width: 42%;
+    transform: translateX(0);
+    animation: runtime-edge-pulse 1.8s ease-in-out infinite;
+  }
+
+  .runtime-status-details,
+  .runtime-notification {
+    transition: none;
+  }
+
+  .runtime-status-details,
+  .runtime-notification {
+    animation: none;
+  }
+}

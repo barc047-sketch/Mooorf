@@ -20,6 +20,7 @@ import {
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
+import { performanceRuntime } from "../runtime/performanceRuntime";
 import { projectCanvasPoint, projectClientPoint } from "./labelPresentation";
 import "./canvas.css";
 
@@ -380,7 +381,7 @@ export default function CanvasView() {
     renderLoop = createDemandFrameLoop({
       schedule: (callback) => requestAnimationFrame(callback),
       cancel: (id) => cancelAnimationFrame(id),
-      render: () => {
+      render: (frameTimestamp) => {
       // Ease toward externally-set camera (fit/reset/zoom buttons).
       if (camTarget) {
         const t = camTarget;
@@ -413,6 +414,12 @@ export default function CanvasView() {
       })) {
         dirty = true;
       }
+      performanceRuntime.reportFrame({
+        renderer: "classic",
+        timestamp: frameTimestamp,
+        visibleCells: renderSpaces.length,
+        totalCells: spaces.length,
+      });
       if (!firstUsableFrame) {
         firstUsableFrame = true;
         announceReadiness("ready");

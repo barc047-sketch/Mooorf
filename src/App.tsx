@@ -5,7 +5,6 @@ import ViewToggle from "./ui/ViewToggle";
 import Dock from "./ui/Dock";
 import Rail from "./ui/Rail";
 import ZoomControls from "./ui/ZoomControls";
-import Hud from "./ui/Hud";
 import WidgetHost from "./ui/widgets/WidgetHost";
 import CanvasView from "./canvas/CanvasView";
 import OrganismCanvasView from "./canvas/OrganismCanvasView";
@@ -13,6 +12,7 @@ import TableView from "./views/TableView";
 import { Toaster } from "sonner";
 import FileIntakeProvider from "./import/FileIntakeProvider";
 import ContextSurfaceHost from "./ui/context/ContextSurfaceHost";
+import RuntimeStatus from "./ui/RuntimeStatus";
 import { activateInspector, shouldHandleInspectorShortcut } from "./interaction/inspectorShortcut";
 import "./App.css";
 
@@ -132,12 +132,12 @@ function MainApp() {
           {view === "canvas" && (
             <>
               <ZoomControls />
-              <Hud />
               <ContextSurfaceHost />
             </>
           )}
         </>
       )}
+        <RuntimeStatus />
         <Toaster className="zonuert-toaster" position="bottom-center" theme={theme === "night" ? "dark" : "light"} />
       </div>
     </FileIntakeProvider>

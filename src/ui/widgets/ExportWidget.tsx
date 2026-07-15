@@ -4,7 +4,6 @@
 
 import { useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import {
   buildPresentationPack,
   defaultProjectTitle,
@@ -29,6 +28,7 @@ import {
 } from "../../export/types";
 import { ChipRow, SwitchRow, WidgetSection } from "./controls";
 import { downloadConfig, downloadFullProject } from "../../import/projectTransfer";
+import { activity } from "../../runtime/activityRuntime";
 
 type ExportFormatChoice = "png" | "pdf" | "data" | "pack";
 
@@ -84,6 +84,13 @@ const PRIMARY_LABEL: Record<ExportFormatChoice, string> = {
   pack: "Build Pack",
 };
 
+const ACTIVE_EXPORT_LABEL: Record<ExportFormatChoice, string> = {
+  png: "Exporting PNG",
+  pdf: "Exporting PDF",
+  data: "Exporting Data",
+  pack: "Exporting Pack",
+};
+
 export default function ExportWidget() {
   const [format, setFormat] = useState<ExportFormatChoice>("png");
   const [visual, setVisual] = useState(DEFAULT_VISUAL_OPTIONS);
@@ -99,14 +106,22 @@ export default function ExportWidget() {
 
   const busy = stage === "preparing";
   const project = defaultProjectTitle();
+  const exportTaskId = "export:widget";
 
   const runExport = async () => {
     if (runningRef.current) return;
     runningRef.current = true;
     setStage("preparing");
     setStatusMessage("Preparing…");
-    const toastId = "zonuert-export";
-    toast.loading("Preparing export…", { id: toastId });
+    const activeExportLabel = format === "png" && useVectorSvg ? "Exporting SVG" : ACTIVE_EXPORT_LABEL[format];
+    activity.start({
+      id: exportTaskId,
+      label: activeExportLabel,
+      kind: "export",
+      priority: 40,
+      progress: null,
+      cancellable: false,
+    });
     try {
       if (format === "png" && useVectorSvg) {
         await exportSvg(project);
@@ -120,17 +135,17 @@ export default function ExportWidget() {
       } else {
         await buildPresentationPack(project, visual, presentation, (packStage: PackProgressStage) => {
           setStatusMessage(packStage);
-          toast.loading(packStage, { id: toastId });
+          activity.update(exportTaskId, { label: packStage });
         });
       }
       setStage("complete");
       setStatusMessage("Complete");
-      toast.success("Export complete", { id: toastId });
+      activity.complete(exportTaskId);
     } catch (err) {
       setStage("error");
       const message = err instanceof Error ? err.message : "Export failed.";
       setStatusMessage(message);
-      toast.error(message, { id: toastId });
+      activity.fail(exportTaskId, message);
     } finally {
       runningRef.current = false;
     }
@@ -138,6 +153,12 @@ export default function ExportWidget() {
 
   const showVisual = format !== "data";
   const showPresentation = format === "pdf" || format === "pack";
+  const runTransferDownload = (downloadAction: (title: string) => Promise<void>, fallback: string) => {
+    void downloadAction(project).catch((error) => activity.notify({
+      message: error instanceof Error ? error.message : fallback,
+      kind: "error",
+    }));
+  };
 
   return (
     <>
@@ -258,8 +279,8 @@ export default function ExportWidget() {
         )}
         {format === "data" && (
           <div className="wexport-transfer-actions">
-            <button type="button" className="wexport-secondary" disabled={busy} onClick={() => void downloadFullProject(project).then(() => toast.success("Project file downloaded")).catch((error) => toast.error(error instanceof Error ? error.message : "Project download failed."))}>Download Project</button>
-            <button type="button" className="wexport-secondary" disabled={busy} onClick={() => void downloadConfig(project).then(() => toast.success("Configuration downloaded")).catch((error) => toast.error(error instanceof Error ? error.message : "Configuration download failed."))}>Download Config</button>
+            <button type="button" className="wexport-secondary" disabled={busy} onClick={() => runTransferDownload(downloadFullProject, "Project download failed.")}>Download Project</button>
+            <button type="button" className="wexport-secondary" disabled={busy} onClick={() => runTransferDownload(downloadConfig, "Configuration download failed.")}>Download Config</button>
           </div>
         )}
       </WidgetSection>
