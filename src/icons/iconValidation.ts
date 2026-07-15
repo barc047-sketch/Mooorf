@@ -1,9 +1,10 @@
 import { iconRegistry } from "./iconRegistry";
-import type { IconBacking, IconCategory, IconDefinition, IconOrigin, IconPlacementSettings, IconSourceType, IconTarget, IconUsage, IconValidationStatus } from "./types";
+import type { IconBacking, IconCategory, IconDefinition, IconOrigin, IconPlacementPreset, IconPlacementSettings, IconSourceType, IconTarget, IconUsage, IconValidationStatus } from "./types";
 
 const SOURCE_TYPES = new Set<IconSourceType>(["lucide", "local-svg", "local-png", "uploaded"]);
 const CATEGORIES = new Set<IconCategory>(["architecture", "landscape", "diagram", "annotation", "wayfinding", "environmental", "accessibility", "service", "navigation", "custom", "shell", "tools", "insert", "utility"]);
 const BACKINGS = new Set<IconBacking>(["none", "circle", "square", "pill"]);
+const PLACEMENTS = new Set<IconPlacementPreset>(["centre", "above", "below", "top-left", "top-right"]);
 const ORIGINS = new Set<IconOrigin>(["lucide", "mooorf-original", "user-supplied"]);
 const USAGES = new Set<IconUsage>(["drawable-symbol", "ui-control"]);
 const VALIDATION_STATUSES = new Set<IconValidationStatus>(["approved", "pending", "rejected"]);
@@ -42,11 +43,20 @@ export const normalizeIconPlacement = (value: unknown): IconPlacementSettings =>
   return {
     iconId: iconRegistry.resolveId(rawIconId) ?? rawIconId,
     targetSpaceId: typeof record.targetSpaceId === "string" ? record.targetSpaceId.slice(0, 160) : "",
+    placement: PLACEMENTS.has(record.placement as IconPlacementPreset) ? record.placement as IconPlacementPreset : "centre",
+    offsetX: Math.min(128, Math.max(-128, finite(record.offsetX, 0))),
+    offsetY: Math.min(128, Math.max(-128, finite(record.offsetY, 0))),
     scale: Math.min(8, Math.max(0.1, finite(record.scale, 1))),
     rotation,
     opacity: Math.min(1, Math.max(0, finite(record.opacity, 1))),
     tint: hex(record.tint, "#171719"),
     backing: BACKINGS.has(record.backing as IconBacking) ? record.backing as IconBacking : "none",
+    backingSize: Math.min(160, Math.max(8, finite(record.backingSize, 32))),
+    backingOffsetX: Math.min(128, Math.max(-128, finite(record.backingOffsetX, 0))),
+    backingOffsetY: Math.min(128, Math.max(-128, finite(record.backingOffsetY, 0))),
+    backingOpacity: Math.min(1, Math.max(0, finite(record.backingOpacity, 1))),
+    backingOutline: typeof record.backingOutline === "boolean" ? record.backingOutline : record.boundary === true,
+    backingOutlineWidth: Math.min(16, Math.max(0, finite(record.backingOutlineWidth, record.boundary === true ? 1 : 0))),
     boundary: record.boundary === true,
     hideBelowZoom: Math.min(8, Math.max(0, finite(record.hideBelowZoom, 0))),
   };

@@ -59,7 +59,10 @@ import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEven
 import { projectClientPoint } from "./labelPresentation";
 import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
-import { resolveCellShadow } from "./cellShadow";
+import { resolveCellShadowGated } from "./cellShadow";
+import { resolveRuntimeGates } from "./runtimeGates";
+import { iconRegistry } from "../icons/iconRegistry";
+import { drawSymbolPlacement } from "../icons/iconDrawing";
 import {
   drawOrganismCircleOverlay,
   projectCircleLayers,
@@ -73,6 +76,18 @@ import "./organismCanvas.css";
 const CAPTURE_TIMEOUT_MS = 5000;
 
 const DPR_MAX = 2;
+const effectiveCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
+  const runtime = state.membraneRuntimePreview ? { ...state.settings, ...state.membraneRuntimePreview } : state.settings;
+  const visual = state.visualSettingsPreview ? {
+    ...runtime,
+    organism: state.visualSettingsPreview.organism,
+    cellShadow: state.visualSettingsPreview.cellShadow,
+  } : runtime;
+  const resources = state.resourcesPreview ? { ...visual, resources: state.resourcesPreview } : visual;
+  return state.presentationDefaultsPreview
+    ? { ...resources, presentationDefaults: state.presentationDefaultsPreview }
+    : resources;
+};
 const Z_MIN = 0.25;
 const Z_MAX = 4;
 
@@ -181,12 +196,7 @@ export default function OrganismCanvasView() {
     let spaces = initialState.appearancePreview ?? initialState.spaces;
     let selectedId = useLab.getState().selectedId;
     let selectedIdSet = new Set(useLab.getState().selectedIds);
-    const initialRuntimeSettings = initialState.membraneRuntimePreview
-      ? { ...initialState.settings, ...initialState.membraneRuntimePreview }
-      : initialState.settings;
-    let settings = initialState.presentationDefaultsPreview
-      ? { ...initialRuntimeSettings, presentationDefaults: initialState.presentationDefaultsPreview }
-      : initialRuntimeSettings;
+    let settings = effectiveCanvasSettings(initialState);
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let reducedMotion = reducedMotionQuery.matches;
     let resolved = resolveOrganism(settings, reducedMotion);
@@ -225,13 +235,15 @@ export default function OrganismCanvasView() {
         colorSource: settings.colorSource,
       }
     );
-    let cachedField = effectiveField(resolved.params);
-    let cachedShadow = resolveCellShadow(settings.cellShadow, settings.performanceQuality, theme);
+    let cachedShadow = resolveCellShadowGated(settings.cellShadow, settings.performanceQuality, theme);
     let cachedPresentation = projectRuntimePresentation(
       spaces.slice(0, MAX_NUCLEI),
       settings,
       theme
     );
+    let cachedField = cachedPresentation.membrane.visible || cachedPresentation.membraneEdge.visible
+      ? effectiveField(resolved.params)
+      : { tension: 1, bias: 0 };
 
     const refreshDerived = () => {
       cachedAreaRange = getAreaRange(spaces.slice(0, MAX_NUCLEI));
@@ -265,8 +277,8 @@ export default function OrganismCanvasView() {
           colorSource: settings.colorSource,
         }
       );
-      cachedField = effectiveField(resolved.params);
-      cachedShadow = resolveCellShadow(settings.cellShadow, settings.performanceQuality, theme);
+      if (cachedPresentation.membrane.visible || cachedPresentation.membraneEdge.visible) cachedField = effectiveField(resolved.params);
+      cachedShadow = resolveCellShadowGated(settings.cellShadow, settings.performanceQuality, theme);
       derivedDirty = false;
     };
 
@@ -296,6 +308,7 @@ export default function OrganismCanvasView() {
       membraneOpacity: 1,
       membraneEdgeOpacity: 0,
       membraneEdgeWidth: 1,
+      membraneEdgeSoftness: 0,
       morphEnabled: false,
       shadowEnabled: false,
       shadowColor: [0, 0, 0],
@@ -315,10 +328,7 @@ export default function OrganismCanvasView() {
       spaces = nextSpaces;
       selectedId = s.selectedId;
       selectedIdSet = new Set(s.selectedIds);
-      const runtimeSettings = s.membraneRuntimePreview ? { ...s.settings, ...s.membraneRuntimePreview } : s.settings;
-      const nextSettings = s.presentationDefaultsPreview
-        ? { ...runtimeSettings, presentationDefaults: s.presentationDefaultsPreview }
-        : runtimeSettings;
+      const nextSettings = effectiveCanvasSettings(s);
       if (nextSettings !== settings) {
         settings = nextSettings;
         resolved = resolveOrganism(settings, reducedMotion);
@@ -489,6 +499,14 @@ export default function OrganismCanvasView() {
           plainMode,
           backgroundColour,
           baseRadiusPx: nucleus.screenR,
+        });
+        const placement = settings.resources.iconPlacements.find((item) => item.targetSpaceId === nucleus.id);
+        const definition = placement ? iconRegistry.get(placement.iconId) : null;
+        if (placement && definition && space.kind !== "void") drawSymbolPlacement(presentationCtx, definition, placement, {
+          x: nucleus.sx,
+          y: nucleus.sy,
+          radius: nucleus.screenR,
+          zoom: cam.zoom,
         });
       }
       presentationCanvas.dataset.boundaryFallbackCount = "0";
@@ -795,20 +813,30 @@ export default function OrganismCanvasView() {
       }
 
       if (derivedDirty) refreshDerived();
-      advanceMotion(motionState, dt, resolved.adapter.timeScale);
+      if (resolved.motionActive) advanceMotion(motionState, dt, resolved.adapter.timeScale);
       const nuclei = currentNuclei();
       lastNuclei = nuclei;
       const sc = cachedStyle;
       const palette = cachedPalette;
       const params = resolved.params;
       const eff = cachedField;
-      const membraneField = projectMembraneField({
+      const gates = resolveRuntimeGates({
+        membraneVisible: cachedPresentation.membrane.visible || cachedPresentation.membraneEdge.visible,
+        membraneEdgeVisible: cachedPresentation.membraneEdge.visible,
+        shadowEnabled: cachedShadow.enabled,
+        motionEnabled: resolved.motionActive,
+        labelsVisible: settings.organism.showLabels && settings.annotationMode !== "hidden",
+        gridVisible: settings.showGrid,
+        interactionActive: mode === "drag",
+        snappingEnabled: false,
+      });
+      const membraneField = gates.membrane ? projectMembraneField({
         membrane: cachedPresentation.membrane,
         paletteBodyHex: palette.bodyHex,
         paletteBodyBHex: palette.bodyBHex,
         membraneEdgeColour: cachedPresentation.membraneEdge.paint.colour,
         paletteBlend: palette.blend,
-      });
+      }) : { bodyHex: palette.bodyHex, bodyBHex: palette.bodyBHex, accentHex: cachedPresentation.membraneEdge.paint.colour, colorMix: 0, spatialColorMix: 0 as const };
       const bodyTarget = hexToRgb01(membraneField.bodyHex);
       const bodyBTarget = hexToRgb01(membraneField.bodyBHex);
       const accentTarget = hexToRgb01(membraneField.accentHex);
@@ -872,8 +900,8 @@ export default function OrganismCanvasView() {
         Math.abs(dotsTarget - smooth.dots) > 0.002;
 
       dirty = false;
-      syncLabels(nuclei);
-      syncGrid();
+      if (gates.labels) syncLabels(nuclei);
+      if (gates.grid) syncGrid();
 
       nucleiBuf.fill(0);
       nucleusColorsBuf.fill(0);
@@ -929,27 +957,39 @@ export default function OrganismCanvasView() {
       frame.membraneOpacity = cachedPresentation.membrane.visible
         ? cachedPresentation.membrane.paint.opacity
         : 0;
-      frame.membraneEdgeOpacity = cachedPresentation.membraneEdge.visible
-        ? cachedPresentation.membraneEdge.paint.opacity
-        : 0;
-      frame.membraneEdgeWidth = Math.max(0.5, cachedPresentation.membraneEdge.width * cam.zoom);
+      if (gates.membraneEdge) {
+        frame.membraneEdgeOpacity = cachedPresentation.membraneEdge.paint.opacity;
+        frame.membraneEdgeWidth = Math.max(0.5, cachedPresentation.membraneEdge.width * cam.zoom);
+        frame.membraneEdgeSoftness = cachedPresentation.membraneEdge.softness;
+      } else {
+        frame.membraneEdgeOpacity = 0;
+        frame.membraneEdgeWidth = 0;
+        frame.membraneEdgeSoftness = 0;
+      }
       frame.fieldDebug = params.showFieldDebug;
       const debugPresentation = projectOrganismDebugPresentation(params.showNucleiDebug);
       frame.nucleiDebug = debugPresentation.rings;
       frame.nucleiDebugCenterDots = debugPresentation.centreDots;
       const shadow = cachedShadow;
       frame.morphEnabled = morphPresentationActive;
-      frame.shadowEnabled = shadow.enabled && (!pendingCapture || shadow.includeInExport);
-      frame.shadowColor = hexToRgb01(
-        shadow.colorMode === "custom" ? shadow.color : theme === "night" ? "#000000" : "#222222"
-      );
-      frame.shadowOpacity = shadow.opacity;
-      frame.shadowSoftness = shadow.softness / Math.max(1, Math.min(w, h) / 2);
-      frame.shadowOffset = [
-        shadow.offsetX / Math.max(1, Math.min(w, h) / 2),
-        -shadow.offsetY / Math.max(1, Math.min(w, h) / 2),
-      ];
-      frame.shadowSpread = shadow.spread / Math.max(1, Math.min(w, h) / 2);
+      frame.shadowEnabled = gates.shadow && (!pendingCapture || shadow.includeInExport);
+      if (frame.shadowEnabled) {
+        frame.shadowColor = hexToRgb01(
+          shadow.colorMode === "custom" ? shadow.color : theme === "night" ? "#000000" : "#222222"
+        );
+        frame.shadowOpacity = shadow.opacity;
+        frame.shadowSoftness = shadow.softness / Math.max(1, Math.min(w, h) / 2);
+        frame.shadowOffset = [
+          shadow.offsetX / Math.max(1, Math.min(w, h) / 2),
+          -shadow.offsetY / Math.max(1, Math.min(w, h) / 2),
+        ];
+        frame.shadowSpread = shadow.spread / Math.max(1, Math.min(w, h) / 2);
+      } else {
+        frame.shadowOpacity = 0;
+        frame.shadowSoftness = 0;
+        frame.shadowOffset = [0, 0];
+        frame.shadowSpread = 0;
+      }
       if (!firstUsableFrame) announceReadiness("render-requested");
       try {
         renderer?.render(frame);
@@ -1033,10 +1073,9 @@ export default function OrganismCanvasView() {
         aria-hidden="true"
       />
       {showGrid && <div ref={gridRef} className="organism-grid" aria-hidden="true" />}
-      <div
+      {showLabels && annotationMode !== "hidden" && <div
         ref={labelLayerRef}
         className="organism-label-layer"
-        data-hidden={!showLabels || annotationMode === "hidden" ? "true" : undefined}
         data-mode={annotationMode}
         data-position={annotationDetail.position}
         data-bbox={annotationDetail.boundingBox ? "true" : undefined}
@@ -1115,7 +1154,7 @@ export default function OrganismCanvasView() {
             </div>
           );
         })}
-      </div>
+      </div>}
     </div>
   );
 }

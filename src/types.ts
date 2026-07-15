@@ -24,6 +24,8 @@ export type CellShadowMode = "off" | "soft" | "defined";
 export interface CellShadowSettings {
   enabled: boolean;
   mode: CellShadowMode;
+  /** Compact canonical intensity control. Advanced values remain independently editable. */
+  strength: number;
   opacity: number;
   softness: number;
   offsetX: number;
@@ -150,6 +152,8 @@ export interface OrganismSettings {
   angularOffset: number;
 
   // motion
+  motionEnabled: boolean;
+  idleMotion: boolean;
   timeScale: number;
   response: number;
   drift: number;

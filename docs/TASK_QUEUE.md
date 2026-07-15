@@ -1,7 +1,8 @@
 # Task Queue
 
 ## Current Roadmap
-- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 4 complete; global `I` uses the canonical Inspector lifecycle in Canvas/Table; `WAITING_REVIEW`; do not merge or start M2)
+- [x] C0-M2 Advanced Appearance, Production Symbol Tab and Runtime Power Gates (feature implementation complete; `WAITING_REVIEW`; do not merge or start M3/M4)
+- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 4 complete; global `I` uses the canonical Inspector lifecycle in Canvas/Table; historical feature branch remains unmerged)
 - [x] C0.4F-A Runtime Layer Separation (feature implementation complete; `WAITING_REVIEW`; do not merge)
 - [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
 - [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)
@@ -31,6 +32,26 @@
 - [x] V7.1D Independent Widget Scale (desktop/laptop/iPad)
 - [x] V7.2 Export & Presentation Pack (desktop/laptop/iPad)
 
+## C0-M2 — Advanced Appearance, Production Symbols and Runtime Power Gates  ✅ IMPLEMENTED ON FEATURE BRANCH
+
+- [x] exactly one Inspector with live `Content | Appearance | Symbol`
+- [x] exactly three primary Appearance families over six separate canonical internal targets
+- [x] canonical Cell Shadow fast/advanced controls, Shadow Strength, one release history transaction and hard Off gate
+- [x] all Boundary instruments plus Core visibility/size/paint/Auto Contrast/bounded X/Y presentation offsets
+- [x] preserved Cell Gradient/Solid Membrane modes, Morph/Fusion/Reach/opacity and truthful field advanced controls
+- [x] canonical Motion master/idle gate with supported parameters and demand-loop release
+- [x] independent Membrane Edge Softness state, Organism uniform/effect and Classic raster/export fallback
+- [x] Membrane/Edge/Shadow/Motion/Labels/Grid and future inactive Snapping runtime gates
+- [x] 77-symbol audited input reconciled to 133 active unique geometries after 3 rejected removals + exactly 59 verified additions
+- [x] 14 new deterministic aliases, all 5 rejected IDs unavailable, 8+12 custom candidates deferred
+- [x] Symbol search/categories/recents/favourites/keyboard/hover preview/revert/apply/replace/remove
+- [x] one symbol per Cell plus persisted preset/offset/scale/rotation/tint/backing/outline/far-zoom controls
+- [x] bounded history, migration, project/import/saved-view and Copy/Paste Style placement/backing parity
+- [x] Classic/Organism live Canvas, PNG/PDF and clean Classic SVG symbol parity
+- [x] focused executable contracts, TypeScript and 1280/1440 bounded browser smoke
+- [ ] Owner review / independent audit and explicit merge command
+- [ ] M3/M4 remain blocked and unstarted
+
 ## C0-M1 — Production Inspector, Content and Layer Editing Recovery  ✅ CORRECTED ON FEATURE BRANCH
 
 - [x] canonical inline/Inspector/minimal-Table Name, Area and Body editing with one transaction
@@ -55,9 +76,9 @@
 - [x] executable behavioral/renderer coverage, full contracts, typecheck, reviewed-head diff check and exactly one final production build
 - [x] Owner live-preview confirmation plus passing Canvas lifecycle/editing and bounded Table browser checkpoints; exhaustive two-viewport CDP completion not claimed because the harness stalled on controlled Table/textarea/number-field interactions without reproducing a product failure
 - [ ] Owner review of combined C0.4F-A + M1 result
-- [ ] M2 remains blocked and unstarted
+- [x] M2 subsequently executed on its separately authorized feature branch; see the C0-M2 section above
 
-Deferred map remains locked: Symbol tab, advanced Cell/Boundary/Core instruments, Membrane Field Edge Softness (existing field/body feather owner), independent Membrane Edge Softness (future separate Edge owner), optional default-off Void Inner Echo with live/export parity, approved selection orbit and Antigravity symbol catalogue belong to M2 inside the same Inspector; full Material Browser, recents/favourites, hover preview/revert and Material Studio belong to M4.
+The M1 deferred map is resolved by C0-M2 above for the Symbol tab, advanced Cell/Boundary/Core instruments, separate field/edge softness, recents/favourites and hover preview/revert. Optional Void Inner Echo, selection orbit, full Material Browser and Material Studio remain deferred.
 
 ## C0.4F-A — Runtime Layer Separation  ✅ IMPLEMENTED ON FEATURE BRANCH
 

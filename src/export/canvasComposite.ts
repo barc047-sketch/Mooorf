@@ -33,16 +33,18 @@ export const captureAndComposite = async (
   const appearancePreview = ephemeral.appearancePreview;
   const presentationDefaultsPreview = ephemeral.presentationDefaultsPreview;
   const membraneRuntimePreview = ephemeral.membraneRuntimePreview;
-  if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview) {
-    useLab.setState({ appearancePreview: null, presentationDefaultsPreview: null, membraneRuntimePreview: null });
+  const visualSettingsPreview = ephemeral.visualSettingsPreview;
+  const resourcesPreview = ephemeral.resourcesPreview;
+  if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview || visualSettingsPreview || resourcesPreview) {
+    useLab.setState({ appearancePreview: null, presentationDefaultsPreview: null, membraneRuntimePreview: null, visualSettingsPreview: null, resourcesPreview: null });
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
   }
   let capture: CaptureResult;
   try {
     capture = await requestCanvasCapture(requestOptions);
   } finally {
-    if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview) {
-      useLab.setState({ appearancePreview, presentationDefaultsPreview, membraneRuntimePreview });
+    if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview || visualSettingsPreview || resourcesPreview) {
+      useLab.setState({ appearancePreview, presentationDefaultsPreview, membraneRuntimePreview, visualSettingsPreview, resourcesPreview });
     }
   }
   const dims = validateExportDimensions(capture.cssWidth, capture.cssHeight, visual.resolution);

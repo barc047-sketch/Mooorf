@@ -153,12 +153,15 @@ export const resolveCellAppearance = (
     membraneEdge: {
       visible: overrides?.membraneEdge?.visible ?? defaults.membraneEdge.visible,
       width: overrides?.membraneEdge?.width ?? defaults.membraneEdge.width,
+      softness: overrides?.membraneEdge?.softness ?? defaults.membraneEdge.softness,
       paint: resolvedPaint(defaults.membraneEdge.paint, overrides?.membraneEdge?.paint, "organism-edge", (id) => organismFor(id).accentHex),
     },
     core: {
       visible: overrides?.core?.visible ?? defaults.core.visible,
       shape: "dot",
       size: overrides?.core?.size ?? defaults.core.size,
+      offsetX: overrides?.core?.offsetX ?? defaults.core.offsetX,
+      offsetY: overrides?.core?.offsetY ?? defaults.core.offsetY,
       paint: resolvedPaint(defaults.core.paint, overrides?.core?.paint, "core-dot", (id) => nucleusFor(id).fill),
     },
     void: {

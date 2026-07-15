@@ -25,7 +25,7 @@ type ExpandedIconRegistry = typeof iconRegistry & {
 const definitions = BUILT_IN_ICONS as readonly ExpandedIconDefinition[];
 const registry = iconRegistry as ExpandedIconRegistry;
 
-equal(definitions.length, 77, "approved drawable inventory count is exact");
+equal(definitions.length, 133, "M2 approved drawable inventory count is exact");
 equal(new Set(definitions.map((icon) => icon.id)).size, definitions.length, "icon ids are unique");
 equal(new Set(definitions.map((icon) => icon.sourceKey)).size, definitions.length, "approved built-in source references are deduplicated");
 
@@ -54,6 +54,9 @@ equal(registry.resolveId("icon:tree"), "icon:landscape:tree", "legacy tree id re
 equal(registry.resolveId("icon:node"), "icon:diagram:node", "legacy node id resolves canonically");
 equal(registry.resolveId("icon:north"), "icon:annotation:north", "legacy north id resolves canonically");
 equal(registry.resolveId("icon:route"), "icon:wayfinding:route", "legacy route id resolves canonically");
+equal(registry.resolveId("icon:wc"), "icon:architecture:toilet", "M2 WC alias resolves canonically");
+equal(registry.resolveId("icon:elevator"), "icon:wayfinding:chevrons-up", "M2 elevator alias resolves canonically");
+for (const rejected of ["icon:circulation:step-forward", "icon:circulation:step-back", "icon:landscape:sunlight", "icon:diagram:share", "icon:annotation:section"]) equal(registry.resolveId(rejected), null, `${rejected} remains rejected`);
 equal(registry.resolveId("icon:missing"), null, "unknown ids fail safely");
 equal(registry.search("wheelchair access")[0]?.id, "icon:accessibility:access", "search uses normalized tags");
 

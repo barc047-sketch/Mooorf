@@ -194,10 +194,23 @@
 .m1-context strong { overflow: hidden; font-size: 11px; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
 .m1-signal { width: 7px; height: 7px; border-radius: 50%; background: var(--fog); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fog) 14%, transparent); }
 .m1-signal[data-selected="true"] { background: var(--ink-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-soft) 14%, transparent); }
-.m1-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 2px; border-radius: 7px; background: color-mix(in srgb, var(--glass-dark) 28%, transparent); }
+.m1-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 2px; border-radius: 7px; background: color-mix(in srgb, var(--glass-dark) 28%, transparent); }
 .m1-tabs button { height: 27px; border: 0; border-radius: 5px; background: transparent; color: var(--fog); font: inherit; font-size: 9px; text-transform: capitalize; cursor: pointer; }
 .m1-tabs button[data-active="true"] { color: var(--ink); background: color-mix(in srgb, var(--glass-light) 68%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 52%, transparent); }
 .m1-pane { display: flex; flex-direction: column; gap: 8px; }
+.m2-symbol-search { display: flex; align-items: center; gap: 6px; padding: 0 7px; height: 30px; border: 1px solid color-mix(in srgb, var(--hairline) 58%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 36%, transparent); color: var(--fog); }
+.m2-symbol-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; font-size: 10px; }
+.m2-symbol-filters { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.m2-symbol-filters button { flex: 0 0 auto; border: 1px solid color-mix(in srgb, var(--hairline) 48%, transparent); border-radius: 999px; padding: 3px 7px; background: transparent; color: var(--fog); font: inherit; font-size: 8px; text-transform: capitalize; cursor: pointer; }
+.m2-symbol-filters button[data-active="true"] { color: var(--ink); border-color: color-mix(in srgb, var(--chrome-accent) 38%, var(--hairline)); background: color-mix(in srgb, var(--glass-light) 62%, transparent); }
+.m2-symbol-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; max-height: 250px; overflow-y: auto; }
+.m2-symbol-card { position: relative; min-width: 0; border: 1px solid color-mix(in srgb, var(--hairline) 45%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 28%, transparent); }
+.m2-symbol-card[data-active="true"] { border-color: color-mix(in srgb, var(--chrome-accent) 52%, var(--hairline)); }
+.m2-symbol-apply { display: flex; width: 100%; min-height: 58px; align-items: center; justify-content: center; flex-direction: column; gap: 4px; padding: 7px 4px; border: 0; border-radius: inherit; background: transparent; color: var(--ink); cursor: pointer; }
+.m2-symbol-apply:disabled { cursor: default; opacity: .48; }
+.m2-symbol-apply span { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fog); font-size: 7.5px; }
+.m2-symbol-star { position: absolute; top: 3px; right: 3px; display: grid; place-items: center; width: 19px; height: 19px; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--glass-panel) 76%, transparent); color: var(--fog); cursor: pointer; }
+.m2-symbol-star[aria-pressed="true"] { color: var(--ink); }
 .m1-section { display: flex; flex-direction: column; gap: 7px; padding: 9px; border: 1px solid color-mix(in srgb, var(--hairline) 50%, transparent); border-radius: 9px; background: color-mix(in srgb, var(--glass-panel) 50%, transparent); }
 .m1-section h3 { margin: 0; font-size: 9px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
 .m1-section-title { justify-content: space-between; }

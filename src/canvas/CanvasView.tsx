@@ -26,6 +26,18 @@ import "./canvas.css";
 const DPR_MAX = 2;
 const Z_MIN = 0.25;
 const Z_MAX = 4;
+const effectiveCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
+  const runtime = state.membraneRuntimePreview ? { ...state.settings, ...state.membraneRuntimePreview } : state.settings;
+  const visual = state.visualSettingsPreview ? {
+    ...runtime,
+    organism: state.visualSettingsPreview.organism,
+    cellShadow: state.visualSettingsPreview.cellShadow,
+  } : runtime;
+  const resources = state.resourcesPreview ? { ...visual, resources: state.resourcesPreview } : visual;
+  return state.presentationDefaultsPreview
+    ? { ...resources, presentationDefaults: state.presentationDefaultsPreview }
+    : resources;
+};
 // Imperative canvas: raw input is coalesced to one local update per rAF;
 // canonical spaces/camera commit only at gesture end.
 export default function CanvasView() {
@@ -55,10 +67,7 @@ export default function CanvasView() {
     let spaces = st.appearancePreview ?? st.spaces;
     let selectedId = st.selectedId;
     let selectedIds = st.selectedIds;
-    const initialSettings = st.membraneRuntimePreview ? { ...st.settings, ...st.membraneRuntimePreview } : st.settings;
-    let settings = st.presentationDefaultsPreview
-      ? { ...initialSettings, presentationDefaults: st.presentationDefaultsPreview }
-      : initialSettings; // ephemeral previews project through canonical renderer inputs
+    let settings = effectiveCanvasSettings(st); // ephemeral previews project through canonical renderer inputs
     let tokens = readTokens();
     let drag: DragOverride | null = null;
     let dirty = true;
@@ -79,10 +88,7 @@ export default function CanvasView() {
       spaces = s.appearancePreview ?? s.spaces;
       selectedId = s.selectedId;
       selectedIds = s.selectedIds;
-      const runtimeSettings = s.membraneRuntimePreview ? { ...s.settings, ...s.membraneRuntimePreview } : s.settings;
-      settings = s.presentationDefaultsPreview
-        ? { ...runtimeSettings, presentationDefaults: s.presentationDefaultsPreview }
-        : runtimeSettings;
+      settings = effectiveCanvasSettings(s);
       if (s.camera !== lastCommitted) {
         lastCommitted = s.camera;
         camTarget = s.camera; // adopt external change (eased in loop)
@@ -398,7 +404,11 @@ export default function CanvasView() {
       const renderSpaces = translatedPositions.length > 0
         ? applySpacePositionsPreview(spaces, translatedPositions)
         : spaces;
-      if (drawScene(ctx, w, h, dpr, cam, renderSpaces, selectedId, drag, tokens, now, settings, { selectedIds, hoveredId })) {
+      if (drawScene(ctx, w, h, dpr, cam, renderSpaces, selectedId, drag, tokens, now, settings, {
+        includeLabels: settings.organism.showLabels && settings.annotationMode !== "hidden",
+        selectedIds,
+        hoveredId,
+      })) {
         dirty = true;
       }
       if (!firstUsableFrame) {

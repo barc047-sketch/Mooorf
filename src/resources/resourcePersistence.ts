@@ -2,11 +2,12 @@ import { annotationRegistry } from "../annotations/annotationRegistry";
 import type { AnnotationInstance } from "../annotations/types";
 import { migrateLegacyGridSettings, normalizeGridSettings } from "../grid/gridValidation";
 import { normalizeIconPlacement } from "../icons/iconValidation";
+import { iconRegistry } from "../icons/iconRegistry";
 import { normalizeMaterialBinding } from "../materials/materialValidation";
 import type { MaterialBinding, MaterialBindings } from "../materials/types";
 import type { ResourceSettings } from "./types";
 
-export const RESOURCE_SCHEMA_VERSION = 1 as const;
+export const RESOURCE_SCHEMA_VERSION = 2 as const;
 
 const binding = (materialId: string, sourceMode: MaterialBinding["sourceMode"] = "global"): MaterialBinding => ({ materialId, parameterOverrides: {}, sourceMode, opacity: 1, enabled: true });
 
@@ -26,6 +27,8 @@ export const DEFAULT_RESOURCE_SETTINGS: ResourceSettings = {
   grid: migrateLegacyGridSettings(false),
   annotationInstances: [],
   iconPlacements: [],
+  iconFavourites: [],
+  iconRecents: [],
 };
 
 const unsafe = (value: unknown): void => {
@@ -56,13 +59,32 @@ export const normalizeResourceSettings = (
   const rawBindings = record?.materialBindings && typeof record.materialBindings === "object" && !Array.isArray(record.materialBindings) ? record.materialBindings as Record<string, unknown> : {};
   const materialBindings = Object.fromEntries(Object.entries(defaults).map(([key, fallback]) => [key, rawBindings[key] ? normalizeMaterialBinding(rawBindings[key]) : fallback])) as unknown as MaterialBindings;
   const annotationInstances = Array.isArray(record?.annotationInstances) ? record.annotationInstances.map(normalizeAnnotation).filter((item): item is AnnotationInstance => item !== null).slice(0, 10_000) : [];
-  const iconPlacements = Array.isArray(record?.iconPlacements) ? record.iconPlacements.map(normalizeIconPlacement).filter((item) => item.iconId && item.targetSpaceId).slice(0, 10_000) : [];
+  const placements = Array.isArray(record?.iconPlacements) ? record.iconPlacements.map(normalizeIconPlacement).filter((item) => item.iconId && item.targetSpaceId).slice(0, 10_000) : [];
+  const onePerCell = new Map<string, (typeof placements)[number]>();
+  for (const placement of placements) onePerCell.set(placement.targetSpaceId, placement);
+  const iconPlacements = [...onePerCell.values()];
+  const normalizeIds = (input: unknown, limit: number): string[] => {
+    if (!Array.isArray(input)) return [];
+    const seen = new Set<string>();
+    const normalized: string[] = [];
+    for (const value of input) {
+      if (typeof value !== "string") continue;
+      const id = iconRegistry.resolveId(value);
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      normalized.push(id);
+      if (normalized.length >= limit) break;
+    }
+    return normalized;
+  };
   return {
     schemaVersion: RESOURCE_SCHEMA_VERSION,
     materialBindings,
     grid: record?.grid ? normalizeGridSettings(record.grid) : migrateLegacyGridSettings(Boolean(legacy.showGrid)),
     annotationInstances,
     iconPlacements,
+    iconFavourites: normalizeIds(record?.iconFavourites, 500),
+    iconRecents: normalizeIds(record?.iconRecents, 24),
   };
 };
 

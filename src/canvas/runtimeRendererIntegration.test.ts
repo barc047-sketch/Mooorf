@@ -1,5 +1,6 @@
 import { areaToRadius } from "../lib/geometry";
 import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
+import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 import type { SpaceCell } from "../types";
 import { DEFAULT_CELL_SHADOW } from "./cellShadow";
 import { drawScene } from "./renderer";
@@ -156,6 +157,7 @@ drawScene(
     cellShadow: DEFAULT_CELL_SHADOW,
     performanceQuality: "balanced",
     presentationDefaults: defaults,
+    resources: DEFAULT_RESOURCE_SETTINGS,
   },
   { includeLabels: false, selectedIds: [], isExport: true }
 );
@@ -206,6 +208,7 @@ const membraneSettings = {
   cellShadow: DEFAULT_CELL_SHADOW,
   performanceQuality: "balanced" as const,
   presentationDefaults: membraneDefaults,
+  resources: DEFAULT_RESOURCE_SETTINGS,
 };
 drawScene(
   ctx,

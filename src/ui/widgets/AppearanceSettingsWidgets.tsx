@@ -12,6 +12,9 @@ import {
 } from "../../domain/presentation/editing";
 import { cloneProjectPresentationDefaults, normalizeProjectPresentationDefaults } from "../../domain/presentation/validation";
 import { useLab } from "../../state/store";
+import { DEFAULT_CELL_SHADOW } from "../../canvas/cellShadow";
+import { DEFAULT_ORGANISM_SETTINGS } from "../../canvas/organismProductionSettings";
+import type { CellShadowMode, OrganismSettings } from "../../types";
 import { getAreaRange, getNucleusColor } from "../../design/colorMapping";
 import { MORPHS } from "../controlMeta";
 import { listMembraneSolidMaterials } from "../../materials/materialRegistry";
@@ -176,6 +179,92 @@ function CellSurfaceTarget() {
   }}</TargetSettings>;
 }
 
+function CellShadowControls() {
+  const canonical = useLab((state) => state.settings.cellShadow);
+  const preview = useLab((state) => state.visualSettingsPreview?.cellShadow);
+  const shadow = preview ?? canonical;
+  const commit = useLab((state) => state.commitVisualSettings);
+  const previewVisual = useLab((state) => state.previewVisualSettings);
+  const commitPreview = useLab((state) => state.commitVisualSettingsPreview);
+  const setMode = (mode: CellShadowMode) => commit({ cellShadow: mode === "off"
+    ? { enabled: false, mode: "off" }
+    : mode === "soft"
+      ? { enabled: true, mode, softness: 24, offsetY: 9 }
+      : { enabled: true, mode, softness: 8, offsetY: 5 }
+  });
+  const slider = (label: string, key: "strength" | "opacity" | "softness" | "offsetX" | "offsetY" | "spread", min: number, max: number, step: number) => <SliderRow
+    label={label}
+    value={shadow[key]}
+    min={min}
+    max={max}
+    step={step}
+    fmt={key === "strength" || key === "opacity" ? (value) => `${Math.round(value * 100)}%` : undefined}
+    onChange={(value) => previewVisual({ cellShadow: { [key]: value } })}
+    onChangeEnd={commitPreview}
+  />;
+  return <>
+    <WidgetSection title="Cell Shadow" hint="presentation only" defaultOpen>
+      <ChipRow options={(["off", "soft", "defined"] as const).map((id) => ({ id, label: id }))} value={shadow.mode} onChange={setMode} ariaLabel="Cell Shadow mode" />
+      {slider("Shadow Strength", "strength", 0, 1, 0.01)}
+    </WidgetSection>
+    <WidgetSection title="Shadow Advanced">
+      {slider("Opacity", "opacity", 0, 1, 0.01)}
+      {slider("Softness", "softness", 0, 64, 1)}
+      {slider("Offset X", "offsetX", -64, 64, 1)}
+      {slider("Offset Y", "offsetY", -64, 64, 1)}
+      {slider("Spread", "spread", -32, 32, 1)}
+      <SwitchRow label="Auto colour" on={shadow.colorMode === "auto"} onToggle={() => commit({ cellShadow: { colorMode: shadow.colorMode === "auto" ? "custom" : "auto" } })} />
+      <label className="m1-colour-row"><span>Custom shadow colour</span><input type="color" value={shadow.color} disabled={shadow.colorMode !== "custom"} aria-label="Custom shadow colour" onChange={(event) => commit({ cellShadow: { colorMode: "custom", color: event.target.value } })} /></label>
+      <SwitchRow label="Include in export" on={shadow.includeInExport} onToggle={() => commit({ cellShadow: { includeInExport: !shadow.includeInExport } })} />
+      <button type="button" className="m1-btn" onClick={() => commit({ cellShadow: DEFAULT_CELL_SHADOW })}>Reset Shadow</button>
+    </WidgetSection>
+  </>;
+}
+
+function OrganismAdvancedControls() {
+  const canonical = useLab((state) => state.settings.organism);
+  const preview = useLab((state) => state.visualSettingsPreview?.organism);
+  const organism = preview ?? canonical;
+  const commit = useLab((state) => state.commitVisualSettings);
+  const previewVisual = useLab((state) => state.previewVisualSettings);
+  const commitPreview = useLab((state) => state.commitVisualSettingsPreview);
+  const slider = (label: string, key: keyof Pick<OrganismSettings, "edgeSoftness" | "surfaceTension" | "isoLevel" | "mass" | "connectionBias" | "nucleusStrength" | "radiusMin" | "radiusMax" | "sizeVariation" | "offsetX" | "offsetY" | "timeScale" | "response" | "drift" | "breathing" | "wobble" | "phaseVariation">, min: number, max: number, step: number) => <SliderRow
+    label={label}
+    value={organism[key]}
+    min={min}
+    max={max}
+    step={step}
+    onChange={(value) => previewVisual({ organism: { [key]: value } })}
+    onChangeEnd={commitPreview}
+  />;
+  return <>
+    <WidgetSection title="Field Advanced" hint="renderer-owned">
+      {slider("Field Edge Softness", "edgeSoftness", 0.004, 0.3, 0.002)}
+      {slider("Surface Tension", "surfaceTension", 0.6, 1.6, 0.01)}
+      {slider("Iso Level", "isoLevel", 0.5, 2, 0.01)}
+      {slider("Mass / influence", "mass", 0.5, 2.2, 0.01)}
+      {slider("Connection bias", "connectionBias", 0, 1, 0.01)}
+      {slider("Distribution strength", "nucleusStrength", 0.4, 1.8, 0.01)}
+      {slider("Radius minimum", "radiusMin", 0.008, 0.15, 0.002)}
+      {slider("Radius maximum", "radiusMax", 0.15, 0.7, 0.005)}
+      {slider("Size variation", "sizeVariation", 0, 1, 0.01)}
+      {slider("Presentation offset X", "offsetX", -0.6, 0.6, 0.01)}
+      {slider("Presentation offset Y", "offsetY", -0.6, 0.6, 0.01)}
+      <button type="button" className="m1-btn" onClick={() => commit({ organism: DEFAULT_ORGANISM_SETTINGS })}>Reset Field & Motion</button>
+    </WidgetSection>
+    <WidgetSection title="Motion" hint="canonical runtime gate">
+      <SwitchRow label="Motion" on={organism.motionEnabled} onToggle={() => commit({ organism: { motionEnabled: !organism.motionEnabled } })} />
+      <SwitchRow label="Idle motion" on={organism.idleMotion} onToggle={() => commit({ organism: { idleMotion: !organism.idleMotion } })} />
+      {slider("Speed / time scale", "timeScale", 0, 2.5, 0.01)}
+      {slider("Response", "response", 1, 18, 0.1)}
+      {slider("Drift", "drift", 0, 1, 0.01)}
+      {slider("Breathing", "breathing", 0, 1, 0.01)}
+      {slider("Wobble", "wobble", 0, 1, 0.01)}
+      {slider("Phase variation", "phaseVariation", 0, 1, 0.01)}
+    </WidgetSection>
+  </>;
+}
+
 function BoundaryTarget() {
   return <TargetSettings target="boundary">{(api) => {
     const visible = api.value(["visible"], false);
@@ -262,6 +351,7 @@ function MembraneFieldTarget() {
         <ChipRow options={(["tight", "soft", "long", "extreme"] as const).map((id) => ({ id, label: id }))} value={settings.attachMode} onChange={(attachMode) => commitRuntime({ attachMode })} ariaLabel="Membrane fusion range" />
         <SliderRow label="Reach" value={settings.mergeDistance} min={0} max={300} step={1} fmt={(value) => `${value}px`} onChange={(mergeDistance) => previewRuntime({ mergeDistance })} onChangeEnd={commitRuntimePreview} />
       </WidgetSection>
+      <OrganismAdvancedControls />
       <p className="m1-compat-note">Shared organism field · edits Project Defaults for every Cell.</p>
     </>;
   }}</TargetSettings>;
@@ -271,10 +361,12 @@ function MembraneEdgeTarget() {
   return <TargetSettings target="membrane-edge">{(api) => {
     const visible = api.value(["visible"], false);
     const width = api.value(["width"], 1);
+    const softness = api.value(["softness"], 0.08);
     return <>
       <WidgetSection title="Membrane Edge" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
         <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} />
+        <SliderRow label={`Edge Softness${softness.mixed ? " · Mixed" : ""}`} value={Number(softness.value)} min={0} max={1} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(value) => api.preview({ softness: value })} onChangeEnd={api.commitPreview} />
         <PaintControls api={api} label="Edge colour" />
       </WidgetSection>
       <p className="m1-compat-note">Shared organism edge · edits Project Defaults for every Cell.</p>
@@ -291,6 +383,8 @@ function CoreTarget() {
       <p className="m1-compat-note">Core / nucleus is the optional centre marker. It is separate from selection, Boundary, the Membrane field and debug geometry.</p>
       <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
       <SliderRow label={`Size${size.mixed ? " · Mixed" : ""}`} value={Number(size.value)} min={0.1} max={2} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(value) => api.preview({ size: value })} onChangeEnd={api.commitPreview} />
+      <SliderRow label="Offset X" value={Number(api.value(["offsetX"], 0).value)} min={-64} max={64} step={1} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offsetX: value })} onChangeEnd={api.commitPreview} />
+      <SliderRow label="Offset Y" value={Number(api.value(["offsetY"], 0).value)} min={-64} max={64} step={1} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offsetY: value })} onChangeEnd={api.commitPreview} />
       <SwitchRow label="Auto Contrast" on={colour.value === null || colour.value === undefined} onToggle={() => api.commit({ paint: { colour: colour.value == null ? "#171715" : undefined } })} />
       <PaintControls api={api} label="Core colour" />
     </WidgetSection>;
@@ -301,6 +395,7 @@ export function CellSettingsWidget() {
   return <div className="m1-family-settings" data-family="cell">
     <p className="m1-compat-note">Surface, Boundary and Core/nucleus retain separate canonical targets.</p>
     <CellSurfaceTarget />
+    <CellShadowControls />
     <BoundaryTarget />
     <CoreTarget />
   </div>;

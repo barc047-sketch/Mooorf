@@ -14,11 +14,15 @@ import type {
 } from "../types";
 import { resolveLabelScale } from "../canvas/labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
-import { resolveCellShadow } from "../canvas/cellShadow";
+import { resolveCellShadowGated } from "../canvas/cellShadow";
 import type { ProjectPresentationDefaults } from "../domain/presentation/types";
 import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
 import { textStylePreset } from "../domain/presentation/editing";
 import { projectCircleLayers, projectRuntimePresentation } from "../canvas/presentationLayers";
+import type { ResourceSettings } from "../resources/types";
+import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
+import { iconRegistry } from "../icons/iconRegistry";
+import { symbolSvgMarkup } from "../icons/iconDrawing";
 
 const FONT =
   '"Inter Tight","Neue Haas Grotesk Display Pro","Helvetica Neue",Helvetica,Arial,sans-serif';
@@ -67,6 +71,7 @@ export interface ClassicSvgOptions {
   annotationDetail?: AnnotationDetail;
   cellShadow?: CellShadowSettings;
   performanceQuality?: PerformanceQuality;
+  resources?: ResourceSettings;
   theme?: Theme;
   /** Resolved background color, or null for a transparent SVG. */
   background: string | null;
@@ -82,7 +87,7 @@ export interface ClassicSvgOptions {
  * keeps this a truthful vector export rather than silently rasterizing it.
  * See docs/DECISIONS.md V7.2 SVG truthfulness note. */
 export const buildClassicSvg = (options: ClassicSvgOptions): string => {
-  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, organismPaletteId = "mode", morphMode = "cellular-reverse", presentationDefaults = createProjectPresentationDefaults(), colorSource = "category", labelScaleMode = "screen", annotationDetail, cellShadow, performanceQuality = "automatic", theme = "day", background, includeLabels, paddingPx } =
+  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, organismPaletteId = "mode", morphMode = "cellular-reverse", presentationDefaults = createProjectPresentationDefaults(), colorSource = "category", labelScaleMode = "screen", annotationDetail, cellShadow, performanceQuality = "automatic", resources = DEFAULT_RESOURCE_SETTINGS, theme = "day", background, includeLabels, paddingPx } =
     options;
   const w = Math.max(1, Math.round(cssWidth));
   const h = Math.max(1, Math.round(cssHeight));
@@ -108,7 +113,7 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
   if (background) {
     parts.push(`<rect x="0" y="0" width="${totalW}" height="${totalH}" fill="${background}" />`);
   }
-  const resolvedShadow = resolveCellShadow(cellShadow, performanceQuality, theme);
+  const resolvedShadow = resolveCellShadowGated(cellShadow, performanceQuality, theme);
   if (resolvedShadow.enabled && resolvedShadow.includeInExport) {
     parts.push(`<defs><filter id="cell-shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="${resolvedShadow.offsetX}" dy="${resolvedShadow.offsetY}" stdDeviation="${resolvedShadow.softness / 2}" flood-color="${resolvedShadow.color}" flood-opacity="${resolvedShadow.opacity}" /></filter></defs>`);
   }
@@ -136,7 +141,10 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
           parts.push(`<circle cx="${cx}" cy="${cy}" r="${stroke.radiusPx}" fill="none" stroke="${stroke.colour}" stroke-opacity="${stroke.opacity}" stroke-width="${stroke.widthPx}" stroke-dasharray="${stroke.lineDashPx.join(" ")}" stroke-linecap="${stroke.lineCap}" data-boundary-style="${stroke.renderedStyle}" />`);
         }
       }
-      if (layers.core) parts.push(`<circle cx="${cx}" cy="${cy}" r="${layers.core.radiusPx}" fill="${layers.core.colour}" fill-opacity="${layers.core.opacity}" />`);
+      if (layers.core) parts.push(`<circle cx="${cx + (layers.core.offsetXPx ?? 0)}" cy="${cy + (layers.core.offsetYPx ?? 0)}" r="${layers.core.radiusPx}" fill="${layers.core.colour}" fill-opacity="${layers.core.opacity}" />`);
+      const placement = resources.iconPlacements.find((item) => item.targetSpaceId === cell.id);
+      const definition = placement ? iconRegistry.get(placement.iconId) : null;
+      if (placement && definition) parts.push(symbolSvgMarkup(definition, placement, { x: cx, y: cy, radius: r, zoom: z }));
     }
 
     if (includeLabels) {

@@ -4,9 +4,11 @@ import type { IconPlacementSettings } from "../icons/types";
 import type { MaterialBindings } from "../materials/types";
 
 export interface ResourceSettings {
-  schemaVersion: 1;
+  schemaVersion: 2;
   materialBindings: MaterialBindings;
   grid: GridSettings;
   annotationInstances: AnnotationInstance[];
   iconPlacements: IconPlacementSettings[];
+  iconFavourites: string[];
+  iconRecents: string[];
 }

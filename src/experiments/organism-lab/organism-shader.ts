@@ -49,6 +49,7 @@ uniform float uNucleusDots;
 uniform float uMembraneOpacity;
 uniform float uMembraneEdgeOpacity;
 uniform float uMembraneEdgeWidth;
+uniform float uMembraneEdgeSoftness;
 uniform float uMorphEnabled;
 uniform float uShadowEnabled;
 uniform vec3 uShadowColor;
@@ -158,7 +159,7 @@ void main() {
   float surfaceBand = uMorphEnabled > 0.5
     ? 1.0 - smoothstep(
         0.0,
-        max(max(aa, uSoftness * 0.55) * max(uMembraneEdgeWidth, 0.5), 0.0015),
+        max(max(aa, 0.0015) * max(uMembraneEdgeWidth, 0.5) * mix(0.5, 4.0, clamp(uMembraneEdgeSoftness, 0.0, 1.0)), 0.0015),
         abs(f - uIso)
       )
     : 1.0 - smoothstep(0.18, 0.48, abs(body - 0.5));
@@ -268,6 +269,7 @@ export interface OrganismRenderFrame {
   membraneOpacity: number;
   membraneEdgeOpacity: number;
   membraneEdgeWidth: number;
+  membraneEdgeSoftness: number;
   morphEnabled: boolean;
   shadowEnabled: boolean;
   shadowColor: RGB;
@@ -311,6 +313,7 @@ const UNIFORM_NAMES = [
   "uMembraneOpacity",
   "uMembraneEdgeOpacity",
   "uMembraneEdgeWidth",
+  "uMembraneEdgeSoftness",
   "uMorphEnabled",
   "uShadowEnabled",
   "uShadowColor",
@@ -341,6 +344,8 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
   let program: WebGLProgram | null = null;
   let vao: WebGLVertexArrayObject | null = null;
   let loc: Partial<Record<UniformName, WebGLUniformLocation | null>> = {};
+  let membraneEdgeGate = false;
+  let shadowGate = false;
 
   function compile(type: number, src: string): WebGLShader {
     const g = gl as WebGL2RenderingContext;
@@ -378,6 +383,8 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
     /* some drivers require a bound VAO even for attribute-less draws */
     vao = g.createVertexArray();
     g.bindVertexArray(vao);
+    membraneEdgeGate = false;
+    shadowGate = false;
   }
 
   const onLost = (e: Event) => {
@@ -417,15 +424,27 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform1f(loc["uSpatialColorMix"] ?? null, frame.spatialColorMix);
       gl.uniform1f(loc["uNucleusDots"] ?? null, frame.nucleusDots);
       gl.uniform1f(loc["uMembraneOpacity"] ?? null, frame.membraneOpacity);
-      gl.uniform1f(loc["uMembraneEdgeOpacity"] ?? null, frame.membraneEdgeOpacity);
-      gl.uniform1f(loc["uMembraneEdgeWidth"] ?? null, frame.membraneEdgeWidth);
+      const membraneEdgeEnabled = frame.membraneEdgeOpacity > 0;
+      if (membraneEdgeEnabled) {
+        gl.uniform1f(loc["uMembraneEdgeOpacity"] ?? null, frame.membraneEdgeOpacity);
+        gl.uniform1f(loc["uMembraneEdgeWidth"] ?? null, frame.membraneEdgeWidth);
+        gl.uniform1f(loc["uMembraneEdgeSoftness"] ?? null, frame.membraneEdgeSoftness);
+      } else if (membraneEdgeGate) {
+        gl.uniform1f(loc["uMembraneEdgeOpacity"] ?? null, 0);
+      }
+      membraneEdgeGate = membraneEdgeEnabled;
       gl.uniform1f(loc["uMorphEnabled"] ?? null, frame.morphEnabled ? 1 : 0);
-      gl.uniform1f(loc["uShadowEnabled"] ?? null, frame.shadowEnabled ? 1 : 0);
-      gl.uniform3f(loc["uShadowColor"] ?? null, frame.shadowColor[0], frame.shadowColor[1], frame.shadowColor[2]);
-      gl.uniform1f(loc["uShadowOpacity"] ?? null, frame.shadowOpacity);
-      gl.uniform1f(loc["uShadowSoftness"] ?? null, frame.shadowSoftness);
-      gl.uniform2f(loc["uShadowOffset"] ?? null, frame.shadowOffset[0], frame.shadowOffset[1]);
-      gl.uniform1f(loc["uShadowSpread"] ?? null, frame.shadowSpread);
+      if (frame.shadowEnabled) {
+        gl.uniform1f(loc["uShadowEnabled"] ?? null, 1);
+        gl.uniform3f(loc["uShadowColor"] ?? null, frame.shadowColor[0], frame.shadowColor[1], frame.shadowColor[2]);
+        gl.uniform1f(loc["uShadowOpacity"] ?? null, frame.shadowOpacity);
+        gl.uniform1f(loc["uShadowSoftness"] ?? null, frame.shadowSoftness);
+        gl.uniform2f(loc["uShadowOffset"] ?? null, frame.shadowOffset[0], frame.shadowOffset[1]);
+        gl.uniform1f(loc["uShadowSpread"] ?? null, frame.shadowSpread);
+      } else if (shadowGate) {
+        gl.uniform1f(loc["uShadowEnabled"] ?? null, 0);
+      }
+      shadowGate = frame.shadowEnabled;
       gl.uniform1f(loc["uFieldDebug"] ?? null, frame.fieldDebug ? 1 : 0);
       gl.uniform1f(loc["uNucleiDebug"] ?? null, frame.nucleiDebug ? 1 : 0);
       gl.uniform1f(loc["uNucleiDebugCenterDots"] ?? null, frame.nucleiDebugCenterDots ? 1 : 0);

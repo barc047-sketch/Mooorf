@@ -133,21 +133,29 @@ export interface BoundaryAppearanceOverride extends SurfaceAppearanceOverride {
 
 export interface MembraneEdgePresentationDefaults extends SurfacePresentationDefaults {
   width: number;
+  /** Independent edge-band feather; never aliases Organism field edgeSoftness. */
+  softness: number;
 }
 
 export interface MembraneEdgeAppearanceOverride extends SurfaceAppearanceOverride {
   width?: number;
+  softness?: number;
 }
 
 export interface CorePresentationDefaults extends SurfacePresentationDefaults {
   shape: "dot";
   /** Ratio of the Cell radius, matching the current embedded-dot shader. */
   size: number;
+  /** Presentation-only offsets; architectural Cell centres remain unchanged. */
+  offsetX: number;
+  offsetY: number;
 }
 
 export interface CoreAppearanceOverride extends SurfaceAppearanceOverride {
   shape?: "dot";
   size?: number;
+  offsetX?: number;
+  offsetY?: number;
 }
 
 export interface VoidPresentationDefaults {
@@ -169,7 +177,7 @@ export interface VoidAppearanceOverride {
 }
 
 export interface ProjectPresentationDefaults {
-  schemaVersion: 3;
+  schemaVersion: 4;
   text: TextPresentationDefaults;
   cell: SurfacePresentationDefaults;
   boundary: BoundaryPresentationDefaults;
@@ -223,11 +231,14 @@ export interface ResolvedBoundaryAppearance extends ResolvedSurfaceAppearance {
 
 export interface ResolvedMembraneEdgeAppearance extends ResolvedSurfaceAppearance {
   width: number;
+  softness: number;
 }
 
 export interface ResolvedCoreAppearance extends ResolvedSurfaceAppearance {
   shape: "dot";
   size: number;
+  offsetX: number;
+  offsetY: number;
 }
 
 export interface ResolvedVoidAppearance {

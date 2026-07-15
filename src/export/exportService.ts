@@ -96,6 +96,7 @@ export const exportSvg = async (project: string): Promise<void> => {
     annotationDetail: state.settings.annotationDetail,
     cellShadow: state.settings.cellShadow,
     performanceQuality: state.settings.performanceQuality,
+    resources: state.settings.resources,
     theme: state.theme,
     background: (cs.getPropertyValue("--bg").trim() || "#ffffff"),
     includeLabels: true,

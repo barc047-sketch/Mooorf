@@ -1,5 +1,18 @@
 # Decisions
 
+## C0 M2 advanced Inspector, symbols and runtime-gate ownership
+
+- The existing Inspector is the only Inspector. Symbol is its third live tab; advanced family details remain in the existing family widgets rather than creating parallel Inspectors or store owners.
+- `CellShadowSettings` gains one canonical `strength` field. Off is a hard renderer gate, not a visual-only zero. Advanced visual sliders preview in one central snapshot and commit one history transaction on release.
+- `OrganismSettings.motionEnabled` and `idleMotion` are the canonical Motion master gates. Existing drift/breathing/wobble values remain authored parameters; disabling Motion preserves them while stopping advancement and continuous frame ownership.
+- Field Edge Softness remains `OrganismSettings.edgeSoftness`. Membrane Edge Softness is separately persisted as `presentationDefaults.membraneEdge.softness` and separately projected as `uMembraneEdgeSoftness`; the labels never alias one field/uniform.
+- Presentation schema v4 adds only Membrane Edge softness and Core presentation offsets. Resource schema v2 expands the existing ID-only placement seam with preset/offset/backing details plus known-ID recents/favourites; no project major bump or registry-object persistence is needed.
+- A Cell may own at most one primary symbol placement record. Resource normalization keeps the latest record per target. Preview is ephemeral; apply/replace/remove is one resource history entry.
+- Copy/Paste Style includes symbol placement/backing but excludes symbol identity and target ID. A target without an existing symbol therefore does not acquire the source identity through style paste.
+- Exactly 59 unique installed Lucide geometries are added after deduplicating compatibility export names against baseline geometry. Three rejected baseline IDs are removed, so the final active library is 133 geometries with 20 deterministic aliases. Custom-vector and command-icon families remain outside the drawable library.
+- The same Lucide node adapter feeds both Canvas renderers and Classic SVG. Organism SVG remains unavailable because the implicit field still has no truthful vector path; PNG/PDF remain the Organism export fallback.
+- Inactive Snapping is represented only by the reusable runtime gate. No snapping candidate generator, menu or engine is introduced in M2.
+
 ## V8.2C0 canvas performance, contrast, and glass ownership
 
 - Raw pointer and wheel events are coalesced by one renderer-local rAF scheduler. Drag previews derive from original positions without Zustand writes; pointer-up flushes the last sample and creates one transform history entry. Camera persists only after pan/zoom gestures.

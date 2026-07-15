@@ -131,12 +131,15 @@ export const normalizeProjectPresentationDefaults = (
     membraneEdge: {
       visible: typeof membraneEdge.visible === "boolean" ? membraneEdge.visible : fallback.membraneEdge.visible,
       width: finiteOr(membraneEdge.width, fallback.membraneEdge.width, 0, 64),
+      softness: finiteOr(membraneEdge.softness, fallback.membraneEdge.softness, 0, 1),
       paint: normalizePaintDefaults(membraneEdge.paint, fallback.membraneEdge.paint),
     },
     core: {
       visible: typeof core.visible === "boolean" ? core.visible : fallback.core.visible,
       shape: "dot",
       size: finiteOr(core.size, fallback.core.size, 0.1, 2),
+      offsetX: finiteOr(core.offsetX, fallback.core.offsetX, -64, 64),
+      offsetY: finiteOr(core.offsetY, fallback.core.offsetY, -64, 64),
       paint: normalizePaintDefaults(core.paint, fallback.core.paint),
     },
     void: {
@@ -239,12 +242,15 @@ export const normalizeCellAppearanceOverrides = (
   const membraneEdge = isRecord(value.membraneEdge) ? compact({
     visible: changedBoolean(value.membraneEdge.visible, defaults.membraneEdge.visible),
     width: changedNumber(value.membraneEdge.width, defaults.membraneEdge.width, 0, 64),
+    softness: changedNumber(value.membraneEdge.softness, defaults.membraneEdge.softness, 0, 1),
     paint: normalizePaintOverride(value.membraneEdge.paint, defaults.membraneEdge.paint),
   }) : undefined;
   const core = isRecord(value.core) ? compact({
     visible: changedBoolean(value.core.visible, defaults.core.visible),
     shape: value.core.shape === "dot" && value.core.shape !== defaults.core.shape ? "dot" as const : undefined,
     size: changedNumber(value.core.size, defaults.core.size, 0.1, 2),
+    offsetX: changedNumber(value.core.offsetX, defaults.core.offsetX, -64, 64),
+    offsetY: changedNumber(value.core.offsetY, defaults.core.offsetY, -64, 64),
     paint: normalizePaintOverride(value.core.paint, defaults.core.paint),
   }) : undefined;
   const voidTarget = isRecord(value.void) ? compact({

@@ -3,6 +3,7 @@ import type { CellShadowSettings, PerformanceQuality, Theme } from "../types";
 export const DEFAULT_CELL_SHADOW: CellShadowSettings = {
   enabled: false,
   mode: "off",
+  strength: 0.5,
   opacity: 0.16,
   softness: 22,
   offsetX: 0,
@@ -23,6 +24,7 @@ export const normalizeCellShadow = (value?: Partial<CellShadowSettings> | null):
   return {
     enabled,
     mode: enabled ? mode : "off",
+    strength: clamp(finite(value?.strength, DEFAULT_CELL_SHADOW.strength), 0, 1),
     opacity: clamp(finite(value?.opacity, DEFAULT_CELL_SHADOW.opacity), 0, 1),
     softness: clamp(finite(value?.softness, DEFAULT_CELL_SHADOW.softness), 0, 64),
     offsetX: clamp(finite(value?.offsetX, DEFAULT_CELL_SHADOW.offsetX), -64, 64),
@@ -49,7 +51,8 @@ export const resolveCellShadow = (
     ? normalized.color
     : theme === "night" ? "#000000" : "#222222";
   const hex = Number.parseInt(rgb.slice(1), 16);
-  const opacity = normalized.mode === "defined" ? Math.max(normalized.opacity, 0.24) : normalized.opacity;
+  const opacityBase = normalized.mode === "defined" ? Math.max(normalized.opacity, 0.24) : normalized.opacity;
+  const opacity = opacityBase * normalized.strength;
   return {
     ...normalized,
     enabled,
@@ -59,3 +62,20 @@ export const resolveCellShadow = (
     rgba: `rgba(${(hex >> 16) & 255},${(hex >> 8) & 255},${hex & 255},${opacity})`,
   };
 };
+
+const DISABLED_RESOLVED_SHADOW: ResolvedCellShadow = {
+  ...DEFAULT_CELL_SHADOW,
+  enabled: false,
+  mode: "off",
+  rgba: "rgba(0,0,0,0)",
+};
+
+/** Hard gate: disabled shadows never enter colour, mask, or quality resolution. */
+export const resolveCellShadowGated = (
+  value: Partial<CellShadowSettings> | null | undefined,
+  quality: PerformanceQuality,
+  theme: Theme,
+  resolver: typeof resolveCellShadow = resolveCellShadow,
+): ResolvedCellShadow => value?.enabled === true && value.mode !== "off"
+  ? resolver(value, quality, theme)
+  : DISABLED_RESOLVED_SHADOW;

@@ -32,6 +32,8 @@ export const DEFAULT_ORGANISM_SETTINGS: OrganismSettings = {
   radialOffset: 0,
   angularOffset: 0,
 
+  motionEnabled: false,
+  idleMotion: true,
   timeScale: 1,
   response: 10,
   drift: 0,
@@ -134,6 +136,8 @@ export function resolveOrganism(settings: LabSettings, reducedMotion = false): R
   };
 
   const motionActive =
+    o.motionEnabled &&
+    o.idleMotion &&
     adapter.timeScale > 0 &&
     (adapter.drift > 0.001 || adapter.breathing > 0.001 || adapter.wobble > 0.001);
 

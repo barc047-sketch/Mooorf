@@ -48,6 +48,8 @@ import {
 } from "../interaction/groupDrag";
 import { cloneResourceSettings, defaultMaterialBindings, DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 import type { ResourceSettings } from "../resources/types";
+import { normalizeIconPlacement } from "../icons/iconValidation";
+import type { IconPlacementSettings } from "../icons/types";
 import { migrateLegacyGridSettings } from "../grid/gridValidation";
 import { DEFAULT_CELL_SHADOW, normalizeCellShadow } from "../canvas/cellShadow";
 import {
@@ -105,11 +107,27 @@ interface MembraneRuntimeSnapshot {
   mergeDistance: number;
 }
 
+interface VisualSettingsSnapshot {
+  organism: OrganismSettings;
+  cellShadow: CellShadowSettings;
+}
+
+type SymbolPlacementStyle = Omit<IconPlacementSettings, "iconId" | "targetSpaceId">;
+
+interface StyleClipboard {
+  appearance: CellAppearanceOverrides | null;
+  /** Placement/backing only. Symbol identity deliberately remains on the target Cell. */
+  symbolStyle: SymbolPlacementStyle | null;
+}
+
 type SpaceHistoryEntry =
   | { kind: "transform"; before: SpacePosition[]; after: SpacePosition[] }
   | { kind: "cells"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[] }
   | { kind: "defaults"; before: ProjectPresentationDefaults; after: ProjectPresentationDefaults }
-  | { kind: "membrane-runtime"; before: MembraneRuntimeSnapshot; after: MembraneRuntimeSnapshot };
+  | { kind: "membrane-runtime"; before: MembraneRuntimeSnapshot; after: MembraneRuntimeSnapshot }
+  | { kind: "visual-settings"; before: VisualSettingsSnapshot; after: VisualSettingsSnapshot }
+  | { kind: "resources"; before: ResourceSettings; after: ResourceSettings }
+  | { kind: "style"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[]; beforeResources: ResourceSettings; afterResources: ResourceSettings };
 
 export interface LabSettings {
   uiScale: number;
@@ -182,7 +200,9 @@ interface LabState {
   appearancePreview: SpaceCell[] | null;
   presentationDefaultsPreview: ProjectPresentationDefaults | null;
   membraneRuntimePreview: MembraneRuntimeSnapshot | null;
-  styleClipboard: CellAppearanceOverrides | null;
+  visualSettingsPreview: VisualSettingsSnapshot | null;
+  resourcesPreview: ResourceSettings | null;
+  styleClipboard: StyleClipboard | null;
 
   toggleTheme: () => void;
   setView: (view: ViewMode) => void;
@@ -246,6 +266,14 @@ interface LabState {
   previewMembraneRuntime: (patch: Partial<MembraneRuntimeSnapshot>) => void;
   commitMembraneRuntimePreview: () => void;
   cancelMembraneRuntimePreview: () => void;
+  commitVisualSettings: (patch: { organism?: Partial<OrganismSettings>; cellShadow?: Partial<CellShadowSettings> }) => void;
+  previewVisualSettings: (patch: { organism?: Partial<OrganismSettings>; cellShadow?: Partial<CellShadowSettings> }) => void;
+  commitVisualSettingsPreview: () => void;
+  cancelVisualSettingsPreview: () => void;
+  commitSymbolPlacement: (targetSpaceId: string, placement: IconPlacementSettings | null) => void;
+  previewSymbolPlacement: (targetSpaceId: string, placement: IconPlacementSettings | null) => void;
+  cancelSymbolPreview: () => void;
+  toggleIconFavourite: (iconId: string) => void;
   moveSpace: (id: string, x: number, y: number) => void;
   commitSpaceTransform: (before: readonly SpacePosition[], after: readonly SpacePosition[]) => void;
   undoSpaceTransform: () => void;
@@ -282,6 +310,36 @@ const cloneSpace = (space: SpaceCell): SpaceCell => ({
 });
 const cloneCamera = (camera: Camera): Camera => ({ ...camera });
 const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...organism });
+const snapshotVisualSettings = (settings: LabSettings): VisualSettingsSnapshot => ({
+  organism: cloneOrganism(settings.organism),
+  cellShadow: normalizeCellShadow(settings.cellShadow),
+});
+
+const cloneVisualSettings = (value: VisualSettingsSnapshot): VisualSettingsSnapshot => ({
+  organism: cloneOrganism(value.organism),
+  cellShadow: normalizeCellShadow(value.cellShadow),
+});
+
+const symbolStyle = (placement: IconPlacementSettings): SymbolPlacementStyle => {
+  const { iconId: _iconId, targetSpaceId: _targetSpaceId, ...style } = placement;
+  return { ...style };
+};
+
+const withSymbolPlacement = (
+  resources: ResourceSettings,
+  targetSpaceId: string,
+  placement: IconPlacementSettings | null,
+  recordRecent: boolean,
+): ResourceSettings => {
+  const next = cloneResourceSettings(resources);
+  next.iconPlacements = next.iconPlacements.filter((item) => item.targetSpaceId !== targetSpaceId);
+  if (placement) {
+    const normalized = normalizeIconPlacement({ ...placement, targetSpaceId });
+    if (normalized.iconId && normalized.targetSpaceId) next.iconPlacements.push(normalized);
+    if (recordRecent) next.iconRecents = [normalized.iconId, ...next.iconRecents.filter((id) => id !== normalized.iconId)].slice(0, 24);
+  }
+  return cloneResourceSettings(next);
+};
 
 const syncLegacyPresentationDefaults = (
   current: ProjectPresentationDefaults,
@@ -348,7 +406,7 @@ const applyHistoryEntry = (
   direction: "before" | "after"
 ): SpaceCell[] => {
   if (entry.kind === "transform") return applySpacePositions(spaces, entry[direction]);
-  if (entry.kind === "defaults" || entry.kind === "membrane-runtime") return [...spaces];
+  if (entry.kind === "defaults" || entry.kind === "membrane-runtime" || entry.kind === "visual-settings" || entry.kind === "resources") return [...spaces];
   const values = new Map(entry[direction].map((value) => [value.id, value]));
   return spaces.map((space) => {
     const value = values.get(space.id);
@@ -615,6 +673,8 @@ export const useLab = create<LabState>((set) => ({
   appearancePreview: null,
   presentationDefaultsPreview: null,
   membraneRuntimePreview: null,
+  visualSettingsPreview: null,
+  resourcesPreview: null,
   styleClipboard: null,
 
   toggleTheme: () =>
@@ -847,8 +907,13 @@ export const useLab = create<LabState>((set) => ({
         y: source.y + 18,
       });
       duplicateId = duplicate.id;
+      const sourcePlacement = s.settings.resources.iconPlacements.find((placement) => placement.targetSpaceId === id);
+      const resources = sourcePlacement
+        ? withSymbolPlacement(s.settings.resources, duplicate.id, { ...sourcePlacement, targetSpaceId: duplicate.id }, false)
+        : s.settings.resources;
       return {
         spaces: [...s.spaces, duplicate],
+        settings: resources === s.settings.resources ? s.settings : { ...s.settings, resources },
         ...replaceSelectionState(duplicate.id),
       };
     });
@@ -1023,7 +1088,11 @@ export const useLab = create<LabState>((set) => ({
   copyStyle: (id) =>
     set((s) => {
       const source = s.spaces.find((space) => space.id === id);
-      return source ? { styleClipboard: cloneStyle(source.appearance) } : {};
+      const placement = s.settings.resources.iconPlacements.find((item) => item.targetSpaceId === id);
+      return source ? { styleClipboard: {
+        appearance: cloneStyle(source.appearance) ?? null,
+        symbolStyle: placement ? symbolStyle(placement) : null,
+      } } : {};
     }),
 
   pasteStyle: (ids) =>
@@ -1032,12 +1101,26 @@ export const useLab = create<LabState>((set) => ({
       const defaults = s.settings.presentationDefaults;
       const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
         ...space,
-        appearance: normalizeCellAppearanceOverrides(s.styleClipboard, defaults),
+        appearance: normalizeCellAppearanceOverrides(s.styleClipboard!.appearance, defaults),
       }));
-      if (!result) return {};
+      const beforeResources = cloneResourceSettings(s.settings.resources);
+      let afterResources = cloneResourceSettings(beforeResources);
+      if (s.styleClipboard.symbolStyle) {
+        const targetSet = new Set(ids);
+        afterResources.iconPlacements = afterResources.iconPlacements.map((placement) => targetSet.has(placement.targetSpaceId)
+          ? normalizeIconPlacement({ ...placement, ...s.styleClipboard!.symbolStyle })
+          : placement);
+        afterResources = cloneResourceSettings(afterResources);
+      }
+      if (!result && JSON.stringify(beforeResources) === JSON.stringify(afterResources)) return {};
+      const before = result?.entry.kind === "cells" ? result.entry.before : snapshotCells(s.spaces, new Set(ids));
+      const nextSpaces = result?.spaces ?? s.spaces;
+      const after = snapshotCells(nextSpaces, new Set(ids));
+      const entry: SpaceHistoryEntry = { kind: "style", before, after, beforeResources, afterResources };
       return {
-        spaces: result.spaces,
-        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        spaces: nextSpaces,
+        settings: { ...s.settings, resources: afterResources },
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: [],
       };
     }),
@@ -1134,6 +1217,87 @@ export const useLab = create<LabState>((set) => ({
 
   cancelMembraneRuntimePreview: () => set({ membraneRuntimePreview: null }),
 
+  commitVisualSettings: (patch) =>
+    set((s) => {
+      const before = snapshotVisualSettings(s.settings);
+      const after: VisualSettingsSnapshot = {
+        organism: { ...before.organism, ...(patch.organism ?? {}) },
+        cellShadow: normalizeCellShadow({ ...before.cellShadow, ...(patch.cellShadow ?? {}) }),
+      };
+      if (JSON.stringify(before) === JSON.stringify(after)) return { visualSettingsPreview: null };
+      const entry: SpaceHistoryEntry = { kind: "visual-settings", before, after };
+      return {
+        settings: { ...s.settings, organism: after.organism, cellShadow: after.cellShadow },
+        visualSettingsPreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  previewVisualSettings: (patch) =>
+    set((s) => {
+      const base = s.visualSettingsPreview ?? snapshotVisualSettings(s.settings);
+      return { visualSettingsPreview: {
+        organism: { ...base.organism, ...(patch.organism ?? {}) },
+        cellShadow: normalizeCellShadow({ ...base.cellShadow, ...(patch.cellShadow ?? {}) }),
+      } };
+    }),
+
+  commitVisualSettingsPreview: () =>
+    set((s) => {
+      if (!s.visualSettingsPreview) return {};
+      const before = snapshotVisualSettings(s.settings);
+      const after = cloneVisualSettings(s.visualSettingsPreview);
+      if (JSON.stringify(before) === JSON.stringify(after)) return { visualSettingsPreview: null };
+      const entry: SpaceHistoryEntry = { kind: "visual-settings", before, after };
+      return {
+        settings: { ...s.settings, organism: after.organism, cellShadow: after.cellShadow },
+        visualSettingsPreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  cancelVisualSettingsPreview: () => set({ visualSettingsPreview: null }),
+
+  commitSymbolPlacement: (targetSpaceId, placement) =>
+    set((s) => {
+      const before = cloneResourceSettings(s.settings.resources);
+      const after = withSymbolPlacement(before, targetSpaceId, placement, true);
+      if (JSON.stringify(before) === JSON.stringify(after)) return { resourcesPreview: null };
+      const entry: SpaceHistoryEntry = { kind: "resources", before, after };
+      return {
+        settings: { ...s.settings, resources: after },
+        resourcesPreview: null,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  previewSymbolPlacement: (targetSpaceId, placement) =>
+    set((s) => ({ resourcesPreview: withSymbolPlacement(s.settings.resources, targetSpaceId, placement, false) })),
+
+  cancelSymbolPreview: () => set({ resourcesPreview: null }),
+
+  toggleIconFavourite: (iconId) =>
+    set((s) => {
+      const before = cloneResourceSettings(s.settings.resources);
+      const canonicalId = normalizeIconPlacement({ iconId, targetSpaceId: "__favourite__" }).iconId;
+      if (!canonicalId) return {};
+      const after = cloneResourceSettings({
+        ...before,
+        iconFavourites: before.iconFavourites.includes(canonicalId)
+          ? before.iconFavourites.filter((id) => id !== canonicalId)
+          : [...before.iconFavourites, canonicalId],
+      });
+      const entry: SpaceHistoryEntry = { kind: "resources", before, after };
+      return {
+        settings: { ...s.settings, resources: after },
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    }),
+
   moveSpace: (id, x, y) =>
     set((s) => ({
       spaces: s.spaces.map((c) => (c.id === id ? { ...c, x, y } : c)),
@@ -1161,10 +1325,18 @@ export const useLab = create<LabState>((set) => ({
           ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.before) }
           : entry.kind === "membrane-runtime"
             ? { ...s.settings, ...entry.before }
-            : s.settings,
+            : entry.kind === "visual-settings"
+              ? { ...s.settings, ...cloneVisualSettings(entry.before) }
+              : entry.kind === "resources"
+                ? { ...s.settings, resources: cloneResourceSettings(entry.before) }
+                : entry.kind === "style"
+                  ? { ...s.settings, resources: cloneResourceSettings(entry.beforeResources) }
+                  : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
         membraneRuntimePreview: null,
+        visualSettingsPreview: null,
+        resourcesPreview: null,
         transformUndoStack: s.transformUndoStack.slice(0, -1),
         transformRedoStack: [...s.transformRedoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
       };
@@ -1180,10 +1352,18 @@ export const useLab = create<LabState>((set) => ({
           ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.after) }
           : entry.kind === "membrane-runtime"
             ? { ...s.settings, ...entry.after }
-            : s.settings,
+            : entry.kind === "visual-settings"
+              ? { ...s.settings, ...cloneVisualSettings(entry.after) }
+              : entry.kind === "resources"
+                ? { ...s.settings, resources: cloneResourceSettings(entry.after) }
+                : entry.kind === "style"
+                  ? { ...s.settings, resources: cloneResourceSettings(entry.afterResources) }
+                  : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
         membraneRuntimePreview: null,
+        visualSettingsPreview: null,
+        resourcesPreview: null,
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: s.transformRedoStack.slice(0, -1),
       };
@@ -1198,6 +1378,13 @@ export const useLab = create<LabState>((set) => ({
       );
       return {
         spaces,
+        settings: {
+          ...s.settings,
+          resources: cloneResourceSettings({
+            ...s.settings.resources,
+            iconPlacements: s.settings.resources.iconPlacements.filter((placement) => placement.targetSpaceId !== id),
+          }),
+        },
         ...selection,
         ...(s.contextTargetId === id ? closedContext : {}),
       };

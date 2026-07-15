@@ -176,6 +176,7 @@ export default function OrganismLab() {
       membraneOpacity: 1,
       membraneEdgeOpacity: 0,
       membraneEdgeWidth: 1,
+      membraneEdgeSoftness: 0,
       morphEnabled: true,
       shadowEnabled: false,
       shadowColor: [0, 0, 0],

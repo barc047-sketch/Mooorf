@@ -25,8 +25,9 @@ import {
   resolveContentEditKey,
   type ContentEditResolution,
 } from "../../interaction/contentEditSession";
+import SymbolInspectorPane from "./SymbolInspectorPane";
 
-type TabId = "content" | "appearance";
+type TabId = "content" | "appearance" | "symbol";
 
 const common = <T,>(values: readonly T[]): { value: T | undefined; mixed: boolean } => {
   if (!values.length) return { value: undefined, mixed: false };
@@ -147,7 +148,7 @@ export default function InspectorWidget() {
   const familyState = selected.length
     ? resolveFamilyInheritanceState(selected.map((space) => space.appearance), activeFamily)
     : "project-default";
-  const inspectorState = tab === "content" ? textState : familyState;
+  const inspectorState = tab === "content" ? textState : tab === "appearance" ? familyState : "project-default";
   const paletteReference = selected[0] ?? spaces.find((space) => space.kind !== "void");
   const projectColour = paletteReference
     ? getNucleusColor(paletteReference, paletteMode, getAreaRange(spaces), nucleusPaletteId, colorSource)
@@ -185,11 +186,11 @@ export default function InspectorWidget() {
         <div><small>{contextKind}</small><strong>{contextLabel}</strong></div>
         <span className="m1-state-badge" data-state={inspectorState}>{inheritanceStateLabel(inspectorState)}</span>
       </div>
-      <div className="m1-tabs" role="tablist" aria-label="Inspector sections" data-future-tab="symbol">
-        {(["content", "appearance"] as const).map((id) => <button key={id} type="button" role="tab" aria-selected={tab === id} data-active={tab === id} onClick={() => setTab(id)}>{id}</button>)}
+      <div className="m1-tabs" role="tablist" aria-label="Inspector sections">
+        {(["content", "appearance", "symbol"] as const).map((id) => <button key={id} type="button" role="tab" aria-selected={tab === id} data-active={tab === id} onClick={() => setTab(id)}>{id}</button>)}
       </div>
 
-      {tab === "content" ? <div className="m1-pane" role="tabpanel">
+      {tab === "symbol" ? <SymbolInspectorPane /> : tab === "content" ? <div className="m1-pane" role="tabpanel">
         {selected.length ? <section className="m1-section">
           <h3>Architectural content</h3>
           <ContentField label="Space Name" field="name" spaces={selected} />

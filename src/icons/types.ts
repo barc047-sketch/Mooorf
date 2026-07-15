@@ -6,6 +6,7 @@ export type IconCategory =
   | "shell" | "tools" | "insert" | "utility";
 export type IconSourceType = "lucide" | "local-svg" | "local-png" | "uploaded";
 export type IconBacking = "none" | "circle" | "square" | "pill";
+export type IconPlacementPreset = "centre" | "above" | "below" | "top-left" | "top-right";
 export type IconTarget = "space";
 export type IconOrigin = "lucide" | "mooorf-original" | "user-supplied";
 export type IconUsage = "drawable-symbol" | "ui-control";
@@ -37,11 +38,20 @@ export interface IconDefinition {
 export interface IconPlacementSettings {
   iconId: string;
   targetSpaceId: string;
+  placement: IconPlacementPreset;
+  offsetX: number;
+  offsetY: number;
   scale: number;
   rotation: number;
   opacity: number;
   tint: string;
   backing: IconBacking;
+  backingSize: number;
+  backingOffsetX: number;
+  backingOffsetY: number;
+  backingOpacity: number;
+  backingOutline: boolean;
+  backingOutlineWidth: number;
   boundary: boolean;
   hideBelowZoom: number;
 }

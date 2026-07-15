@@ -29,8 +29,8 @@ assert.match(inline, /commitSpaceEdit/, "inline content commits through canonica
 assert.match(table, /field="body"/, "minimal Table exposes Body");
 assert.match(table, /commitSpaceEdit/, "minimal Table uses canonical history-aware content commit");
 assert.match(inspector, /Content[\s\S]*Appearance/i, "the one Inspector exposes live Content and Appearance tabs");
-assert.match(inspector, /data-future-tab="symbol"/, "the same Inspector declares the future M2 Symbol tab seam");
-assert.doesNotMatch(inspector, /Symbol library|Symbol browser/, "M1 does not expose a fake Symbol surface");
+assert.match(inspector, /"content", "appearance", "symbol"/, "the same Inspector promotes the M2 Symbol seam to a live tab");
+assert.match(inspector, /<SymbolInspectorPane/, "the live Symbol surface remains inside the one Inspector");
 for (const id of ["cell-settings", "membrane-settings", "void-settings"]) {
   assert.ok(host.includes(`"${id}"`), `${id} has a dedicated widget body`);
   assert.ok(registry.includes(`id: "${id}"`), `${id} has canonical widget metadata`);
@@ -57,7 +57,7 @@ assert.match(app, /<ViewToggle \/>[\s\S]*<Rail \/>[\s\S]*<Dock \/>[\s\S]*<Widget
 assert.match(dock, /appearanceFamilyDefinition[\s\S]*detailWidgetId/, "bottom bar Detail follows the active Appearance family");
 assert.doesNotMatch(rail, /launcher\("annotation"|launcher\("organism"|launcher\("palette"/, "stale duplicate rail owners are removed");
 assert.doesNotMatch(dock, /Reach density fine-tune|Morph style:|Attachment:/, "stale Dock appearance owners are removed");
-assert.match(composite, /appearancePreview: null, presentationDefaultsPreview: null/, "clean raster capture excludes previews");
+assert.match(composite, /appearancePreview: null, presentationDefaultsPreview: null, membraneRuntimePreview: null, visualSettingsPreview: null, resourcesPreview: null/, "clean raster capture excludes all canonical previews");
 
 const defaults = createProjectPresentationDefaults();
 const settings = {

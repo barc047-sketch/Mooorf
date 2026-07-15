@@ -765,6 +765,39 @@ async function runViewport(client, viewport) {
   })()`, "Dock activation did not restore Inspector to the viewport");
   evidence.canvas.inspectorAfterRecovery = (await assertInspector(client, sessionId, viewport, "Canvas Dock off-screen recovery")).rect;
 
+  // C0 M2 — promote the existing seam inside this same Inspector and exercise
+  // apply + pointer preview/revert + favourites through rendered controls.
+  await pointerClick(client, sessionId, 'button[aria-label="Add Space"]');
+  await pointerClickTextButton(client, sessionId, '.m1-tabs button', "symbol");
+  await waitFor(client, sessionId, `document.querySelectorAll('.m1-tabs button').length === 3 && document.querySelectorAll('.m2-symbol-apply:not(:disabled)').length === 133`, "M2 Symbol tab did not expose the exact audited library");
+  await evaluate(client, sessionId, `document.querySelector('.m2-symbol-card:first-child .m2-symbol-apply:not(:disabled)')?.scrollIntoView({ block: 'center' })`);
+  await pointerClick(client, sessionId, '.m2-symbol-card:first-child .m2-symbol-apply:not(:disabled)');
+  const appliedSymbol = await waitFor(client, sessionId, `document.querySelector('.m2-symbol-card[data-active="true"]')?.querySelector('.m2-symbol-apply span')?.textContent`, "Symbol apply did not become canonical");
+  const cards = await evaluate(client, sessionId, `(() => [...document.querySelectorAll('.m2-symbol-apply:not(:disabled)')].slice(0, 2).map((button) => {
+    const rect = button.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, name: button.querySelector('span')?.textContent };
+  }))()`);
+  assert.equal(cards.length, 2, "two symbol cards are available for preview/revert");
+  await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: cards[1].x, y: cards[1].y }, sessionId);
+  await waitFor(client, sessionId, `document.querySelector('.m2-symbol-card[data-active="true"] .m2-symbol-apply span')?.textContent === ${JSON.stringify(cards[1].name)}`, "hover preview did not project the candidate symbol");
+  await client.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: 1, y: 1 }, sessionId);
+  await waitFor(client, sessionId, `document.querySelector('.m2-symbol-card[data-active="true"] .m2-symbol-apply span')?.textContent === ${JSON.stringify(appliedSymbol)}`, "pointer leave did not revert to the canonical symbol");
+  await evaluate(client, sessionId, `document.querySelector('.m2-symbol-card:first-child .m2-symbol-star')?.scrollIntoView({ block: 'center' })`);
+  await pointerClick(client, sessionId, '.m2-symbol-card:first-child .m2-symbol-star');
+  assert.equal(await evaluate(client, sessionId, `document.querySelector('.m2-symbol-card:first-child .m2-symbol-star')?.getAttribute('aria-pressed')`), "true", "favourite toggle persists in the canonical resource owner");
+  evidence.canvas.m2Symbol = { appliedSymbol, auditedCards: 133 };
+  if (process.env.M2_SMOKE_ONLY === "1") {
+    evidence.inspectorCount = await evaluate(client, sessionId, `document.querySelectorAll(${JSON.stringify(INSPECTOR)}).length`);
+    evidence.documentBounds = await evaluate(client, sessionId, `({
+      viewport: { width: innerWidth, height: innerHeight },
+      document: { width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight },
+    })`);
+    assert.equal(evidence.inspectorCount, 1, "M2 smoke contains exactly one Inspector");
+    assert.equal(evidence.documentBounds.document.width, viewport.width, "M2 smoke has no horizontal shell overflow");
+    await client.send("Target.closeTarget", { targetId: target.targetId });
+    return evidence;
+  }
+
   await closeInspector(client, sessionId);
   await pressButton(client, sessionId, DOCK_INSPECTOR, "Enter");
   await assertInspector(client, sessionId, viewport, "Canvas Dock Enter");

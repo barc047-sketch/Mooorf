@@ -139,6 +139,8 @@ export interface CirclePaintProjection {
   colour: string;
   opacity: number;
   radiusPx: number;
+  offsetXPx?: number;
+  offsetYPx?: number;
 }
 
 export interface CircleStrokeProjection extends CirclePaintProjection {
@@ -283,6 +285,8 @@ export const projectCircleLayers = (
       radiusPx: radius * appearance.core.size,
       colour: appearance.core.paint.colour,
       opacity: appearance.core.paint.opacity,
+      offsetXPx: appearance.core.offsetX * Math.max(0, zoom),
+      offsetYPx: appearance.core.offsetY * Math.max(0, zoom),
     } : null,
     void: null,
   };
@@ -362,7 +366,7 @@ export const drawCircleLayers = (
     ctx.fillStyle = layers.core.colour;
     ctx.globalAlpha *= layers.core.opacity;
     ctx.beginPath();
-    ctx.arc(x, y, layers.core.radiusPx, 0, Math.PI * 2);
+    ctx.arc(x + (layers.core.offsetXPx ?? 0), y + (layers.core.offsetYPx ?? 0), layers.core.radiusPx, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }

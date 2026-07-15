@@ -14,7 +14,10 @@ import { drawBlobLayer, type BlobBody } from "./blob";
 import type { AttachMode, MorphMode } from "../types";
 import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
-import { resolveCellShadow } from "./cellShadow";
+import { resolveCellShadowGated } from "./cellShadow";
+import { iconRegistry } from "../icons/iconRegistry";
+import { drawSymbolPlacement } from "../icons/iconDrawing";
+import type { ResourceSettings } from "../resources/types";
 import { projectSelectionOverlay } from "../interaction/selection";
 import type { ProjectPresentationDefaults } from "../domain/presentation/types";
 import {
@@ -42,6 +45,7 @@ export interface BlobSettings {
   cellShadow: CellShadowSettings;
   performanceQuality: PerformanceQuality;
   presentationDefaults: ProjectPresentationDefaults;
+  resources: ResourceSettings;
 }
 
 export interface Tokens {
@@ -150,7 +154,7 @@ export function drawScene(
   const toX = (x: number) => (x - cam.x) * z + w / 2;
   const toY = (y: number) => (y - cam.y) * z + h / 2;
   const theme = !isDark(tokens.ink) ? "night" : "day";
-  const cellShadow = resolveCellShadow(blob.cellShadow, blob.performanceQuality, theme);
+  const cellShadow = resolveCellShadowGated(blob.cellShadow, blob.performanceQuality, theme);
   const presentation = projectRuntimePresentation(spaces, blob, theme);
   const selection = projectSelectionOverlay({
     visibleIds: spaces.map((space) => space.id),
@@ -195,6 +199,7 @@ export function drawScene(
         edgeColour: presentation.membraneEdge.paint.colour,
         edgeOpacity: presentation.membraneEdge.paint.opacity,
         edgeWidth: presentation.membraneEdge.width,
+        edgeSoftness: presentation.membraneEdge.softness,
       }
     );
   }
@@ -267,6 +272,9 @@ export function drawScene(
         ctx.restore();
       }
       drawCircleLayers(ctx, sx, sy, layers, { cell: false, void: false });
+      const symbolPlacement = blob.resources.iconPlacements.find((placement) => placement.targetSpaceId === c.id);
+      const symbolDefinition = symbolPlacement ? iconRegistry.get(symbolPlacement.iconId) : null;
+      if (symbolPlacement && symbolDefinition) drawSymbolPlacement(ctx, symbolDefinition, symbolPlacement, { x: sx, y: sy, radius: r, zoom: z });
     }
 
     /* Selection is one external presentation-only ring. It never enters

@@ -1,5 +1,15 @@
 # Handoff
 
+## C0-M2 — Advanced Appearance, Production Symbols and Runtime Power Gates
+
+- One Inspector now owns live `Content | Appearance | Symbol` tabs. Appearance still exposes only Cell/Membrane/Void primary families over six separate canonical targets; global `I/i`, Dock/Rail launchers and WidgetHost ownership are unchanged.
+- Advanced Cell Shadow/Boundary/Core, Membrane Field/Motion/Edge and Void instruments route through existing project/default/store owners. Presentation schema v4 gives Membrane Edge its own softness and Core bounded presentation offsets; resource schema v2 owns complete symbol placement/backing, recents and favourites.
+- Off is now a power contract: Shadow bypasses resolution/mask/uniform families, Motion stops advancement and continuous frames, disabled Membrane/Edge skip owned projections, Labels/Grid avoid hidden DOM synchronization, and future inactive Snapping cannot generate work outside an active interaction.
+- The production drawable library contains 133 active unique Lucide geometries: 77 audited input, 3 rejected baseline removals and exactly 59 verified unique additions. Fourteen new plus six existing aliases normalize deterministically; all five rejected IDs remain unavailable; 8 original custom and 12 custom-gap candidates remain deferred.
+- Symbol search/categories/recents/favourites/keyboard/hover preview/revert/apply/replace/remove and full placement/backing are live. History, project/import/saved-view persistence, Copy/Paste Style placement/backing, Classic/Organism Canvas, PNG/PDF and Classic SVG share the canonical owners.
+- Focused contracts and typecheck pass. Real rendered M2 smoke passed at 1280×800 and 1440×900 with one Inspector, all 133 cards, apply, preview/revert, favourites and no document overflow. Exact fixed-head diff and the single production build are recorded at finalization.
+- Full evidence: `docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md` and `docs/C0_M2_CONTROL_OWNERSHIP_MAP.md`. Branch must remain `WAITING_REVIEW`; do not merge or begin M3/M4.
+
 ## C0-M1 — Production Inspector, Content and Layer Editing Recovery
 
 - Correction 4 fixes reviewed head `f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6`: global lowercase/uppercase `I` now uses one stable `MainApp` listener and the canonical widget lifecycle in Canvas and Table.
@@ -12,13 +22,13 @@
 - Membrane Field keeps the current Cell-derived gradient as default `Cell Gradient` and adds a persisted, patch-free `Solid` mode using canonical Black, Ink, MOOORF Red, Charcoal and Custom material paths. Schema v3 migrates v1/v2 to the unchanged default.
 - M2 ownership is explicit: Field Edge Softness remains the existing field/body feather path; independent Membrane Edge Softness will be a separate Edge control. Optional Void Inner Echo is M2-only, default off, and requires live/export parity.
 - Correction 1 fixes reviewed head `e9bd67e8c7778dccdd4afb4c1508db0792e70b21`: Table/Inspector Escape is an explicit zero-transaction cancel, and Inspector status derives actual Project Default/Local Override/Mixed inheritance.
-- There is one Inspector with live Content and Appearance. Symbol remains a future M2 tab inside it. Appearance exposes only Cell, Membrane and Void; three family Detail widgets retain six separate canonical internal targets.
+- At the M1 handoff there was one Inspector with live Content/Appearance and a future Symbol seam; C0-M2 above promotes that seam without changing the one-Inspector or three-family architecture.
 - Cell Detail nests Surface, Boundary and Core/nucleus. Membrane Detail nests shared Field and Edge plus supported Fusion/Reach. Void Detail nests Fill and Edge without changing subtraction, geometry or hit testing.
 - The bounded Dock retains Add Space/Add 5/Add Void/Saved/Random/Import/Export and adds one-click Inspector/info plus active-family Detail access. No duplicate Morph/Palette state owner returned.
 - Classic and the pointer-transparent Organism overlay now render all six distinct Boundary styles, including rounded dash-dot and grouped segmented bars. Organism fallback count is zero.
 - Project Default Core-off stays centre-dot-free even when Cell field debug is on; production debug geometry is ring-only. The legacy embedded-dot amount remains zero and the isolated Lab keeps its diagnostic dot.
 - Focused/full executable contracts, app typecheck, reviewed-head diff check, exactly one final production build and existing clean PNG/SVG/PDF evidence pass. Correction 4 Canvas lifecycle/editing checkpoints passed and the Owner manually confirmed global `I`; the exhaustive two-viewport CDP run was stopped after harness stalls on controlled Table/textarea/number-field interactions, without reproducing a product failure.
-- Full evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md` and `docs/C0_M1_CONTROL_OWNERSHIP_MAP.md`. Branch must remain `WAITING_REVIEW`; do not merge or begin M2.
+- Full M1 evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md` and `docs/C0_M1_CONTROL_OWNERSHIP_MAP.md`. The M1 branch remains unmerged; M2 was later separately authorized on its own exact branch/base.
 
 ## C0.4F-A — Runtime Layer Separation
 

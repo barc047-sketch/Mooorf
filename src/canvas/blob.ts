@@ -21,6 +21,7 @@ export interface BlobLayerAppearance {
   edgeColour: string;
   edgeOpacity: number;
   edgeWidth: number;
+  edgeSoftness: number;
 }
 
 interface Camera {
@@ -503,6 +504,8 @@ export function drawBlobLayer(
     ctx.strokeStyle = appearance.edgeColour;
     ctx.lineWidth = appearance.edgeWidth;
     ctx.globalAlpha = baseAlpha * appearance.edgeOpacity;
+    ctx.shadowColor = appearance.edgeColour;
+    ctx.shadowBlur = Math.max(0, appearance.edgeSoftness * 24);
     ctx.stroke(cache.path);
   }
   ctx.restore();

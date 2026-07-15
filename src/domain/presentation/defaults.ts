@@ -3,7 +3,7 @@ import type { ResourceSettings } from "../../resources/types";
 import type { MaterialBinding } from "../../materials/types";
 import type { PresentationPaintDefaults, ProjectPresentationDefaults } from "./types";
 
-export const PRESENTATION_SCHEMA_VERSION = 3 as const;
+export const PRESENTATION_SCHEMA_VERSION = 4 as const;
 
 export interface LegacyPresentationSettings {
   blobOn?: boolean;
@@ -65,11 +65,13 @@ export const createProjectPresentationDefaults = (
       solidMaterialId: "system:black",
       paint: paint(bindings.organism),
     },
-    membraneEdge: { visible: false, width: 1, paint: paint(bindings.organismEdge) },
+    membraneEdge: { visible: false, width: 1, softness: 0.08, paint: paint(bindings.organismEdge) },
     core: {
       visible: legacy.organism?.showNuclei !== false,
       shape: "dot",
       size: 0.34,
+      offsetX: 0,
+      offsetY: 0,
       paint: paint(bindings.coreDot),
     },
     void: {

@@ -92,7 +92,7 @@ assert.deepEqual(
 const settings = useLab.getState().settings;
 const movingSettings = {
   ...settings,
-  organism: { ...settings.organism, drift: 0.28, breathing: 0.3, wobble: 0.12 },
+  organism: { ...settings.organism, motionEnabled: true, drift: 0.28, breathing: 0.3, wobble: 0.12 },
 };
 assert.equal(resolveOrganism(movingSettings).motionActive, true, "Motion On requests continuous rendering");
 assert.equal(resolveOrganism(movingSettings, true).motionActive, false, "reduced motion suppresses decorative rendering");
