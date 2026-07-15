@@ -1,15 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T17:20:00+05:30",
+  "updated_at": "2026-07-15T17:46:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0-M1-CORRECTION-4_AND_AG2-CORRECTION-1",
-  "current_gate": "Correction 3 fixed the actual rendered Dock/Rail Inspector controls, but Owner confirms the approved global keyboard I shortcut is absent. M1 remains blocked pending Correction 4. AG2 produced all six research deliverables, but review found omitted/overclaimed prototype statuses and machine-local links; AG2 remains research-only and requires Correction 1.",
+  "current_phase": "C0-M1-CORRECTION-4",
+  "current_gate": "AG2 Correction 1 is accepted as research input. M1 remains blocked because the approved global keyboard I/i Inspector shortcut is absent at f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6. Await Codex Correction 4 fixed head and Owner visual verification before merge or M2.",
   "owner_approval_required": true,
   "production_guard": {
     "main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "verified_relation": "main remains identical to recorded SHA",
     "merge_allowed": false,
     "m2_allowed": false
   },
@@ -37,10 +36,8 @@
     "title": "Production Inspector, Content and Layer Editing Recovery",
     "branch": "feature/c0-m1-inspector-layer-editing-recovery",
     "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "correction_1_feature_sha": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
-    "correction_2_feature_sha": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
-    "correction_3_feature_sha": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
-    "correction_3_status_sha": "62cdee9ae61a04b81bae5efff0865f380851f029",
+    "latest_reviewed_head": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
+    "latest_status_sha": "62cdee9ae61a04b81bae5efff0865f380851f029",
     "worker_status": "WAITING_REVIEW — REOPENED FOR CORRECTION 4",
     "review_verdict": "CORRECTION REQUIRED",
     "correction_4_contract": "docs/worker-briefs/C0_M1_CORRECTION_4_GLOBAL_I_SHORTCUT.md",
@@ -49,7 +46,7 @@
     "owner_confirmed_working": [
       "actual Dock/Rail Inspector pointer launch",
       "Enter and Space activation while launchers are focused",
-      "Canvas and Table own one WidgetHost and launcher path",
+      "Canvas and Table share one WidgetHost and launcher path",
       "Boundary including dash-dot",
       "Core-off white centre-dot fix",
       "Void outer fill/edge without hard-coded inner echo",
@@ -61,7 +58,7 @@
     "required_correction_4": [
       "global unmodified I/i shortcut toggles the one Inspector from Canvas and Table",
       "closed minimized background and off-screen states open expand focus and reveal",
-      "fully visible frontmost Inspector may close on second I",
+      "fully visible frontmost Inspector closes on second I",
       "typing guards preserve i inside all editable controls",
       "Ctrl Meta Alt plus I and repeated keydown are ignored",
       "real built-browser physical keyboard tests"
@@ -73,64 +70,67 @@
     "id": "AG2",
     "title": "Prototype Coverage and Icon Gap Audit",
     "worker": "Antigravity",
-    "status": "WAITING_REVIEW — CORRECTION REQUIRED",
+    "status": "ACCEPTED RESEARCH INPUT",
     "work_branch": "research/m2-prototype-and-icon-gap-audit",
     "branch_base": "main@c4600472ea76f651800c19b91cf8f67954ca992e",
-    "work_sha": "2482b11ca5f72b2898ea0b2f516d35fecb08ced2",
-    "status_sha": "fe9f0595cb2660bd1f48805aedbb5879e4d7e73d",
-    "brief": "docs/worker-briefs/AG2_ANTIGRAVITY_PROTOTYPE_AND_ICON_GAP_AUDIT.md",
-    "correction_1_contract": "docs/worker-briefs/AG2_CORRECTION_1_PROTOTYPE_LEDGER_TRUTH.md",
-    "correction_1_launch_prompt": "docs/worker-briefs/AG2_CORRECTION_1_LAUNCH_PROMPT.md",
-    "review_findings": [
-      "global keyboard I prototype behaviour omitted, invalidating MISSING zero claim",
-      "Save as Preset falsely marked implemented in M1",
-      "Material Browser handoff falsely described as an implemented M1 button",
-      "final contextual bottom rail falsely marked implemented rather than M3A",
-      "Copy/Paste Style overstates complete prototype coverage before Symbol placement/backing",
-      "machine-local file links are not durable",
-      "156 geometries and 176 searchable IDs are a projected research ceiling, not automatic M2 scope",
-      "eight complete original custom briefs must be distinguished from twelve additional custom-gap candidates"
+    "first_head": "2482b11ca5f72b2898ea0b2f516d35fecb08ced2",
+    "corrected_head": "55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51",
+    "status_sha": "1fb0d6e3a663426fe6863be96205f47957a4f749",
+    "review_record": "custom-gpt/state/reviews/AG2_CORRECTION_1_FIXED_HEAD_REVIEW.json",
+    "coverage_counts": {
+      "implemented": 24,
+      "partial": 5,
+      "planned": 20,
+      "missing": 1,
+      "rejected": 0,
+      "total": 50
+    },
+    "catalogue_scope": {
+      "baseline": 77,
+      "verified_lucide_additions": 59,
+      "aliases": 14,
+      "full_original_custom_briefs": 8,
+      "pending_custom_gap_candidates": 12,
+      "rejected": 5,
+      "projected_ceiling_active_geometries": 156,
+      "projected_ceiling_searchable_ids": 176,
+      "policy": "Projected ceiling is not automatic M2 scope; stage verified baseline and Owner-approved additions only."
+    },
+    "open_owner_decisions": [
+      "neutral prayer/worship symbol representation",
+      "expansion joint custom stencil versus standard dashed double-line",
+      "Symbol LoD threshold standard control versus advanced disclosure"
     ],
-    "required_outputs": [
-      "docs/research/M2_CLAUDE_PROTOTYPE_COVERAGE_LEDGER.md",
-      "docs/research/M2_DRAWABLE_SYMBOL_GAP_PASS_2.md",
-      "docs/research/MOOORF_UI_COMMAND_ICON_MAP.md",
-      "docs/research/MOOORF_CUSTOM_ARCHITECTURAL_SYMBOL_BRIEFS.md",
-      "docs/research/M2_SYMBOL_PRIORITY_MANIFEST.json",
-      "docs/research/AG2_RESEARCH_HANDOFF.md"
-    ],
-    "restrictions": "research only; no production code, no main change, no Codex branch or status change, no wholesale branch merge"
+    "restrictions": "Research input only; never merge the research branch wholesale"
   },
   "owner_added_stage_plan": {
     "plan": "docs/plans/C0_CANVAS_QUICK_CONTROLS_RUNTIME_GATES_AND_SNAPPING_STAGE_PLAN.md",
     "requirements": [
       "Cell Shadow Strength slider and advanced canonical shadow controls in M2",
-      "explicit Off states stop feature-owned background/runtime work",
+      "Off states stop feature-owned runtime work",
       "bottom-left compact collapsible Quick Bar",
-      "Quick Bar toggles Membrane, Shadow, Motion, Labels, Grid and Snapping",
+      "Quick Bar toggles Membrane Shadow Motion Labels Grid and Snapping",
       "Figma-style collapsible Snap menu adapted to MOOORF geometry",
-      "snapping computes only during active drag/creation"
+      "snapping computes only during active drag or creation"
     ]
   },
   "m2_owner_preview": {
     "title": "One Inspector, Advanced Appearance, Symbols and Runtime Gates",
     "plan": "docs/plans/C0_M2_OWNER_PREVIEW_INSPECTOR_ADVANCED_SYMBOLS.md",
-    "status": "OWNER PREVIEW UPDATED — BLOCKED UNTIL FINAL M1 MERGE AND GO CODEX M2",
+    "status": "BLOCKED UNTIL FINAL M1 MERGE AND GO CODEX M2",
     "scope": [
-      "advanced Cell Surface, Boundary and Core instruments",
-      "Cell Shadow Strength plus opacity softness offsets spread colour and export controls",
-      "Membrane Field Edge Softness as the field/body feather owner",
-      "independent Membrane Edge Softness with separate canonical renderer effect",
-      "advanced Membrane tension, iso, mass, bias, distribution and motion where truthful",
-      "preserve canonical Cell Gradient and Solid Membrane colour modes",
-      "runtime power gates for Membrane Edge Shadow Motion Labels Grid and Snapping",
+      "advanced Cell Surface Boundary Core and Cell Shadow instruments",
+      "separate Membrane Field Edge Softness and Membrane Edge Softness",
+      "advanced Membrane shape distribution and motion where truthful",
+      "preserve Cell Gradient and Solid Membrane modes",
+      "runtime power gates",
       "production Symbol tab inside the same Inspector",
-      "verified symbol baseline and approved additions only; AG2 projected ceiling is not automatic scope",
+      "verified baseline and staged Owner-approved symbol additions",
       "search categories recents favourites hover preview placement and backing"
     ]
   },
   "future_milestones": [
-    { "id": "M2", "title": "Advanced Appearance, Symbol Tab and Runtime Gates", "status": "OWNER PREVIEW UPDATED; BLOCKED" },
+    { "id": "M2", "title": "Advanced Appearance, Symbol Tab and Runtime Gates", "status": "BLOCKED" },
     { "id": "M3A", "title": "Final Bottom Dock and Compact Quick Bar", "status": "PLANNED" },
     { "id": "M3B", "title": "Snapping Foundation and Collapsible Snap Menu", "status": "PLANNED" },
     { "id": "M4", "title": "Quick Materials, Presets and Material Browser/Studio", "status": "PLANNED" },
@@ -141,12 +141,11 @@
     { "id": "M9", "title": "Floors, Stats and Dashboard", "status": "PLANNED" }
   ],
   "provenance_ledger": {
-    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 foundations and keyboard command, M2 advanced Inspector/Symbols, M3 shell, M4 Material Browser/Presets",
+    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 foundations/keyboard command, M2 advanced Inspector/Symbols, M3 shell, M4 Materials/Presets",
     "audited_icon_grid_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2 -> M2 symbols and M3B/M7 grid-snapping",
-    "antigravity_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4 -> M2, M5, M6, M7 and custom vectors",
-    "antigravity_fast_track_atlas": "research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee -> contract input for every milestone",
-    "antigravity_ag2": "research/m2-prototype-and-icon-gap-audit@2482b11ca5f72b2898ea0b2f516d35fecb08ced2 -> correction required before contract use",
-    "reuse_rule": "Selective forward-port only; never merge prototype, research or audit branches wholesale"
+    "antigravity_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4 -> M2 M5 M6 M7 and custom vectors",
+    "antigravity_ag2": "research/m2-prototype-and-icon-gap-audit@55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51 -> accepted research input",
+    "reuse_rule": "Selective forward-port only; never merge prototype research or audit branches wholesale"
   },
   "protected": [
     "main without explicit Owner merge approval",
@@ -157,7 +156,6 @@
     "Off must stop feature-owned work rather than only hide output",
     "Quick Bar must reuse canonical state and runtime gates",
     "Snapping must compute only during active gestures",
-    "prototype/research/audit branches never merged wholesale",
     "Selection and snap guides never persist or export",
     "M2 cannot start until final corrected M1 is merged and Owner says GO CODEX M2"
   ],
