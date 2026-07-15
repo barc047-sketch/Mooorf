@@ -1,7 +1,7 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "ASSIGNED_AWAITING_WORKER_START",
+  "status": "RUNNING",
   "task": "C0 M1 Production Inspector, Content and Layer Editing Recovery",
   "brief": "docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md",
   "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
@@ -41,8 +41,8 @@
     "merge to main",
     "beginning M2"
   ],
-  "updated_at": "2026-07-15T05:58:00+05:30",
+  "updated_at": "2026-07-15T09:11:11+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Read the contract from the governance branch, verify the exact source SHA, update this status to RUNNING, create the planned feature branch, implement the full bounded contract, then push one fixed head and stop at WAITING_REVIEW.",
+  "next_worker_action": "Implement the full bounded C0 M1 contract on feature/c0-m1-inspector-layer-editing-recovery from exact source SHA 21388c0d765cd4bbc675d0321d94e77db9a41e5c, verify and push one fixed head, then stop at WAITING_REVIEW.",
   "next_gate": "Worker RUNNING checkpoint on GitHub, then final WAITING_REVIEW evidence; main remains unchanged"
 }
