@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "reviewed_at": "2026-07-15T19:40:00+05:30",
+  "task": "C0 M1 Correction 4 Global I Inspector Shortcut",
+  "branch": "feature/c0-m1-inspector-layer-editing-recovery",
+  "previous_head": "f2d6f99c34257a04e42d4dd6aae2f9b59898d8f6",
+  "fixed_head": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "status_branch": "status/codex",
+  "status_sha": "9ae60aece633ff0217fa07f4b7223b5132d7f755",
+  "main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "verdict": "MERGE CANDIDATE",
+  "branch_relation": "Correction 4 is exactly one commit above Correction 3 with no divergence.",
+  "owner_confirmed": [
+    "global unmodified I/i opens the Inspector",
+    "Escape and right-click remain working",
+    "editable Body/subtext in Table is accepted for now"
+  ],
+  "verified": [
+    "status/codex reports WAITING_REVIEW and exact corrected feature SHA",
+    "focused shortcut and M1 product contracts passed",
+    "affected contracts and TypeScript check passed",
+    "exact diff check passed",
+    "exactly one production build passed",
+    "main remains unchanged",
+    "exhaustive CDP run was truthfully stopped because of harness stalls and did not reproduce a product failure"
+  ],
+  "table_body_policy": {
+    "decision": "Keep editable Body/subtext in Table for now",
+    "future_review": "M8 dense-table hardening after profiling with 100+ spaces"
+  },
+  "qa_policy": "docs/governance/FAST_OWNER_QA_MODE.md",
+  "merge_policy": "Do not merge until explicit Owner command MERGE C0-M1. Fast-forward main only to bd160b8c615cdafbbdd8a76332be46b69a6e765e.",
+  "next_gate": "Owner issues exact merge command. M2 remains blocked until merge and separate GO CODEX M2."
+}
