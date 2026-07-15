@@ -1,0 +1,47 @@
+{
+  "review": "C0 M2 Owner Review 1",
+  "feature_branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
+  "reviewed_head": "1cc8ec0c7ab756bc6b091b87014da2c3e27383d2",
+  "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "owner_acceptance": {
+    "one_inspector_three_tabs": true,
+    "advanced_appearance": true,
+    "runtime_off_restore": true,
+    "symbol_library_and_placement": true,
+    "export": true
+  },
+  "blocking_corrections": [
+    "Layout preset and Random controls no longer visibly arrange entities",
+    "Batch Add Cells visibly overlaps/stacks large Cells",
+    "Symbol hover/focus preview can flicker or rapidly reappear",
+    "Void edge uses an unexplained hard-coded dashed border",
+    "Symbol tint requires Auto Contrast and Custom modes",
+    "Symbols must be supported on Void as presentation-only metadata",
+    "Void Edge must share the current six stroke styles with Cell Boundary"
+  ],
+  "future_mappings": {
+    "M3A": [
+      "final common rail",
+      "visible Undo/Redo controls and complete history coverage",
+      "right-click Copy Style and Paste Style",
+      "Quick Bar"
+    ],
+    "M3B": [
+      "selection-aware advanced Arrangement Engine",
+      "random, golden-angle, spiral, circle, oval, horizontal, vertical, diagonal, cross, grid, orbit, core, colony, division, tendril and asymmetry"
+    ],
+    "M3C": [
+      "snapping foundation"
+    ],
+    "M4": [
+      "materials, curated palettes, presets and Material Browser/Studio using AG3"
+    ],
+    "M5": [
+      "shared Stroke Library expansion including visually approved Wavy and Corner-Bracket styles"
+    ]
+  },
+  "correction_contract": "docs/worker-briefs/C0_M2_CORRECTION_1_OWNER_REVIEW_REGRESSIONS.md",
+  "launch_prompt": "docs/worker-briefs/C0_M2_CORRECTION_1_LAUNCH_PROMPT.md",
+  "merge_verdict": "CORRECTION REQUIRED",
+  "merge_allowed": false
+}
