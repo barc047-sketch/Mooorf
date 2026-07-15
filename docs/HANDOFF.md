@@ -2,11 +2,13 @@
 
 ## C0-M1 — Production Inspector, Content and Layer Editing Recovery
 
-- Canonical Name/Area/Body editing now shares one history-aware action across inline Canvas editing, the compact Content/Appearance Inspector and the minimal Table.
-- Six coordinated text presets, proportional Text Size, Text Colour/Auto Contrast, Project Default/local/mixed states and six independent detailed settings widgets reuse the audited presentation domain and production widget shell.
-- Cell, Boundary, Core and Void support sparse per-Cell overrides. Shared Membrane/Membrane Edge edit their truthful Project Defaults; supported Morph/Fusion/Reach moved into Membrane Settings with one-step history.
-- Both live renderers, clean raster capture and Classic SVG consume canonical final presentation. Body is bounded and geometry-neutral; previews and selection never persist or export.
-- Focused/full contracts, app typecheck, fixed-head diff check, exactly one final production build and deterministic 1440×900/1280×800 QA pass. Accepted limitations are Organism solid Boundary fallback, no fake vector Membrane and deferred prototype orbit.
+- Correction 1 fixes reviewed head `e9bd67e8c7778dccdd4afb4c1508db0792e70b21`: Table/Inspector Escape is an explicit zero-transaction cancel, and Inspector status derives actual Project Default/Local Override/Mixed inheritance.
+- There is one Inspector with live Content and Appearance. Symbol remains a future M2 tab inside it. Appearance exposes only Cell, Membrane and Void; three family Detail widgets retain six separate canonical internal targets.
+- Cell Detail nests Surface, Boundary and Core/nucleus. Membrane Detail nests shared Field and Edge plus supported Fusion/Reach. Void Detail nests Fill and Edge without changing subtraction, geometry or hit testing.
+- The bounded Dock retains Add Space/Add 5/Add Void/Saved/Random/Import/Export and adds one-click Inspector/info plus active-family Detail access. No duplicate Morph/Palette state owner returned.
+- Classic and the pointer-transparent Organism overlay now render all six distinct Boundary styles, including rounded dash-dot and grouped segmented bars. Organism fallback count is zero.
+- Project Default Core-off stays centre-dot-free even when Cell field debug is on; production debug geometry is ring-only. The legacy embedded-dot amount remains zero and the isolated Lab keeps its diagnostic dot.
+- Focused/full executable contracts, app typecheck, reviewed-head diff check, exactly one final production build, clean PNG/SVG/PDF and deterministic 1440×900/1280×800 QA pass with browser warnings/errors `[]`.
 - Full evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md` and `docs/C0_M1_CONTROL_OWNERSHIP_MAP.md`. Branch must remain `WAITING_REVIEW`; do not merge or begin M2.
 
 ## C0.4F-A — Runtime Layer Separation

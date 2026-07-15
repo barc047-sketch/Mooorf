@@ -136,7 +136,7 @@ export interface CircleLayerProjection {
 export const resolveBoundaryStroke = (
   boundary: ResolvedBoundaryAppearance,
   zoom: number,
-  renderer: RuntimeRendererKind
+  _renderer: RuntimeRendererKind
 ): BoundaryStrokeProjection => {
   const scale = Number.isFinite(zoom) ? Math.max(0, zoom) : 0;
   const widthPx = boundary.width * scale;
@@ -148,19 +148,20 @@ export const resolveBoundaryStroke = (
       : 0;
   const radiusDeltaPx = offsetPx + alignmentDelta;
   const requestedStyle = boundary.style;
-  const renderedStyle = renderer === "organism" && requestedStyle !== "solid"
-    ? "solid"
-    : requestedStyle;
-  const fallback = renderedStyle === requestedStyle ? null : "unsupported-organism-style";
+  const renderedStyle = requestedStyle;
+  const fallback = null;
   const dash = boundary.dashLength * scale;
   const gap = boundary.gapLength * scale;
   const dotGap = (boundary.gapLength + boundary.width) * scale;
-  const lineDashPx = renderedStyle === "dashed" || renderedStyle === "segmented-bars"
+  const dotMark = Math.max(0.001, boundary.width * scale * 0.02);
+  const lineDashPx = renderedStyle === "dashed"
     ? [dash, gap]
+    : renderedStyle === "segmented-bars"
+      ? [dash, gap * 0.5, dash, gap * 1.5]
     : renderedStyle === "dotted"
-      ? [0.001, dotGap]
+      ? [dotMark, dotGap]
       : renderedStyle === "dash-dot"
-        ? [dash, gap, 0.001, dotGap]
+        ? [dash, gap, dotMark, dotGap]
         : [];
   const doubleSeparation = (boundary.width + boundary.secondaryLineSpacing) * scale;
   const radiiDeltaPx = renderedStyle === "double"
@@ -175,7 +176,7 @@ export const resolveBoundaryStroke = (
     radiusDeltaPx,
     radiiDeltaPx,
     lineDashPx,
-    lineCap: renderedStyle === "dotted" ? "round" : "butt",
+    lineCap: renderedStyle === "dotted" || renderedStyle === "dash-dot" ? "round" : "butt",
   };
 };
 
@@ -333,3 +334,40 @@ export const drawCircleLayers = (
     ctx.restore();
   }
 };
+
+export interface OrganismCircleOverlayOptions {
+  spaceKind: "space" | "void";
+  plainMode: boolean;
+  backgroundColour: string;
+  baseRadiusPx: number;
+}
+
+/** The production Organism keeps field geometry in WebGL while this one
+ * pointer-transparent Canvas2D adapter owns exposed per-Cell presentation.
+ * In plain mode it first masks the legacy opaque WebGL body, then draws the
+ * canonical visible/colour/opacity result. Geometry and hit testing remain
+ * unchanged because the mask and surface exist only in this overlay. */
+export const drawOrganismCircleOverlay = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  layers: CircleLayerProjection,
+  options: OrganismCircleOverlayOptions
+): void => {
+  if (options.spaceKind === "space" && options.plainMode && options.baseRadiusPx > 0) {
+    ctx.save();
+    ctx.fillStyle = options.backgroundColour;
+    ctx.beginPath();
+    ctx.arc(x, y, options.baseRadiusPx, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  drawCircleLayers(ctx, x, y, layers);
+};
+
+export const projectOrganismDebugPresentation = (
+  enabled: boolean
+): { rings: boolean; centreDots: false } => ({
+  rings: enabled,
+  centreDots: false,
+});

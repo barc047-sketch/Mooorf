@@ -58,6 +58,7 @@ uniform float uShadowSpread;
 
 uniform float uFieldDebug;
 uniform float uNucleiDebug;
+uniform float uNucleiDebugCenterDots;
 
 out vec4 outColor;
 
@@ -227,7 +228,9 @@ void main() {
       float dN = length(p - n.xy);
       float w = max(fwidth(dN) * 1.6, 0.0035);
       float ring = 1.0 - smoothstep(w, w * 2.0, abs(dN - n.z));
-      float centerDot = 1.0 - smoothstep(0.006, 0.006 + w, dN);
+      float centerDot = uNucleiDebugCenterDots > 0.5
+        ? 1.0 - smoothstep(0.006, 0.006 + w, dN)
+        : 0.0;
       vec3 mark = n.w >= 0.0 ? vec3(0.35, 0.35, 0.36) : vec3(0.765, 0.086, 0.086);
       col = mix(col, mark, max(ring * 0.85, centerDot));
     }
@@ -271,6 +274,8 @@ export interface OrganismRenderFrame {
   shadowSpread: number;
   fieldDebug: boolean;
   nucleiDebug: boolean;
+  /** Production keeps debug geometry ring-only so it cannot impersonate Core. */
+  nucleiDebugCenterDots: boolean;
 }
 
 export interface OrganismRenderer {
@@ -311,6 +316,7 @@ const UNIFORM_NAMES = [
   "uShadowSpread",
   "uFieldDebug",
   "uNucleiDebug",
+  "uNucleiDebugCenterDots",
 ] as const;
 
 type UniformName = (typeof UNIFORM_NAMES)[number];
@@ -417,6 +423,7 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform1f(loc["uShadowSpread"] ?? null, frame.shadowSpread);
       gl.uniform1f(loc["uFieldDebug"] ?? null, frame.fieldDebug ? 1 : 0);
       gl.uniform1f(loc["uNucleiDebug"] ?? null, frame.nucleiDebug ? 1 : 0);
+      gl.uniform1f(loc["uNucleiDebugCenterDots"] ?? null, frame.nucleiDebugCenterDots ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     },
 

@@ -20,7 +20,7 @@ Short gateway queue. Full details live in [docs/TASK_QUEUE.md](docs/TASK_QUEUE.m
 
 ## Current Feature Complete
 
-- C0-M1 Production Inspector, Content and Layer Editing Recovery: canonical Name/Area/Body editing across Canvas/Inspector/Table; coordinated text defaults/overrides; six detailed target widgets; supported Morph/Fusion/Reach migration; one history/preview/persistence/export path; 1440/1280 QA; waiting review
+- C0-M1 Correction 1: one Content/Appearance Inspector with future M2 Symbol seam; truthful Escape/status; Cell/Membrane/Void families over six canonical targets; three nested Detail widgets; restored Inspector/Detail Dock access; six-style Classic/Organism Boundary parity; Core-off debug-dot suppression; Void regression protection; 1440/1280 QA; waiting review
 - C0.4F-A Runtime Layer Separation: one canonical projection; explicit temporary selection; complete Classic six-style Boundary support; bounded Organism Membrane/Edge adapter with truthful non-solid fallback; world-scaled presentation-only strokes; schema v2 migration; build and 1440/1280 QA green
 - V8.2C0.2 Icon and Grid Asset Registry: 77 approved Lucide/ISC drawable symbols; eight canonical grids with truthful active/future support; legacy alias normalization and ID-only persistence; no UI, Canvas runtime, package, or product-store change
 - V8.2C0 Canvas Performance + Contrast Reset: rAF/coalesced local input previews; one release transaction; screen/adaptive/world labels; deterministic Auto Contrast; optional Cell Shadow; stable shadow-free UI glass; instant widget refocus; plain startup; projected-centre radials; migration/export parity; future shell work deferred

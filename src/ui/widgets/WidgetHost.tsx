@@ -25,10 +25,7 @@ import InstrumentLauncher from "./stats/InstrumentLauncher";
 import { getWidgetDefinition } from "../panels/widgetRegistry";
 import InspectorWidget from "./InspectorWidget";
 import {
-  BoundarySettingsWidget,
   CellSettingsWidget,
-  CoreSettingsWidget,
-  MembraneEdgeSettingsWidget,
   MembraneSettingsWidget,
   VoidSettingsWidget,
 } from "./AppearanceSettingsWidgets";
@@ -36,10 +33,7 @@ import {
 const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
   inspector: () => <InspectorWidget />,
   "cell-settings": () => <CellSettingsWidget />,
-  "boundary-settings": () => <BoundarySettingsWidget />,
   "membrane-settings": () => <MembraneSettingsWidget />,
-  "membrane-edge-settings": () => <MembraneEdgeSettingsWidget />,
-  "core-settings": () => <CoreSettingsWidget />,
   "void-settings": () => <VoidSettingsWidget />,
   annotation: () => <AnnotationWidget />,
   organism: () => <OrganismWidget />,

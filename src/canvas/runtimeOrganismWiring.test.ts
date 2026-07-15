@@ -11,11 +11,10 @@ const css = readFileSync(`${process.cwd()}/src/canvas/organismCanvas.css`, "utf8
 ok(view.includes("projectRuntimePresentation"), "Organism consumes the shared canonical runtime projection");
 ok(!view.includes("resolveCellAppearance"), "Organism does not create a second appearance resolver");
 ok(view.includes("projectCircleLayers"), "Organism projects the shared Cell/Boundary/Core/Void circle layers");
-ok(view.includes("drawCircleLayers"), "Organism uses the shared Canvas2D layer adapter");
-ok(
-  view.includes("cell: !cachedPresentation.membrane.visible && cachedPresentation.membraneEdge.visible"),
-  "Organism keeps Cell visible in the edge-only field without flattening the default shader baseline"
-);
+ok(view.includes("drawOrganismCircleOverlay"), "Organism uses the shared Canvas2D layer adapter");
+ok(view.includes("plainMode") && view.includes("backgroundColour"), "Organism masks its plain legacy body before drawing canonical Cell appearance");
+ok(view.includes('boundaryFallbackCount = "0"'), "Organism reports truthful technical Boundary support");
+ok(view.includes("projectOrganismDebugPresentation"), "Organism debug projection keeps geometry markers separate from Core");
 ok(view.includes("projectSelectionOverlay"), "Organism selection uses the explicit temporary projection");
 ok(view.includes("presentationCanvasRef"), "Organism owns a lightweight presentation overlay");
 ok(view.includes("cctx.drawImage(presentationCanvas"), "Organism capture includes runtime presentation layers");

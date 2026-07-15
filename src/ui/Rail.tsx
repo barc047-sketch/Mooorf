@@ -52,6 +52,8 @@ export default function Rail() {
         data-tooltip={title}
         title={title}
         aria-label={title}
+        aria-haspopup="dialog"
+        aria-expanded={openWidgets.includes(id)}
         onClick={() => openWidget(id)}
       >
         <Icon size={14} strokeWidth={1.5} />

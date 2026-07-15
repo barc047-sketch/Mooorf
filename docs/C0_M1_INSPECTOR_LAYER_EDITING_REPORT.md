@@ -2,115 +2,157 @@
 
 ## Fixed-head identity
 
-- Task: `C0-M1`
+- Task: `C0-M1-CORRECTION-1`
 - Source base: `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`
 - Feature branch: `feature/c0-m1-inspector-layer-editing-recovery`
-- Fixed review head: the single pushed head of that branch; its immutable SHA is recorded in the completion commit on `status/codex` and in the worker handoff because a commit cannot contain its own SHA.
-- Production guard: `origin/main` was verified before work at `c4600472ea76f651800c19b91cf8f67954ca992e` and is rechecked at handoff. No merge was performed.
+- Previous reviewed head: `e9bd67e8c7778dccdd4afb4c1508db0792e70b21`
+- Correction contract: `origin/docs/mooorf-ai-team-operating-protocol@fc5132f09189217e8bf16906872e3e1a6647e9be:docs/worker-briefs/C0_M1_CORRECTION_1_CANCEL_AND_STATUS_TRUTH.md`
+- Corrected fixed head: the immutable pushed SHA is recorded in `worker-status/CODEX.json` on `status/codex` because a commit cannot contain its own SHA.
+- Production guard: `origin/main` remained `c4600472ea76f651800c19b91cf8f67954ca992e`; no merge was performed.
 
-## Outcome
+## Corrected outcome
 
-M1 is a production recovery milestone, not a prototype panel. Name, Area and optional Body/subtext are canonical `SpaceCell` data edited through one history-aware action from Canvas inline editing, Inspector and the minimal Table. A compact two-tab Inspector and six independent detailed settings widgets reuse `WidgetHost`, `WidgetFrame`, the existing registry, controls and semantic glass tokens.
+M1 now has exactly one production Inspector. Content and Appearance are live; the future Symbol seam remains inside this same Inspector and no Symbol UI is exposed in M1. The user-facing Appearance hierarchy is exactly:
 
-Text Style provides six coordinated Heading/Area/Body presets with one proportional Text Size and Text Colour/Auto Contrast. Project defaults plus normalized sparse per-Cell overrides provide Project Default, Local Override and Mixed states. Sliders preview ephemerally and commit once. Copy/Paste/Reset excludes content, selection and shared-field values.
+```text
+Cell
+├── Surface
+├── Boundary
+└── Core / nucleus
 
-Cell, Boundary, Core and Void support sparse per-Cell overrides. The audited Organism Membrane and Membrane Edge are independent shared fields, so their detailed widgets truthfully edit Project Defaults for every Cell; they do not create per-Cell values the field renderer cannot display. Supported legacy Morph/Fusion/Reach controls moved into Membrane Settings and use the same canonical runtime settings/history owner.
+Membrane
+├── Field
+└── Edge
 
-## Exact provenance read
+Void
+├── Fill
+└── Edge
+```
 
-| Evidence | Exact ref and file |
-| --- | --- |
-| M1 contract and governance | `origin/docs/mooorf-ai-team-operating-protocol@5483a76b7028db1541cf0d1187d7685a18fb6b98`: `docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md`, `docs/MOOORF_AI_TEAM_OPERATING_PROTOCOL.md`, `docs/MOOORF_FINAL_SCOPE.md`, `docs/MOOORF_MASTER_PRODUCT_SCOPE.md`, `docs/MOOORF_DESKTOP_UI_REFERENCE_ADDENDUM.md`, `docs/PROJECT_MEMORY_INDEX.md`, `docs/CODEX_PHASE_PROTOCOL.md` |
-| Runtime contract | same governance ref: `docs/worker-briefs/C0_4F_A_CODEX_RUNTIME_LAYER_SEPARATION.md` |
-| Audited runtime implementation | `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`: `docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md`, canonical presentation/renderer/store/persistence/export code |
-| Fixed-head audit | `audit/c0-4f-a-runtime-layer-separation@2cb97065511bfa710e149438c41eafbd2fec4949`: `docs/audits/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md` |
-| Inspector scope | governance ref: `docs/worker-briefs/C0_3_CELL_INSPECTOR_V2_SCOPE.md` |
-| Approved prototype evidence only | `design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97`: `design-prototypes/c0-3-icons-symbols-inspector/C0_3_ICONS_SYMBOLS_INSPECTOR_PRODUCTION_HANDOFF.md` and prototype geometry/interaction implementation |
-| Editing/reuse plans | governance ref: `docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md`, `docs/plans/C0_EDITING_WORKSPACE_CANVAS_MAP_AND_BUILD_PLAN.md` |
-| Reuse research | `research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee`: `docs/research/MOOORF_ESSENTIAL_PRODUCT_REUSE_ATLAS.md`, `docs/research/MOOORF_CODEX_CONTRACT_INPUTS_C0_4F_B_TO_HARDENING.md` |
-| M2 compatibility only | `feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2`; `research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4` |
+The six audited renderer targets remain independent internally: `cell`, `boundary`, `core`, `membrane`, `membrane-edge`, and `void`. Three family Detail widgets project those targets without merging state, render ownership, persistence or history.
 
-The prototype contributed only compact right-side geometry, two-tab interaction density and Content editing evidence. Its mock store, fake Cells, prototype shell, hard-coded registries and fake export were not copied or merged. No Symbol UI or symbol schema was implemented.
+Name, Area and optional Body/subtext remain canonical `SpaceCell` data. Inline Canvas editing, Inspector and minimal Table commit through the central store and existing bounded history. Table and Inspector now share an explicit edit-session state machine: normal blur commits once, Enter commits once, Shift+Enter keeps a Body draft active, and Escape restores the exact canonical value while the following blur is a no-op.
 
-## Architecture decisions
+Text Style retains six coordinated Heading/Area/Body presets, proportional Text Size, Text Colour and Auto Contrast. Actual sparse appearance values derive Project Default, Local Override and Mixed status; selection count is never used as a status shortcut.
 
-1. The central Zustand/Master Graph store remains the only data/settings owner. Its existing bounded transform history now also records Cell content/appearance, project defaults and supported Membrane runtime changes.
-2. `resolveCellAppearance` plus `projectRuntimePresentation` remains the renderer-neutral appearance projection. Both live renderers and true-vector Classic SVG consume it.
-3. M1 adds schema-v2-compatible text defaults/overrides and optional Body without a major project schema bump. Legacy label scale/fixed colour migrate into text defaults; legacy files without Body load as an empty string.
-4. One ephemeral store projection owns active target, Cell/default previews, Membrane runtime preview and style clipboard. None is persisted or exported.
-5. Clean raster capture temporarily clears every M1 preview before the existing capture bridge runs, then restores UI preview state. It does not add an export path.
-6. Body is bounded to three display lines and never enters radius, centre, hit testing, clearance or Void subtraction.
-7. Classic implements all six Boundary styles. Organism retains its audited solid fallback for non-solid requests and reports that limitation in the widget.
+## Canonical architecture retained
 
-## Control migration summary
+1. The central Zustand/Master Graph store remains the only content, settings, preview and history owner.
+2. `resolveCellAppearance` and `projectRuntimePresentation` remain the only canonical appearance resolution path.
+3. The existing pointer-transparent Organism Canvas2D overlay now draws canonical Cell/Boundary/Core/Void presentation over unchanged WebGL field geometry.
+4. Classic and Organism use the same six-style Boundary projection. Dash-dot uses a dash/gap/rounded-dot/gap sequence; segmented bars use a deterministic grouped-bar sequence distinct from dashed.
+5. Organism WebGL still owns field geometry. M1 did not redesign the field shader, radius, hit testing, selection or Void subtraction.
+6. The legacy embedded WebGL nucleus-dot amount remains zero. Production debug geometry is now ring-only through an explicit debug-centre-dot uniform; the isolated Organism Lab retains its original dot diagnostic.
+7. Previews remain ephemeral and clean-capture-excluded. PNG/PDF use the existing capture path and Classic SVG uses the existing true-vector path.
+8. No duplicate store, registry, history owner, renderer settings model, export path, fake Cell, prototype shell or mock data path was added.
 
-The exhaustive table is [C0_M1_CONTROL_OWNERSHIP_MAP.md](C0_M1_CONTROL_OWNERSHIP_MAP.md).
+## Owner-observed issue disposition
+
+| Owner-observed issue | Reproduction at reviewed head | Corrected disposition | Evidence |
+| --- | --- | --- | --- |
+| Inspector and Table Escape committed through blur | Reproduced: edited Name survived Escape in both surfaces | FIXED | Shared explicit `active/cancelled/committed` edit session; executable zero-history/one-transaction tests plus built-browser cancellation |
+| Inspector single selection always said Local and multi-selection always Mixed | Reproduced with one default Cell | FIXED | Header and family badges derive actual sparse text/family inheritance; one default Cell reports Project Default |
+| Bottom-bar controls regressed | Reproduced against the reviewed dock | FIXED | Restored visible Inspector and active-family Detail launchers while retaining Add Space, Add 5, Add Void, Saved Views, Random, Import and Export |
+| Visible `i` and Detail paths were indirect | Reproduced | FIXED | Rail and dock Inspector launchers open the one Inspector in one click; Dock Detail follows Cell/Membrane/Void family and reports truthful aria/open state |
+| Cell Surface and Boundary controls reported non-working | Surface visibility worked in the reviewed fixture; Boundary technical parity did not | REPAIRED + PROTECTED | Built-browser Surface off/on/colour evidence; executable paint/opacity projection; six-style matrices in both renderers; reset/undo/persistence/export contracts |
+| Organism dash-dot fell back to solid | Reproduced with `data-boundary-fallback-count="1"` | FIXED | Overlay renders all six styles, fallback count is `0`, dash-dot is rounded and segmented bars differ from dashed |
+| Void was reported working by Owner | Confirmed working; no deterministic defect reproduced | REGRESSION-PROTECTED ONLY | Add selects canonical `kind: "void"`; built-browser fill edit and drag; executable undo/redo/snapshot/export and no Cell/Boundary/Core layer assertions |
+| White centre dots remained with Core off | Reproduced with Project Default Core off, local Core cleared, and Cell field debug enabled | FIXED | Source was the WebGL debug `centerDot`, not legacy embedded dots or sparse Core resolution. Production debug projection now forces centre dots off; Core-off Canvas2D and built-browser debug evidence are dot-free |
+
+## Stale/no-op control disposition
+
+The exhaustive ownership table is [C0_M1_CONTROL_OWNERSHIP_MAP.md](C0_M1_CONTROL_OWNERSHIP_MAP.md).
 
 | Previous surface | Disposition | Production owner |
 | --- | --- | --- |
-| Inline and Table Name/Area | KEEP + REBIND | one `commitSpaceEdit` transaction; Body merged into the same path |
-| Annotation Text Scale/Colour | MERGE | Inspector coordinated text defaults/overrides with legacy migration |
-| Dock + Organism Morph/Attachment/Reach | MOVE | Membrane Settings Field character/Fusion/Reach |
-| Display Morph | REMOVE AS DUPLICATE | Membrane visibility |
-| Display Show nuclei | MOVE | Core Settings |
-| Old broad Organism procedural controls | HIDE AS UNSUPPORTED | compatibility state retained; excluded advanced Membrane work |
-| Old Palette browser/quick control | HIDE AS UNSUPPORTED | canonical resolver retained; M1 paint swatches reuse it |
-| Duplicate Rail Add Void | REMOVE AS DUPLICATE | existing Dock Add Void |
-| Selected keyline | KEEP + REBIND | existing ephemeral selection overlay; prototype orbit deferred |
-| Six target appearance gaps | MERGE | six independent detailed settings widgets |
-
-## Files changed
-
-- Domain/data/history: `src/types.ts`, `src/state/store.ts`, `src/domain/presentation/{types,defaults,validation,resolveAppearance,editing}.ts`.
-- Focused contracts: `src/domain/presentation/m1EditingContracts.test.ts`, `src/domain/presentation/m1ProductContracts.test.ts`.
-- Canvas/content/rendering: `src/canvas/CanvasView.tsx`, `InlineCellEditor.tsx`, `cellActivation.ts`, `inlineCellEditor.css`, `OrganismCanvasView.tsx`, `organismCanvas.css`, `presentationLayers.ts`, `renderer.ts`.
-- Inspector/widgets/shell: `src/ui/widgets/InspectorWidget.tsx`, `AppearanceSettingsWidgets.tsx`, `WidgetHost.tsx`, `DisplayWidget.tsx`, `controls.tsx`, `widgets.css`, `src/ui/panels/widgetRegistry.ts`, `src/ui/Rail.tsx`, `src/ui/Dock.tsx`, `src/ui/shell.css`.
-- Table/import/export: `src/views/TableView.tsx`, `src/import/projectFiles.ts`, `src/export/canvasComposite.ts`, `exportService.ts`, `svgExport.ts`.
-- Required handoff: this report, `docs/C0_M1_CONTROL_OWNERSHIP_MAP.md`, `docs/HANDOFF.md`, `docs/TASK_QUEUE.md`, root gateways `HANDOFF.md` and `TASK_QUEUE.md`.
+| Six top-level Appearance targets | RESTRUCTURE | Inspector offers Cell/Membrane/Void families; all six internal targets remain separate |
+| Standalone Boundary and Core widgets | MOVE | Nested in Cell Detail |
+| Standalone Membrane Edge widget | MOVE | Nested in Membrane Detail |
+| Dock/Organism Morph, Attachment and Reach duplicates | MOVE | Membrane Detail Field/Fusion/Reach; one canonical runtime owner |
+| Display Morph and Show nuclei duplicates | REMOVE/REBIND | Membrane visibility and Cell Detail Core/nucleus |
+| Legacy Palette and broad procedural Organism launchers | HIDE AS UNSUPPORTED | Compatibility state retained; M2/M4 destinations documented below |
+| Duplicate Rail Add Void | REMOVE AS DUPLICATE | Dock Add Void remains live |
+| Prototype selection orbit | DEFER | Existing ephemeral clean selection keyline remains |
+| Prototype mock store, fake Cells, shell and export | REJECT | Never merged or copied |
 
 ## Automated verification
 
-Executed after all source corrections:
+Executed after source correction and before the single production build:
 
-| Command | Exact result |
+| Verification | Result |
 | --- | --- |
-| all repository `*.test.ts` files executed with `npx --yes tsx` | PASS; all affected and existing contract files green |
-| `npx tsc --noEmit -p tsconfig.app.json --pretty false` | PASS; zero diagnostics |
-| `git diff --check 21388c0d765cd4bbc675d0321d94e77db9a41e5c...HEAD` | PASS; no whitespace errors |
-| `npm run build` | PASS; exactly one final production build after corrections; accepted Vite large-chunk warning only |
+| Every repository `src/**/*.test.ts` through `npx --yes tsx` | PASS |
+| `node --test scripts/audit-utils.test.mjs` | PASS, 4/4 |
+| Focused `contentEditSession`, M1 correction behavior, M1 renderer behavior and M1 product contracts | PASS |
+| Affected C0.4F-A runtime presentation, renderer integration, Organism wiring, SVG/export/import/resource/interaction/widget contracts | PASS |
+| `npx tsc --noEmit -p tsconfig.app.json --pretty false` | PASS, zero diagnostics |
+| `git diff --check e9bd67e8c7778dccdd4afb4c1508db0792e70b21...HEAD` | PASS as the final post-commit handoff gate |
+| `npm run build` | PASS; exactly one final production build, accepted Vite large-chunk warning only |
 
-Focused M1 coverage includes canonical content commit/Escape source contracts, Body geometry invariance, Table/Inspector/Canvas ownership, six text presets, default/local/mixed inheritance, sparse reset, multi-selection one-transaction preview/apply, target isolation, all six Boundary SVG styles, Membrane/Edge independence and shared ownership, single Core owner, Void invariants, undo/redo, legacy migration/project round-trip, preview/selection exclusion, clean-capture wiring, renderer fallback and visible-control action wiring.
+The final build emitted the main application chunk at `979.75 kB` (`314.92 kB` gzip). No second production build was run.
+
+Executable correction coverage includes Escape/blur/Enter/Shift+Enter transitions, one family-reset transaction, inheritance status, Void add/select/undo/redo/project snapshot, Cell opacity, all six Classic and Organism strokes, distinct segmented bars, rounded dash-dot, Core-off drawing, production debug ring projection, Void layer exclusion and the Organism plain-mode Cell mask/paint adapter. Source-presence checks remain supplementary only.
 
 ## Deterministic browser QA
 
+The built artifact was tested at `http://127.0.0.1:4173/`.
+
 ### 1440 × 900
 
-- No selection showed Project Defaults; one selection showed the Cell context; Shift-click multi-selection showed `2 Cells` and Mixed state.
-- Inline Name, Area and two-line Body committed with Enter/Shift+Enter; Escape restored the exact pre-edit Name.
-- Table Body edit (`Table synced body`) immediately appeared in Canvas and Inspector after returning to Canvas.
-- Editorial preset, Text Size and custom Text Colour/Auto Contrast projected into the live label hierarchy.
-- All six detailed widgets opened independently and exposed Return to Default. Boundary inherited values rendered as finite defaults after the mixed-value correction.
-- Inspector pinned geometry measured `left 1090`, `right 1422`, `top 72`, width `332`, height `617.75`; the selected Cell remained reasonably visible.
-- Fresh-tab console warnings/errors: `[]`.
-- PNG, Classic true-vector SVG and PDF each reached the product `Complete` state without console error.
+- The bottom bar exposed Inspector, active-family Detail, Add Space, Add 5 Spaces, Add Void, Saved Views, Random Arrangement, File Intake and Export.
+- Dock `i` opened the one Inspector in one click. A default selected Cell reported Project Default; Inspector Escape restored `New Space` exactly.
+- Appearance exposed exactly Cell, Membrane and Void. Dock Detail changed immediately with each family.
+- Cell Detail contained Surface, Boundary and Core/nucleus; Membrane Detail contained Field and Edge; Void Detail contained Fill and Edge.
+- Cell Surface off produced a hollow presentation-only Cell; on plus custom black produced the canonical visible black surface.
+- Six cropped render captures for Classic and six for Organism were visually inspected. Solid, dashed, dotted, dash-dot, double and grouped segmented bars produced six distinct image hashes in each renderer; Organism reported fallback count `0`.
+- Project Default Core was turned off before adding a Cell. Enabling Cell field debug showed the geometry ring without any centre dot.
+- Add Void created and selected `Void Nucleus`; the Inspector context said VOID. Fill toggled off/on, drag moved the subtractive Void, and Cell/Boundary/Core remained absent from its renderer projection.
+- Table Name Escape restored `New Space`. Body Shift+Enter retained `Line one\n`; Escape restored the empty canonical Body.
+- Clean PNG, true-vector Classic SVG and PDF each reached the product `Complete` state without an error.
 
 ### 1280 × 800
 
-- Inspector floated above Canvas at `left 936`, `right 1268`, `top 72`, width `332`, height `617.75`.
-- Widget body `scrollHeight` equalled `clientHeight` (`581`), so no critical controls clipped and the page had no body-level overflow.
-- One/multi/default contexts, Content controls and target navigation remained usable without rail/dock collision.
+- Viewport was exactly `1280 × 800`; document `scrollWidth/clientWidth` was `1280/1280` and `scrollHeight/clientHeight` was `800/800`.
+- Inspector measured `left 936`, `right 1268`, `top 72`, `bottom 689.75`, width `332`.
+- Void Detail measured `left 946`, `right 1256`, `top 114`, `bottom 606.90`, width `310`.
+- Dock measured `left 458`, `right 822`, `top 732`, `bottom 776`; Rail measured `left 24`, `right 66`, `top 214`, `bottom 586`. Neither collided with Inspector/Detail controls.
+- The canonical widget cascade remained draggable/closable, all Void controls were reachable, and no body-level overflow occurred.
+- Final browser warning/error log: `[]`.
 
-The in-app browser does not surface `file-saver` downloads as a browser download event; therefore artifact transport was evidenced by each production `Complete` state plus zero fresh-console errors, while deterministic SVG/project/export contracts cover generated content. No local file picker was required for M1.
+The browser harness does not expose `file-saver` output as a normal browser download event. Export evidence therefore records the production `Complete` states, clean console and executable SVG/project/export content tests.
 
-## Accepted limitations and deferred items
+## Locked milestone map
 
-- Organism non-solid Boundary requests render the audited solid fallback. Classic and Classic SVG render all six requested styles.
-- Membrane and Membrane Edge are one shared organism field/edge pair. They remain independent targets but edit Project Defaults, not misleading per-Cell overrides.
-- Organism true-vector Membrane extraction remains unavailable; M1 does not fake a vector path. Raster PNG/PDF use the canonical live renderer.
-- The prototype dotted selection orbit is deferred; the clean existing keyline remains.
-- Advanced procedural field/nucleus/offset/motion/pocket controls and the legacy Palette browser have no production M1 launcher. Their compatibility data remains preserved.
-- Symbols, Material Browser, Annotation Studio, connection tools, broad Table redesign and M2 are not started.
+**Implemented in corrected M1**
+
+- one Inspector,
+- Content and Appearance tabs,
+- Name/Area/Body direct editing,
+- text presets/size/colour/Auto Contrast,
+- Cell/Membrane/Void Appearance families,
+- Boundary and Core nested in Cell,
+- Edge nested in Membrane,
+- Copy/Paste/Reset,
+- defaults/local/mixed,
+- direct Inspector and Detail access.
+
+**Assigned to M2 in the same Inspector**
+
+- Symbol tab,
+- advanced Cell/Boundary/Core instruments,
+- advanced Membrane/Edge instruments including softness and other proven field controls,
+- approved selection orbit,
+- Antigravity symbol catalogue.
+
+**Assigned to M4**
+
+- full Material Browser,
+- recents/favourites,
+- hover material preview/revert,
+- Material Studio.
+
+No approved prototype feature is unassigned. M2 and M4 were not started.
 
 ## Gate
 
-The feature branch is pushed as one fixed review head, `status/codex` records that exact SHA as `WAITING_REVIEW`, and the next gate is Owner review of the combined C0.4F-A + M1 result. No merge and no M2 work occurred.
+The feature branch is pushed as one corrected fixed head. `status/codex` records the previous reviewed head, corrected SHA, issue disposition, tests and QA as `WAITING_REVIEW`. The next gate is Owner review. No merge and no M2 work occurred.

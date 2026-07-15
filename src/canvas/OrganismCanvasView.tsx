@@ -61,8 +61,9 @@ import { resolveLabelScale } from "./labelPresentation";
 import { resolveLabelContrast } from "../design/labelContrast";
 import { resolveCellShadow } from "./cellShadow";
 import {
-  drawCircleLayers,
+  drawOrganismCircleOverlay,
   projectCircleLayers,
+  projectOrganismDebugPresentation,
   projectRuntimePresentation,
 } from "./presentationLayers";
 import { textStylePreset } from "../domain/presentation/editing";
@@ -302,6 +303,7 @@ export default function OrganismCanvasView() {
       shadowSpread: 0,
       fieldDebug: false,
       nucleiDebug: false,
+      nucleiDebugCenterDots: false,
     };
     let smooth: SmoothFrame | null = null;
 
@@ -466,8 +468,9 @@ export default function OrganismCanvasView() {
       presentationCtx.setTransform(1, 0, 0, 1, 0, 0);
       presentationCtx.clearRect(0, 0, targetWidth, targetHeight);
       presentationCtx.setTransform(pixelScale, 0, 0, pixelScale, 0, 0);
-      let fallbackCount = 0;
       const spacesById = new Map(spaces.map((space) => [space.id, space]));
+      const plainMode = !(cachedPresentation.membrane.visible || cachedPresentation.membraneEdge.visible);
+      const backgroundColour = `rgb(${cachedPalette.ground.map((value) => Math.round(value * 255)).join(" ")})`;
       for (const nucleus of nuclei) {
         const space = spacesById.get(nucleus.id);
         const appearance = cachedPresentation.byId.get(nucleus.id);
@@ -479,12 +482,14 @@ export default function OrganismCanvasView() {
           cam.zoom,
           "organism"
         );
-        if (layers.boundary?.fallback) fallbackCount += 1;
-        drawCircleLayers(presentationCtx, nucleus.sx, nucleus.sy, layers, {
-          cell: !cachedPresentation.membrane.visible && cachedPresentation.membraneEdge.visible,
+        drawOrganismCircleOverlay(presentationCtx, nucleus.sx, nucleus.sy, layers, {
+          spaceKind: space.kind === "void" ? "void" : "space",
+          plainMode,
+          backgroundColour,
+          baseRadiusPx: nucleus.screenR,
         });
       }
-      presentationCanvas.dataset.boundaryFallbackCount = String(fallbackCount);
+      presentationCanvas.dataset.boundaryFallbackCount = "0";
     };
 
     /* camera-synced technical grid — cheap CSS background, render-loop offsets */
@@ -922,7 +927,9 @@ export default function OrganismCanvasView() {
         : 0;
       frame.membraneEdgeWidth = Math.max(0.5, cachedPresentation.membraneEdge.width * cam.zoom);
       frame.fieldDebug = params.showFieldDebug;
-      frame.nucleiDebug = params.showNucleiDebug;
+      const debugPresentation = projectOrganismDebugPresentation(params.showNucleiDebug);
+      frame.nucleiDebug = debugPresentation.rings;
+      frame.nucleiDebugCenterDots = debugPresentation.centreDots;
       const shadow = cachedShadow;
       frame.morphEnabled = morphPresentationActive;
       frame.shadowEnabled = shadow.enabled && (!pendingCapture || shadow.includeInExport);

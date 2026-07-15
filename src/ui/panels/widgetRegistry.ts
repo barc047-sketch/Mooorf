@@ -8,6 +8,7 @@ import {
   Bookmark,
   Download,
   Eye,
+  Info,
   LayoutGrid,
   ListOrdered,
   Minus,
@@ -62,33 +63,21 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
     id: "inspector",
     label: "Inspector",
     responsibility: "Canonical Cell content, coordinated text and six-target appearance editing.",
-    launcher: "rail",
+    launcher: "both",
     status: "live",
-    icon: SlidersHorizontal,
+    icon: Info,
     geometry: { variant: "vertical", width: 332, minWidth: 320, minHeight: 360, maxHeight: 748, aspectIntent: "tall" },
   },
   "cell-settings": {
-    id: "cell-settings", label: "Cell Settings", responsibility: "Cell fill visibility, colour, material reference and opacity.", launcher: "widget", status: "live", icon: Palette,
-    geometry: { variant: "standard", width: 304, minWidth: 280, maxHeight: 560, aspectIntent: "balanced" },
-  },
-  "boundary-settings": {
-    id: "boundary-settings", label: "Boundary Settings", responsibility: "All canonical Boundary stroke styles, geometry and paint.", launcher: "widget", status: "live", icon: SlidersHorizontal,
-    geometry: { variant: "vertical", width: 320, minWidth: 292, maxHeight: 720, aspectIntent: "tall" },
+    id: "cell-settings", label: "Cell Detail", responsibility: "Nested Cell Surface, Boundary and Core/nucleus controls over three canonical targets.", launcher: "dock", status: "live", icon: Palette,
+    geometry: { variant: "vertical", width: 324, minWidth: 296, maxHeight: 748, aspectIntent: "tall" },
   },
   "membrane-settings": {
-    id: "membrane-settings", label: "Membrane Settings", responsibility: "Membrane fill plus proven legacy fusion and reach ownership.", launcher: "widget", status: "live", icon: Activity,
-    geometry: { variant: "vertical", width: 310, minWidth: 282, maxHeight: 660, aspectIntent: "tall" },
-  },
-  "membrane-edge-settings": {
-    id: "membrane-edge-settings", label: "Membrane Edge Settings", responsibility: "Independent Membrane edge visibility, width and paint.", launcher: "widget", status: "live", icon: Activity,
-    geometry: { variant: "standard", width: 304, minWidth: 280, maxHeight: 580, aspectIntent: "balanced" },
-  },
-  "core-settings": {
-    id: "core-settings", label: "Core Settings", responsibility: "Core dot visibility, size, colour, opacity and automatic contrast.", launcher: "widget", status: "live", icon: Eye,
-    geometry: { variant: "standard", width: 304, minWidth: 280, maxHeight: 580, aspectIntent: "balanced" },
+    id: "membrane-settings", label: "Membrane Detail", responsibility: "Nested shared Field and Edge controls plus proven Fusion and Reach ownership.", launcher: "dock", status: "live", icon: Activity,
+    geometry: { variant: "vertical", width: 320, minWidth: 292, maxHeight: 748, aspectIntent: "tall" },
   },
   "void-settings": {
-    id: "void-settings", label: "Void Settings", responsibility: "Void appearance only; subtraction and geometry remain data-owned.", launcher: "widget", status: "live", icon: Minus,
+    id: "void-settings", label: "Void Detail", responsibility: "Nested Fill and Edge controls; subtraction and geometry remain data-owned.", launcher: "dock", status: "live", icon: Minus,
     geometry: { variant: "vertical", width: 310, minWidth: 282, maxHeight: 680, aspectIntent: "tall" },
   },
   annotation: {

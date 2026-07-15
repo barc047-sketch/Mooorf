@@ -5,17 +5,20 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Info,
   Minus,
   Plus,
   Shuffle,
+  SlidersHorizontal,
   Upload,
 } from "lucide-react";
+import { appearanceFamilyDefinition, appearanceFamilyForTarget } from "../domain/presentation/editing";
 import { useLab } from "../state/store";
 import "./shell.css";
 
 /* Bottom dock — creation in the centre and non-editing project utilities on
-   the right. M1 appearance ownership lives in the Inspector and six detailed
-   widgets, so no duplicate Morph/palette controls remain here. */
+   the right. M1 appearance ownership lives in the Inspector and three family
+   Detail widgets over six canonical targets, with no duplicate state owners. */
 
 interface DockButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean;
@@ -61,7 +64,10 @@ export default function Dock() {
   const applyLayoutPreset = useLab((s) => s.applyLayoutPreset);
   const openWidgets = useLab((s) => s.openWidgets);
   const openWidget = useLab((s) => s.openWidget);
+  const activeAppearanceTarget = useLab((s) => s.activeAppearanceTarget);
   const [rightOpen, setRightOpen] = useState(true);
+  const activeFamily = appearanceFamilyForTarget(activeAppearanceTarget);
+  const detail = appearanceFamilyDefinition(activeFamily);
 
   return (
     <motion.div
@@ -72,6 +78,29 @@ export default function Dock() {
       role="toolbar"
       aria-label="Canvas tools"
     >
+      <DockGroup side="left">
+        <DockButton
+          active={openWidgets.includes("inspector")}
+          title="Open Inspector"
+          aria-label="Open Inspector"
+          aria-haspopup="dialog"
+          aria-expanded={openWidgets.includes("inspector")}
+          onClick={() => openWidget("inspector")}
+        >
+          <Info size={16} strokeWidth={1.5} />
+        </DockButton>
+        <DockButton
+          active={openWidgets.includes(detail.detailWidgetId)}
+          title={`Open ${detail.label} Detail`}
+          aria-label={`Open ${detail.label} Detail`}
+          aria-haspopup="dialog"
+          aria-expanded={openWidgets.includes(detail.detailWidgetId)}
+          onClick={() => openWidget(detail.detailWidgetId)}
+        >
+          <SlidersHorizontal size={16} strokeWidth={1.5} />
+        </DockButton>
+      </DockGroup>
+
       <DockGroup side="center">
         <DockButton
           className="nucleus-orb"

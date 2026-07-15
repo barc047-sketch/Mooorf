@@ -76,6 +76,8 @@ import {
   applyTextAppearancePatch,
   cloneStyle,
   resetAppearanceChannel,
+  resetAppearanceFamilyChannels,
+  type AppearanceFamilyId,
 } from "../domain/presentation/editing";
 
 let idCounter = 0;
@@ -227,6 +229,7 @@ interface LabState {
   commitTextAppearancePatch: (ids: readonly string[], patch: Partial<TextAppearanceOverride>) => void;
   previewTextAppearancePatch: (ids: readonly string[], patch: Partial<TextAppearanceOverride>) => void;
   resetAppearanceTarget: (ids: readonly string[], target: PresentationTargetId | "text") => void;
+  resetAppearanceFamily: (ids: readonly string[], family: AppearanceFamilyId) => void;
   resetAllAppearance: (ids: readonly string[]) => void;
   copyStyle: (id: string) => void;
   pasteStyle: (ids: readonly string[]) => void;
@@ -960,6 +963,21 @@ export const useLab = create<LabState>((set) => ({
       if (!result) return {};
       return {
         spaces: result.spaces,
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
+  resetAppearanceFamily: (ids, family) =>
+    set((s) => {
+      const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
+        ...space,
+        appearance: resetAppearanceFamilyChannels(space.appearance, family),
+      }));
+      if (!result) return {};
+      return {
+        spaces: result.spaces,
+        appearancePreview: null,
         transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
         transformRedoStack: [],
       };

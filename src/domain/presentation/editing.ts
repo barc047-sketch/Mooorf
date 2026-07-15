@@ -14,6 +14,26 @@ import {
 } from "./validation";
 
 export type InheritanceState = "project-default" | "local-override" | "mixed";
+export type AppearanceFamilyId = "cell" | "membrane" | "void";
+
+export interface AppearanceFamilyDefinition {
+  id: AppearanceFamilyId;
+  label: string;
+  targets: readonly PresentationTargetId[];
+  detailWidgetId: "cell-settings" | "membrane-settings" | "void-settings";
+}
+
+export const APPEARANCE_FAMILIES: readonly AppearanceFamilyDefinition[] = [
+  { id: "cell", label: "Cell", targets: ["cell", "boundary", "core"], detailWidgetId: "cell-settings" },
+  { id: "membrane", label: "Membrane", targets: ["membrane", "membrane-edge"], detailWidgetId: "membrane-settings" },
+  { id: "void", label: "Void", targets: ["void"], detailWidgetId: "void-settings" },
+];
+
+export const appearanceFamilyForTarget = (target: PresentationTargetId): AppearanceFamilyId =>
+  APPEARANCE_FAMILIES.find((family) => family.targets.includes(target))?.id ?? "cell";
+
+export const appearanceFamilyDefinition = (family: AppearanceFamilyId): AppearanceFamilyDefinition =>
+  APPEARANCE_FAMILIES.find((definition) => definition.id === family) ?? APPEARANCE_FAMILIES[0];
 
 export interface TextStylePreset {
   id: TextStylePresetId;
@@ -100,11 +120,44 @@ export const resolveInheritanceState = (
   return "mixed";
 };
 
+export const resolveFamilyInheritanceState = (
+  appearances: readonly (CellAppearanceOverrides | undefined)[],
+  family: AppearanceFamilyId
+): InheritanceState => {
+  // Membrane and its Edge are shared organism fields. Per-Cell values are not
+  // a live M1 scope and therefore cannot truthfully report Local Override.
+  if (family === "membrane") return "project-default";
+  const states = appearanceFamilyDefinition(family).targets.map((target) =>
+    resolveInheritanceState(appearances, target)
+  );
+  if (states.every((state) => state === "project-default")) return "project-default";
+  if (states.every((state) => state === "local-override")) return "local-override";
+  return "mixed";
+};
+
+export const inheritanceStateLabel = (state: InheritanceState): string =>
+  state === "project-default" ? "Project Default" : state === "local-override" ? "Local Override" : "Mixed";
+
 export const resetAppearanceChannel = (
   current: CellAppearanceOverrides | undefined,
   channel: PresentationTargetId | "text"
 ): CellAppearanceOverrides | undefined =>
   channel === "text" ? resetTextAppearance(current) : resetCellAppearanceTarget(current, channel);
+
+export const resetAppearanceFamilyChannels = (
+  current: CellAppearanceOverrides | undefined,
+  family: AppearanceFamilyId
+): CellAppearanceOverrides | undefined => {
+  if (!current) return undefined;
+  const next = cloneCellAppearanceOverrides(current)!;
+  for (const target of appearanceFamilyDefinition(family).targets) {
+    delete next[appearanceKeyForTarget(target)];
+  }
+  for (const key of Object.keys(next) as PresentationDefaultsKey[]) {
+    if (next[key] === undefined) delete next[key];
+  }
+  return Object.values(next).some((value) => value !== undefined) ? next : undefined;
+};
 
 export const cloneStyle = (appearance: CellAppearanceOverrides | undefined): CellAppearanceOverrides => {
   const copy = cloneCellAppearanceOverrides(appearance) ?? {};

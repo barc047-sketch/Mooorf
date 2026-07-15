@@ -88,10 +88,7 @@ export interface AnnotationDetail {
 export type WidgetId =
   | "inspector"
   | "cell-settings"
-  | "boundary-settings"
   | "membrane-settings"
-  | "membrane-edge-settings"
-  | "core-settings"
   | "void-settings"
   | "annotation"
   | "organism"

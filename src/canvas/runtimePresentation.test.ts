@@ -81,20 +81,20 @@ equal(classic.fallback, null, "Classic does not claim a fallback for supported s
 equal(classic.widthPx, 6, "Boundary width is world-scaled");
 equal(classic.offsetPx, 8, "Boundary offset is world-scaled");
 equal(classic.radiusDeltaPx, 11, "outer alignment positions the stroke outside its anchor");
-deepEqual(classic.lineDashPx, [20, 10, 0.001, 16], "dash-dot geometry scales deterministically");
+deepEqual(classic.lineDashPx, [20, 10, 0.12, 16], "dash-dot geometry scales deterministically");
 
 const organism = resolveBoundaryStroke(appearance!.boundary, 2, "organism");
 equal(organism.requestedStyle, "dash-dot", "Organism preserves requested-style metadata");
-equal(organism.renderedStyle, "solid", "Organism truthfully falls back to its supported solid stroke");
-equal(organism.fallback, "unsupported-organism-style", "Organism fallback is explicit and testable");
-deepEqual(organism.lineDashPx, [], "Organism never fakes unsupported dash support");
+equal(organism.renderedStyle, "dash-dot", "Organism renders the canonical technical stroke through its Canvas2D overlay");
+equal(organism.fallback, null, "Organism no longer needs a technical-style fallback");
+deepEqual(organism.lineDashPx, [20, 10, 0.12, 16], "Organism uses the same deterministic dash-dot sequence");
 
 const classicLayers = projectCircleLayers(styled, appearance!, 40, 2, "classic");
 equal(classicLayers.cell?.radiusPx, 40, "Cell paint uses the unchanged area-driven radius");
 equal(classicLayers.cell?.colour, appearance!.cell.paint.colour, "Cell layer consumes canonical paint");
 equal(classicLayers.boundary?.strokes.length, 1, "single-line Boundary styles project one stroke");
 equal(classicLayers.boundary?.strokes[0].radiusPx, 51, "Boundary offset/alignment changes only visual stroke radius");
-deepEqual(classicLayers.boundary?.strokes[0].lineDashPx, [20, 10, 0.001, 16], "Boundary layer consumes technical dash geometry");
+deepEqual(classicLayers.boundary?.strokes[0].lineDashPx, [20, 10, 0.12, 16], "Boundary layer consumes technical dash geometry");
 equal(classicLayers.core, null, "Core visibility remains independent from Cell and Boundary");
 equal(classicLayers.void, null, "ordinary Cells never project Void appearance");
 
@@ -108,12 +108,13 @@ const doubleLayers = projectCircleLayers(
 equal(doubleLayers.boundary?.strokes.length, 2, "double Boundary projects two deterministic strokes");
 
 const organismLayers = projectCircleLayers(styled, appearance!, 40, 2, "organism");
-equal(organismLayers.boundary?.fallback, "unsupported-organism-style", "Organism layer surfaces its technical-style fallback");
-equal(organismLayers.boundary?.strokes[0].renderedStyle, "solid", "Organism layer renders only the supported solid stroke");
+equal(organismLayers.boundary?.fallback, null, "Organism layer reports canonical technical-style support");
+equal(organismLayers.boundary?.strokes[0].renderedStyle, "dash-dot", "Organism layer renders the requested technical stroke");
 
 for (const style of ["solid", "dashed", "dotted", "dash-dot", "double", "segmented-bars"] as const) {
   const boundary = { ...appearance!.boundary, style };
   equal(resolveBoundaryStroke(boundary, 1, "classic").renderedStyle, style, `Classic supports ${style}`);
+  equal(resolveBoundaryStroke(boundary, 1, "organism").renderedStyle, style, `Organism supports ${style}`);
 }
 
 const includedSelection = projectSelectionOverlay({

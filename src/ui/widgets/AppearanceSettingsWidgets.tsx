@@ -14,15 +14,6 @@ import { getAreaRange, getNucleusColor } from "../../design/colorMapping";
 import { MORPHS } from "../controlMeta";
 import { ChipRow, SliderRow, SwitchRow, WidgetSection } from "./controls";
 
-const LABELS: Record<PresentationTargetId, string> = {
-  cell: "Cell",
-  boundary: "Boundary",
-  membrane: "Membrane",
-  "membrane-edge": "Membrane Edge",
-  core: "Core",
-  void: "Void",
-};
-
 const asRecord = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" ? value as Record<string, unknown> : {};
 
@@ -163,10 +154,10 @@ function PaintControls({ api, path = "paint", label = "Colour" }: {
   );
 }
 
-export function CellSettingsWidget() {
+function CellSurfaceTarget() {
   return <TargetSettings target="cell">{(api) => {
     const visible = api.value(["visible"], true);
-    return <WidgetSection title="Cell surface" defaultOpen extra={
+    return <WidgetSection title="Cell Surface" defaultOpen extra={
       <span className="m1-state-dot" data-on={Boolean(visible.value)} />
     }>
       <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
@@ -175,7 +166,7 @@ export function CellSettingsWidget() {
   }}</TargetSettings>;
 }
 
-export function BoundarySettingsWidget() {
+function BoundaryTarget() {
   return <TargetSettings target="boundary">{(api) => {
     const visible = api.value(["visible"], false);
     const style = api.value(["style"], "solid");
@@ -184,7 +175,7 @@ export function BoundarySettingsWidget() {
     const alignment = api.value(["alignment"], "centre");
     const technical = style.value !== "solid";
     return <>
-      <WidgetSection title="Stroke" defaultOpen>
+      <WidgetSection title="Boundary" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
         <ChipRow options={BOUNDARY_STYLES.map((id) => ({ id, label: id === "segmented-bars" ? "Bars" : id }))} value={style.value as typeof BOUNDARY_STYLES[number]} onChange={(next) => api.commit({ style: next })} ariaLabel="Boundary style" />
         <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} />
@@ -197,12 +188,11 @@ export function BoundarySettingsWidget() {
         {style.value === "double" && <SliderRow label="Double-line spacing" value={Number(api.value(["secondaryLineSpacing"], 3).value)} min={0} max={24} step={0.25} onChange={(value) => api.preview({ secondaryLineSpacing: value })} onChangeEnd={api.commitPreview} />}
         <PaintControls api={api} label="Stroke colour" />
       </WidgetSection>
-      <p className="m1-compat-note">Classic renders all six styles. Organism uses its audited solid fallback for non-solid requests.</p>
     </>;
   }}</TargetSettings>;
 }
 
-export function MembraneSettingsWidget() {
+function MembraneFieldTarget() {
   const settings = useLab((state) => state.membraneRuntimePreview ?? state.settings);
   const commitRuntime = useLab((state) => state.commitMembraneRuntime);
   const previewRuntime = useLab((state) => state.previewMembraneRuntime);
@@ -210,7 +200,7 @@ export function MembraneSettingsWidget() {
   return <TargetSettings target="membrane">{(api) => {
     const visible = api.value(["visible"], false);
     return <>
-      <WidgetSection title="Membrane fill" defaultOpen>
+      <WidgetSection title="Membrane Field" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
         <PaintControls api={api} label="Fill colour" />
       </WidgetSection>
@@ -226,12 +216,12 @@ export function MembraneSettingsWidget() {
   }}</TargetSettings>;
 }
 
-export function MembraneEdgeSettingsWidget() {
+function MembraneEdgeTarget() {
   return <TargetSettings target="membrane-edge">{(api) => {
     const visible = api.value(["visible"], false);
     const width = api.value(["width"], 1);
     return <>
-      <WidgetSection title="Independent edge" defaultOpen>
+      <WidgetSection title="Membrane Edge" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
         <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} />
         <PaintControls api={api} label="Edge colour" />
@@ -241,18 +231,36 @@ export function MembraneEdgeSettingsWidget() {
   }}</TargetSettings>;
 }
 
-export function CoreSettingsWidget() {
+function CoreTarget() {
   return <TargetSettings target="core">{(api) => {
     const visible = api.value(["visible"], true);
     const size = api.value(["size"], 0.34);
     const colour = api.value(["paint", "colour"], null);
-    return <WidgetSection title="Core dot" defaultOpen>
+    return <WidgetSection title="Core / nucleus" defaultOpen>
+      <p className="m1-compat-note">Core / nucleus is the optional centre marker. It is separate from selection, Boundary, the Membrane field and debug geometry.</p>
       <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
       <SliderRow label={`Size${size.mixed ? " · Mixed" : ""}`} value={Number(size.value)} min={0.1} max={2} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(value) => api.preview({ size: value })} onChangeEnd={api.commitPreview} />
       <SwitchRow label="Auto Contrast" on={colour.value === null || colour.value === undefined} onToggle={() => api.commit({ paint: { colour: colour.value == null ? "#171715" : undefined } })} />
       <PaintControls api={api} label="Core colour" />
     </WidgetSection>;
   }}</TargetSettings>;
+}
+
+export function CellSettingsWidget() {
+  return <div className="m1-family-settings" data-family="cell">
+    <p className="m1-compat-note">Surface, Boundary and Core/nucleus retain separate canonical targets.</p>
+    <CellSurfaceTarget />
+    <BoundaryTarget />
+    <CoreTarget />
+  </div>;
+}
+
+export function MembraneSettingsWidget() {
+  return <div className="m1-family-settings" data-family="membrane">
+    <p className="m1-compat-note">Field and Edge retain separate shared canonical targets.</p>
+    <MembraneFieldTarget />
+    <MembraneEdgeTarget />
+  </div>;
 }
 
 export function VoidSettingsWidget() {
@@ -275,5 +283,3 @@ export function VoidSettingsWidget() {
     </>;
   }}</TargetSettings>;
 }
-
-export { LABELS as APPEARANCE_TARGET_LABELS };

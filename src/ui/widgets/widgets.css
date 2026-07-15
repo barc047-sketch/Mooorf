@@ -184,6 +184,7 @@
 /* C0 M1 — compact production Inspector and separated appearance widgets. */
 .m1-inspector,
 .m1-settings { display: flex; flex-direction: column; gap: 8px; padding: 7px 2px 2px; color: var(--ink); }
+.m1-family-settings { display: flex; flex-direction: column; gap: 8px; }
 .m1-context,
 .m1-scope-row,
 .m1-section-title { display: flex; align-items: center; gap: 8px; }
@@ -226,7 +227,7 @@
 .m1-swatch-row { display: flex; flex-wrap: wrap; gap: 5px; }
 .m1-swatch-row button { width: 20px; height: 20px; padding: 0; border: 1px solid color-mix(in srgb, var(--hairline) 72%, transparent); border-radius: 50%; cursor: pointer; }
 .m1-swatch-row button[data-active="true"] { box-shadow: 0 0 0 2px var(--glass-panel-strong), 0 0 0 3px var(--ink-soft); }
-.m1-target-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.m1-target-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .m1-target-grid button { display: flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--hairline) 48%, transparent); border-radius: 6px; background: transparent; color: var(--fog); font: inherit; font-size: 8.5px; text-align: left; cursor: pointer; }
 .m1-target-grid button[data-active="true"] { color: var(--ink); border-color: color-mix(in srgb, var(--ink-soft) 38%, transparent); background: color-mix(in srgb, var(--glass-light) 54%, transparent); }
 .m1-target-dot,

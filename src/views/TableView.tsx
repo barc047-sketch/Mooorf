@@ -1,10 +1,17 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { AreaRange } from "../design/colorMapping";
 import type { ColorSource, PaletteMode, Privacy, SpaceCell } from "../types";
 import { areaToRadius } from "../lib/geometry";
 import { getAreaRange, getNucleusColor } from "../design/colorMapping";
+import {
+  beginContentEdit,
+  changeContentEdit,
+  resolveContentEditBlur,
+  resolveContentEditKey,
+  type ContentEditResolution,
+} from "../interaction/contentEditSession";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -45,7 +52,13 @@ const MIN_AREA = 1;
 // typing without writing NaN into the store; only valid parses commit.
 function AreaCell({ cell }: { cell: SpaceCell }) {
   const commitSpaceEdit = useLab((s) => s.commitSpaceEdit);
-  const [draft, setDraft] = useState<string | null>(null);
+  const canonical = String(cell.area);
+  const [draft, setDraft] = useState(canonical);
+  const session = useRef(beginContentEdit(canonical));
+  useEffect(() => {
+    session.current = beginContentEdit(canonical);
+    setDraft(canonical);
+  }, [canonical]);
 
   const commit = (raw: string) => {
     const n = Number.parseFloat(raw);
@@ -55,29 +68,28 @@ function AreaCell({ cell }: { cell: SpaceCell }) {
       body: cell.body ?? "",
     });
   };
+  const apply = (result: ContentEditResolution) => {
+    session.current = result.session;
+    if (result.action.kind === "cancel") setDraft(result.action.value);
+    if (result.action.kind === "commit") commit(result.action.value);
+  };
 
   return (
     <Input
       type="number"
       min={MIN_AREA}
       className="h-7 w-24 tabular-nums"
-      value={draft ?? String(cell.area)}
+      value={draft}
       onChange={(e) => {
-        setDraft(e.target.value);
+        session.current = changeContentEdit(session.current, e.target.value);
+        setDraft(session.current.draft);
       }}
-      onBlur={(event) => {
-        commit(event.target.value);
-        setDraft(null);
-      }}
+      onBlur={() => apply(resolveContentEditBlur(session.current))}
       onKeyDown={(event) => {
-        if (event.key === "Escape") {
-          setDraft(null);
-          event.currentTarget.blur();
-        } else if (event.key === "Enter") {
-          commit(event.currentTarget.value);
-          setDraft(null);
-          event.currentTarget.blur();
-        }
+        const result = resolveContentEditKey(session.current, { key: event.key });
+        if (result.action.kind === "commit") event.preventDefault();
+        apply(result);
+        if (result.blur) event.currentTarget.blur();
       }}
       aria-label={`Area of ${cell.name}`}
     />
@@ -88,22 +100,31 @@ function TextCell({ cell, field }: { cell: SpaceCell; field: "name" | "body" }) 
   const commitSpaceEdit = useLab((s) => s.commitSpaceEdit);
   const canonical = field === "name" ? cell.name : cell.body ?? "";
   const [draft, setDraft] = useState(canonical);
-  useEffect(() => setDraft(canonical), [canonical]);
+  const session = useRef(beginContentEdit(canonical));
+  useEffect(() => {
+    session.current = beginContentEdit(canonical);
+    setDraft(canonical);
+  }, [canonical]);
 
-  const commit = () => commitSpaceEdit(cell.id, {
-    name: field === "name" ? draft : cell.name,
+  const commit = (value: string) => commitSpaceEdit(cell.id, {
+    name: field === "name" ? value : cell.name,
     area: cell.area,
-    body: field === "body" ? draft : cell.body ?? "",
+    body: field === "body" ? value : cell.body ?? "",
   });
+  const apply = (result: ContentEditResolution) => {
+    session.current = result.session;
+    if (result.action.kind === "cancel") setDraft(result.action.value);
+    if (result.action.kind === "commit") commit(result.action.value);
+  };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    if (event.key === "Escape") {
-      setDraft(canonical);
-      event.currentTarget.blur();
-    } else if (event.key === "Enter" && !(field === "body" && event.shiftKey)) {
-      event.preventDefault();
-      commit();
-      event.currentTarget.blur();
-    }
+    const result = resolveContentEditKey(session.current, {
+      key: event.key,
+      shiftKey: event.shiftKey,
+      multiline: field === "body",
+    });
+    if (result.action.kind === "commit") event.preventDefault();
+    apply(result);
+    if (result.blur) event.currentTarget.blur();
   };
 
   if (field === "body") {
@@ -112,8 +133,11 @@ function TextCell({ cell, field }: { cell: SpaceCell; field: "name" | "body" }) 
         className="table-body-input"
         rows={2}
         value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
+        onChange={(event) => {
+          session.current = changeContentEdit(session.current, event.target.value);
+          setDraft(session.current.draft);
+        }}
+        onBlur={() => apply(resolveContentEditBlur(session.current))}
         onKeyDown={onKeyDown}
         aria-label={`Body of ${cell.name}`}
       />
@@ -123,8 +147,11 @@ function TextCell({ cell, field }: { cell: SpaceCell; field: "name" | "body" }) 
     <Input
       className="h-7 w-40"
       value={draft}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={commit}
+      onChange={(event) => {
+        session.current = changeContentEdit(session.current, event.target.value);
+        setDraft(session.current.draft);
+      }}
+      onBlur={() => apply(resolveContentEditBlur(session.current))}
       onKeyDown={onKeyDown}
       aria-label="Space name"
     />

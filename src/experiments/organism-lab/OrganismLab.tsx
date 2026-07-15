@@ -184,6 +184,7 @@ export default function OrganismLab() {
       shadowSpread: 0,
       fieldDebug: false,
       nucleiDebug: false,
+      nucleiDebugCenterDots: true,
     };
     let smooth: SmoothState | null = null;
 
@@ -267,6 +268,7 @@ export default function OrganismLab() {
       frame.colorMix = smooth.colorMix;
       frame.fieldDebug = p.showFieldDebug;
       frame.nucleiDebug = p.showNucleiDebug;
+      frame.nucleiDebugCenterDots = true;
 
       colorBuf.fill(0);
       for (let i = 0; i < frame.count; i += 1) {
