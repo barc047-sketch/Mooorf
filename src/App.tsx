@@ -113,13 +113,13 @@ function MainApp() {
       {loaderDone && (
         <>
           <ViewToggle />
+          <Rail />
+          <Dock />
+          <WidgetHost />
           {view === "canvas" && (
             <>
-              <Rail />
-              <Dock />
               <ZoomControls />
               <Hud />
-              <WidgetHost />
               <ContextSurfaceHost />
             </>
           )}

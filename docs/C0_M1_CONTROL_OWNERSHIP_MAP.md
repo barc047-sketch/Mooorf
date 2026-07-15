@@ -10,7 +10,8 @@ Scope: every M1 Content, Appearance, Morph, Core, Void, selection and launcher c
 | Inspector Name/Area/Body draft exit | local component blur handlers | REBIND | same shared content edit session | `commitSpaceContent`; multi-selection remains one transaction |
 | Table Category and Privacy | `TableView` | KEEP | minimal Table | existing `updateSpace`; outside M1 appearance ownership |
 | Inspector header status | selection-count shortcut | REMOVE + REBIND | actual channel/family inheritance projection | `resolveInheritanceState` / `resolveFamilyInheritanceState` |
-| Inspector/info launcher | indirect/stale visible path | REBIND + REPAIR | Rail and bounded Dock `i` | generic `openWidget("inspector")`; mount/focus/expand/reveal and truthful aria/open state |
+| Inspector/info launcher | indirect/stale visible path plus translating Motion hit target | REBIND + REPAIR | shared `InspectorLauncherButton` in Rail and bounded Dock | stable `data-command="open-inspector"`; fixed geometry, truthful aria/open/focus state and click/Enter/Space delegate to generic `openWidget("inspector")` |
+| Inspector shell availability | Canvas-only `Rail`/`Dock`/`WidgetHost` composition | MOVE + PROTECT | application shell after loader completion | one existing host and both real launchers remain mounted in Canvas and Table; no duplicate Inspector or host |
 | Every registered widget launcher | separate mount/focus behavior | REBIND + PROTECT | existing `WidgetHost`/`WidgetFrame` lifecycle | one store-owned launch revision expands and viewport-clamps the requested widget; no duplicate host |
 | Active-family Detail launcher | absent | MERGE | bounded Dock and Inspector Appearance | `appearanceFamilyDefinition(activeFamily).detailWidgetId` |
 | Six top-level target buttons | Inspector Appearance | RESTRUCTURE | Cell/Membrane/Void primary families | projection only; six internal target IDs remain unchanged |

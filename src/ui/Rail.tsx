@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { WidgetId } from "../types";
+import InspectorLauncherButton from "./InspectorLauncherButton";
 import { getWidgetDefinition } from "./panels/widgetRegistry";
 import "./shell.css";
 
@@ -66,9 +67,9 @@ export default function Rail() {
   return (
     <motion.div
       className="rail glass"
-      initial={{ x: -20, y: "-50%", opacity: 0 }}
-      animate={{ x: 0, y: "-50%", opacity: 1 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.16 }}
+      initial={{ y: "-50%", opacity: 0 }}
+      animate={{ y: "-50%", opacity: 1 }}
+      transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
       role="toolbar"
       aria-label="Canvas navigation"
     >
@@ -111,7 +112,7 @@ export default function Rail() {
       </RailSection>
 
       <RailSection caption="inspect">
-        {launcher("inspector", "Open production Inspector")}
+        <InspectorLauncherButton surface="rail" />
       </RailSection>
 
       <RailSection caption="layout">

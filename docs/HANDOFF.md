@@ -2,6 +2,8 @@
 
 ## C0-M1 — Production Inspector, Content and Layer Editing Recovery
 
+- Correction 3 fixes reviewed head `c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9` at the actual Owner path. Dock/Rail no longer move beneath an early physical click, and both launchers plus the single `WidgetHost` remain mounted in Canvas and Table.
+- Both real `i` buttons share `data-command="open-inspector"`, truthful accessibility/focus state and click/Enter/Space behavior. Production-browser input proves one full Inspector for no-selection, closed, minimized, background and partly off-screen states at 1440×900 and 1280×800.
 - Correction 2 fixes reviewed head `484ddeb859fcb18256a6acf7b7287e2be917aedc`: every widget launcher now generically mounts, focuses, expands and reveals its target; both Dock/Rail `i` buttons restore the full Inspector body in one click.
 - Void no longer draws the unconditional hard-coded inner circle in Canvas2D or Classic SVG. Outer fill/edge, subtraction, selection, dragging, hit testing, persistence and existing PNG/PDF/SVG ownership remain intact.
 - Membrane Field keeps the current Cell-derived gradient as default `Cell Gradient` and adds a persisted, patch-free `Solid` mode using canonical Black, Ink, MOOORF Red, Charcoal and Custom material paths. Schema v3 migrates v1/v2 to the unchanged default.

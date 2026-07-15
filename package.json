@@ -13,7 +13,8 @@
     "audit:dead": "node scripts/audit-dead.mjs",
     "audit:perf": "node scripts/audit-perf.mjs",
     "audit:summary": "node scripts/audit-summary.mjs",
-    "audit:test": "node --test scripts/audit-utils.test.mjs"
+    "audit:test": "node --test scripts/audit-utils.test.mjs",
+    "test:m1-browser": "node scripts/m1-inspector-launch.browser.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

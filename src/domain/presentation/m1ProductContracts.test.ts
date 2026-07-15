@@ -18,6 +18,8 @@ const host = source("../../ui/widgets/WidgetHost.tsx");
 const registry = source("../../ui/panels/widgetRegistry.ts");
 const rail = source("../../ui/Rail.tsx");
 const dock = source("../../ui/Dock.tsx");
+const launcher = source("../../ui/InspectorLauncherButton.tsx");
+const app = source("../../App.tsx");
 const composite = source("../../export/canvasComposite.ts");
 
 assert.match(inline, /Body \/ subtext/, "inline editor exposes Body");
@@ -42,8 +44,11 @@ assert.match(details, /Cell Surface[\s\S]*Boundary[\s\S]*Core \/ nucleus/, "Cell
 assert.match(details, /Membrane Field[\s\S]*Membrane Edge/, "Membrane Detail nests Field and Edge");
 assert.match(details, /Project Defaults · shared field/, "shared Membrane targets route to their truthful project owner");
 assert.match(details, /MORPHS/, "supported legacy Morph choices move into Membrane Settings");
-assert.match(rail, /launcher\("inspector"/, "visible rail i path launches the one production Inspector");
-assert.match(dock, /openWidget\("inspector"\)/, "bottom bar exposes one-click Inspector access");
+assert.match(rail, /InspectorLauncherButton surface="rail"/, "visible rail i path renders the shared production Inspector command");
+assert.match(dock, /InspectorLauncherButton surface="dock"/, "bottom bar renders the same production Inspector command");
+assert.match(launcher, /data-command="open-inspector"[\s\S]*aria-haspopup="dialog"[\s\S]*aria-expanded/, "the shared command has stable and truthful launcher semantics");
+assert.match(launcher, /openWidget\("inspector"\)/, "the shared rendered command reuses the canonical widget lifecycle");
+assert.match(app, /<ViewToggle \/>[\s\S]*<Rail \/>[\s\S]*<Dock \/>[\s\S]*<WidgetHost \/>[\s\S]*view === "canvas"/, "real launchers and the one WidgetHost remain mounted in Canvas and Table");
 assert.match(dock, /appearanceFamilyDefinition[\s\S]*detailWidgetId/, "bottom bar Detail follows the active Appearance family");
 assert.doesNotMatch(rail, /launcher\("annotation"|launcher\("organism"|launcher\("palette"/, "stale duplicate rail owners are removed");
 assert.doesNotMatch(dock, /Reach density fine-tune|Morph style:|Attachment:/, "stale Dock appearance owners are removed");

@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Info,
   Minus,
   Plus,
   Shuffle,
@@ -14,6 +13,7 @@ import {
 } from "lucide-react";
 import { appearanceFamilyDefinition, appearanceFamilyForTarget } from "../domain/presentation/editing";
 import { useLab } from "../state/store";
+import InspectorLauncherButton from "./InspectorLauncherButton";
 import "./shell.css";
 
 /* Bottom dock — creation in the centre and non-editing project utilities on
@@ -75,23 +75,14 @@ export default function Dock() {
   return (
     <motion.div
       className="dock"
-      initial={{ x: "-50%", y: 24, opacity: 0 }}
-      animate={{ x: "-50%", y: 0, opacity: 1 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+      initial={{ x: "-50%", opacity: 0 }}
+      animate={{ x: "-50%", opacity: 1 }}
+      transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
       role="toolbar"
       aria-label="Canvas tools"
     >
       <DockGroup side="left">
-        <DockButton
-          active={isExpanded("inspector")}
-          title="Open Inspector"
-          aria-label="Open Inspector"
-          aria-haspopup="dialog"
-          aria-expanded={isExpanded("inspector")}
-          onClick={() => openWidget("inspector")}
-        >
-          <Info size={16} strokeWidth={1.5} />
-        </DockButton>
+        <InspectorLauncherButton surface="dock" />
         <DockButton
           active={isExpanded(detail.detailWidgetId)}
           title={`Open ${detail.label} Detail`}

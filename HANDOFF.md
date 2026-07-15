@@ -5,7 +5,7 @@ Short gateway handoff. Full details live in [docs/HANDOFF.md](docs/HANDOFF.md).
 ## Current Status
 
 Complete:
-- C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 1 complete on feature branch; waiting Owner review; not merged)
+- C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 3 complete on feature branch; waiting Owner review; not merged)
 - C0.4F-A Runtime Layer Separation (feature branch complete; waiting independent review; not merged)
 - V8.2C0.2 Icon and Grid Asset Registry
 - V8.2C0 Canvas Performance + Contrast Reset
@@ -65,7 +65,7 @@ Not started:
 
 ## Current Decision
 
-C0-M1 Correction 1 keeps one Inspector with live Content/Appearance and a future M2 Symbol seam; fixes Escape cancellation and inheritance status; exposes Cell/Membrane/Void families over six separate canonical targets; nests Boundary/Core and Membrane Edge in three family Detail widgets; restores bounded Dock access; renders all six Boundary styles in Classic and Organism; suppresses production debug centre dots when Core is off; and regression-protects Void. Full evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md`. The feature is `WAITING_REVIEW`; no merge or M2 is authorized.
+C0-M1 Correction 3 makes the actual rendered Inspector command deterministic: Dock/Rail share one stable command, no longer translate beneath an early physical click, and remain available with the single WidgetHost in Canvas and Table. Real pointer plus Enter/Space browser coverage proves no-selection, closed, minimized, background and partly off-screen recovery at 1440/1280. Corrections 1–2 retain truthful editing/inheritance, six canonical appearance targets, renderer/export parity, generic widget recovery, Void repair and Membrane colour modes. Full evidence: `docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md`. The feature is `WAITING_REVIEW`; no merge or M2 is authorized.
 
 C0.4F-A routes both live renderers through one canonical runtime presentation projection. Classic supports all six Boundary styles; Organism preserves the current field shader, adds bounded Membrane/Edge controls, and truthfully falls non-solid Boundary styles back to solid through a pointer-transparent overlay. Technical strokes are world-scaled and presentation-only. Selection remains temporary and clean-export-excluded. Full evidence: `docs/C0_4F_A_RUNTIME_LAYER_SEPARATION_REPORT.md`. The branch is `WAITING_REVIEW`; no merge or C0.4F-B work is authorized.
 

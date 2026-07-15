@@ -2,15 +2,24 @@
 
 ## Fixed-head identity
 
-- Task: `C0-M1-CORRECTION-2`
+- Task: `C0-M1-CORRECTION-3`
 - Source base: `feature/c0-4f-a-runtime-layer-separation@21388c0d765cd4bbc675d0321d94e77db9a41e5c`
 - Feature branch: `feature/c0-m1-inspector-layer-editing-recovery`
-- Previous reviewed head: `484ddeb859fcb18256a6acf7b7287e2be917aedc`
-- Correction contract: `origin/docs/mooorf-ai-team-operating-protocol@584f92ba5a036a341e74ded9889130bce91dee41:docs/worker-briefs/C0_M1_CORRECTION_2_INSPECTOR_VOID_MEMBRANE_COLOUR.md`
+- Previous reviewed head: `c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9`
+- Correction contract: `origin/docs/mooorf-ai-team-operating-protocol@0f2671218fdb219db31c62d3bc1836da7fc07d09:docs/worker-briefs/C0_M1_CORRECTION_3_OWNER_PATH_INSPECTOR_LAUNCH.md`
 - Corrected fixed head: the immutable pushed SHA is recorded in `worker-status/CODEX.json` on `status/codex` because a commit cannot contain its own SHA.
 - Production guard: `origin/main` remained `c4600472ea76f651800c19b91cf8f67954ca992e`; no merge was performed.
 
 ## Corrected outcome
+
+### Correction 3 — actual Owner path
+
+The reviewed build did not have a stale launcher, duplicate Inspector, pointer-capture defect or element covering either visible `i` control. In Canvas after the entrance animation had settled, the actual hit path was the launcher's SVG path → SVG → button and the canonical lifecycle action worked. Two application-shell defects nevertheless made the Owner-facing route unreliable:
+
+1. Dock and Rail were mounted inside translating Motion parents (`y: 24 → 0` and `x: -20 → 0`, with delay and a 550 ms duration). A physical coordinate click made as the visible shell arrived could target the old/transient coordinate and be missed. Locator-driven QA had implicitly waited for the element to stabilize, masking this race.
+2. `Rail`, `Dock` and the only `WidgetHost` were all composed inside `view === "canvas"`. Switching to Table removed both actual launchers and every widget, so there was no Inspector command path in Table.
+
+Dock and Rail now render the same `InspectorLauncherButton` command with fixed geometry, opacity-only entrance, `data-command="open-inspector"`, truthful dialog/expanded/focus accessibility state, and explicit Enter/Space activation. The one existing `WidgetHost`, Dock and Rail are mounted for both Canvas and Table after loader completion. The shared command still delegates to the canonical generic widget lifecycle, so closed, minimized, background and unreachable states are restored without a second store, host, widget or history transaction.
 
 M1 now has exactly one production Inspector. Content and Appearance are live; the future Symbol seam remains inside this same Inspector and no Symbol UI is exposed in M1. The user-facing Appearance hierarchy is exactly:
 
@@ -56,6 +65,7 @@ Membrane Field colour now has two truthful modes. `Cell Gradient` is the unchang
 
 | Owner-observed issue | Reproduction at reviewed head | Corrected disposition | Evidence |
 | --- | --- | --- | --- |
+| Actual rendered Dock/Rail `i` did not reliably open the Inspector | Reproduced with a physical coordinate click during the translating entrance; Table removed both launchers and `WidgetHost` entirely | FIXED AT REAL SHELL | Shared stable command with fixed Motion geometry; real CDP pointer/Enter/Space events click the rendered Dock/Rail buttons in Canvas and Table and prove one full viewport-contained Inspector |
 | Inspector and Table Escape committed through blur | Reproduced: edited Name survived Escape in both surfaces | FIXED | Shared explicit `active/cancelled/committed` edit session; executable zero-history/one-transaction tests plus built-browser cancellation |
 | Inspector single selection always said Local and multi-selection always Mixed | Reproduced with one default Cell | FIXED | Header and family badges derive actual sparse text/family inheritance; one default Cell reports Project Default |
 | Bottom-bar controls regressed | Reproduced against the reviewed dock | FIXED | Restored visible Inspector and active-family Detail launchers while retaining Add Space, Add 5, Add Void, Saved Views, Random, Import and Export |
@@ -99,16 +109,28 @@ Executed after source correction and before the single production build:
 | Focused `contentEditSession`, M1 correction behavior, M1 renderer behavior and M1 product contracts | PASS |
 | Affected C0.4F-A runtime presentation, renderer integration, Organism wiring, SVG/export/import/resource/interaction/widget contracts | PASS |
 | `npx tsc -b --pretty false` | PASS, zero diagnostics |
-| `git diff --check 484ddeb859fcb18256a6acf7b7287e2be917aedc...HEAD` | PASS as the final post-commit handoff gate |
+| Real-shell Inspector launcher browser integration test | PASS at 1440×900 and 1280×800; physical pointer, Enter and Space through actual rendered Dock/Rail controls in Canvas/Table |
+| `git diff --check c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9...HEAD` | PASS as the final post-commit handoff gate |
 | `npm run build` | PASS; exactly one final production build, accepted Vite large-chunk warning only |
 
-The final build emitted the main application chunk at `983.99 kB` (`315.98 kB` gzip). No second production build was run.
+The final build emitted the main application chunk at `984.47 kB` (`316.13 kB` gzip). No second production build was run.
 
 Executable correction coverage includes Escape/blur/Enter/Shift+Enter transitions, one family-reset transaction, inheritance status, closed/background/minimized/offscreen widget recovery, Void add/select/undo/redo/project snapshot, exact Void live/SVG layer projection, sparse Void sibling inheritance, Cell opacity, all six Classic and Organism strokes, distinct segmented bars, rounded dash-dot, Core-off drawing, production debug ring projection, Cell Gradient compatibility, patch-free preset/custom Solid Membrane projection, one-transaction history, persistence/import/saved-view round trips, and the Organism plain-mode Cell mask/paint adapter. Source-presence checks remain supplementary only.
 
 ## Deterministic browser QA
 
 The built artifact was tested at `http://127.0.0.1:4173/`.
+
+The Correction 3 harness launched system Chrome against that production artifact and used CDP physical pointer and keyboard input. It contains no store action, `openWidget` helper, `useLab.getState()`, `window.lab` or isolated lifecycle call. For every case it asserted exactly one `[data-widget="inspector"]`, a rendered non-minimized body, and viewport containment.
+
+### Correction 3 actual-control evidence
+
+| Viewport | Rendered command bounds | Actual event target and path | Resulting Inspector bounds |
+| --- | --- | --- | --- |
+| 1440×900 | Dock `542,839 → 572,869` (`30×30`); Rail `30,371 → 60,401` (`30×30`) | `BUTTON[data-command="open-inspector"]`; Dock path: button → `.dock-group-left` → Canvas tools toolbar → `.app-shell`; Rail path: button → Inspector group → Canvas navigation toolbar → `.app-shell` | Recovery from partly off-screen `-224,92 → 108,488.78` produced `12,92 → 344,488.78` (`332×396.78`) in Canvas and Table |
+| 1280×800 | Dock `462,739 → 492,769` (`30×30`); Rail `30,321 → 60,351` (`30×30`) | Same button target and corresponding Dock/Rail toolbar path; SVG children are pointer-transparent | Recovery from partly off-screen `-224,92 → 108,488.78` produced `12,92 → 344,488.78` (`332×396.78`) in Canvas and Table |
+
+At both sizes the test exercised no selection, closed, minimized, behind Layout, physically dragged partly off-screen, repeated activation, Canvas, Table, Dock, Rail, Enter and Space. Both launchers remained present in Table; repeated activation focused the existing Inspector and never toggled it closed. Viewport and document dimensions matched exactly with no body overflow.
 
 ### 1440 × 900
 

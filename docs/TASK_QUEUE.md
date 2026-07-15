@@ -1,7 +1,7 @@
 # Task Queue
 
 ## Current Roadmap
-- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 2 complete; `WAITING_REVIEW`; do not merge or start M2)
+- [x] C0-M1 Production Inspector, Content and Layer Editing Recovery (Correction 3 complete; actual Dock/Rail Owner path works in Canvas/Table; `WAITING_REVIEW`; do not merge or start M2)
 - [x] C0.4F-A Runtime Layer Separation (feature implementation complete; `WAITING_REVIEW`; do not merge)
 - [x] C0.4.1 Layer Contracts, Defaults and Resolvers (feature implementation complete; independent audit required before merge)
 - [x] V8.2C0.2 Icon and Grid Asset Registry (77 approved drawable symbols; 8 truthful grid presets; audit handoff)

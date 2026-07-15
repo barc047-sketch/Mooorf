@@ -1188,6 +1188,12 @@
   height: calc(14px * var(--ui-scale));
 }
 
+/* The rendered Inspector command remains the pointer target, not its SVG
+   descendants, so Dock/Rail event evidence and hit testing share one path. */
+[data-command="open-inspector"] svg {
+  pointer-events: none;
+}
+
 .rail .rail-btn::after {
   content: attr(data-tooltip);
   position: absolute;
