@@ -1,45 +1,44 @@
 {
   "worker": "Antigravity",
   "model": "Gemini 3.5 Flash",
-  "status": "DONE",
-  "task": "C0.4F-A independent fixed-head runtime layer audit",
-  "brief": "docs/worker-briefs/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
+  "status": "ASSIGNED_AWAITING_WORKER_START",
+  "task": "AG2 — Prototype Coverage and Icon Gap Audit",
+  "brief": "docs/worker-briefs/AG2_ANTIGRAVITY_PROTOTYPE_AND_ICON_GAP_AUDIT.md",
+  "launch_prompt": "docs/worker-briefs/AG2_ANTIGRAVITY_LAUNCH_PROMPT.md",
   "source_branch": "main",
   "source_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "feature_branch": "feature/c0-4f-a-runtime-layer-separation",
-  "feature_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-  "work_branch": "audit/c0-4f-a-runtime-layer-separation",
-  "work_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
-  "report_path": "docs/audits/C0_4F_A_ANTIGRAVITY_FIXED_HEAD_AUDIT.md",
-  "last_checkpoint": "C0.4F-A independent fixed-head audit complete. Ran all domain presentation contract tests, classic renderer integration tests, wiring tests, and production build verification commands. All checks passed successfully. Created and pushed the audit report containing the MERGE CANDIDATE verdict.",
-  "updated_at": "2026-07-15T04:10:45+05:30",
+  "work_branch": "research/m2-prototype-and-icon-gap-audit",
+  "work_sha": null,
+  "prototype_ref": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
+  "m1_snapshot": "feature/c0-m1-inspector-layer-editing-recovery@c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+  "registry_ref": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
+  "prior_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4",
+  "last_checkpoint": "Owner authorized AG2. Research branch was created from exact production main. Worker must mark RUNNING, complete the six research deliverables, push one fixed head, then stop at WAITING_REVIEW.",
+  "updated_at": "2026-07-15T16:40:00+05:30",
   "blocked_reason": null,
   "previous_task": {
-    "id": "C0-FAST-TRACK-ATLAS",
+    "id": "C0.4F-A-AUDIT",
     "status": "DONE",
-    "work_branch": "research/c0-fast-track-essential-product-atlas",
-    "work_sha": "348ee8cd62e45de1b1c51f144e1b7607acd016ee",
-    "outputs": [
-      "docs/research/MOOORF_ESSENTIAL_PRODUCT_REUSE_ATLAS.md",
-      "docs/research/MOOORF_FAST_TRACK_DEPENDENCY_GRAPH.json",
-      "docs/research/MOOORF_CODEX_CONTRACT_INPUTS_C0_4F_B_TO_HARDENING.md",
-      "docs/research/MOOORF_FAST_TRACK_RISK_AND_DEFERRED_REGISTER.md"
-    ],
-    "result": "Essential product reuse, dependency, data-flow, risk and future Codex contract atlas completed."
+    "work_branch": "audit/c0-4f-a-runtime-layer-separation",
+    "work_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
+    "result": "Independent fixed-head audit completed with MERGE CANDIDATE verdict."
   },
   "expected_outputs": [
-    "exact base and fixed feature SHA verification",
-    "full changed-file and architecture ownership audit",
-    "Boundary schema, migration and renderer fallback verification",
-    "geometry, selection, Void and export invariants",
-    "independent focused tests, typecheck, browser QA and one production build",
-    "durable verdict report: MERGE CANDIDATE, CORRECTION REQUIRED or REJECT"
+    "docs/research/M2_CLAUDE_PROTOTYPE_COVERAGE_LEDGER.md",
+    "docs/research/M2_DRAWABLE_SYMBOL_GAP_PASS_2.md",
+    "docs/research/MOOORF_UI_COMMAND_ICON_MAP.md",
+    "docs/research/MOOORF_CUSTOM_ARCHITECTURAL_SYMBOL_BRIEFS.md",
+    "docs/research/M2_SYMBOL_PRIORITY_MANIFEST.json",
+    "docs/research/AG2_RESEARCH_HANDOFF.md"
   ],
   "restrictions": [
-    "read-only audit; no product code",
-    "do not modify main or the Codex feature branch",
-    "audit only exact feature head 21388c0d765cd4bbc675d0321d94e77db9a41e5c",
-    "audit branch is report-only and must never be merged",
-    "do not merge or begin C0.4F-B"
+    "research and specification only; no production code",
+    "work only on research/m2-prototype-and-icon-gap-audit",
+    "do not modify main or Codex feature branches",
+    "do not modify status/codex",
+    "do not merge prototype, research or audit branches wholesale",
+    "UI command icons remain separate from drawable symbols",
+    "use verified Lucide or original MOOORF custom geometry only",
+    "push one fixed research head and stop at WAITING_REVIEW"
   ]
 }
