@@ -1,0 +1,39 @@
+{
+  "task": "C0-M1-CORRECTION-1",
+  "reviewed_at": "2026-07-15T13:05:00+05:30",
+  "repository": "barc047-sketch/Mooorf",
+  "production_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "runtime_foundation_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
+  "previous_reviewed_head": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
+  "corrected_feature_head": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
+  "status_head": "1bb8e12adb43f1fdf929ea7da9153f7a30c423bd",
+  "branch_relation": {
+    "correction_vs_previous": "one commit ahead, zero behind",
+    "combined_vs_main": "three commits ahead, zero behind",
+    "main_guard": "main identical to c4600472ea76f651800c19b91cf8f67954ca992e"
+  },
+  "verdict": "MERGE CANDIDATE",
+  "findings": [],
+  "verified_code_points": [
+    "Table and Inspector use an explicit active/cancelled/committed content-edit state machine; Escape suppresses blur commit and Enter plus blur creates one transaction",
+    "Inspector derives actual text/family inheritance state rather than selection-count labels",
+    "one Inspector exposes Content and Appearance with a future Symbol seam; Appearance families are Cell, Membrane and Void",
+    "Boundary and Core are nested under Cell; Membrane Edge is nested under Membrane; six canonical internal targets remain separate",
+    "Dock exposes one-click Inspector and active-family Detail plus creation, Saved, Random, Import and Export",
+    "Classic and Organism share all six Boundary styles with no solid coercion; dash-dot and segmented bars have distinct deterministic patterns",
+    "Core-off projects no Canvas2D centre fill; production nuclei debug is ring-only while the isolated lab retains explicit diagnostic dots",
+    "Void excludes Cell, Boundary and Core presentation and remains regression-protected"
+  ],
+  "reported_verification": [
+    "all src/**/*.test.ts passed",
+    "audit utility tests passed 4/4",
+    "application typecheck passed",
+    "exact correction diff check passed",
+    "exactly one final production build passed with accepted chunk warning",
+    "1440x900 and 1280x800 built-artifact QA passed",
+    "PNG, SVG and PDF flows reached Complete"
+  ],
+  "review_limit": "The assistant cannot open the worker's localhost preview URL; final visual approval remains with the Owner.",
+  "merge_policy": "Never merge automatically. Owner must explicitly command MERGE C0-M1. Merge only exact corrected head 484ddeb859fcb18256a6acf7b7287e2be917aedc into main by non-forced fast-forward after re-verification.",
+  "next_milestone": "Present and refine M2 Owner Preview before any Codex dispatch; M2 starts only after M1 merge and explicit GO CODEX M2."
+}
