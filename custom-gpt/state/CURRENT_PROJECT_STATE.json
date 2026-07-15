@@ -1,31 +1,36 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T10:24:00+05:30",
+  "updated_at": "2026-07-15T10:52:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0-M1-CORRECTION-1",
-  "current_gate": "M1 fixed-head review found cancellation and status-truth defects. Correct the same feature branch before merge; M2 remains blocked.",
+  "current_phase": "C0-M1-CORRECTION-1-EXPANDED",
+  "current_gate": "M1 is not merge-ready. Same-branch correction must address code-review defects plus Owner-observed dock, Inspector access, Boundary, dash-dot and Core-off regressions.",
   "owner_approval_required": true,
-  "orchestration_mode": {
-    "status": "OWNER_REVIEWED_SEQUENTIAL_FAST_TRACK",
-    "durable_memory": "GitHub exact refs, provenance ledger, fixed-head review records, worker status files and current state",
-    "rule": "Every implementation head is reviewed against code, not only worker claims or source-string tests",
-    "owner_speed_directive": "Use narrow same-branch corrections for proven defects. No routine extra audit loop and no new milestone until the current milestone is complete.",
-    "dispatch_protocol": "docs/plans/C0_SEQUENTIAL_CODEX_DISPATCH_PROTOCOL.md",
-    "milestone_map": "docs/plans/C0_SEQUENTIAL_MILESTONE_MAP_V2.md"
-  },
   "production_guard": {
     "main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-    "verified_relation": "main is identical to the recorded SHA",
-    "merge_allowed": false
+    "merge_allowed": false,
+    "m2_allowed": false
   },
   "runtime_foundation": {
     "branch": "feature/c0-4f-a-runtime-layer-separation",
     "sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
     "audit_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
     "audit_verdict": "MERGE CANDIDATE",
-    "merge_policy": "Merge only together with a corrected and accepted M1 result"
+    "merge_policy": "Merge only with a corrected and accepted M1 result"
+  },
+  "locked_inspector_architecture": {
+    "rule": "Exactly one Inspector; never create separate inspectors for appearance, symbols or layers",
+    "tabs": ["Content", "Appearance", "Symbol"],
+    "m1_live_tabs": ["Content", "Appearance"],
+    "m2_adds": "Symbol tab inside the same Inspector",
+    "appearance_families": {
+      "Cell": ["Surface", "Boundary", "Core / nucleus"],
+      "Membrane": ["Field", "Edge"],
+      "Void": ["Fill", "Edge"]
+    },
+    "canonical_internal_targets": ["cell", "boundary", "core", "membrane", "membrane-edge", "void"],
+    "important_distinction": "User-facing grouping may combine sections, but canonical state, renderer, history and export owners remain separate"
   },
   "active_milestone": {
     "id": "M1",
@@ -34,58 +39,55 @@
     "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
     "reviewed_feature_sha": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
     "reviewed_status_sha": "159fcfb6758b5fa3780a33109037269d658a61d5",
-    "branch_relation": "one commit ahead of C0.4F-A; combined result two commits ahead of main; no divergence",
-    "worker_status": "WAITING_REVIEW",
     "review_verdict": "CORRECTION REQUIRED",
-    "review_record": "custom-gpt/state/reviews/C0_M1_FIXED_HEAD_REVIEW_1.json",
     "correction_contract": "docs/worker-briefs/C0_M1_CORRECTION_1_CANCEL_AND_STATUS_TRUTH.md",
     "correction_launch_prompt": "docs/worker-briefs/C0_M1_CORRECTION_1_LAUNCH_PROMPT.md",
-    "findings": [
-      {
-        "id": "M1-R1",
-        "severity": "HIGH",
-        "summary": "Escape in Table and Inspector Name/Area/Body fields can trigger blur commit instead of cancelling; current tests do not execute the cancel/blur state machine."
-      },
-      {
-        "id": "M1-R2",
-        "severity": "MEDIUM",
-        "summary": "Inspector header labels every single selection Local and every multi-selection Mixed solely from selection count."
-      }
+    "required_corrections": [
+      "Escape cancel and one-transaction commit semantics in Table and Inspector",
+      "truthful Inspector status",
+      "one Inspector with Cell/Membrane/Void Appearance families",
+      "Boundary and Core grouped under Cell; Edge grouped under Membrane",
+      "restore bounded bottom-bar functional access",
+      "working one-click Inspector/info and Detail launchers",
+      "Cell controls visibly affect renderers",
+      "all six Boundary styles visibly work in Classic and Organism, including dash-dot",
+      "regression-protect working Void flow",
+      "diagnose and remove white centre dots when Core is off",
+      "executable behavioural and renderer tests",
+      "1440 and 1280 deterministic QA"
     ],
-    "required_next_action": "Continue the same Codex session on the same branch, implement Correction 1, add behavioral tests, push a new fixed head and return to WAITING_REVIEW.",
+    "white_dot_finding": "Legacy WebGL embedded nucleus dots are forced to zero at the reviewed head. Remaining white centres must be traced through the Canvas2D Core/default/local/preview/debug presentation path.",
+    "void_finding": "Owner confirms Void currently works; protect it and fix only a reproduced regression.",
     "merge_allowed": false,
     "m2_allowed": false
   },
-  "verified_m1_deliverables": [
-    "canonical Name/Area/Body editing owners",
-    "minimal Table sync",
-    "Content and Appearance Inspector",
-    "six dedicated appearance widgets",
-    "Project Default / Local Override / Mixed section states",
-    "history, persistence, migration and export work recorded",
-    "control ownership map and implementation report",
-    "reported tests, typecheck, build and 1440/1280 QA"
-  ],
+  "m2_owner_preview": {
+    "title": "One Inspector, Advanced Appearance and Symbol Tab",
+    "plan": "docs/plans/C0_M2_OWNER_PREVIEW_INSPECTOR_ADVANCED_SYMBOLS.md",
+    "status": "OWNER PREVIEW ONLY — BLOCKED UNTIL M1 ACCEPTED AND MERGED",
+    "scope": [
+      "advanced Cell Surface, Boundary and Core instruments",
+      "advanced Membrane Field and Edge instruments including softness, tension, iso, mass, bias, distribution and motion where truthful",
+      "advanced Void presentation controls",
+      "production Symbol tab inside the same Inspector",
+      "77-symbol baseline plus 59 verified additions and 14 aliases",
+      "5 rejects excluded",
+      "search, categories, recents, favourites, hover preview, placement and backing",
+      "optional approved selection orbit"
+    ],
+    "not_separate": "No separate Symbol Inspector and no six unrelated top-level appearance inspectors"
+  },
   "provenance_ledger": {
-    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 Content/Inspector, M2 Symbol, M3 rails, M4 Material Browser",
+    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 Content/Appearance foundations, M2 same-Inspector Symbol and advanced instruments, M3 dock rails, M4 Material Browser",
     "audited_icon_grid_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2 -> M2 symbols and M7 grid",
     "antigravity_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4 -> M2, M5, M6, M7 and custom vectors",
     "antigravity_fast_track_atlas": "research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee -> contract input for every milestone",
     "reuse_rule": "Selective forward-port only; never merge prototype, research or audit branches wholesale"
   },
   "future_milestones": [
-    {
-      "id": "M2",
-      "title": "Symbol Registry Forward-Port and Production Symbol Inspector",
-      "status": "BLOCKED UNTIL M1 IS CORRECTED, ACCEPTED AND MERGED",
-      "inputs": {
-        "baseline": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
-        "research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4",
-        "prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97"
-      }
-    },
-    { "id": "M3", "title": "Bottom Dock and Shared Contextual Rails", "status": "PLANNED" },
-    { "id": "M4", "title": "Quick Materials, Presets and Material Browser", "status": "PLANNED" },
+    { "id": "M2", "title": "One Inspector Advanced Appearance and Symbol Tab", "status": "BLOCKED" },
+    { "id": "M3", "title": "Final Bottom Dock and Shared Contextual Rails", "status": "PLANNED" },
+    { "id": "M4", "title": "Quick Materials, Presets and Material Browser/Studio", "status": "PLANNED" },
     { "id": "M5", "title": "Straight Connection Foundation", "status": "PLANNED" },
     { "id": "M6", "title": "Markup and Annotation Foundation", "status": "PLANNED" },
     { "id": "M7", "title": "Arrange, Grid and Snapping", "status": "PLANNED" },
@@ -95,7 +97,9 @@
   "protected": [
     "main without explicit Owner merge approval",
     "Master Graph/store as sole data source",
-    "audit/research/prototype branches never merged wholesale",
+    "exactly one Inspector",
+    "canonical six renderer targets remain separate internally",
+    "prototype/research/audit branches never merged wholesale",
     "UI-command icons remain separate from drawable symbols",
     "Selection UI never persists or exports",
     "M2 cannot start until corrected M1 is accepted"
