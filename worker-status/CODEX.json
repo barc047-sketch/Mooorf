@@ -1,7 +1,7 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "RUNNING",
+  "status": "WAITING_REVIEW",
   "task": "C0 M1 Correction 1 Functional Recovery and Owner-Observed Regressions",
   "brief": "docs/worker-briefs/C0_M1_CORRECTION_1_CANCEL_AND_STATUS_TRUTH.md",
   "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
@@ -9,27 +9,39 @@
   "source_branch": "feature/c0-4f-a-runtime-layer-separation",
   "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
   "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
-  "feature_sha": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
+  "feature_sha": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
   "previous_reviewed_head": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
+  "corrected_feature_sha": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
   "report_paths": [
     "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
     "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md"
   ],
+  "owner_observed_issue_disposition": [
+    "Escape cancellation and blur status are fixed through one shared edit-session state machine used by Inspector and Table Name, Area and Body controls.",
+    "Appearance is presented as Cell, Membrane and Void while retaining Surface, Boundary, Core, Field, Edge, Fill and Void Edge canonical targets.",
+    "The bounded creation, utility and export actions remain in the bottom bar, with one-click Inspector and active-family Detail launchers restored.",
+    "Cell Surface and Boundary controls are executable and renderer-tested in Classic and Organism modes.",
+    "Organism renders six truthful Boundary styles, including a real rounded dash-dot pattern, through the existing pointer-transparent overlay.",
+    "Void behavior was regression-protected without redesign after no defect was reproduced.",
+    "Core-off white centre dots were traced to the Canvas2D/WebGL debug centre-dot route; production cell-field debug now renders rings only while the isolated lab retains its explicit debug dot.",
+    "There remains exactly one Inspector: Content and Appearance are M1 tabs, Symbol is reserved as a future tab in this Inspector for M2, and Material Browser remains M4."
+  ],
   "verification_summary": [
-    "all repository TypeScript contract files passed via npx --yes tsx",
+    "all src/**/*.test.ts files passed through npx --yes tsx, including executable correction behavior and renderer tests",
+    "node --test scripts/audit-utils.test.mjs passed 4/4",
     "npx tsc --noEmit -p tsconfig.app.json --pretty false passed with zero diagnostics",
-    "git diff --check 21388c0d765cd4bbc675d0321d94e77db9a41e5c...HEAD passed",
+    "git diff --check e9bd67e8c7778dccdd4afb4c1508db0792e70b21...HEAD passed",
     "exactly one final npm run build passed with the accepted Vite large-chunk warning only",
-    "deterministic browser QA passed at 1440x900 and 1280x800 with a clean fresh console and PNG/SVG/PDF completion states",
+    "deterministic built-artifact QA passed at 1440x900 and 1280x800 with zero browser errors or warnings",
+    "PNG, SVG and PDF clean export flows each reached Complete",
     "origin/main remained c4600472ea76f651800c19b91cf8f67954ca992e"
   ],
   "known_limitations": [
-    "Organism uses the audited solid fallback for non-solid Boundary requests; Classic and Classic SVG render all six styles",
-    "Membrane and Membrane Edge are independent shared fields and therefore edit Project Defaults rather than disconnected per-Cell overrides",
-    "Organism has no truthful vector Membrane path; M1 does not fake one",
-    "prototype dotted selection orbit is deferred in favour of the existing clean keyline",
-    "advanced procedural Organism controls and the legacy Palette browser retain compatibility data but have no M1 production launcher",
-    "in-app browser does not expose file-saver transport as a download event; product completion state and deterministic export contracts were verified"
+    "Membrane Field and Edge are shared project fields and therefore edit Project Defaults rather than disconnected per-Cell overrides.",
+    "Organism has no truthful vector Membrane path; M1 does not synthesize one.",
+    "Advanced instruments, selection-orbit treatment and Symbol remain assigned to M2 inside the same Inspector.",
+    "Material Browser remains assigned to M4.",
+    "The in-app browser does not expose file-saver transport as a download event; product completion state and deterministic export contracts were verified."
   ],
   "previous_task": {
     "id": "C0.4F-A",
@@ -38,24 +50,23 @@
     "audit_branch": "audit/c0-4f-a-runtime-layer-separation",
     "audit_sha": "2cb97065511bfa710e149438c41eafbd2fec4949",
     "audit_verdict": "MERGE CANDIDATE",
-    "merge_status": "NOT MERGED — M1 MUST BUILD DIRECTLY ON THIS HEAD"
+    "merge_status": "NOT MERGED — M1 BUILT DIRECTLY ON THIS HEAD"
   },
   "assignment_summary": [
     "canonical inline and Inspector editing for Space Name, Area and Body/subtext",
-    "minimal Table sync for Name/Area/Body only",
-    "Content and Appearance Inspector",
+    "minimal Table sync for Name, Area and Body only",
+    "one Inspector with M1 Content and Appearance tabs and a future M2 Symbol-tab seam",
     "coordinated text presets, Text Size, Text Colour and Auto Contrast",
-    "Cell, Boundary, Membrane, Membrane Edge, Core and Void editing",
-    "six separate detailed settings widgets",
-    "Project Default / Local Override / Mixed",
+    "three visible Appearance family widgets covering six canonical internal editing targets",
+    "Project Default, Local Override and Mixed states",
     "one-transaction history and ephemeral previews",
-    "persistence, migration and clean export parity",
-    "documented rebind/move/removal of every stale, broken or no-op visual control"
+    "persistence, migration and clean PNG/SVG/PDF export parity",
+    "documented rebind, movement or removal of every stale, broken or no-op visual control"
   ],
   "explicit_exclusions": [
-    "production Symbol library",
-    "bottom dock redesign",
-    "Quick Materials or full Material Browser",
+    "production Symbol library or a separate Symbol Inspector",
+    "advanced Inspector instruments assigned to M2",
+    "Quick Materials or full Material Browser assigned to M4",
     "Connections",
     "Annotation Card/Studio",
     "broad Table/import redesign",
@@ -63,8 +74,8 @@
     "merge to main",
     "beginning M2"
   ],
-  "updated_at": "2026-07-15T11:48:28+05:30",
+  "updated_at": "2026-07-15T12:44:20+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Implement and verify the bounded C0-M1 correction on the existing feature branch; do not merge or begin M2.",
-  "next_gate": "Push one corrected fixed head, record exact proof, return to WAITING_REVIEW, and stop"
+  "next_worker_action": "Owner review only; do not merge and do not begin M2.",
+  "next_gate": "WAITING_REVIEW at corrected fixed head 484ddeb859fcb18256a6acf7b7287e2be917aedc"
 }
