@@ -26,7 +26,8 @@ M2 adds:
 - locked Inspector scope: `docs/worker-briefs/C0_3_CELL_INSPECTOR_V2_SCOPE.md`,
 - audited baseline registry: `feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2`,
 - Antigravity symbol research: `research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4`,
-- fast-track atlas: `research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee`.
+- fast-track atlas: `research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee`,
+- M1 Correction 2 canonical Membrane `Cell Gradient` / `Solid` colour source and solid preset seam.
 
 Prototype, research and divergent branches are selectively forward-ported, never merged wholesale.
 
@@ -119,8 +120,11 @@ Only expose parameters with a canonical owner and visible renderer effect. Use c
 
 #### Field
 
-- visible,
-- material/colour,
+Basic colour/material behaviour carried forward from M1 Correction 2:
+
+- `Cell Gradient` remains the current/default mode and keeps spatial Cell-derived colour blending,
+- `Solid` mode remains available with Black, Ink, MOOORF Red, Charcoal and Custom,
+- M2 may expose these through richer material previews, but it must reuse the same canonical mode/material IDs rather than duplicate state,
 - opacity,
 - field character / Morph style,
 - Fusion / attachment,
@@ -128,11 +132,13 @@ Only expose parameters with a canonical owner and visible renderer effect. Use c
 
 **Shape instruments**
 
-- softness,
+- `Field Edge Softness` — the field/body boundary feather owner already supported by the bounded Organism shader,
 - surface tension,
 - iso threshold/level,
 - mass/influence,
 - connection bias.
+
+`Field Edge Softness` must be named clearly so it is not confused with the separate Membrane Edge softness below.
 
 **Distribution instruments**
 
@@ -157,11 +163,13 @@ Every advanced control must visibly affect the existing bounded Organism rendere
 
 - visible,
 - width,
-- edge softness,
+- `Edge Softness` — an independent presentation-band feather owner,
 - material/colour,
 - opacity,
 - glow/pulse only if live renderer and export parity exist,
 - reset/history/export.
+
+`Edge Softness` must not be a second label wired to `Field Edge Softness`. It needs a separate canonical field/uniform/projection with a visibly independent effect and export fallback.
 
 Membrane Edge never appears as a separate primary Appearance family.
 
@@ -169,8 +177,10 @@ Membrane Edge never appears as a separate primary Appearance family.
 
 - fill visible/material/colour/opacity,
 - edge visible/material/colour/opacity/width,
-- optional inner echo visibility/opacity/scale when presentation-only,
-- no appearance control changes subtraction, clearance, area or hit geometry,
+- standard Void has no inner echo,
+- optional `Inner Echo` may be added only as an explicit presentation control with visibility/opacity/scale, default OFF,
+- Inner Echo must never affect subtraction, clearance, area, hit testing or drag geometry,
+- live and export parity are required before exposing it,
 - reset/inheritance/mixed/history/export.
 
 ## 5. Production Symbol tab
@@ -238,7 +248,10 @@ By M2 completion:
 - placement/backing,
 - Copy/Paste/Reset,
 - inheritance states,
-- optional dotted selection orbit.
+- optional dotted selection orbit,
+- Field Edge Softness,
+- independent Membrane Edge Softness,
+- Cell Gradient and Solid Membrane colour modes.
 
 **Still assigned to M4**
 
@@ -248,7 +261,9 @@ By M2 completion:
 - hover material preview/revert,
 - parameter-driven Material Studio.
 
-Nothing from the approved prototype is silently dropped.
+M4 consumes the same canonical Membrane colour/material state established earlier. It must not replace or fork Cell Gradient/Solid modes.
+
+Nothing from the approved prototype or Owner additions is silently dropped.
 
 ## 7. M2 exclusions
 
@@ -268,14 +283,17 @@ M2 is complete only when:
 2. Symbol is a tab inside it,
 3. Appearance has exactly Cell, Membrane and Void primary families,
 4. Boundary/Core are grouped under Cell and Edge is grouped under Membrane,
-5. every advanced control visibly affects its canonical renderer owner,
-6. no advanced appearance control changes architectural area, centre, hit testing or Void subtraction,
-7. Symbol search/categories/recents/favourites/hover/apply/remove work,
-8. symbol placement/backing persists and exports,
-9. catalogue counts and rejects match the Antigravity manifest,
-10. 1440×900 and 1280×800 pass,
-11. tests, typecheck, diff check and one final build pass,
-12. one fixed head stops at `WAITING_REVIEW`.
+5. Cell Gradient and Solid Membrane modes remain available through one canonical state owner,
+6. Field Edge Softness and Membrane Edge Softness are separate controls with separate visible renderer effects,
+7. standard Void has no inner echo and any optional Inner Echo is explicit and default OFF,
+8. every advanced control visibly affects its canonical renderer owner,
+9. no advanced appearance control changes architectural area, centre, hit testing or Void subtraction,
+10. Symbol search/categories/recents/favourites/hover/apply/remove work,
+11. symbol placement/backing persists and exports,
+12. catalogue counts and rejects match the Antigravity manifest,
+13. 1440×900 and 1280×800 pass,
+14. tests, typecheck, diff check and one final build pass,
+15. one fixed head stops at `WAITING_REVIEW`.
 
 ## 9. Following sequence
 
