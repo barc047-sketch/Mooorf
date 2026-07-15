@@ -1,15 +1,16 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0 M1 Production Inspector, Content and Layer Editing Recovery",
-  "brief": "docs/worker-briefs/C0_M1_CODEX_PRODUCTION_INSPECTOR_LAYER_EDITING_RECOVERY.md",
+  "status": "RUNNING",
+  "task": "C0 M1 Correction 1 Functional Recovery and Owner-Observed Regressions",
+  "brief": "docs/worker-briefs/C0_M1_CORRECTION_1_CANCEL_AND_STATUS_TRUTH.md",
   "launch_prompt": "docs/worker-briefs/C0_M1_CODEX_LAUNCH_PROMPT.md",
   "contract_branch": "docs/mooorf-ai-team-operating-protocol",
   "source_branch": "feature/c0-4f-a-runtime-layer-separation",
   "source_sha": "21388c0d765cd4bbc675d0321d94e77db9a41e5c",
   "planned_work_branch": "feature/c0-m1-inspector-layer-editing-recovery",
   "feature_sha": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
+  "previous_reviewed_head": "e9bd67e8c7778dccdd4afb4c1508db0792e70b21",
   "report_paths": [
     "docs/C0_M1_INSPECTOR_LAYER_EDITING_REPORT.md",
     "docs/C0_M1_CONTROL_OWNERSHIP_MAP.md"
@@ -62,8 +63,8 @@
     "merge to main",
     "beginning M2"
   ],
-  "updated_at": "2026-07-15T10:05:57+05:30",
+  "updated_at": "2026-07-15T11:48:28+05:30",
   "blocked_reason": null,
-  "next_worker_action": "Stop. Do not merge and do not begin M2.",
-  "next_gate": "Owner review of the combined C0.4F-A plus C0-M1 fixed result; main remains unchanged"
+  "next_worker_action": "Implement and verify the bounded C0-M1 correction on the existing feature branch; do not merge or begin M2.",
+  "next_gate": "Push one corrected fixed head, record exact proof, return to WAITING_REVIEW, and stop"
 }
