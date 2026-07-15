@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "recorded_at": "2026-07-15T13:18:00+05:30",
+  "repository": "barc047-sketch/Mooorf",
+  "production_main": "c4600472ea76f651800c19b91cf8f67954ca992e",
+  "reviewed_feature_head": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
+  "owner_verdict": "CORRECTION REQUIRED",
+  "confirmed_working": [
+    "Boundary including dash-dot",
+    "Core-off centre-dot correction",
+    "Void creation/subtraction/drag",
+    "other Correction 1 outcomes"
+  ],
+  "findings": [
+    {
+      "id": "M1-C2-1",
+      "severity": "HIGH",
+      "summary": "Visible i launcher does not reliably show the full Inspector.",
+      "code_finding": "openWidget can mount/focus but WidgetFrame keeps minimized state privately, so launcher cannot restore expansion."
+    },
+    {
+      "id": "M1-C2-2",
+      "severity": "MEDIUM",
+      "summary": "Void shows an unexplained additional inner circle.",
+      "code_finding": "inner echo is hard-coded at 0.42 outer radius and 0.68 outer-edge opacity without a user setting."
+    },
+    {
+      "id": "M1-C2-3",
+      "severity": "HIGH",
+      "summary": "Membrane colour cannot produce a true solid field while retaining the current Cell-derived gradient option.",
+      "code_finding": "shader applies 0.88 spatial Cell-colour dominance whenever Cell weights exist."
+    }
+  ],
+  "required_resolution": {
+    "inspector": "generic open/focus/unminimize/reveal lifecycle",
+    "void": "standard Void has no inner echo; optional future Inner Echo default OFF",
+    "membrane_colour": "Cell Gradient default plus Solid Black, Ink, MOOORF Red, Charcoal and Custom",
+    "m2_softness": "separate Field Edge Softness and independent Membrane Edge Softness"
+  },
+  "contract": "docs/worker-briefs/C0_M1_CORRECTION_2_INSPECTOR_VOID_MEMBRANE_COLOUR.md",
+  "launch_prompt": "docs/worker-briefs/C0_M1_CORRECTION_2_LAUNCH_PROMPT.md",
+  "merge_allowed": false,
+  "m2_allowed": false
+}
