@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-07-15T15:45:07+05:30",
+  "updated_at": "2026-07-15T16:25:00+05:30",
   "repository": "barc047-sketch/Mooorf",
   "default_branch": "main",
   "recorded_main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
-  "current_phase": "C0-M1-CORRECTION-2-REVIEWED",
-  "current_gate": "Correction 2 fixed head is a MERGE CANDIDATE. Owner must complete the final visual smoke test and explicitly command MERGE C0-M1. M2 remains blocked.",
+  "current_phase": "C0-M1-CORRECTION-3",
+  "current_gate": "Owner confirms the real visible i control still does not open the Inspector. M1 merge is blocked pending Correction 3 through the actual rendered Dock/Rail command path.",
   "owner_approval_required": true,
   "production_guard": {
     "main_sha": "c4600472ea76f651800c19b91cf8f67954ca992e",
@@ -30,8 +30,7 @@
       "Membrane": ["Field", "Edge"],
       "Void": ["Fill", "Edge"]
     },
-    "canonical_internal_targets": ["cell", "boundary", "core", "membrane", "membrane-edge", "void"],
-    "important_distinction": "User-facing grouping combines sections while canonical state, renderer, history and export owners remain separate"
+    "canonical_internal_targets": ["cell", "boundary", "core", "membrane", "membrane-edge", "void"]
   },
   "active_milestone": {
     "id": "M1",
@@ -41,86 +40,87 @@
     "correction_1_feature_sha": "484ddeb859fcb18256a6acf7b7287e2be917aedc",
     "correction_2_feature_sha": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
     "correction_2_status_sha": "768a32e9f8520754ad8f006bcb57d38bb9f9ed85",
-    "worker_status": "WAITING_REVIEW",
-    "review_verdict": "MERGE CANDIDATE",
-    "review_record": "custom-gpt/state/reviews/C0_M1_CORRECTION_2_FIXED_HEAD_REVIEW.json",
-    "branch_relation": "Correction 2 is one commit above Correction 1; final feature is four commits ahead of main with zero divergence",
-    "verified_correction_2": [
-      "generic widget launcher mount/focus/expand/reveal semantics",
-      "Dock and Rail i buttons share one canonical launcher action",
-      "WidgetFrame minimized state is centralized and launcher-restorable",
-      "default Void inner echo removed from live and Classic SVG projection",
-      "Void outer fill/edge and subtraction remain protected",
-      "Membrane Cell Gradient preserved as default",
-      "Solid Black, Ink, MOOORF Red, Charcoal and Custom use canonical persisted material state",
-      "Solid mode disables Cell spatial colour mixing",
-      "M2 separately owns Field Edge Softness and independent Membrane Edge Softness"
+    "worker_status": "WAITING_REVIEW — REOPENED FOR CORRECTION 3",
+    "review_verdict": "CORRECTION REQUIRED",
+    "correction_3_contract": "docs/worker-briefs/C0_M1_CORRECTION_3_OWNER_PATH_INSPECTOR_LAUNCH.md",
+    "correction_3_base": "c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
+    "owner_confirmed_working": [
+      "Boundary including dash-dot",
+      "Core-off white centre-dot fix",
+      "Void outer fill/edge without hard-coded inner echo",
+      "Void creation, subtraction and drag",
+      "Escape cancellation and truthful status",
+      "Cell/Membrane/Void grouped Inspector architecture",
+      "Membrane Cell Gradient and Solid colour modes"
     ],
-    "reported_verification": [
-      "31/31 source contracts passed",
-      "4/4 audit tests passed",
-      "typecheck passed",
-      "exact reviewed-head diff check passed",
-      "exactly one production build passed",
-      "1440x900 and 1280x800 QA passed with clean console"
+    "required_correction_3": [
+      "reproduce the actual rendered Dock and Rail i command failure",
+      "fix pointer/event/shell integration cause rather than only store lifecycle",
+      "one real click opens the full Inspector in Canvas and Table",
+      "works with no selection, closed, minimized, background and off-screen states",
+      "real-control browser integration tests without direct store or dev-handle calls"
     ],
-    "review_limit": "Assistant cannot access the worker localhost preview; final visual acceptance remains with the Owner.",
-    "required_owner_smoke_test": [
-      "closed and minimized Inspector restores fully from Dock and Rail i buttons",
-      "new Void has no unexplained inner circle and still subtracts/drags",
-      "Cell Gradient remains visually unchanged",
-      "Solid Black, Ink, MOOORF Red, Charcoal and Custom have no Cell colour patches"
-    ],
-    "merge_command": "MERGE C0-M1",
-    "merge_method": "re-verify exact refs, then non-forced fast-forward main to c4f05a1b32029c6cb29f4cfaa41983ba7f77c8f9",
     "merge_allowed": false,
     "m2_allowed": false
   },
+  "owner_added_stage_plan": {
+    "plan": "docs/plans/C0_CANVAS_QUICK_CONTROLS_RUNTIME_GATES_AND_SNAPPING_STAGE_PLAN.md",
+    "requirements": [
+      "Cell Shadow Strength slider and advanced canonical shadow controls in M2",
+      "explicit Off states stop feature-owned background/runtime work",
+      "bottom-left compact collapsible Quick Bar",
+      "Quick Bar toggles Membrane, Shadow, Motion, Labels, Grid and Snapping",
+      "Figma-style collapsible Snap menu adapted to MOOORF geometry",
+      "snapping computes only during active drag/creation"
+    ]
+  },
   "m2_owner_preview": {
-    "title": "One Inspector, Advanced Appearance and Symbol Tab",
+    "title": "One Inspector, Advanced Appearance, Symbols and Runtime Gates",
     "plan": "docs/plans/C0_M2_OWNER_PREVIEW_INSPECTOR_ADVANCED_SYMBOLS.md",
-    "status": "OWNER PREVIEW UPDATED — DISPATCH BLOCKED UNTIL FINAL M1 MERGE AND GO CODEX M2",
+    "status": "OWNER PREVIEW UPDATED — BLOCKED UNTIL FINAL M1 MERGE AND GO CODEX M2",
     "scope": [
       "advanced Cell Surface, Boundary and Core instruments",
+      "Cell Shadow Strength plus opacity softness offsets spread colour and export controls",
       "Membrane Field Edge Softness as the field/body feather owner",
       "independent Membrane Edge Softness with separate canonical renderer effect",
       "advanced Membrane tension, iso, mass, bias, distribution and motion where truthful",
       "preserve canonical Cell Gradient and Solid Membrane colour modes",
-      "standard Void has no inner echo; optional explicit Inner Echo default OFF only with parity",
+      "runtime power gates for Membrane Edge Shadow Motion Labels Grid and Snapping",
       "production Symbol tab inside the same Inspector",
       "77-symbol baseline plus 59 verified additions and 14 aliases",
       "5 rejects excluded",
-      "search, categories, recents, favourites, hover preview, placement and backing",
-      "optional approved selection orbit"
-    ],
-    "not_separate": "No separate Symbol Inspector, no six unrelated top-level appearance inspectors and no duplicate material state"
+      "search categories recents favourites hover preview placement and backing"
+    ]
   },
+  "future_milestones": [
+    { "id": "M2", "title": "Advanced Appearance, Symbol Tab and Runtime Gates", "status": "OWNER PREVIEW UPDATED; BLOCKED" },
+    { "id": "M3A", "title": "Final Bottom Dock and Compact Quick Bar", "status": "PLANNED" },
+    { "id": "M3B", "title": "Snapping Foundation and Collapsible Snap Menu", "status": "PLANNED" },
+    { "id": "M4", "title": "Quick Materials, Presets and Material Browser/Studio", "status": "PLANNED" },
+    { "id": "M5", "title": "Straight Connections and Line Snap Extensions", "status": "PLANNED" },
+    { "id": "M6", "title": "Markup, Annotation and Auto-link Snapping", "status": "PLANNED" },
+    { "id": "M7", "title": "Advanced Arrange, Grid Presets and Snap Optimization", "status": "PLANNED" },
+    { "id": "M8", "title": "Table and Import Completion", "status": "PLANNED" },
+    { "id": "M9", "title": "Floors, Stats and Dashboard", "status": "PLANNED" }
+  ],
   "provenance_ledger": {
-    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 Content/Appearance foundations, M2 same-Inspector Symbol and advanced instruments, M3 dock rails, M4 Material Browser",
-    "audited_icon_grid_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2 -> M2 symbols and M7 grid",
+    "claude_inspector_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97 -> M1 foundations, M2 advanced Inspector/Symbols, M3 shell, M4 Material Browser",
+    "audited_icon_grid_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2 -> M2 symbols and M3B/M7 grid-snapping",
     "antigravity_symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4 -> M2, M5, M6, M7 and custom vectors",
     "antigravity_fast_track_atlas": "research/c0-fast-track-essential-product-atlas@348ee8cd62e45de1b1c51f144e1b7607acd016ee -> contract input for every milestone",
     "reuse_rule": "Selective forward-port only; never merge prototype, research or audit branches wholesale"
   },
-  "future_milestones": [
-    { "id": "M2", "title": "One Inspector Advanced Appearance and Symbol Tab", "status": "OWNER PREVIEW UPDATED; BLOCKED UNTIL FINAL M1 MERGE" },
-    { "id": "M3", "title": "Final Bottom Dock and Shared Contextual Rails", "status": "PLANNED" },
-    { "id": "M4", "title": "Quick Materials, Presets and Material Browser/Studio", "status": "PLANNED — must reuse Cell Gradient/Solid canonical Membrane state" },
-    { "id": "M5", "title": "Straight Connection Foundation", "status": "PLANNED" },
-    { "id": "M6", "title": "Markup and Annotation Foundation", "status": "PLANNED" },
-    { "id": "M7", "title": "Arrange, Grid and Snapping", "status": "PLANNED" },
-    { "id": "M8", "title": "Table and Import Completion", "status": "PLANNED" },
-    { "id": "M9", "title": "Floors, Stats and Dashboard", "status": "PLANNED" }
-  ],
   "protected": [
     "main without explicit Owner merge approval",
     "Master Graph/store as sole data source",
     "exactly one Inspector",
     "canonical six renderer targets remain separate internally",
     "current Cell-derived Membrane gradient must not be removed",
+    "Off must stop feature-owned work rather than only hide output",
+    "Quick Bar must reuse canonical state and runtime gates",
+    "Snapping must compute only during active gestures",
     "prototype/research/audit branches never merged wholesale",
-    "UI-command icons remain separate from drawable symbols",
-    "Selection UI never persists or exports",
+    "Selection and snap guides never persist or export",
     "M2 cannot start until final corrected M1 is merged and Owner says GO CODEX M2"
   ],
   "boot_file": "custom-gpt/bootstrap/BOOT_PROTOCOL.md"
