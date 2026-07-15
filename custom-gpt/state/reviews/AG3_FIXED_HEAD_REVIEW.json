@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "reviewed_at": "2026-07-15T20:55:00+05:30",
+  "task": "AG3 Visual Systems Research Atlas",
+  "branch": "research/ag3-visual-systems-atlas",
+  "base": "main@bd160b8c615cdafbbdd8a76332be46b69a6e765e",
+  "fixed_head": "41cd986dec6b8daf8f3112cbc2ae19b1da3b30d8",
+  "status_branch": "status/antigravity",
+  "status_sha": "5f9772a45a41ce89c23f24303440abb92e91efa7",
+  "verdict": "ACCEPTED_RESEARCH_INPUT",
+  "verified": [
+    "exactly one commit above the merged M1 base",
+    "only six files under docs/research changed",
+    "no production source or Codex branch modified",
+    "handoff uses repository-relative links and states absolute paths were removed",
+    "research remains selective input and must never be merged wholesale"
+  ],
+  "next_use": [
+    "M2 visual review and any bounded correction",
+    "M4 materials, palettes and preset implementation",
+    "later curated symbol packs"
+  ],
+  "merge_policy": "Do not merge the research branch into main. Selectively forward-port approved recommendations only."
+}
