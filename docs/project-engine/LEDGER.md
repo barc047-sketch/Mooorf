@@ -17,9 +17,13 @@ Only durable current truth belongs here. Closed history stays in linked legacy r
 
 ## Open issues
 
-- **BUG-001 — Day/Night background always black.** Active PF1C Correction 5 regression. Likely ownership: Organism host/background and shader presentation path.
-- **BUG-002 — Membrane invisible.** Active PF1C Correction 5 regression. Likely ownership: Organism invalidation, transparent framebuffer presentation, or surface alpha.
-- **BUG-003 — Quick Controls shift with Inspector changes.** Active PF1C Correction 5 regression. Quick Controls must retain the shared fixed top-right anchor with no Inspector coupling.
+None.
+
+## Recently resolved
+
+- **BUG-001 — Day/Night background always black.** Resolved by PF1C: the Organism host owns the canonical background beneath the transparent surface.
+- **BUG-002 — Membrane invisible.** Resolved by PF1C: transparent target presentation and invalidation retain a visible Membrane.
+- **BUG-003 — Quick Controls shift with Inspector changes.** Resolved by PF1C: the shared fixed top-right anchor has no Inspector coupling.
 
 ## Known limits
 

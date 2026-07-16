@@ -9,9 +9,9 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 | 3 | PF1A Static Organism runtime | COMPLETE | Motion-off static runtime and one visible Organism strategy are protected. |
 | 4 | Arrangement V2 | COMPLETE | Deterministic position-only preview/apply/cancel foundation is pushed independently. |
 | 5 | PF1B Runtime Status | COMPLETE | One global activity/FPS/download status surface is the current committed base. |
-| 6 | PF1C Auto Performance and advanced preview | LOCAL | Corrections 1–4 are local uncommitted; Correction 5 is unresolved. |
-| 7 | PF1C Correction 5 and Owner QA | NEXT | Restore theme background/Membrane/Quick Controls, then focused checks and Owner visual PASS. |
-| 8 | PF1D lazy workspaces | BLOCKED | Waits on PF1C finalization so bundle/runtime ownership is stable. |
+| 6 | PF1C Auto Performance and advanced preview | COMPLETE | Adaptive runtime, detached export, and the approved Canvas/Quick Controls corrections are complete; branch remains unmerged. |
+| 7 | R0 Read-only Structural Refactor Audit | NEXT | Read-only 35-minute audit and parity matrix; requires explicit Owner GO. |
+| 8 | PF1D lazy workspaces | BLOCKED | Waits on review of the R0 audit decision. |
 | 9 | M3A core interaction/Undo/Redo | PLANNED | Extend the existing bounded history and interaction contracts; no second history path. |
 | 10 | G1 Master Graph relationship/connection engine | PLANNED | Add semantic relationships before visible connection tooling or graph analytics. |
 | 11 | G2 reference-image layer, calibration, and rulers | PLANNED | Requires durable project ownership and background preprocessing outside the interaction loop. |
@@ -29,7 +29,7 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 
 ## Current gate
 
-Only PF1C Correction 5 is next. PF1D and later milestones must not absorb its regressions or begin around uncommitted PF1C state.
+R0 Read-only Structural Refactor Audit is next and waits for explicit Owner GO. PF1D remains blocked until its audit decision is reviewed.
 
 ## Status rules
 
