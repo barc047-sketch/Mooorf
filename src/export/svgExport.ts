@@ -77,6 +77,15 @@ export interface ClassicSvgOptions {
   background: string | null;
   includeLabels: boolean;
   paddingPx: number;
+  /** Screen-space geometry supplied by a detached renderer that has already
+   * resolved authored Organism transforms. Omit for unchanged Classic SVG. */
+  resolvedGeometryById?: ReadonlyMap<string, ResolvedCircleGeometry>;
+}
+
+export interface ResolvedCircleGeometry {
+  screenX: number;
+  screenY: number;
+  screenRadius: number;
 }
 
 /** True-vector Classic export: nuclei circles + label text mirror
@@ -87,7 +96,7 @@ export interface ClassicSvgOptions {
  * keeps this a truthful vector export rather than silently rasterizing it.
  * See docs/DECISIONS.md V7.2 SVG truthfulness note. */
 export const buildClassicSvg = (options: ClassicSvgOptions): string => {
-  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, organismPaletteId = "mode", morphMode = "cellular-reverse", presentationDefaults = createProjectPresentationDefaults(), colorSource = "category", labelScaleMode = "screen", annotationDetail, cellShadow, performanceQuality = "automatic", resources = DEFAULT_RESOURCE_SETTINGS, theme = "day", background, includeLabels, paddingPx } =
+  const { spaces, camera, cssWidth, cssHeight, paletteMode, nucleusPaletteId, organismPaletteId = "mode", morphMode = "cellular-reverse", presentationDefaults = createProjectPresentationDefaults(), colorSource = "category", labelScaleMode = "screen", annotationDetail, cellShadow, performanceQuality = "automatic", resources = DEFAULT_RESOURCE_SETTINGS, theme = "day", background, includeLabels, paddingPx, resolvedGeometryById } =
     options;
   const w = Math.max(1, Math.round(cssWidth));
   const h = Math.max(1, Math.round(cssHeight));
@@ -119,10 +128,15 @@ export const buildClassicSvg = (options: ClassicSvgOptions): string => {
   }
 
   for (const cell of spaces) {
-    const r = areaToRadius(cell.area) * z;
+    const resolvedGeometry = resolvedGeometryById?.get(cell.id);
+    const hasResolvedGeometry = resolvedGeometry
+      && Number.isFinite(resolvedGeometry.screenX)
+      && Number.isFinite(resolvedGeometry.screenY)
+      && Number.isFinite(resolvedGeometry.screenRadius);
+    const r = hasResolvedGeometry ? resolvedGeometry.screenRadius : areaToRadius(cell.area) * z;
     if (!Number.isFinite(r) || r <= 0) continue;
-    const cx = toX(cell.x);
-    const cy = toY(cell.y);
+    const cx = hasResolvedGeometry ? resolvedGeometry.screenX + pad : toX(cell.x);
+    const cy = hasResolvedGeometry ? resolvedGeometry.screenY + pad : toY(cell.y);
     const appearance = presentation.byId.get(cell.id);
     if (!appearance) continue;
     const layers = projectCircleLayers(cell, appearance, r, z, "classic");

@@ -81,4 +81,37 @@ equal(availability.available, false, "organism SVG is truthfully unavailable");
 ok(availability.reason.length > 0, "organism SVG unavailability carries an explanation");
 ok(!availability.reason.toLowerCase().includes("raster"), "reason does not imply a hidden raster fallback exists");
 
+const overlaySpaces: SpaceCell[] = [
+  { id: "overlay-a", name: "Resolved A", area: 100, category: "Studio", privacy: "shared", color: "#000", x: -120, y: 80 },
+  { id: "overlay-b", name: "Resolved B", kind: "void", area: 64, category: "Void", privacy: "shared", color: "#111", x: 210, y: -140 },
+];
+const resolvedOverlayGeometry = new Map([
+  ["overlay-a", { screenX: 142.5, screenY: 267.25, screenRadius: 37.5 }],
+  ["overlay-b", { screenX: 631.75, screenY: 118.5, screenRadius: 29.25 }],
+]);
+const overlayOptions = {
+  spaces: overlaySpaces,
+  camera: { x: 0, y: 0, zoom: 1.5 },
+  cssWidth: 800,
+  cssHeight: 600,
+  paletteMode: "core" as const,
+  nucleusPaletteId: "auto",
+  background: null,
+  includeLabels: true,
+  paddingPx: 12,
+};
+const classicOverlay = buildClassicSvg(overlayOptions);
+const resolvedOverlay = buildClassicSvg({
+  ...overlayOptions,
+  resolvedGeometryById: resolvedOverlayGeometry,
+} as any);
+
+ok(classicOverlay.includes('cx="232" cy="432"'), "Classic SVG retains raw camera geometry without an override");
+ok(resolvedOverlay.includes('cx="154.5" cy="279.25" r="37.5"'), "resolved Cell centre and base radius receive export padding exactly once");
+equal((resolvedOverlay.match(/cx="154.5" cy="279.25"/g) ?? []).length, 2, "resolved Cell and Boundary share the transformed centre without a raw-position ghost circle");
+equal((resolvedOverlay.match(/cx="643.75" cy="130.5"/g) ?? []).length, 2, "resolved Void fill and edge share its transformed centre");
+ok(resolvedOverlay.includes('<text x="154.5"'), "labels use the resolved Cell centre");
+ok(resolvedOverlay.includes('<text x="643.75"'), "labels use the resolved Void centre");
+ok(!resolvedOverlay.includes('cx="232" cy="432"'), "resolved geometry replaces raw Cell projection when supplied");
+
 console.info("svg export contracts passed");

@@ -11,7 +11,7 @@ import {
   type OrganismRenderer,
 } from "../experiments/organism-lab/organism-shader";
 import type { CanvasExportSnapshot, CaptureRequestOptions, CaptureResult } from "../canvas/exportCapture";
-import { buildClassicSvg } from "./svgExport";
+import { buildClassicSvg, type ResolvedCircleGeometry } from "./svgExport";
 
 const drawSvgOverlay = async (
   canvas: HTMLCanvasElement,
@@ -170,6 +170,13 @@ export const renderDetachedOrganismExport = async (
     if (!outputContext) throw new Error("Could not create the export capture surface.");
     outputContext.drawImage(renderSurface, 0, 0, output.width, output.height);
 
+    const resolvedGeometryById = new Map<string, ResolvedCircleGeometry>(
+      nuclei.map((nucleus) => [nucleus.id, {
+        screenX: nucleus.sx,
+        screenY: nucleus.sy,
+        screenRadius: nucleus.screenR,
+      }]),
+    );
     const overlay = buildClassicSvg({
       spaces: visibleSpaces,
       camera: snapshot.camera,
@@ -192,6 +199,7 @@ export const renderDetachedOrganismExport = async (
       background: null,
       includeLabels: options.includeLabels,
       paddingPx: 0,
+      resolvedGeometryById,
     });
     await drawSvgOverlay(output, overlay);
     return { canvas: output, cssWidth: width, cssHeight: height };
