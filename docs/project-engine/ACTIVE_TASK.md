@@ -1,24 +1,18 @@
 # Active Task
 
-## R0 — Read-only Structural Refactor Audit
+## R0 — Structural Refactor Audit Decision
 
-**Status:** WAITING OWNER GO
+**Status:** COMPLETE — WAITING OWNER DECISION
 
 ## Scope
 
-- dead code;
-- duplicated paths;
-- oversized modules;
-- stale abstractions;
-- dependency cycles;
-- test duplication;
-- high-change hotspots.
+- Review `REFACTOR_AUDIT.md` and `PARITY_MATRIX.md`.
+- Decide whether to authorize isolated R0.1 → R0.2 → R0.3 passes.
+- R0.4 is next-touch cleanup; R0.5 remains deferred to a store-owning milestone.
 
 ## Rules
 
-- Read-only; no product code changes.
-- No dependency upgrades.
-- No framework migration.
-- Maximum elapsed time: 35 minutes.
-- Output only an audit and parity matrix.
-- PF1D remains blocked until the audit decision is reviewed.
+- The audit changed Project Engine documentation only.
+- No refactor is authorized by the audit result.
+- No merge is authorized.
+- PF1D remains blocked until the Owner records the decision.

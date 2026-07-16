@@ -11,12 +11,12 @@
 | Classification | Current truth |
 |---|---|
 | COMMITTED | PF1C Auto Performance Governor product work is committed at `4a032ed3934dad2a03ca70176e073153245ab7ab` on `feature/pf1c-auto-performance-governor`. |
-| PUSHED | `origin/feature/pf1c-auto-performance-governor` contains the PF1C product and this Project Engine closeout after final remote-SHA verification. `origin/feature/pf1b-global-runtime-status` remains `5b3a34a630da30eb60ede6f4e82095e0985f72ca`; `origin/feature/arrangement-v2-foundation` remains `adaff5acef5602f231b663fcb2e0037451acb788`. |
+| PUSHED | `origin/feature/pf1c-auto-performance-governor` contains the PF1C product and Project Engine closeout. `origin/audit/r0-structural-refactor` contains the completed docs-only R0 audit after final remote-SHA verification. `origin/feature/pf1b-global-runtime-status` remains `5b3a34a630da30eb60ede6f4e82095e0985f72ca`; `origin/feature/arrangement-v2-foundation` remains `adaff5acef5602f231b663fcb2e0037451acb788`. |
 | REMOTE MAIN | `origin/main` is `bd160b8c615cdafbbdd8a76332be46b69a6e765e`. No merge is authorized by this state record. |
 | LOCAL UNCOMMITTED | No PF1C product work remains locally uncommitted. |
 | OWNER APPROVED | PF1C received Owner PASS for finalization. |
 | WAITING OWNER QA | None for PF1C. |
-| BLOCKED | PF1D is blocked until the R0 Read-only Structural Refactor Audit decision is reviewed. |
+| BLOCKED | PF1D is blocked until the Owner reviews the completed R0 Structural Refactor Audit decision. |
 
 ## Active milestone
 
@@ -29,7 +29,7 @@
 
 ## Working-tree state
 
-PF1C product work and its Project Engine closeout are committed; no remaining local-only task files are expected after final push verification.
+PF1C product work and its Project Engine closeout remain committed and pushed. The audit branch contains docs-only R0 evidence; no product file or refactor changed.
 
 ## Completed and integration state
 
@@ -48,6 +48,14 @@ PF1C product work and its Project Engine closeout are committed; no remaining lo
 
 No active PF1C regression is recorded. Resolved PF1C issues are retained in `LEDGER.md`.
 
+## R0 audit status
+
+**COMPLETE — WAITING OWNER DECISION**
+
+- Executive decision: TARGETED REFACTOR RECOMMENDED.
+- Recommended immediate sequence: R0.1 → R0.2 → R0.3, each behind its own parity gate.
+- No refactor, PF1D work or merge is authorized by this state record.
+
 ## Next required action
 
-**R0 — Read-only Structural Refactor Audit** is proposed next and waits for an explicit Owner GO. Do not begin PF1D or merge this branch.
+Owner decides whether to authorize R0.1 → R0.2 → R0.3 or direct continuation to PF1D. Do not begin either path or merge without the exact Owner command.
