@@ -24,6 +24,7 @@ None.
 - **BUG-001 — Day/Night background always black.** Resolved by PF1C: the Organism host owns the canonical background beneath the transparent surface.
 - **BUG-002 — Membrane invisible.** Resolved by PF1C: transparent target presentation and invalidation retain a visible Membrane.
 - **BUG-003 — Quick Controls shift with Inspector changes.** Resolved by PF1C: the shared fixed top-right anchor has no Inspector coupling.
+- **R0.1 — Shared Canvas Gesture Transaction Core.** Renderer-neutral transaction ownership now lives in `src/interaction/canvasGestureController.ts`; Classic and Organism retain local hit testing, coordinates, invalidation, and render-loop ownership. A pre-finalization pan regression from a mutable camera anchor was corrected with immutable pan anchors and one zoom conversion. No schema, public store API, or persistence contract changed.
 
 ## Known limits
 

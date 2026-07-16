@@ -10,26 +10,29 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 | 4 | Arrangement V2 | COMPLETE | Deterministic position-only preview/apply/cancel foundation is pushed independently. |
 | 5 | PF1B Runtime Status | COMPLETE | One global activity/FPS/download status surface is the current committed base. |
 | 6 | PF1C Auto Performance and advanced preview | COMPLETE | Adaptive runtime, detached export, and the approved Canvas/Quick Controls corrections are complete; branch remains unmerged. |
-| 7 | R0 Read-only Structural Refactor Audit | NEXT | Read-only 35-minute audit and parity matrix; requires explicit Owner GO. |
-| 8 | PF1D lazy workspaces | BLOCKED | Waits on review of the R0 audit decision. |
-| 9 | M3A core interaction/Undo/Redo | PLANNED | Extend the existing bounded history and interaction contracts; no second history path. |
-| 10 | G1 Master Graph relationship/connection engine | PLANNED | Add semantic relationships before visible connection tooling or graph analytics. |
-| 11 | G2 reference-image layer, calibration, and rulers | PLANNED | Requires durable project ownership and background preprocessing outside the interaction loop. |
-| 12 | M3C snapping/guides | BLOCKED | Requires G1/interaction geometry ownership; Magnet remains disabled until this milestone. |
-| 13 | M3D typography | PLANNED | Extend canonical label/annotation state and renderer/export parity. |
-| 14 | M3E callouts/label arrangement | BLOCKED | Requires M3D typography and safe layout/relationship anchors. |
-| 15 | G3 Membrane bridge relationships | BLOCKED | Requires stable G1 semantics and advanced Membrane performance evidence. |
-| 16 | M4 asset platform | PLANNED | Promote existing registries into bounded browsers/import workflows without persisting definitions. |
-| 17 | M5 advanced boundaries | PLANNED | Extend established presentation targets with renderer/export parity. |
-| 18 | Table/Canvas/Graph analytics | BLOCKED | Requires G1 Master Graph semantics and PF1D lazy workspace loading. |
-| 19 | Bylaws | DEFERRED | Product/governance semantics wait on mature graph and collaboration scope. |
-| 20 | GIF/WebM/MP4 animation export | DEFERRED | Requires export queue/worker architecture and authored animation timeline. |
-| 21 | Export expansion | PLANNED | Queue, Download Center, references, and additional formats extend existing export owners. |
-| 22 | Accounts/plans/collaboration | DEFERRED | No backend/auth/billing/collaboration work before the local desktop product is complete. |
+| 7 | R0 Read-only Structural Refactor Audit | COMPLETE | Audit and parity matrix established the targeted R0.1 → R0.2 → R0.3 sequence. |
+| 8 | R0.1 Shared Canvas Gesture Transaction Core | COMPLETE | Shared renderer-neutral gesture transactions are committed; Owner QA passed; no merge authority. |
+| 9 | R0.2 Behaviour-first parity and contract split | NEXT | Rules and test files only; waits for explicit Owner GO. |
+| 10 | R0.3 | PLANNED | Follows R0.2 behind its own parity gate. |
+| 11 | PF1D lazy workspaces | BLOCKED | Waits until the R0.1 → R0.2 → R0.3 refactor sequence closes. |
+| 12 | M3A core interaction/Undo/Redo | PLANNED | Extend the existing bounded history and interaction contracts; no second history path. |
+| 13 | G1 Master Graph relationship/connection engine | PLANNED | Add semantic relationships before visible connection tooling or graph analytics. |
+| 14 | G2 reference-image layer, calibration, and rulers | PLANNED | Requires durable project ownership and background preprocessing outside the interaction loop. |
+| 15 | M3C snapping/guides | BLOCKED | Requires G1/interaction geometry ownership; Magnet remains disabled until this milestone. |
+| 16 | M3D typography | PLANNED | Extend canonical label/annotation state and renderer/export parity. |
+| 17 | M3E callouts/label arrangement | BLOCKED | Requires M3D typography and safe layout/relationship anchors. |
+| 18 | G3 Membrane bridge relationships | BLOCKED | Requires stable G1 semantics and advanced Membrane performance evidence. |
+| 19 | M4 asset platform | PLANNED | Promote existing registries into bounded browsers/import workflows without persisting definitions. |
+| 20 | M5 advanced boundaries | PLANNED | Extend established presentation targets with renderer/export parity. |
+| 21 | Table/Canvas/Graph analytics | BLOCKED | Requires G1 Master Graph semantics and PF1D lazy workspace loading. |
+| 22 | Bylaws | DEFERRED | Product/governance semantics wait on mature graph and collaboration scope. |
+| 23 | GIF/WebM/MP4 animation export | DEFERRED | Requires export queue/worker architecture and authored animation timeline. |
+| 24 | Export expansion | PLANNED | Queue, Download Center, references, and additional formats extend existing export owners. |
+| 25 | Accounts/plans/collaboration | DEFERRED | No backend/auth/billing/collaboration work before the local desktop product is complete. |
 
 ## Current gate
 
-R0 Read-only Structural Refactor Audit is next and waits for explicit Owner GO. PF1D remains blocked until its audit decision is reviewed.
+R0.2 Behaviour-first parity and contract split is next and waits for explicit Owner GO. R0.3 is planned; PF1D remains blocked until the sequence closes.
 
 ## Status rules
 
