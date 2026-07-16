@@ -40,7 +40,7 @@ PF1C product work and its Project Engine closeout are committed; no remaining lo
 | PF1A Static Organism runtime | COMPLETE | Included at pushed `a410b894338f8e2a8cdb29dc070b7c911de6cc05`; no merge authority. |
 | Arrangement V2 foundation | COMPLETE | Pushed at `adaff5acef5602f231b663fcb2e0037451acb788`; unmerged as an independent feature branch. |
 | PF1B Global Runtime Status | COMPLETE | Pushed at `5b3a34a630da30eb60ede6f4e82095e0985f72ca`; current product base before PF1C. |
-| PF1C Auto Performance Governor | COMPLETE | Product committed at `4a032ed3934dad2a03ca70176e073153245ab7ab`; closeout push pending, unmerged. |
+| PF1C Auto Performance Governor | COMPLETE | Product pushed at `4a032ed3934dad2a03ca70176e073153245ab7ab`; Project Engine closeout pushed at `677a239dce287ebf8e0519ba343f950d3cde9f2a`; unmerged. |
 
 `PUSHED` never means `MERGED`. No feature listed here has merge authority merely because its commit exists remotely.
 
