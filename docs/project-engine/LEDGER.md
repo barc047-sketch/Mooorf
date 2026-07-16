@@ -15,19 +15,9 @@ Only durable current truth belongs here. Closed history stays in linked legacy r
 - **DEC-009 — One owner per surface.** Reuse the existing Inspector, Runtime Status, Quick Controls, WidgetHost/Frame, file-intake provider, export service, and history path.
 - **DEC-010 — Preview is not product data.** Appearance, Arrangement, resource, Membrane, and performance previews remain ephemeral and absent from persistence/history until an explicit apply action.
 
-## Open issues
-
-### E1 — Organism Detached Export Overlay Alignment
-
-**Classification:** pre-existing P1 / release blocker; discovered during R0.3 Owner QA and not caused by the CSS ownership move.
-
-**Evidence:** neutral settings resolve at `dx=0`, `dy=0`, `dr=0`; X/Y offsets produce `dx=43.52px`, `dy=27.20px`; global/radial/angular transforms reach approximately `54.92px` X and `85.92px` Y displacement. Size variation also creates radius divergence. 1×/2× export changes pixel density, not logical placement.
-
-**Root cause:** the detached Membrane uses transformed `ProductionNucleus` geometry while the SVG presentation overlay uses raw `SpaceCell` geometry.
-
-**Safe boundary:** `src/export/organismExport.ts`, `src/export/svgExport.ts`, and focused export-alignment contracts. Do not claim the fix is implemented.
-
 ## Recently resolved
+
+- **E1 — Organism Detached Export Overlay Alignment.** Pre-existing P1 export blocker discovered during R0.3 Owner QA. Diagnostic evidence retained: neutral settings resolve at `dx=0`, `dy=0`, `dr=0`; X/Y offsets reached `dx=43.52px`, `dy=27.20px`; global/radial/angular displacement reached about `54.92px` X and `85.92px` Y; size variation diverged; 1×/2× changes density, not logical placement. Root cause: detached Membrane used resolved `ProductionNucleus` geometry while the overlay used raw `SpaceCell` geometry. Correction: `organismExport.ts` passes resolved `sx`, `sy`, `screenR` only to the detached overlay in `svgExport.ts`; the neutral/raw Classic fallback remains intact. Cell, Boundary, Core, Void, labels, and symbols now share the resolved geometry. Non-neutral transform, size-variation, 1×/2× logical-placement, and Owner visual QA passed; no durable `SpaceCell` mutation. Product commit `beb5476164d171d25e4d61efef3e370b9bb1574b`; Owner PASS; Classic behaviour preserved.
 
 - **BUG-001 — Day/Night background always black.** Resolved by PF1C: the Organism host owns the canonical background beneath the transparent surface.
 - **BUG-002 — Membrane invisible.** Resolved by PF1C: transparent target presentation and invalidation retain a visible Membrane.

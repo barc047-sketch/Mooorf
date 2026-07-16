@@ -14,8 +14,8 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 | 8 | R0.1 Shared Canvas Gesture Transaction Core | COMPLETE | Shared renderer-neutral gesture transactions are committed; Owner QA passed; no merge authority. |
 | 9 | R0.2 Behaviour-first parity and contract split | COMPLETE | Test-only behavioural, wiring, and style contract split is complete; no production change or merge. |
 | 10 | R0.3 Split Widget-owned CSS from Edge Shell | COMPLETE | CSS ownership parity and Owner visual review passed; no production TypeScript or React change. |
-| 11 | E1 Organism Detached Export Overlay Alignment | NEXT | Separate pre-existing P1 export blocker; isolate the composition-boundary fix after explicit Owner GO. |
-| 12 | PF1D lazy workspaces | BLOCKED | Waits until E1 closes. |
+| 11 | E1 Organism Detached Export Overlay Alignment | COMPLETE | Detached Organism overlay geometry is aligned to resolved nuclei; Owner export QA passed and Classic SVG remains unchanged. |
+| 12 | PF1D lazy workspaces | NEXT | Requires explicit Owner GO; preserve one Canvas, Master Graph, and canonical store. |
 | 13 | M3A core interaction/Undo/Redo | PLANNED | Extend the existing bounded history and interaction contracts; no second history path. |
 | 14 | G1 Master Graph relationship/connection engine | PLANNED | Add semantic relationships before visible connection tooling or graph analytics. |
 | 15 | G2 reference-image layer, calibration, and rulers | PLANNED | Requires durable project ownership and background preprocessing outside the interaction loop. |
@@ -33,7 +33,7 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 
 ## Current gate
 
-R0.1, R0.2, and R0.3 are COMPLETE. E1 Organism Detached Export Overlay Alignment is next and waits for explicit Owner GO. PF1D remains blocked until E1 closes.
+R0.1, R0.2, R0.3, and E1 are COMPLETE. PF1D Lazy Workspaces is next and waits for explicit Owner GO.
 
 ## Status rules
 

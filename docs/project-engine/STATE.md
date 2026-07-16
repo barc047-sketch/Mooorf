@@ -10,26 +10,25 @@
 
 | Classification | Current truth |
 |---|---|
-| COMMITTED | R0.1 Shared Canvas Gesture Transaction Core remains committed at `5d472e8859e401d25d5a80851b5565ce550fc02a`. R0.2 Behaviour-first parity and contract split test-only work is committed at `481866e5a0aa2d9cbccf5d3cfcb8bcf42247c147` on `refactor/r0-2-behaviour-parity`; it changes only `pf1bContracts.test.ts`, `pf1cContracts.test.ts`, `runtimeOrganismWiring.test.ts`, and `backgroundExportContracts.test.ts`. R0.3 CSS ownership is committed at `0e0946310108eccefcc31936f8f993a59740e59e`; it changes only `shell.css`, `widgets.css`, and the focused PF1C contract. |
-| PUSHED | `origin/feature/pf1c-auto-performance-governor` contains the PF1C product and Project Engine closeout. `origin/audit/r0-structural-refactor` contains the completed docs-only R0 audit after final remote-SHA verification. `origin/feature/pf1b-global-runtime-status` remains `5b3a34a630da30eb60ede6f4e82095e0985f72ca`; `origin/feature/arrangement-v2-foundation` remains `adaff5acef5602f231b663fcb2e0037451acb788`. |
+| COMMITTED | E1 Organism Detached Export Overlay Alignment is committed at `beb5476164d171d25e4d61efef3e370b9bb1574b` on `fix/e1-organism-export-alignment`. R0.1, R0.2, and R0.3 remain committed on their recorded branches. |
+| PUSHED | E1 push is pending the Project Engine closeout commit. `origin/feature/pf1c-auto-performance-governor`, `origin/audit/r0-structural-refactor`, `origin/feature/pf1b-global-runtime-status`, and `origin/feature/arrangement-v2-foundation` retain their recorded unmerged states. |
 | REMOTE MAIN | `origin/main` is `bd160b8c615cdafbbdd8a76332be46b69a6e765e`. No merge is authorized by this state record. |
-| LOCAL UNCOMMITTED | Project Engine closeout records only are pending commit; no product work remains locally uncommitted. |
-| OWNER APPROVED | R0.1, R0.2, and R0.3 received Owner PASS for finalization; no merge is authorized. |
-| WAITING OWNER GO | E1 Organism Detached Export Overlay Alignment is the next isolated task. |
-| BLOCKED | PF1D is blocked until E1 closes. |
+| LOCAL UNCOMMITTED | E1 Project Engine closeout records only are pending commit; no product work remains locally uncommitted. |
+| OWNER APPROVED | E1 Owner export QA passed; R0.1, R0.2, and R0.3 remain approved. No merge is authorized. |
+| WAITING OWNER GO | PF1D Lazy Workspaces is next but not started. |
+| BLOCKED | None at the current gate. |
 
 ## Active milestone
 
-**R0.3 Split Widget-owned CSS from Edge Shell — COMPLETE**
+**E1 Organism Detached Export Overlay Alignment — COMPLETE**
 
-- CSS ownership only: 11 semantic blocks and 95 selector clauses moved from `shell.css` to `widgets.css`.
-- Declaration, value, specificity, and cascade parity are exact; the shared Dock/widget range rule remains in `shell.css`.
-- 104 focused tests, TypeScript, one production build, and diff checks passed. Owner visual QA passed. No production TypeScript or React changed.
-- E1 is a pre-existing P1 detached-export overlay alignment blocker; it was not introduced by R0.3. R0.3 is not merged.
+- Detached Organism overlays now receive resolved nucleus centre/radius geometry while Classic SVG retains its raw projection.
+- Owner export QA, 6 focused tests, TypeScript, one production build, and diff checks passed.
+- No CSS, live Canvas, shader, store, schema, or persistence changed; no merge is authorized.
 
 ## Working-tree state
 
-R0.3 product work is committed locally; this Project Engine closeout is authorized to push with it. No merge is authorized.
+E1 product work is committed locally; this Project Engine closeout is authorized to push with it. No merge is authorized.
 
 ## Completed and integration state
 
@@ -44,21 +43,22 @@ R0.3 product work is committed locally; this Project Engine closeout is authoriz
 | R0.1 Shared Canvas Gesture Transaction Core | COMPLETE | Fixture prerequisite committed at `75d935945207dc651d985e692902ca98eb5a890d`; product committed at `5d472e8859e401d25d5a80851b5565ce550fc02a`; Owner QA passed; no merge authority. |
 | R0.2 Behaviour-first parity and contract split | COMPLETE | Test-only contract commit at `481866e5a0aa2d9cbccf5d3cfcb8bcf42247c147`; automated review passed; no visual QA required; no merge authority. |
 | R0.3 Split Widget-owned CSS from Edge Shell | COMPLETE | CSS-only product commit at `0e0946310108eccefcc31936f8f993a59740e59e`; 11 semantic blocks / 95 selector clauses moved with exact declaration/value/specificity/cascade parity; Owner visual QA passed; no production TypeScript/React change; no merge authority. |
+| E1 Organism Detached Export Overlay Alignment | COMPLETE | Product committed at `beb5476164d171d25e4d61efef3e370b9bb1574b`; resolved detached geometry unifies Membrane/overlay alignment, Classic SVG is preserved, Owner QA passed, and no merge is authorized. |
 
 `PUSHED` never means `MERGED`. No feature listed here has merge authority merely because its commit exists remotely.
 
 ## Current regressions
 
-E1 — Organism Detached Export Overlay Alignment — is a pre-existing P1 release blocker. Resolved R0.1/R0.2/R0.3 details are retained in `LEDGER.md`.
+No active release blocker is recorded. Resolved E1 and R0 details are retained in `LEDGER.md`.
 
 ## R0 audit status
 
-**R0, R0.1, R0.2, AND R0.3 COMPLETE — E1 NEXT**
+**R0, R0.1, R0.2, R0.3, AND E1 COMPLETE — PF1D NEXT**
 
 - The targeted refactor sequence R0.1 → R0.2 → R0.3 is complete behind its own parity gates.
-- E1 is a separate export-composition task and PF1D remains blocked until E1 closes.
+- E1 resolved the detached export-composition boundary; PF1D is next but requires explicit Owner GO.
 - No merge is authorized by this state record.
 
 ## Next required action
 
-Owner may authorize E1 Organism Detached Export Overlay Alignment on a new isolated branch. Do not begin E1, PF1D, or merge without the exact Owner command.
+Owner may authorize PF1D Lazy Workspaces. Do not begin PF1D or merge without the exact Owner command.
