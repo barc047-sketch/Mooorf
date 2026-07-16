@@ -898,3 +898,70 @@ test("Performance widget keeps the approved minimal copy and equal preview layou
   assert.match(widget, /title="DEBUG"/);
   assert.doesNotMatch(widget, /title="DEBUG"[^>]*defaultOpen/);
 });
+
+test("widget-owned control CSS stays in widgets.css", () => {
+  const shell = readFileSync("src/ui/shell.css", "utf8");
+  const widgets = readFileSync("src/ui/widgets/widgets.css", "utf8");
+  const selectors = [
+    ".org-sec + .org-sec",
+    ".org-sec-headwrap",
+    ".org-sec-head",
+    ".org-sec-head:hover",
+    ".org-sec-hint",
+    ".org-chev",
+    ".org-sec-body",
+    ".org-slider-meta",
+    ".org-slider-val",
+    ".org-readout",
+    ".org-readout-val",
+    ".org-choice",
+    ".org-choice:hover",
+    ".org-choice-text",
+    ".org-choice-name",
+    ".org-choice-desc",
+    ".arrange-panel",
+    ".arrange-scope",
+    ".arrange-category-tabs",
+    ".arrange-search",
+    ".arrange-pattern-grid",
+    ".arrange-pattern",
+    ".arrange-miniature",
+    ".arrange-empty",
+    ".arrange-selected-copy",
+    ".arrange-signal",
+    ".arrange-inline-control",
+    ".arrange-seed",
+    ".arrange-regenerate",
+    ".arrange-status",
+    ".arrange-actions",
+    ".org-subcap",
+    ".org-attach-chips",
+    ".org-attach-hint",
+    ".org-switch-row",
+    ".org-switch",
+    ".org-switch-thumb",
+    ".org-adv-toggle",
+    ".category-map-grid",
+    ".category-token",
+    ".category-token i",
+    ".category-token span",
+    ".pal-ramp",
+    ".pal-ramp i",
+    ".pal-custom",
+    ".org-foot",
+    ".org-reset",
+  ];
+  const countRule = (source: string, selector: string) => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return source.match(new RegExp(`(?:^|\\n)${escaped}\\s*\\{`, "g"))?.length ?? 0;
+  };
+  for (const selector of selectors) {
+    assert.equal(countRule(widgets, selector), 1, `widgets.css owns ${selector}`);
+    assert.equal(countRule(shell, selector), 0, `shell.css does not own ${selector}`);
+  }
+  assert.match(widgets, /@media \(max-width: 480px\) \{\s*\.org-slider\s*\{/);
+  assert.match(widgets, /\.org-foot\s*\{[\s\S]*?padding: 8px 10px 10px;[\s\S]*?\n\.org-foot--widget\s*\{/);
+  assert.match(shell, /\.dock\s*\{/);
+  assert.match(shell, /\.rail\s*\{/);
+  assert.match(shell, /\.dock-merge input\[type="range"\],[\s\S]*?\.org-slider input\[type="range"\]/);
+});
