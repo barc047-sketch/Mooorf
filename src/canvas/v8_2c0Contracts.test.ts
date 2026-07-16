@@ -83,6 +83,7 @@ assert.equal(resolveLabelContrast({ mode: "custom", customColor: "#123456", them
 assert.deepEqual(DEFAULT_CELL_SHADOW, {
   enabled: false,
   mode: "off",
+  strength: 0.5,
   opacity: 0.16,
   softness: 22,
   offsetX: 0,
