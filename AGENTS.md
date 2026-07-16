@@ -1,46 +1,39 @@
 # MOOORF Agent Entry Point
 
-Before planning, modifying, auditing or merging MOOORF, read:
+Before planning, modifying, auditing, finalizing, or merging MOOORF, read only:
 
-1. `docs/MOOORF_AI_TEAM_OPERATING_PROTOCOL.md`
-2. `docs/MOOORF_FINAL_SCOPE.md`
-3. `docs/MOOORF_MASTER_PRODUCT_SCOPE.md`
-4. `docs/MOOORF_DESKTOP_UI_REFERENCE_ADDENDUM.md`
-5. `docs/PROJECT_MEMORY_INDEX.md`
-6. `docs/CODEX_PHASE_PROTOCOL.md`
-7. relevant current handoff, task queue and audit artifacts.
+1. `docs/project-engine/MASTER.md`
+2. `docs/project-engine/STATE.md`
+3. `docs/project-engine/ACTIVE_TASK.md`
+4. the relevant section of `docs/project-engine/REPO_MAP.md`
 
-Rules:
+Additional routing:
+
+- Read `docs/project-engine/WORKFLOW.md` before implementation or finalization.
+- Read `docs/project-engine/ROADMAP.md` when sequencing milestones.
+- Read `docs/project-engine/LEDGER.md` when architecture, Owner decisions, known bugs, or limits matter.
+- Read legacy documentation only when `MASTER.md` or `REPO_MAP.md` links to it for the current subject.
+- Never default-read full historical reports.
+
+## Authority and safety
 
 - The user is the Owner and final decision-maker.
 - The coordinating ChatGPT conversation is the Project Manager.
 - No worker starts without an explicit Owner GO command.
 - Do not interpret rough discussion as a locked decision.
-- Verify GitHub state before every implementation prompt.
-- Never merge unaudited complex work.
-- Preserve `.claude/launch.json`.
+- Verify the current branch, HEAD, remote source SHA, and working-tree state before every implementation prompt.
+- Never merge automatically or without the Owner's explicit merge command.
+- Never merge unaudited complex work or Claude prototype branches wholesale.
+- Master Graph and the central store remain the only project-data source of truth.
+- Preserve `.claude/launch.json`; never stage it unless the Owner explicitly requests it.
 - Keep `.references/` local-only.
-- Do not merge Claude prototype branches wholesale.
-- Master Graph remains the only project-data source of truth.
-- Read the full operating protocol for worker routing, branch safety and report
-  requirements.
 
-## Workspace hygiene (carried forward)
+## Workspace hygiene
 
-These pre-protocol repository rules remain in force:
-
-- Read `docs/HANDOFF.md` then `docs/TASK_QUEUE.md` before phase work; read
-  `docs/BUGS.md` only when fixing a bug and `docs/DECISIONS.md` only when
-  architecture matters.
-- Never scan the full repository. Never read `node_modules`, `dist`, `build`,
-  `.next`, `coverage`, `.env*`, secrets, or `package-lock.json` unless a
-  dependency issue explicitly requires the lockfile.
-- Complete only the requested phase; prefer small, deterministic changes and
-  existing components.
-- Product data remains owned by the central graph/store, never UI tools,
-  skills, or MCPs.
-- Do not add backend, auth, cloud save, payment, public gallery, or online
-  deployment.
-- Do not install packages unless the phase explicitly requires them.
-- For code changes, run `npm run build`; update `docs/HANDOFF.md` and
-  `docs/TASK_QUEUE.md` on phase completion.
+- Complete only the active task and reuse existing owners, components, actions, adapters, and tests.
+- Never scan the full repository.
+- Never read or scan `node_modules`, `dist`, `build`, `.next`, `coverage`, `.audit`, `.references`, `.env*`, secrets, or `package-lock.json` unless a dependency issue explicitly requires the lockfile.
+- Do not add backend, auth, cloud save, payment, public gallery, or online deployment unless an Owner-approved roadmap task explicitly authorizes it.
+- Do not install packages unless the active task explicitly requires them.
+- Follow the budgets, forbidden areas, checks, QA ownership, finalization gate, and report contract in `docs/project-engine/WORKFLOW.md` and `ACTIVE_TASK.md`.
+- Update `STATE.md`, replace/close `ACTIVE_TASK.md`, and append the compact result to `LEDGER.md` after every completed task.
