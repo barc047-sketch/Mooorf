@@ -17,7 +17,15 @@ Only durable current truth belongs here. Closed history stays in linked legacy r
 
 ## Open issues
 
-None.
+### E1 — Organism Detached Export Overlay Alignment
+
+**Classification:** pre-existing P1 / release blocker; discovered during R0.3 Owner QA and not caused by the CSS ownership move.
+
+**Evidence:** neutral settings resolve at `dx=0`, `dy=0`, `dr=0`; X/Y offsets produce `dx=43.52px`, `dy=27.20px`; global/radial/angular transforms reach approximately `54.92px` X and `85.92px` Y displacement. Size variation also creates radius divergence. 1×/2× export changes pixel density, not logical placement.
+
+**Root cause:** the detached Membrane uses transformed `ProductionNucleus` geometry while the SVG presentation overlay uses raw `SpaceCell` geometry.
+
+**Safe boundary:** `src/export/organismExport.ts`, `src/export/svgExport.ts`, and focused export-alignment contracts. Do not claim the fix is implemented.
 
 ## Recently resolved
 
@@ -26,6 +34,7 @@ None.
 - **BUG-003 — Quick Controls shift with Inspector changes.** Resolved by PF1C: the shared fixed top-right anchor has no Inspector coupling.
 - **R0.1 — Shared Canvas Gesture Transaction Core.** Renderer-neutral transaction ownership now lives in `src/interaction/canvasGestureController.ts`; Classic and Organism retain local hit testing, coordinates, invalidation, and render-loop ownership. A pre-finalization pan regression from a mutable camera anchor was corrected with immutable pan anchors and one zoom conversion. No schema, public store API, or persistence contract changed.
 - **R0.2 — Behaviour-first parity and contract split.** Behavioural, wiring, and style contracts are explicitly separated. One redundant source-string download-delay assertion was replaced with executable proof; stale mounted-capture wiring now correctly names detached-export ownership; authored live/export characterization protects presentation, Membrane, Cell Shadow, nuclei projection, and runtime-state exclusion. No production API or behaviour changed.
+- **R0.3 — Split Widget-owned CSS from Edge Shell.** Eleven semantic blocks and 95 selector clauses moved from `shell.css` to `widgets.css` with declaration/value/specificity/cascade parity exact. Shared Dock/widget range ownership remains in `shell.css`; Owner visual QA passed. No production TypeScript or React changed.
 
 ## Known limits
 

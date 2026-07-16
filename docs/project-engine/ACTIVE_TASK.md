@@ -1,13 +1,19 @@
 # Active Task
 
-## R0.3 — Split Widget-owned CSS from Edge Shell
+## E1 — Organism Detached Export Overlay Alignment
 
 **Status:** WAITING OWNER GO
 
-- CSS ownership move only.
-- Preserve selector text, declarations, specificity, and cascade order.
-- No visual redesign.
-- Maximum two production stylesheets plus focused contract updates.
-- Do not run a production build during implementation.
-- Owner visual parity is required before finalization.
-- PF1D remains blocked.
+- Separate P1 export bug.
+- Create a new isolated branch only after explicit Owner GO.
+- Export composition boundary only.
+- Do not modify CSS, Canvas host, shader or durable SpaceCell positions.
+- Preserve Classic SVG behaviour.
+- Required cases:
+  - neutral settings;
+  - X/Y offsets;
+  - global/radial/angular transforms;
+  - size variation;
+  - 1× and 2× export;
+  - Cell, Boundary, Core and label alignment.
+- PF1D remains blocked until E1 closes.
