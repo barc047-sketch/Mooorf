@@ -12,8 +12,8 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 | 6 | PF1C Auto Performance and advanced preview | COMPLETE | Adaptive runtime, detached export, and the approved Canvas/Quick Controls corrections are complete; branch remains unmerged. |
 | 7 | R0 Read-only Structural Refactor Audit | COMPLETE | Audit and parity matrix established the targeted R0.1 → R0.2 → R0.3 sequence. |
 | 8 | R0.1 Shared Canvas Gesture Transaction Core | COMPLETE | Shared renderer-neutral gesture transactions are committed; Owner QA passed; no merge authority. |
-| 9 | R0.2 Behaviour-first parity and contract split | NEXT | Rules and test files only; waits for explicit Owner GO. |
-| 10 | R0.3 | PLANNED | Follows R0.2 behind its own parity gate. |
+| 9 | R0.2 Behaviour-first parity and contract split | COMPLETE | Test-only behavioural, wiring, and style contract split is complete; no production change or merge. |
+| 10 | R0.3 | NEXT | CSS ownership move follows R0.2 behind its own parity gate and Owner visual review. |
 | 11 | PF1D lazy workspaces | BLOCKED | Waits until the R0.1 → R0.2 → R0.3 refactor sequence closes. |
 | 12 | M3A core interaction/Undo/Redo | PLANNED | Extend the existing bounded history and interaction contracts; no second history path. |
 | 13 | G1 Master Graph relationship/connection engine | PLANNED | Add semantic relationships before visible connection tooling or graph analytics. |
@@ -32,7 +32,7 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 
 ## Current gate
 
-R0.2 Behaviour-first parity and contract split is next and waits for explicit Owner GO. R0.3 is planned; PF1D remains blocked until the sequence closes.
+R0.3 Split Widget-owned CSS from Edge Shell is next and waits for explicit Owner GO. PF1D remains blocked until R0.3 closes.
 
 ## Status rules
 

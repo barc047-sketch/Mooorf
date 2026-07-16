@@ -25,6 +25,7 @@ None.
 - **BUG-002 — Membrane invisible.** Resolved by PF1C: transparent target presentation and invalidation retain a visible Membrane.
 - **BUG-003 — Quick Controls shift with Inspector changes.** Resolved by PF1C: the shared fixed top-right anchor has no Inspector coupling.
 - **R0.1 — Shared Canvas Gesture Transaction Core.** Renderer-neutral transaction ownership now lives in `src/interaction/canvasGestureController.ts`; Classic and Organism retain local hit testing, coordinates, invalidation, and render-loop ownership. A pre-finalization pan regression from a mutable camera anchor was corrected with immutable pan anchors and one zoom conversion. No schema, public store API, or persistence contract changed.
+- **R0.2 — Behaviour-first parity and contract split.** Behavioural, wiring, and style contracts are explicitly separated. One redundant source-string download-delay assertion was replaced with executable proof; stale mounted-capture wiring now correctly names detached-export ownership; authored live/export characterization protects presentation, Membrane, Cell Shadow, nuclei projection, and runtime-state exclusion. No production API or behaviour changed.
 
 ## Known limits
 
