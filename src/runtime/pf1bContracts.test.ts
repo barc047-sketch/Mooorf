@@ -1,5 +1,5 @@
 import { strict as assert } from "node:assert";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync as readSourceFileSync } from "node:fs";
 import test from "node:test";
 import { createArrangementActivityBridge, type ArrangementRuntimeLike } from "./arrangementActivityBridge";
 import {
@@ -10,6 +10,15 @@ import {
 import { createDownloadFeedback } from "./downloadActivity";
 import { createPerformanceRuntime } from "./performanceRuntime";
 
+const sourceCache = new Map<string, string>();
+const readFileSync = (path: string, _encoding: "utf8") => {
+  const cached = sourceCache.get(path);
+  if (cached !== undefined) return cached;
+  const source = readSourceFileSync(path, "utf8");
+  sourceCache.set(path, source);
+  return source;
+};
+
 const task = (id: string, priority = 1, progress: number | null = null) => ({
   id,
   label: `Task ${id}`,
@@ -19,6 +28,7 @@ const task = (id: string, priority = 1, progress: number | null = null) => ({
   cancellable: false,
 });
 
+// Activity, download, and performance service behaviour.
 test("activity IDs deduplicate", () => {
   const service = createActivityService({ now: () => 10 });
   service.start(task("same"));
@@ -152,7 +162,6 @@ test("instant downloads show indeterminate preparation for at least 1100ms", asy
   assert.equal(service.getSnapshot().activeTask?.kind, "export");
   assert.equal(service.getSnapshot().activeTask?.progress, null);
   await feedback.complete(() => { order.push("download"); });
-  assert.match(readFileSync("src/runtime/downloadActivity.ts", "utf8"), /export const DOWNLOAD_FEEDBACK_MIN_MS = 1_100/);
   assert.equal(waited, 1_100);
   assert.deepEqual(order, ["wait", "download"]);
   const message = service.getSnapshot().notifications[0]?.message ?? "";
@@ -305,6 +314,7 @@ test("renderer changes reset the performance sample window", () => {
   runtime.destroy();
 });
 
+// Application wiring and stable shell/style contracts without a public runtime seam.
 test("root application shell mounts exactly one Runtime Status component", () => {
   const source = readFileSync("src/App.tsx", "utf8");
   assert.equal(source.match(/<RuntimeStatus\b/g)?.length, 1);

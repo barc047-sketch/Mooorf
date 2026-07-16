@@ -1,12 +1,18 @@
 import { strict as assert } from "node:assert";
 import test from "node:test";
+import { resolveCellShadowGated } from "../canvas/cellShadow";
 import { useLab } from "../state/store";
+import { spacesToNuclei } from "../canvas/organismAdapter";
+import { resolveOrganism } from "../canvas/organismProductionSettings";
+import { projectRuntimePresentation } from "../canvas/presentationLayers";
 import {
   createCanvasExportSnapshot,
   registerCanvasCapture,
   requestCanvasCapture,
 } from "../canvas/exportCapture";
+import { resolveLivePerformanceSettings, resolvePreviewRenderScale } from "../runtime/performanceProfiles";
 
+// Behavioural snapshot and authored-projection contracts.
 test("canonical export snapshot is detached from live project and preview owners", () => {
   const initial = useLab.getInitialState();
   const input = {
@@ -71,4 +77,115 @@ test("capture provider receives one explicit immutable snapshot", async () => {
   } finally {
     unregister();
   }
+});
+
+test("detached export preserves the authored Organism projection while excluding runtime state", () => {
+  const initial = useLab.getInitialState();
+  const settings = structuredClone(initial.settings);
+  settings.blobOn = true;
+  settings.performanceQuality = "automatic";
+  Object.assign(settings.organism, {
+    motionEnabled: true,
+    idleMotion: true,
+    drift: 0.6,
+    breathing: 0.4,
+    wobble: 0.2,
+  });
+  Object.assign(settings.cellShadow, {
+    enabled: true,
+    mode: "soft",
+    strength: 0.8,
+    opacity: 0.45,
+    softness: 36,
+    includeInExport: true,
+  });
+  Object.assign(settings.presentationDefaults.cell.paint, { colour: "#0f6b64", opacity: 0.72 });
+  Object.assign(settings.presentationDefaults.membrane, { visible: true, colourMode: "solid" });
+  Object.assign(settings.presentationDefaults.membrane.paint, { colour: "#1a8a80", opacity: 0.63 });
+  Object.assign(settings.presentationDefaults.membraneEdge, { visible: true, width: 2.5, softness: 0.12 });
+  Object.assign(settings.presentationDefaults.membraneEdge.paint, { colour: "#d5f0ea", opacity: 0.54 });
+
+  const spaces = [{
+    id: "parity-cell",
+    name: "Parity Cell",
+    area: 42,
+    category: "Studio",
+    privacy: "shared" as const,
+    color: "#6f7f75",
+    x: 24,
+    y: -16,
+  }];
+  const source = {
+    spaces,
+    camera: { ...initial.camera },
+    theme: initial.theme,
+    settings,
+    selectedId: null,
+    selectedIds: [],
+    runtimeOnly: {
+      automaticTier: "fast",
+      previewScale: resolvePreviewRenderScale("ultra-fast", "fast", true, true),
+      interactionBoost: true,
+      fps: 19,
+      shadowDisabled: true,
+      motionThrottled: true,
+      previewMode: "ultra-fast",
+    },
+  };
+  const snapshot = createCanvasExportSnapshot(source);
+  const liveRuntimeSettings = resolveLivePerformanceSettings(settings, {
+    authoredQuality: "automatic",
+    effectiveQuality: "fast",
+    configuredRenderer: "organism",
+  }, "organism");
+
+  const livePresentation = projectRuntimePresentation(source.spaces, settings, source.theme);
+  const detachedPresentation = projectRuntimePresentation(snapshot.spaces, snapshot.settings, snapshot.theme);
+  assert.deepEqual([...detachedPresentation.byId.entries()], [...livePresentation.byId.entries()]);
+  assert.deepEqual(detachedPresentation.membrane, livePresentation.membrane);
+  assert.deepEqual(detachedPresentation.membraneEdge, livePresentation.membraneEdge);
+
+  const colours = (projection: typeof livePresentation) => new Map(
+    [...projection.byId].map(([id, appearance]) => [id, appearance.cell.paint.colour]),
+  );
+  const liveNuclei = spacesToNuclei(
+    source.spaces,
+    source.camera,
+    1280,
+    720,
+    null,
+    null,
+    resolveOrganism(settings, true).adapter,
+    undefined,
+    settings.paletteMode,
+    settings.nucleusPaletteId,
+    settings.colorSource,
+    undefined,
+    colours(livePresentation),
+  );
+  const detachedNuclei = spacesToNuclei(
+    snapshot.spaces,
+    snapshot.camera,
+    1280,
+    720,
+    null,
+    null,
+    resolveOrganism(snapshot.settings, true).adapter,
+    undefined,
+    snapshot.settings.paletteMode,
+    snapshot.settings.nucleusPaletteId,
+    snapshot.settings.colorSource,
+    undefined,
+    colours(detachedPresentation),
+  );
+  assert.deepEqual(detachedNuclei, liveNuclei);
+
+  assert.equal(snapshot.settings.performanceQuality, "automatic");
+  assert.deepEqual(snapshot.settings.organism, settings.organism);
+  assert.deepEqual(snapshot.settings.cellShadow, settings.cellShadow);
+  assert.equal(resolveCellShadowGated(snapshot.settings.cellShadow, "high", snapshot.theme).enabled, true);
+  assert.equal(liveRuntimeSettings.performanceQuality, "fast");
+  assert.equal(liveRuntimeSettings.cellShadow.enabled, false);
+  assert.equal(liveRuntimeSettings.organism.drift, 0);
+  assert.equal("runtimeOnly" in snapshot, false);
 });

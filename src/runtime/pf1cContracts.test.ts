@@ -1,5 +1,5 @@
 import { strict as assert } from "node:assert";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync as readSourceFileSync } from "node:fs";
 import test from "node:test";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
 import { DEFAULT_CELL_SHADOW, normalizeCellShadow } from "../canvas/cellShadow";
@@ -17,6 +17,15 @@ import {
   resolveOrganismDpr,
 } from "./performanceProfiles";
 import * as performanceProfiles from "./performanceProfiles";
+
+const sourceCache = new Map<string, string>();
+const readFileSync = (path: string, _encoding: "utf8") => {
+  const cached = sourceCache.get(path);
+  if (cached !== undefined) return cached;
+  const source = readSourceFileSync(path, "utf8");
+  sourceCache.set(path, source);
+  return source;
+};
 
 const activeSnapshot = (overrides: Partial<PerformanceSnapshot> = {}): PerformanceSnapshot => ({
   idle: false,
@@ -125,6 +134,7 @@ const automaticFastHarness = () => {
   return harness;
 };
 
+// Governor, profile, and preview-resolution service behaviour.
 test("Automatic starts at HIGH", () => {
   const harness = createGovernorHarness();
   harness.configure("automatic");
@@ -539,6 +549,7 @@ test("Governor owns no setInterval polling", () => {
   assert.doesNotMatch(source, /setInterval/);
 });
 
+// Source-wiring contracts for ownership boundaries without a public runtime seam.
 test("preview preferences stay out of product, history, saved-view and export ownership", () => {
   const store = readFileSync("src/state/store.ts", "utf8");
   const projectSnapshot = readFileSync("src/export/projectSnapshot.ts", "utf8");
