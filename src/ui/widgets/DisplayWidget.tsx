@@ -69,10 +69,10 @@ export default function DisplayWidget() {
       <WidgetSection title="Cell Shadow" hint="Canvas only · UI stays flat" defaultOpen>
         <ChipRow
           options={CELL_SHADOW_MODES}
-          value={cellShadow.mode}
+          value={cellShadow.enabled ? cellShadow.mode : "off"}
           onChange={(mode) => setSettings({
             cellShadow: mode === "off"
-              ? { ...DEFAULT_CELL_SHADOW }
+              ? { ...cellShadow, enabled: false }
               : normalizeCellShadow({
                   ...DEFAULT_CELL_SHADOW,
                   enabled: true,

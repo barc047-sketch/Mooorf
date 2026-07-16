@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import FileIntakeProvider from "./import/FileIntakeProvider";
 import ContextSurfaceHost from "./ui/context/ContextSurfaceHost";
 import RuntimeStatus from "./ui/RuntimeStatus";
+import QuickToggleBar from "./ui/QuickToggleBar";
 import { activateInspector, shouldHandleInspectorShortcut } from "./interaction/inspectorShortcut";
 import "./App.css";
 
@@ -131,6 +132,7 @@ function MainApp() {
           <WidgetHost />
           {view === "canvas" && (
             <>
+              <QuickToggleBar />
               <ZoomControls />
               <ContextSurfaceHost />
             </>

@@ -2,7 +2,7 @@
    surface used (`org-*` in shell.css) so every widget inherits the refined
    slider/switch/section styling from one stylesheet. */
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 export function SliderRow({
@@ -15,6 +15,7 @@ export function SliderRow({
   ariaValueText,
   onChange,
   onChangeEnd,
+  onChangeCancel,
 }: {
   label: string;
   value: number;
@@ -25,7 +26,56 @@ export function SliderRow({
   ariaValueText?: string;
   onChange: (v: number) => void;
   onChangeEnd?: () => void;
+  onChangeCancel?: () => void;
 }) {
+  const frameRef = useRef<number | null>(null);
+  const pendingValueRef = useRef<number | null>(null);
+  const interactionOpenRef = useRef(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  const flushPreview = () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    const pending = pendingValueRef.current;
+    pendingValueRef.current = null;
+    if (pending !== null) onChangeRef.current(pending);
+  };
+
+  const publishPreview = (nextValue: number) => {
+    interactionOpenRef.current = true;
+    pendingValueRef.current = nextValue;
+    if (frameRef.current !== null) return;
+    frameRef.current = requestAnimationFrame(() => {
+      frameRef.current = null;
+      const pending = pendingValueRef.current;
+      pendingValueRef.current = null;
+      if (pending !== null) onChangeRef.current(pending);
+    });
+  };
+
+  const finishInteraction = () => {
+    if (!interactionOpenRef.current) return;
+    flushPreview();
+    interactionOpenRef.current = false;
+    onChangeEnd?.();
+  };
+
+  const cancelInteraction = () => {
+    if (!interactionOpenRef.current) return;
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+    frameRef.current = null;
+    pendingValueRef.current = null;
+    interactionOpenRef.current = false;
+    onChangeCancel?.();
+  };
+
+  useEffect(() => () => {
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
+  }, []);
+
   return (
     <label className="org-slider">
       <span className="org-slider-meta">
@@ -38,10 +88,15 @@ export function SliderRow({
         max={max}
         step={step}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onPointerUp={onChangeEnd}
-        onKeyUp={onChangeEnd}
-        onBlur={onChangeEnd}
+        onChange={(e) => publishPreview(Number(e.target.value))}
+        onPointerUp={finishInteraction}
+        onKeyUp={finishInteraction}
+        onKeyDown={(event) => {
+          if (event.key !== "Escape") return;
+          event.preventDefault();
+          cancelInteraction();
+        }}
+        onBlur={finishInteraction}
         aria-label={label}
         aria-valuetext={ariaValueText}
       />

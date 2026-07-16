@@ -19,11 +19,18 @@ import { cloneProjectPresentationDefaults } from "../domain/presentation/validat
 import { createDownloadFeedback, type DownloadFeedback } from "../runtime/downloadActivity";
 
 export type PackProgressStage =
-  | "Capturing canvas"
-  | "Building PDF"
-  | "Writing data"
-  | "Compressing pack"
-  | "Complete";
+  | "RENDERING"
+  | "ENCODING"
+  | "SAVING"
+  | "COMPLETE";
+
+const setExportStage = async (
+  feedback: DownloadFeedback,
+  stage: "RENDERING" | "ENCODING" | "SAVING",
+): Promise<void> => {
+  feedback.stage(stage);
+  await new Promise<void>((resolve) => globalThis.setTimeout(resolve, 0));
+};
 
 export const currentSettingsForSnapshot = (): ProjectExportSettings => {
   const s = useLab.getState().settings;
@@ -89,9 +96,12 @@ export const buildCurrentProjectSnapshot = (project: string) => {
 export const exportPng = async (project: string, visual: ExportVisualOptions): Promise<void> => {
   const filename = buildCanvasFilename(project, "png");
   return withDownloadFeedback(filename, async (feedback) => {
+    await setExportStage(feedback, "RENDERING");
     const composite = await captureAndComposite(visual);
+    await setExportStage(feedback, "ENCODING");
     const blob: Blob | null = await new Promise((resolve) => composite.canvas.toBlob(resolve, "image/png"));
     if (!blob) throw new Error("Could not encode the canvas as PNG.");
+    await setExportStage(feedback, "SAVING");
     await download(blob, filename, feedback);
   });
 };
@@ -99,6 +109,7 @@ export const exportPng = async (project: string, visual: ExportVisualOptions): P
 export const exportSvg = async (project: string): Promise<void> => {
   const filename = buildCanvasFilename(project, "svg");
   return withDownloadFeedback(filename, async (feedback) => {
+    await setExportStage(feedback, "RENDERING");
     const state = useLab.getState();
     const host = document.querySelector<HTMLElement>(".canvas-host, .organism-canvas-host");
     const cssWidth = host?.clientWidth ?? window.innerWidth;
@@ -128,6 +139,7 @@ export const exportSvg = async (project: string): Promise<void> => {
       paddingPx: 0,
     });
     const blob = new Blob([svg], { type: "image/svg+xml" });
+    await setExportStage(feedback, "SAVING");
     await download(blob, filename, feedback);
   });
 };
@@ -135,8 +147,10 @@ export const exportSvg = async (project: string): Promise<void> => {
 export const exportCsv = async (project: string): Promise<void> => {
   const filename = buildDataFilename(project, "csv");
   return withDownloadFeedback(filename, async (feedback) => {
+    await setExportStage(feedback, "ENCODING");
     const csv = spacesToCsv(useLab.getState().spaces);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    await setExportStage(feedback, "SAVING");
     await download(blob, filename, feedback);
   });
 };
@@ -144,8 +158,10 @@ export const exportCsv = async (project: string): Promise<void> => {
 export const exportJson = async (project: string): Promise<void> => {
   const filename = buildDataFilename(project, "json");
   return withDownloadFeedback(filename, async (feedback) => {
+    await setExportStage(feedback, "ENCODING");
     const snapshot = buildCurrentProjectSnapshot(project);
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
+    await setExportStage(feedback, "SAVING");
     await download(blob, filename, feedback);
   });
 };
@@ -157,7 +173,9 @@ export const exportPdf = async (
 ): Promise<void> => {
   const filename = buildPresentationFilename(project, presentation.page);
   return withDownloadFeedback(filename, async (feedback) => {
+    await setExportStage(feedback, "RENDERING");
     const composite = await captureAndComposite(visual);
+    await setExportStage(feedback, "ENCODING");
     const state = useLab.getState();
     const bytes = await buildPresentationPdf({
       canvas: composite.canvas,
@@ -172,6 +190,7 @@ export const exportPdf = async (
       },
     });
     const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+    await setExportStage(feedback, "SAVING");
     await download(blob, filename, feedback);
   });
 };
@@ -190,13 +209,15 @@ export const buildPresentationPack = async (
 ): Promise<PresentationPackResult> => {
   const filename = buildPackFilename(project);
   return withDownloadFeedback(filename, async (feedback) => {
-  onProgress?.("Capturing canvas");
+  onProgress?.("RENDERING");
+  await setExportStage(feedback, "RENDERING");
   const composite = await captureAndComposite(visual);
   const state = useLab.getState();
   const pngBlob: Blob | null = await new Promise((resolve) => composite.canvas.toBlob(resolve, "image/png"));
   if (!pngBlob) throw new Error("Could not encode the canvas as PNG.");
 
-  onProgress?.("Building PDF");
+  onProgress?.("ENCODING");
+  await setExportStage(feedback, "ENCODING");
   const pdfBytes = await buildPresentationPdf({
     canvas: composite.canvas,
     page: presentation.page,
@@ -210,7 +231,6 @@ export const buildPresentationPack = async (
     },
   });
 
-  onProgress?.("Writing data");
   const csv = spacesToCsv(state.spaces);
   const snapshot = buildProjectSnapshot(
     { spaces: state.spaces, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
@@ -241,7 +261,8 @@ export const buildPresentationPack = async (
     },
   });
 
-  onProgress?.("Compressing pack");
+  onProgress?.("SAVING");
+  await setExportStage(feedback, "SAVING");
   const { default: JSZip } = await import("jszip");
   const zip = new JSZip();
   for (const file of files) zip.file(file.name, file.data);
@@ -249,7 +270,7 @@ export const buildPresentationPack = async (
   const zipBlob = await zip.generateAsync({ type: "blob" });
   await download(zipBlob, filename, feedback);
 
-  onProgress?.("Complete");
+  onProgress?.("COMPLETE");
   return { filesIncluded: [...files.map((f) => f.name), "manifest.json"] };
   });
 };

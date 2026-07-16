@@ -207,6 +207,8 @@ interface LabState {
   /** M1 shared ephemeral target and preview owners. Never persisted/exported. */
   activeAppearanceTarget: PresentationTargetId;
   appearancePreview: SpaceCell[] | null;
+  appearancePreviewIds: string[] | null;
+  appearancePreviewTarget: PresentationTargetId | "text" | null;
   presentationDefaultsPreview: ProjectPresentationDefaults | null;
   membraneRuntimePreview: MembraneRuntimeSnapshot | null;
   visualSettingsPreview: VisualSettingsSnapshot | null;
@@ -693,6 +695,8 @@ export const useLab = create<LabState>((set) => ({
   widgetLaunchRevisions: {},
   activeAppearanceTarget: "cell",
   appearancePreview: null,
+  appearancePreviewIds: null,
+  appearancePreviewTarget: null,
   presentationDefaultsPreview: null,
   membraneRuntimePreview: null,
   visualSettingsPreview: null,
@@ -1015,10 +1019,12 @@ export const useLab = create<LabState>((set) => ({
         ...space,
         appearance: applyAppearancePatch(space.appearance, defaults, target, patch),
       }));
-      if (!result) return { appearancePreview: null };
+      if (!result) return { appearancePreview: null, appearancePreviewIds: null, appearancePreviewTarget: null };
       return {
         spaces: result.spaces,
         appearancePreview: null,
+        appearancePreviewIds: [...ids],
+        appearancePreviewTarget: target,
         transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
         transformRedoStack: [],
       };
@@ -1033,6 +1039,8 @@ export const useLab = create<LabState>((set) => ({
           ...space,
           appearance: applyAppearancePatch(space.appearance, defaults, target, patch),
         } : space),
+        appearancePreviewIds: [...ids],
+        appearancePreviewTarget: target,
       };
     }),
 
@@ -1046,16 +1054,18 @@ export const useLab = create<LabState>((set) => ({
       const result = updateCellsWithHistory(s.spaces, changedIds, (space) =>
         s.appearancePreview!.find((preview) => preview.id === space.id) ?? space
       );
-      if (!result) return { appearancePreview: null };
+      if (!result) return { appearancePreview: null, appearancePreviewIds: null, appearancePreviewTarget: null };
       return {
         spaces: result.spaces,
         appearancePreview: null,
+        appearancePreviewIds: s.appearancePreviewIds ? [...s.appearancePreviewIds] : null,
+        appearancePreviewTarget: s.appearancePreviewTarget,
         transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
         transformRedoStack: [],
       };
     }),
 
-  cancelAppearancePreview: () => set({ appearancePreview: null }),
+  cancelAppearancePreview: () => set({ appearancePreview: null, appearancePreviewIds: null, appearancePreviewTarget: null }),
 
   commitTextAppearancePatch: (ids, patch) =>
     set((s) => {
@@ -1067,6 +1077,8 @@ export const useLab = create<LabState>((set) => ({
       if (!result) return {};
       return {
         spaces: result.spaces,
+        appearancePreviewIds: [...ids],
+        appearancePreviewTarget: "text",
         transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
         transformRedoStack: [],
       };
@@ -1081,6 +1093,8 @@ export const useLab = create<LabState>((set) => ({
           ...space,
           appearance: applyTextAppearancePatch(space.appearance, defaults, patch),
         } : space),
+        appearancePreviewIds: [...ids],
+        appearancePreviewTarget: "text",
       };
     }),
 
@@ -1093,6 +1107,8 @@ export const useLab = create<LabState>((set) => ({
       if (!result) return {};
       return {
         spaces: result.spaces,
+        appearancePreviewIds: [...ids],
+        appearancePreviewTarget: target,
         transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
         transformRedoStack: [],
       };

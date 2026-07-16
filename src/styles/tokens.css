@@ -70,6 +70,9 @@
   --shell-control-bottom: var(--sp-24);
   --shell-control-height: calc(34px * var(--ui-scale));
   --shell-control-radius: var(--r-pill);
+  --shell-top-control-offset: var(--sp-24);
+  --shell-top-control-height: calc(36px * var(--ui-scale));
+  --shell-top-control-radius: var(--r-pill);
   --instrument-track: rgba(34, 34, 34, 0.16);
   --instrument-thumb: #222222;
   --instrument-halo: rgba(119, 113, 102, 0.12);

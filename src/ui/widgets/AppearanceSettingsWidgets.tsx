@@ -48,6 +48,7 @@ function TargetSettings({ target, children }: { target: PresentationTargetId; ch
   commit: (patch: Record<string, unknown>) => void;
   preview: (patch: Record<string, unknown>) => void;
   commitPreview: () => void;
+  cancelPreview: () => void;
   inherited: string;
   selectedCount: number;
 }) => ReactNode }) {
@@ -60,9 +61,11 @@ function TargetSettings({ target, children }: { target: PresentationTargetId; ch
   const commitAppearancePatch = useLab((state) => state.commitAppearancePatch);
   const previewAppearancePatch = useLab((state) => state.previewAppearancePatch);
   const commitAppearancePreview = useLab((state) => state.commitAppearancePreview);
+  const cancelAppearancePreview = useLab((state) => state.cancelAppearancePreview);
   const commitProjectDefaults = useLab((state) => state.commitProjectPresentationDefaults);
   const previewProjectDefaults = useLab((state) => state.previewProjectPresentationDefaults);
   const commitDefaultsPreview = useLab((state) => state.commitPresentationDefaultsPreview);
+  const cancelDefaultsPreview = useLab((state) => state.cancelPresentationDefaultsPreview);
   const resetAppearanceTarget = useLab((state) => state.resetAppearanceTarget);
   const key = appearanceKeyForTarget(target);
   const effectiveSelectedIds = sharedProjectTarget ? [] : selectedIds;
@@ -100,6 +103,7 @@ function TargetSettings({ target, children }: { target: PresentationTargetId; ch
         commit,
         preview,
         commitPreview: effectiveSelectedIds.length ? commitAppearancePreview : commitDefaultsPreview,
+        cancelPreview: effectiveSelectedIds.length ? cancelAppearancePreview : cancelDefaultsPreview,
         inherited: inheritance,
         selectedCount: effectiveSelectedIds.length,
       })}
@@ -130,6 +134,7 @@ function OpacityControl({ api, path = "paint" }: {
     fmt={(value) => `${Math.round(value * 100)}%`}
     onChange={(value) => api.preview({ [path]: { opacity: value } })}
     onChangeEnd={api.commitPreview}
+    onChangeCancel={api.cancelPreview}
   />;
 }
 
@@ -181,10 +186,10 @@ function StrokeStyleControls({ api, label }: { api: TargetApi; label: string }) 
       ariaLabel={`${label} style`}
     />
     {technical && <>
-      <SliderRow label="Dash / bar length" value={Number(api.value(["dashLength"], 8).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ dashLength: value })} onChangeEnd={api.commitPreview} />
-      <SliderRow label="Gap length" value={Number(api.value(["gapLength"], 6).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ gapLength: value })} onChangeEnd={api.commitPreview} />
+      <SliderRow label="Dash / bar length" value={Number(api.value(["dashLength"], 8).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ dashLength: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
+      <SliderRow label="Gap length" value={Number(api.value(["gapLength"], 6).value)} min={0.25} max={64} step={0.25} onChange={(value) => api.preview({ gapLength: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
     </>}
-    {style.value === "double" && <SliderRow label="Double-line spacing" value={Number(api.value(["secondaryLineSpacing"], 3).value)} min={0} max={24} step={0.25} onChange={(value) => api.preview({ secondaryLineSpacing: value })} onChangeEnd={api.commitPreview} />}
+    {style.value === "double" && <SliderRow label="Double-line spacing" value={Number(api.value(["secondaryLineSpacing"], 3).value)} min={0} max={24} step={0.25} onChange={(value) => api.preview({ secondaryLineSpacing: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />}
   </>;
 }
 
@@ -208,7 +213,7 @@ function CellShadowControls() {
   const previewVisual = useLab((state) => state.previewVisualSettings);
   const commitPreview = useLab((state) => state.commitVisualSettingsPreview);
   const setMode = (mode: CellShadowMode) => commit({ cellShadow: mode === "off"
-    ? { enabled: false, mode: "off" }
+    ? { enabled: false }
     : mode === "soft"
       ? { enabled: true, mode, softness: 24, offsetY: 9 }
       : { enabled: true, mode, softness: 8, offsetY: 5 }
@@ -225,7 +230,7 @@ function CellShadowControls() {
   />;
   return <>
     <WidgetSection title="Cell Shadow" hint="presentation only" defaultOpen>
-      <ChipRow options={(["off", "soft", "defined"] as const).map((id) => ({ id, label: id }))} value={shadow.mode} onChange={setMode} ariaLabel="Cell Shadow mode" />
+      <ChipRow options={(["off", "soft", "defined"] as const).map((id) => ({ id, label: id }))} value={shadow.enabled ? shadow.mode : "off"} onChange={setMode} ariaLabel="Cell Shadow mode" />
       {slider("Shadow Strength", "strength", 0, 1, 0.01)}
     </WidgetSection>
     <WidgetSection title="Shadow Advanced">
@@ -296,9 +301,9 @@ function BoundaryTarget() {
       <WidgetSection title="Boundary" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
         <StrokeStyleControls api={api} label="Boundary" />
-        <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} />
+        <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
         <ChipRow options={BOUNDARY_ALIGNMENTS.map((id) => ({ id, label: id }))} value={alignment.value as typeof BOUNDARY_ALIGNMENTS[number]} onChange={(next) => api.commit({ alignment: next })} ariaLabel="Boundary alignment" />
-        <SliderRow label="Visual offset" value={Number(offset.value)} min={-24} max={24} step={0.5} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offset: value })} onChangeEnd={api.commitPreview} />
+        <SliderRow label="Visual offset" value={Number(offset.value)} min={-24} max={24} step={0.5} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offset: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
         <PaintControls api={api} label="Stroke colour" />
       </WidgetSection>
     </>;
@@ -379,8 +384,8 @@ function MembraneEdgeTarget() {
     return <>
       <WidgetSection title="Membrane Edge" defaultOpen>
         <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
-        <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} />
-        <SliderRow label={`Edge Softness${softness.mixed ? " · Mixed" : ""}`} value={Number(softness.value)} min={0} max={1} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(value) => api.preview({ softness: value })} onChangeEnd={api.commitPreview} />
+        <SliderRow label={`Width${width.mixed ? " · Mixed" : ""}`} value={Number(width.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ width: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
+        <SliderRow label={`Edge Softness${softness.mixed ? " · Mixed" : ""}`} value={Number(softness.value)} min={0} max={1} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(value) => api.preview({ softness: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
         <PaintControls api={api} label="Edge colour" />
       </WidgetSection>
       <p className="m1-compat-note">Shared organism edge · edits Project Defaults for every Cell.</p>
@@ -396,9 +401,9 @@ function CoreTarget() {
     return <WidgetSection title="Core / nucleus" defaultOpen>
       <p className="m1-compat-note">Core / nucleus is the optional centre marker. It is separate from selection, Boundary, the Membrane field and debug geometry.</p>
       <SwitchRow label={visible.mixed ? "Visible · Mixed" : "Visible"} on={Boolean(visible.value)} onToggle={() => api.commit({ visible: !visible.value })} />
-      <SliderRow label={`Size${size.mixed ? " · Mixed" : ""}`} value={Number(size.value)} min={0.1} max={2} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(value) => api.preview({ size: value })} onChangeEnd={api.commitPreview} />
-      <SliderRow label="Offset X" value={Number(api.value(["offsetX"], 0).value)} min={-64} max={64} step={1} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offsetX: value })} onChangeEnd={api.commitPreview} />
-      <SliderRow label="Offset Y" value={Number(api.value(["offsetY"], 0).value)} min={-64} max={64} step={1} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offsetY: value })} onChangeEnd={api.commitPreview} />
+      <SliderRow label={`Size${size.mixed ? " · Mixed" : ""}`} value={Number(size.value)} min={0.1} max={2} step={0.01} fmt={(v) => `${Math.round(v * 100)}%`} onChange={(value) => api.preview({ size: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
+      <SliderRow label="Offset X" value={Number(api.value(["offsetX"], 0).value)} min={-64} max={64} step={1} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offsetX: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
+      <SliderRow label="Offset Y" value={Number(api.value(["offsetY"], 0).value)} min={-64} max={64} step={1} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ offsetY: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
       <SwitchRow label="Auto Contrast" on={colour.value === null || colour.value === undefined} onToggle={() => api.commit({ paint: { colour: colour.value == null ? "#171715" : undefined } })} />
       <PaintControls api={api} label="Core colour" />
     </WidgetSection>;
@@ -437,7 +442,7 @@ export function VoidSettingsWidget() {
       <WidgetSection title="Void edge" defaultOpen>
         <SwitchRow label="Edge visible" on={Boolean(visible.value) && Boolean(edgeVisible.value)} onToggle={() => api.commit({ visible: true, edgeVisible: !edgeVisible.value })} />
         <StrokeStyleControls api={api} label="Void edge" />
-        <SliderRow label="Edge width" value={Number(edgeWidth.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ edgeWidth: value })} onChangeEnd={api.commitPreview} />
+        <SliderRow label="Edge width" value={Number(edgeWidth.value)} min={0} max={16} step={0.25} fmt={(v) => `${v}px`} onChange={(value) => api.preview({ edgeWidth: value })} onChangeEnd={api.commitPreview} onChangeCancel={api.cancelPreview} />
         <PaintControls api={api} path="edge" label="Edge colour" />
       </WidgetSection>
       <p className="m1-compat-note">Appearance only · subtractive area, hit testing and clearance stay unchanged.</p>

@@ -21,6 +21,8 @@ import {
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
 import { performanceRuntime } from "../runtime/performanceRuntime";
+import { performanceGovernor } from "../runtime/performanceGovernor";
+import { resolveLivePerformanceSettings } from "../runtime/performanceProfiles";
 import { projectCanvasPoint, projectClientPoint } from "./labelPresentation";
 import "./canvas.css";
 
@@ -29,7 +31,7 @@ const Z_MIN = 0.25;
 const Z_MAX = 4;
 const projectedCanvasSpaces = (state: ReturnType<typeof useLab.getState>) =>
   applySpacePositionsPreview(state.appearancePreview ?? state.spaces, state.arrangementPreview ?? []);
-const effectiveCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
+const authoredCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
   const runtime = state.membraneRuntimePreview ? { ...state.settings, ...state.membraneRuntimePreview } : state.settings;
   const visual = state.visualSettingsPreview ? {
     ...runtime,
@@ -70,7 +72,12 @@ export default function CanvasView() {
     let spaces = projectedCanvasSpaces(st);
     let selectedId = st.selectedId;
     let selectedIds = st.selectedIds;
-    let settings = effectiveCanvasSettings(st); // ephemeral previews project through canonical renderer inputs
+    let authoredSettings = authoredCanvasSettings(st);
+    let settings = resolveLivePerformanceSettings(
+      authoredSettings,
+      performanceGovernor.getSnapshot(),
+      "classic",
+    ); // ephemeral previews project through canonical renderer inputs
     let tokens = readTokens();
     let drag: DragOverride | null = null;
     let dirty = true;
@@ -91,11 +98,25 @@ export default function CanvasView() {
       spaces = projectedCanvasSpaces(s);
       selectedId = s.selectedId;
       selectedIds = s.selectedIds;
-      settings = effectiveCanvasSettings(s);
+      const nextAuthoredSettings = authoredCanvasSettings(s);
+      if (nextAuthoredSettings !== authoredSettings) {
+        authoredSettings = nextAuthoredSettings;
+        settings = resolveLivePerformanceSettings(authoredSettings, performanceGovernor.getSnapshot(), "classic");
+      }
       if (s.camera !== lastCommitted) {
         lastCommitted = s.camera;
         camTarget = s.camera; // adopt external change (eased in loop)
       }
+      invalidate();
+    });
+    const unsubGovernor = performanceGovernor.subscribe(() => {
+      const nextSettings = resolveLivePerformanceSettings(
+        authoredSettings,
+        performanceGovernor.getSnapshot(),
+        "classic",
+      );
+      if (nextSettings.performanceQuality === settings.performanceQuality) return;
+      settings = nextSettings;
       invalidate();
     });
 
@@ -121,8 +142,7 @@ export default function CanvasView() {
     /* V7.2 export adapter — Classic re-renders the pure drawScene layer onto
      * a fresh offscreen canvas at the requested scale/options. No dependency
      * on the live canvas's buffer, so no readback timing concerns. */
-    const unregisterCapture = registerCanvasCapture(async ({ scale, includeLabels, includeSelection }) => {
-      const canonical = useLab.getState();
+    const unregisterCapture = registerCanvasCapture(async ({ scale, includeLabels, includeSelection }, snapshot) => {
       const cssW = host.clientWidth;
       const cssH = host.clientHeight;
       const off = document.createElement("canvas");
@@ -136,13 +156,13 @@ export default function CanvasView() {
         cssH,
         scale,
         cam,
-        canonical.spaces,
-        includeSelection ? selectedId : null,
+        snapshot.spaces,
+        includeSelection ? snapshot.selectedId : null,
         null,
         tokens,
         Date.now(),
-        canonical.settings,
-        { includeLabels, selectedIds: includeSelection ? selectedIds : [], isExport: true }
+        snapshot.settings,
+        { includeLabels, selectedIds: includeSelection ? snapshot.selectedIds : [], isExport: true }
       );
       return { canvas: off, cssWidth: cssW, cssHeight: cssH };
     });
@@ -435,6 +455,7 @@ export default function CanvasView() {
       moveScheduler.cancel();
       wheelScheduler.cancel();
       unsub();
+      unsubGovernor();
       mo.disconnect();
       ro.disconnect();
       unregisterCapture();

@@ -224,9 +224,13 @@ test("both Canvas owners project the shared transient positions while exports st
   assert.match(classic, /applySpacePositionsPreview/);
   assert.match(organism, /arrangementPreview/);
   assert.match(organism, /applySpacePositionsPreview/);
-  assert.match(classic, /canonical\.spaces/);
-  assert.match(organism, /canonical\.spaces/);
-  assert.ok(organism.indexOf("toCanvas(layer") < organism.indexOf("spaces = liveSpaces"), "Organism restores preview positions only after canonical labels are captured");
+  assert.match(classic, /snapshot\.spaces/);
+  assert.match(organism, /renderDetachedOrganismExport/);
+  assert.match(organism, /\(options, snapshot\)/);
+  assert.ok(
+    organism.indexOf("const canonicalSpaces = labelSpacesRef.current") < organism.indexOf("const spaces = useMemo"),
+    "Organism restores preview positions only after canonical labels are captured",
+  );
 });
 
 test("closing ARRANGE clears an unapplied preview without history", async () => {

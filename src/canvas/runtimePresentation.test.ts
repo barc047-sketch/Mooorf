@@ -1,8 +1,10 @@
+import { getAreaRange } from "../design/colorMapping";
 import { areaToRadius, hitTest } from "../lib/geometry";
 import type { SpaceCell } from "../types";
 import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
 import { projectSelectionOverlay } from "../interaction/selection";
 import {
+  patchRuntimePresentation,
   projectCircleLayers,
   projectRuntimePresentation,
   resolveBoundaryStroke,
@@ -73,6 +75,32 @@ equal(appearance?.boundary.paint.colour, "#123456", "runtime projection consumes
 equal(appearance?.core.visible, false, "runtime targets remain independent");
 equal(runtime.membrane.visible, true, "shared Membrane projection consumes project ownership");
 equal(runtime.membraneEdge.visible, true, "Membrane Edge projects independently from Membrane fill");
+
+const unaffected: SpaceCell = { ...base, id: "cell-b", x: 180 };
+const patchBaseline = projectRuntimePresentation([styled, unaffected], settings, "day");
+const patchedStyled: SpaceCell = {
+  ...styled,
+  appearance: {
+    ...styled.appearance,
+    boundary: { ...styled.appearance!.boundary!, width: 8 },
+  },
+};
+const patchedRuntime = patchRuntimePresentation(
+  patchBaseline,
+  [patchedStyled],
+  [patchedStyled, unaffected],
+  settings,
+  "day",
+  getAreaRange([patchedStyled, unaffected]),
+);
+equal(patchedRuntime.byId.get(styled.id)?.boundary.width, 8, "selected-only patch resolves the changed Cell");
+equal(
+  patchedRuntime.byId.get(unaffected.id),
+  patchBaseline.byId.get(unaffected.id),
+  "selected-only patch reuses unaffected projection objects",
+);
+equal(patchedRuntime.membrane, patchBaseline.membrane, "selected-only patch reuses the shared Membrane projection");
+equal(patchedRuntime.membraneEdge, patchBaseline.membraneEdge, "selected-only patch reuses the shared Membrane Edge projection");
 
 const classic = resolveBoundaryStroke(appearance!.boundary, 2, "classic");
 equal(classic.requestedStyle, "dash-dot", "Classic reports the requested Boundary style");

@@ -148,8 +148,8 @@ test("instant downloads show indeterminate preparation for at least 1100ms", asy
       order.push("wait");
     },
   });
-  assert.equal(service.getSnapshot().activeTask?.label, "Preparing download");
-  assert.equal(service.getSnapshot().activeTask?.kind, "download");
+  assert.equal(service.getSnapshot().activeTask?.label, "EXPORT");
+  assert.equal(service.getSnapshot().activeTask?.kind, "export");
   assert.equal(service.getSnapshot().activeTask?.progress, null);
   await feedback.complete(() => { order.push("download"); });
   assert.match(readFileSync("src/runtime/downloadActivity.ts", "utf8"), /export const DOWNLOAD_FEEDBACK_MIN_MS = 1_100/);
@@ -158,6 +158,18 @@ test("instant downloads show indeterminate preparation for at least 1100ms", asy
   const message = service.getSnapshot().notifications[0]?.message ?? "";
   assert.equal(message, "Download started — project.png");
   assert.equal(message.includes("Downloaded"), false);
+});
+
+test("export activity uses the approved short stage labels", () => {
+  const service = createActivityService();
+  const feedback = createDownloadFeedback("project.png", { activityService: service });
+  assert.equal(service.getSnapshot().activeTask?.label, "EXPORT");
+  feedback.stage("RENDERING");
+  assert.equal(service.getSnapshot().activeTask?.label, "RENDERING");
+  feedback.stage("ENCODING");
+  assert.equal(service.getSnapshot().activeTask?.label, "ENCODING");
+  feedback.stage("SAVING");
+  assert.equal(service.getSnapshot().activeTask?.label, "SAVING");
 });
 
 test("real preparation longer than 1100ms adds no download delay", async () => {
@@ -433,7 +445,7 @@ test("day/night glass and reduced-motion expansion remain supported", () => {
   assert.match(css, /transition:\s*none/);
 });
 
-test("automatic performance quality uses the compact AUTO label", () => {
+test("automatic performance quality keeps AUTO and adds the effective tier", () => {
   const source = readFileSync("src/ui/RuntimeStatus.tsx", "utf8");
-  assert.match(source, /performanceQuality === "automatic" \? "AUTO"/);
+  assert.match(source, /performanceQuality === "automatic"[\s\S]*?`AUTO · \$\{performanceSnapshot\.effectiveQuality\.toUpperCase\(\)\}`/);
 });

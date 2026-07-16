@@ -2,6 +2,7 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background: var(--bg);
 }
 
 .organism-canvas {
@@ -10,6 +11,15 @@
   display: block;
   cursor: default;
   touch-action: none;
+  background: transparent;
+}
+
+.organism-canvas[data-preview-filter="smooth"] {
+  image-rendering: auto;
+}
+
+.organism-canvas[data-preview-filter="pixel"] {
+  image-rendering: pixelated;
 }
 
 .organism-presentation-canvas {
@@ -19,6 +29,10 @@
   height: 100%;
   display: block;
   pointer-events: none;
+}
+
+.organism-presentation-buffer {
+  visibility: hidden;
 }
 
 /* V6N.2 — camera-synced scan dot matrix (offsets driven by the render loop).

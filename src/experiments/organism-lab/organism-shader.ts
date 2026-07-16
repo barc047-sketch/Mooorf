@@ -176,6 +176,7 @@ void main() {
   float spatialDominance = spatialWeight > 0.0001 ? 0.88 * clamp(uSpatialColorMix, 0.0, 1.0) : 0.0;
   bodyMix = mix(bodyMix, spatialColor, spatialDominance);
   vec3 col = uBgColor;
+  float surfaceAlpha = 0.0;
   if (uShadowEnabled > 0.5) {
     float shadowMask = 0.0;
     if (uMorphEnabled > 0.5) {
@@ -186,13 +187,20 @@ void main() {
     } else {
       shadowMask = plainBodyAt(p - uShadowOffset, uShadowSpread, max(uShadowSoftness, 0.0025));
     }
-    col = mix(col, uShadowColor, shadowMask * uShadowOpacity * (1.0 - organism));
+    float shadowAlpha = shadowMask * uShadowOpacity * (1.0 - organism);
+    col = mix(col, uShadowColor, shadowAlpha);
+    surfaceAlpha = max(surfaceAlpha, shadowAlpha);
   }
   float surfaceOpacity = uMorphEnabled > 0.5 ? uMembraneOpacity : 1.0;
-  col = mix(col, bodyMix, organism * surfaceOpacity);
-  col = mix(col, uAccentColor, surfaceBand * uMembraneEdgeOpacity);
+  float membraneAlpha = organism * surfaceOpacity;
+  float edgeAlpha = surfaceBand * uMembraneEdgeOpacity;
+  col = mix(col, bodyMix, membraneAlpha);
+  col = mix(col, uAccentColor, edgeAlpha);
+  surfaceAlpha = 1.0 - (1.0 - surfaceAlpha) * (1.0 - membraneAlpha) * (1.0 - edgeAlpha);
   if (uMorphEnabled < 0.5) {
-    col = mix(col, mix(uBgColor, uAccentColor, 0.62), plainVoidRingAt(p) * 0.82);
+    float voidRingAlpha = plainVoidRingAt(p) * 0.82;
+    col = mix(col, mix(uBgColor, uAccentColor, 0.62), voidRingAlpha);
+    surfaceAlpha = max(surfaceAlpha, voidRingAlpha);
   }
 
   /* nuclei rendered as embedded reverse-tone dots (skipped for void nuclei) */
@@ -205,7 +213,9 @@ void main() {
       float rr = n.z * 0.34;
       float w = max(fwidth(dN) * 1.2, 0.0035);
       float dot = 1.0 - smoothstep(rr - w, rr + w, dN);
-      col = mix(col, uNucleusColors[i], dot * uNucleusDots * 0.92);
+      float dotAlpha = dot * uNucleusDots * 0.92;
+      col = mix(col, uNucleusColors[i], dotAlpha);
+      surfaceAlpha = max(surfaceAlpha, dotAlpha);
     }
   }
 
@@ -221,6 +231,7 @@ void main() {
       dbg = mix(dbg, vec3(0.45, 0.07, 0.12), pocketLine);
     }
     col = dbg;
+    surfaceAlpha = 1.0;
   }
 
   if (uNucleiDebug > 0.5) {
@@ -234,11 +245,13 @@ void main() {
         ? 1.0 - smoothstep(0.006, 0.006 + w, dN)
         : 0.0;
       vec3 mark = n.w >= 0.0 ? vec3(0.35, 0.35, 0.36) : vec3(0.765, 0.086, 0.086);
-      col = mix(col, mark, max(ring * 0.85, centerDot));
+      float debugAlpha = max(ring * 0.85, centerDot);
+      col = mix(col, mark, debugAlpha);
+      surfaceAlpha = max(surfaceAlpha, debugAlpha);
     }
   }
 
-  outColor = vec4(col, 1.0);
+  outColor = vec4(col, surfaceAlpha);
 }
 `;
 
@@ -285,6 +298,13 @@ export interface OrganismRenderFrame {
 
 export interface OrganismRenderer {
   render(frame: OrganismRenderFrame): void;
+  clear(): void;
+  /** Re-presents the last completed target without rerunning the membrane shader. */
+  present(): void;
+  /** Changes only the detached low-resolution render target. */
+  resizeTarget(cssWidth: number, cssHeight: number, dpr: number): void;
+  setFilter(filter: "smooth" | "pixel"): void;
+  /** Changes the browser-visible backing store only for real host resizes. */
   resize(cssWidth: number, cssHeight: number, dpr: number): void;
   isLost(): boolean;
   dispose(): void;
@@ -331,14 +351,16 @@ type UniformName = (typeof UNIFORM_NAMES)[number];
 /** Returns null when WebGL2 is unavailable — caller shows a fallback note. */
 export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRenderer | null {
   const gl = canvas.getContext("webgl2", {
-    antialias: true,
-    alpha: false,
+    antialias: false,
+    alpha: true,
+    premultipliedAlpha: false,
     depth: false,
     stencil: false,
     preserveDrawingBuffer: false,
     powerPreference: "high-performance",
   });
   if (!gl) return null;
+  gl.disable(gl.BLEND);
 
   let lost = false;
   let program: WebGLProgram | null = null;
@@ -346,6 +368,15 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
   let loc: Partial<Record<UniformName, WebGLUniformLocation | null>> = {};
   let membraneEdgeGate = false;
   let shadowGate = false;
+  let targetFramebuffer: WebGLFramebuffer | null = null;
+  let targetTexture: WebGLTexture | null = null;
+  let targetWidth = 1;
+  let targetHeight = 1;
+  let visibleCssWidth = 1;
+  let visibleCssHeight = 1;
+  let visibleDpr = 1;
+  let targetDpr = 1;
+  let targetFilter: "smooth" | "pixel" = "smooth";
 
   function compile(type: number, src: string): WebGLShader {
     const g = gl as WebGL2RenderingContext;
@@ -387,12 +418,86 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
     shadowGate = false;
   }
 
+  const disposeTarget = () => {
+    if (targetTexture) gl.deleteTexture(targetTexture);
+    if (targetFramebuffer) gl.deleteFramebuffer(targetFramebuffer);
+    targetTexture = null;
+    targetFramebuffer = null;
+  };
+
+  const allocateTarget = () => {
+    const previousFramebuffer = targetFramebuffer;
+    const previousTexture = targetTexture;
+    const previousWidth = targetWidth;
+    const previousHeight = targetHeight;
+    const nextWidth = Math.max(1, Math.round(visibleCssWidth * targetDpr));
+    const nextHeight = Math.max(1, Math.round(visibleCssHeight * targetDpr));
+    const nextTexture = gl.createTexture();
+    const nextFramebuffer = gl.createFramebuffer();
+    if (!nextTexture || !nextFramebuffer) {
+      if (nextTexture) gl.deleteTexture(nextTexture);
+      if (nextFramebuffer) gl.deleteFramebuffer(nextFramebuffer);
+      throw new Error("organism-lab: render target allocation failed");
+    }
+    gl.bindTexture(gl.TEXTURE_2D, nextTexture);
+    const filter = targetFilter === "pixel" ? gl.NEAREST : gl.LINEAR;
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, nextWidth, nextHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, nextFramebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, nextTexture, 0);
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.deleteTexture(nextTexture);
+      gl.deleteFramebuffer(nextFramebuffer);
+      throw new Error("organism-lab: framebuffer is incomplete");
+    }
+    if (previousFramebuffer) {
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, previousFramebuffer);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, nextFramebuffer);
+      gl.blitFramebuffer(
+        0, 0, previousWidth, previousHeight,
+        0, 0, nextWidth, nextHeight,
+        gl.COLOR_BUFFER_BIT,
+        targetFilter === "pixel" ? gl.NEAREST : gl.LINEAR,
+      );
+    } else {
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+    targetWidth = nextWidth;
+    targetHeight = nextHeight;
+    targetTexture = nextTexture;
+    targetFramebuffer = nextFramebuffer;
+    if (previousTexture) gl.deleteTexture(previousTexture);
+    if (previousFramebuffer) gl.deleteFramebuffer(previousFramebuffer);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+  };
+
+  const presentTarget = () => {
+    if (lost || !targetFramebuffer) return;
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, targetFramebuffer);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+    gl.blitFramebuffer(
+      0, 0, targetWidth, targetHeight,
+      0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight,
+      gl.COLOR_BUFFER_BIT,
+      targetFilter === "pixel" ? gl.NEAREST : gl.LINEAR,
+    );
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+  };
+
   const onLost = (e: Event) => {
     e.preventDefault();
     lost = true;
   };
   const onRestored = () => {
     init();
+    allocateTarget();
     lost = false;
   };
   canvas.addEventListener("webglcontextlost", onLost, false);
@@ -402,9 +507,11 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
 
   return {
     render(frame: OrganismRenderFrame): void {
-      if (lost || !program) return;
+      if (lost || !program || !targetFramebuffer) return;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, targetFramebuffer);
+      gl.viewport(0, 0, targetWidth, targetHeight);
       gl.useProgram(program);
-      gl.uniform2f(loc["uResolution"] ?? null, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      gl.uniform2f(loc["uResolution"] ?? null, targetWidth, targetHeight);
       gl.uniform1i(loc["uCount"] ?? null, Math.min(frame.count, MAX_NUCLEI));
       gl.uniform4fv(loc["uNuclei[0]"] ?? null, frame.nuclei);
       gl.uniform3fv(loc["uNucleusColors[0]"] ?? null, frame.nucleusColors);
@@ -449,9 +556,45 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.uniform1f(loc["uNucleiDebug"] ?? null, frame.nucleiDebug ? 1 : 0);
       gl.uniform1f(loc["uNucleiDebugCenterDots"] ?? null, frame.nucleiDebugCenterDots ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      presentTarget();
+    },
+
+    clear(): void {
+      if (lost) return;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, targetFramebuffer);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      presentTarget();
+    },
+
+    present(): void {
+      presentTarget();
+    },
+
+    resizeTarget(cssWidth: number, cssHeight: number, dpr: number): void {
+      const nextWidth = Math.max(1, Math.round(cssWidth * dpr));
+      const nextHeight = Math.max(1, Math.round(cssHeight * dpr));
+      visibleCssWidth = Math.max(1, cssWidth);
+      visibleCssHeight = Math.max(1, cssHeight);
+      targetDpr = Math.max(0.1, dpr);
+      if (nextWidth !== targetWidth || nextHeight !== targetHeight || !targetFramebuffer) allocateTarget();
+    },
+
+    setFilter(filter: "smooth" | "pixel"): void {
+      if (targetFilter === filter) return;
+      targetFilter = filter;
+      if (!targetTexture) return;
+      gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+      const glFilter = filter === "pixel" ? gl.NEAREST : gl.LINEAR;
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, glFilter);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, glFilter);
+      gl.bindTexture(gl.TEXTURE_2D, null);
     },
 
     resize(cssWidth: number, cssHeight: number, dpr: number): void {
+      visibleCssWidth = Math.max(1, cssWidth);
+      visibleCssHeight = Math.max(1, cssHeight);
+      visibleDpr = Math.max(0.1, dpr);
       const w = Math.max(1, Math.round(cssWidth * dpr));
       const h = Math.max(1, Math.round(cssHeight * dpr));
       if (canvas.width !== w || canvas.height !== h) {
@@ -459,6 +602,10 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
         canvas.height = h;
       }
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      if (!targetFramebuffer) {
+        targetDpr = visibleDpr;
+        allocateTarget();
+      }
     },
 
     isLost(): boolean {
@@ -470,6 +617,7 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       canvas.removeEventListener("webglcontextrestored", onRestored, false);
       if (program) gl.deleteProgram(program);
       if (vao) gl.deleteVertexArray(vao);
+      disposeTarget();
       program = null;
       vao = null;
     },

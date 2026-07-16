@@ -75,6 +75,36 @@ export const projectRuntimePresentation = (
   return { byId, membrane: shared.membrane, membraneEdge: shared.membraneEdge };
 };
 
+/** Selected-only preview adapter. Shared and unaffected projections keep their
+ * identities; callers provide the already-owned area range so local paint
+ * edits never trigger global area/category work. */
+export const patchRuntimePresentation = (
+  current: RuntimePresentationProjection,
+  changedSpaces: readonly SpaceCell[],
+  allSpaces: readonly SpaceCell[],
+  settings: RuntimePresentationSettings,
+  theme: Theme,
+  areaRange: ReturnType<typeof getAreaRange>,
+): RuntimePresentationProjection => {
+  if (changedSpaces.length === 0) return current;
+  const context = {
+    paletteMode: settings.paletteMode,
+    colorSource: settings.colorSource,
+    nucleusPaletteId: settings.nucleusPaletteId,
+    organismPaletteId: settings.organismPaletteId,
+    morphMode: settings.morphMode,
+    theme,
+    spaces: allSpaces,
+    areaRange,
+  };
+  const byId = new Map(current.byId);
+  for (const space of changedSpaces) {
+    if (!byId.has(space.id)) continue;
+    byId.set(space.id, resolveCellAppearance(space, settings.presentationDefaults, context));
+  }
+  return { byId, membrane: current.membrane, membraneEdge: current.membraneEdge };
+};
+
 export type RuntimeRendererKind = "classic" | "organism";
 
 export interface MembraneFieldProjectionInput {

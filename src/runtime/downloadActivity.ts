@@ -12,6 +12,7 @@ export interface DownloadFeedbackOptions {
 
 export interface DownloadFeedback {
   taskId: string;
+  stage: (label: "EXPORT" | "RENDERING" | "ENCODING" | "SAVING") => void;
   complete: (startBrowserDownload: () => void | Promise<void>) => Promise<void>;
   fail: (error: unknown) => void;
 }
@@ -43,8 +44,8 @@ export const createDownloadFeedback = (
 
   activityService.start({
     id: taskId,
-    label: "Preparing download",
-    kind: "download",
+    label: "EXPORT",
+    kind: "export",
     priority: 30,
     progress: null,
     cancellable: false,
@@ -52,6 +53,10 @@ export const createDownloadFeedback = (
 
   return {
     taskId,
+    stage(label) {
+      if (settled) return;
+      activityService.update(taskId, { label, kind: "export" });
+    },
     async complete(startBrowserDownload) {
       if (settled) return;
       const remaining = Math.max(0, minimumDuration - (now() - startedAt));

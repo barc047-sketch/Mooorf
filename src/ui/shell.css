@@ -34,14 +34,17 @@
 /* Top-center canvas/table pill */
 .view-toggle {
   position: absolute;
-  top: var(--sp-24);
+  top: var(--shell-top-control-offset);
   left: 50%;
   /* centering via Motion x:-50% (inline transform owns this element) */
   z-index: var(--z-shell);
   display: flex;
+  align-items: center;
   gap: 2px;
+  box-sizing: border-box;
+  height: var(--shell-top-control-height);
   padding: 3px;
-  border-radius: var(--r-pill);
+  border-radius: var(--shell-top-control-radius);
 }
 
 .view-toggle button {
@@ -1194,7 +1197,8 @@
   pointer-events: none;
 }
 
-.rail .rail-btn::after {
+.rail .rail-btn::after,
+.live-toggle-tooltip::after {
   content: attr(data-tooltip);
   position: absolute;
   left: calc(100% + (10px * var(--ui-scale)));
@@ -1229,10 +1233,23 @@
 }
 
 .rail .rail-btn:hover::after,
-.rail .rail-btn:focus-visible::after {
+.rail .rail-btn:focus-visible::after,
+.live-toggle-tooltip:hover::after,
+.live-toggle-tooltip:focus-visible::after {
   opacity: 1;
   visibility: visible;
   transform: translate(0, -50%);
+}
+
+.live-toggle-tooltip::after {
+  left: 50%;
+  top: calc(100% + (8px * var(--ui-scale)));
+  transform: translate(-50%, -4px);
+}
+
+.live-toggle-tooltip:hover::after,
+.live-toggle-tooltip:focus-visible::after {
+  transform: translate(-50%, 0);
 }
 
 .rail .rail-btn:focus-visible {

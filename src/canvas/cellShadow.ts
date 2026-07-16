@@ -23,7 +23,9 @@ export const normalizeCellShadow = (value?: Partial<CellShadowSettings> | null):
   const enabled = value?.enabled === true && mode !== "off";
   return {
     enabled,
-    mode: enabled ? mode : "off",
+    /* `enabled` is the canonical live master. Keep the authored style while
+       disabled so a quick toggle can restore it without erasing detail. */
+    mode,
     strength: clamp(finite(value?.strength, DEFAULT_CELL_SHADOW.strength), 0, 1),
     opacity: clamp(finite(value?.opacity, DEFAULT_CELL_SHADOW.opacity), 0, 1),
     softness: clamp(finite(value?.softness, DEFAULT_CELL_SHADOW.softness), 0, 64),

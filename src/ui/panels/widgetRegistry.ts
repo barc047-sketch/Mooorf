@@ -136,8 +136,8 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   },
   advanced: {
     id: "advanced",
-    label: "Advanced",
-    responsibility: "Debug toggles, renderer diagnostics, staged experimental features.",
+    label: "Performance",
+    responsibility: "PF1C live Organism preview quality plus renderer diagnostics and staged experimental features.",
     launcher: "rail",
     status: "live",
     icon: Settings2,

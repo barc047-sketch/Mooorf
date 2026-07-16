@@ -29,20 +29,10 @@ export default function OrganismWidget() {
   const setNum = (key: NumericOrgKey, v: number) => setOrganism({ [key]: v });
   const sections = Object.fromEntries(ORG_CONTROL_SECTIONS.map((s) => [s.id, s]));
 
-  /* motion master — off zeroes idle-life amounts (sliders keep working),
-     on applies a gentle preset without touching response/phase */
-  const motionOn =
-    organism.timeScale > 0 &&
-    (organism.drift > 0.001 || organism.breathing > 0.001 || organism.wobble > 0.001);
-  const toggleMotion = () =>
-    motionOn
-      ? setOrganism({ drift: 0, breathing: 0, wobble: 0 })
-      : setOrganism({
-          drift: 0.28,
-          breathing: 0.3,
-          wobble: 0.12,
-          timeScale: Math.max(organism.timeScale, 1),
-        });
+  /* One canonical master. Numeric motion authorship remains untouched while
+     OFF and resumes exactly as authored when switched back ON. */
+  const motionOn = organism.motionEnabled;
+  const toggleMotion = () => setOrganism({ motionEnabled: !organism.motionEnabled });
 
   return (
     <>

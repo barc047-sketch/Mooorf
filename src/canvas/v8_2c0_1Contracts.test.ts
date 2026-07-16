@@ -114,7 +114,7 @@ const shellCss = readFileSync(new URL("../ui/shell.css", import.meta.url), "utf8
 const organismCss = readFileSync(new URL("./organismCanvas.css", import.meta.url), "utf8");
 
 assert.equal(appSource.includes('rendererMode === "organism" ? <OrganismCanvasView /> : <CanvasView />'), true, "App mounts exactly one Canvas strategy");
-assert.equal(organismSource.includes('setSettings({ rendererMode: "classic" })'), true, "automatic Classic recovery remains internal");
+assert.equal(organismSource.includes('setSettings({ rendererMode: "classic" })'), false, "Organism never switches the canonical renderer automatically");
 for (const [name, source] of [["Classic", classicSource], ["Organism", organismSource]] as const) {
   assert.equal(source.includes("createDemandFrameLoop"), true, `${name} uses demand-driven rendering`);
 }

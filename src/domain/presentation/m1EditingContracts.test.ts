@@ -89,8 +89,11 @@ const beforePreview = useLab.getState().spaces;
 useLab.getState().previewAppearancePatch(["a", "b"], "boundary", { width: 7 });
 assert.strictEqual(useLab.getState().spaces, beforePreview, "slider preview never mutates canonical Cells");
 assert.equal(useLab.getState().transformUndoStack.length, 1, "preview creates no history transaction");
+assert.deepEqual(useLab.getState().appearancePreviewIds, ["a", "b"], "preview identifies only affected Cells");
+assert.equal(useLab.getState().appearancePreviewTarget, "boundary", "preview identifies its local invalidation target");
 useLab.getState().commitAppearancePreview();
 assert.equal(useLab.getState().transformUndoStack.length, 2, "preview release commits one multi-selection transaction");
+assert.deepEqual(useLab.getState().appearancePreviewIds, ["a", "b"], "commit retains the bounded IDs for its final local invalidation");
 assert.deepEqual(
   useLab.getState().spaces.map((space) => space.appearance?.boundary?.width),
   [7, 7],
@@ -102,6 +105,9 @@ assert.deepEqual(
   [undefined, 4],
   "Undo restores exact sparse inheritance per Cell"
 );
+useLab.getState().previewAppearancePatch(["a"], "boundary", { width: 12 });
+useLab.getState().cancelAppearancePreview();
+assert.equal(useLab.getState().spaces[0].appearance?.boundary?.width, undefined, "Cancel restores the exact authored appearance");
 
 const runtimeHistory = useLab.getState().transformUndoStack.length;
 useLab.getState().previewMembraneRuntime({ mergeDistance: 188 });

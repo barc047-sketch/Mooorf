@@ -1,4 +1,8 @@
-import { requestCanvasCapture, type CaptureRequestOptions, type CaptureResult } from "../canvas/exportCapture";
+import {
+  createCanvasExportSnapshot,
+  requestCanvasCapture,
+  type CaptureRequestOptions,
+} from "../canvas/exportCapture";
 import { resolvePaddingPx, validateExportDimensions } from "./resolution";
 import type { ExportBackground, ExportVisualOptions } from "./types";
 import { useLab } from "../state/store";
@@ -29,24 +33,10 @@ export const captureAndComposite = async (
     includeLabels: visual.labels === "include",
     includeSelection: visual.selection === "include",
   };
-  const ephemeral = useLab.getState();
-  const appearancePreview = ephemeral.appearancePreview;
-  const presentationDefaultsPreview = ephemeral.presentationDefaultsPreview;
-  const membraneRuntimePreview = ephemeral.membraneRuntimePreview;
-  const visualSettingsPreview = ephemeral.visualSettingsPreview;
-  const resourcesPreview = ephemeral.resourcesPreview;
-  if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview || visualSettingsPreview || resourcesPreview) {
-    useLab.setState({ appearancePreview: null, presentationDefaultsPreview: null, membraneRuntimePreview: null, visualSettingsPreview: null, resourcesPreview: null });
-    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-  }
-  let capture: CaptureResult;
-  try {
-    capture = await requestCanvasCapture(requestOptions);
-  } finally {
-    if (appearancePreview || presentationDefaultsPreview || membraneRuntimePreview || visualSettingsPreview || resourcesPreview) {
-      useLab.setState({ appearancePreview, presentationDefaultsPreview, membraneRuntimePreview, visualSettingsPreview, resourcesPreview });
-    }
-  }
+  const capture = await requestCanvasCapture(
+    requestOptions,
+    createCanvasExportSnapshot(useLab.getState()),
+  );
   const dims = validateExportDimensions(capture.cssWidth, capture.cssHeight, visual.resolution);
   if (!dims.ok) {
     throw new Error(dims.error ?? "Export dimensions are invalid.");

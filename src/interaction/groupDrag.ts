@@ -73,6 +73,7 @@ export const applySpacePositionsPreview = (
   spaces: readonly SpaceCell[],
   positions: readonly SpacePosition[]
 ): SpaceCell[] => {
+  if (positions.length === 0) return spaces as SpaceCell[];
   const byId = new Map(
     positions
       .filter((position) => Boolean(position.id) && Number.isFinite(position.x) && Number.isFinite(position.y))

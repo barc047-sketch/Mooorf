@@ -95,7 +95,7 @@
 }
 
 .runtime-status-bar[data-expanded="true"] {
-  width: min(340px, calc(100vw - 48px));
+  width: min(372px, calc(100vw - 48px));
   height: auto;
   border-radius: var(--glass-card-radius);
 }
@@ -120,8 +120,8 @@
 .runtime-status-bar[data-expanded="true"] .runtime-status-toggle {
   height: auto;
   min-height: var(--shell-control-height);
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 9px;
+  padding-bottom: 9px;
 }
 
 .runtime-status-toggle:focus-visible,
@@ -149,12 +149,16 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px 16px;
-  margin-top: 10px;
+  margin-top: 0;
   padding-top: 10px;
   border-top: 1px solid var(--hairline);
   transform: translateY(0);
   opacity: 1;
   animation: runtime-status-expand 130ms var(--ease-out) both;
+}
+
+.runtime-status-expanded {
+  padding: 0 12px 12px;
 }
 
 .runtime-status-details > span {
@@ -183,6 +187,95 @@
   white-space: nowrap;
 }
 
+.runtime-control-section {
+  display: grid;
+  gap: 7px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline);
+}
+
+.runtime-control-section > small {
+  color: var(--text-muted);
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.11em;
+}
+
+.runtime-choice-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.runtime-quality-row {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.runtime-choice {
+  position: relative;
+  min-height: 27px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--hairline) 82%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--glass-bg) 32%, transparent);
+  box-shadow: none;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.045em;
+  cursor: pointer;
+}
+
+.runtime-choice[data-active="true"] {
+  border-color: color-mix(in srgb, var(--chrome-accent) 30%, var(--hairline));
+  background: color-mix(in srgb, var(--chrome-accent) 8%, var(--glass-bg));
+  outline: 1px solid color-mix(in srgb, var(--chrome-accent) 16%, transparent);
+  outline-offset: -3px;
+  color: var(--text-primary);
+}
+
+.runtime-choice[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--chrome-accent);
+}
+
+.runtime-choice:focus-visible,
+.runtime-advanced-link:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--chrome-accent) 64%, transparent);
+  outline-offset: 2px;
+}
+
+.runtime-advanced-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 30px;
+  margin-top: 11px;
+  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--hairline) 82%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--glass-bg) 32%, transparent);
+  box-shadow: none;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 8px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.065em;
+  cursor: pointer;
+}
+
 .runtime-notification {
   --runtime-status-left: var(--sp-24);
   position: fixed;
@@ -201,7 +294,7 @@
 }
 
 .runtime-notification[data-expanded="true"] {
-  bottom: calc(var(--shell-control-bottom) + 148px);
+  bottom: calc(var(--shell-control-bottom) + 344px);
 }
 
 .runtime-notification strong {
