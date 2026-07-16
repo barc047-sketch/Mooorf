@@ -58,6 +58,18 @@ import {
   type SpacePosition,
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
+import {
+  CAMERA_COMMIT_DELAY_MS,
+  advanceCanvasGesture,
+  beginCanvasCellGesture,
+  beginCanvasPanGesture,
+  cancelCanvasGesture,
+  completeCanvasGesture,
+  createCanvasGestureState,
+  mergeCanvasWheelFrame,
+  resolveCanvasPanCamera,
+  resolveCanvasPressSelection,
+} from "../interaction/canvasGestureController";
 import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
 import { performanceRuntime } from "../runtime/performanceRuntime";
 import { performanceGovernor } from "../runtime/performanceGovernor";
@@ -263,7 +275,7 @@ export default function OrganismCanvasView() {
     const motionState = createMotionState();
     let theme = readTheme();
     let themeTransitionUntil = 0;
-    let drag: DragPosition | null = null;
+    const gesture = createCanvasGestureState<DragPosition, GroupTranslation, SpacePosition>();
     let dirty = true;
     let membraneNeedsRender = true;
     let lastInvalidationScope: OrganismInvalidation = "FULL";
@@ -578,8 +590,8 @@ export default function OrganismCanvasView() {
     };
 
     const currentNuclei = () => {
-      const renderSpaces = translatedPositions.length > 0
-        ? applySpacePositionsPreview(spaces, translatedPositions)
+      const renderSpaces = gesture.translatedPositions.length > 0
+        ? applySpacePositionsPreview(spaces, gesture.translatedPositions)
         : spaces;
       return spacesToNuclei(
         renderSpaces,
@@ -587,7 +599,7 @@ export default function OrganismCanvasView() {
         w,
         h,
         selectedId,
-        translatedPositions.length > 0 ? translatedPositions : drag,
+        gesture.translatedPositions.length > 0 ? gesture.translatedPositions : gesture.drag,
         resolved.adapter,
         motionStateForRuntime(resolved.motionActive, motionState),
         settings.paletteMode,
@@ -706,19 +718,7 @@ export default function OrganismCanvasView() {
       });
     };
 
-    let mode: "none" | "press" | "drag" | "pan" = "none";
     const activation = createCellActivationState();
-    let pressSX = 0;
-    let pressSY = 0;
-    let dragAnchorWX = 0;
-    let dragAnchorWY = 0;
-    let panSX = 0;
-    let panSY = 0;
-    let panCX = 0;
-    let panCY = 0;
-    let pressIntent: "replace" | "toggle" = "replace";
-    let groupTranslation: GroupTranslation | null = null;
-    let translatedPositions: SpacePosition[] = [];
     let hoveredId: string | null = null;
 
     const onDown = (e: PointerEvent) => {
@@ -737,36 +737,23 @@ export default function OrganismCanvasView() {
       }
       if (hit) {
         const state = useLab.getState();
-        pressIntent = resolveSelectionIntent(e);
-        const world = screenToWorld(sx, sy, cam, w, h);
+        const pressIntent = resolveSelectionIntent(e);
+        const selection = resolveCanvasPressSelection(state.selectedIds, hit.id, pressIntent);
         const source = spaces.find((space) => space.id === hit.id);
         if (!source) return;
-        mode = "press";
-        pressSX = sx;
-        pressSY = sy;
-        drag = { id: hit.id, x: source.x, y: source.y };
-        dragAnchorWX = world.x;
-        dragAnchorWY = world.y;
-        if (pressIntent === "replace") {
-          if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
-          else state.replaceSelection(hit.id);
-          const selected = useLab.getState();
-          groupTranslation = createGroupTranslation(spaces, selected.selectedIds, hit.id);
-        } else {
-          const selectedIds = state.selectedIds.includes(hit.id)
-            ? state.selectedIds.filter((id) => id !== hit.id)
-            : [...state.selectedIds, hit.id];
-          groupTranslation = createGroupTranslation(spaces, selectedIds, hit.id);
-        }
-        translatedPositions = [];
+        if (selection.action === "add") state.addToSelection(hit.id);
+        else if (selection.action === "replace") state.replaceSelection(hit.id);
+        beginCanvasCellGesture(
+          gesture,
+          { sx, sy },
+          { id: hit.id, x: source.x, y: source.y },
+          createGroupTranslation(spaces, selection.selectedIds, hit.id),
+          pressIntent,
+        );
         canvas.style.cursor = "grabbing";
       } else {
         resetCellActivation(activation);
-        mode = "pan";
-        panSX = sx;
-        panSY = sy;
-        panCX = cam.x;
-        panCY = cam.y;
+        beginCanvasPanGesture(gesture, { sx, sy }, cam);
         if (selectedIdSet.size > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
         performanceGovernor.beginInteraction();
@@ -777,7 +764,7 @@ export default function OrganismCanvasView() {
 
     const processMove = (e: PointerEvent) => {
       const { sx, sy } = local(e);
-      if (mode === "none") {
+      if (gesture.mode === "none") {
         const nextHoveredId = hitTestNuclei(lastNuclei, sx, sy)?.id ?? null;
         if (nextHoveredId !== hoveredId) {
           hoveredId = nextHoveredId;
@@ -786,40 +773,40 @@ export default function OrganismCanvasView() {
         canvas.style.cursor = nextHoveredId ? "grab" : "default";
         return;
       }
-      if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
-        mode = "drag";
+      const transition = advanceCanvasGesture(gesture, { sx, sy }, CELL_DRAG_THRESHOLD_PX);
+      if (transition.enteredDrag) {
         performanceGovernor.beginInteraction();
         useLab.getState().closeContextSurface();
-        if (drag && pressIntent === "toggle") {
+        if (gesture.drag && gesture.pressIntent === "toggle") {
           const state = useLab.getState();
-          state.toggleSelection(drag.id);
+          state.toggleSelection(gesture.drag.id);
           const selected = useLab.getState();
-          if (!selected.selectedIds.includes(drag.id)) state.replaceSelection(drag.id);
+          if (!selected.selectedIds.includes(gesture.drag.id)) state.replaceSelection(gesture.drag.id);
         }
       }
-      if (mode === "drag" && drag) {
-        const dragId = drag.id;
+      if (gesture.mode === "drag" && gesture.drag) {
+        const dragId = gesture.drag.id;
         const world = screenToWorld(sx, sy, cam, w, h);
-        const translation = groupTranslation;
+        const translation = gesture.groupTranslation;
         const origin = translation?.before.find((position) => position.id === dragId);
         if (!translation || !origin) return;
         /* One anchor-to-pointer delta avoids drift and is inverted once for
            the visual organism layout transform before every member moves. */
         const delta = dragDeltaWorldToStore(
-          world.x - dragAnchorWX,
-          world.y - dragAnchorWY,
+          world.x - screenToWorld(gesture.press?.sx ?? sx, gesture.press?.sy ?? sy, cam, w, h).x,
+          world.y - screenToWorld(gesture.press?.sx ?? sx, gesture.press?.sy ?? sy, cam, w, h).y,
           resolved.adapter
         );
-        translatedPositions = resolveGroupTranslationPositions(translation, delta);
-        const primary = translatedPositions.find((position) => position.id === dragId);
+        gesture.translatedPositions = resolveGroupTranslationPositions(translation, delta);
+        const primary = gesture.translatedPositions.find((position) => position.id === dragId);
         if (!primary) return;
-        drag.x = primary.x;
-        drag.y = primary.y;
-      } else if (mode === "pan") {
-        cam.x = panCX - (sx - panSX) / cam.zoom;
-        cam.y = panCY - (sy - panSY) / cam.zoom;
+        gesture.drag.x = primary.x;
+        gesture.drag.y = primary.y;
+      } else if (gesture.mode === "pan" && gesture.pan) {
+        const nextCamera = resolveCanvasPanCamera(gesture, { sx, sy }, cam.zoom);
+        if (nextCamera) Object.assign(cam, nextCamera);
       }
-      invalidate(mode === "drag" ? "MEMBRANE_FIELD" : mode === "pan" ? "CAMERA" : "CELL_PRESENTATION");
+      invalidate(gesture.mode === "drag" ? "MEMBRANE_FIELD" : gesture.mode === "pan" ? "CAMERA" : "CELL_PRESENTATION");
     };
 
     const moveScheduler = createFrameScheduler<PointerEvent>({
@@ -833,57 +820,57 @@ export default function OrganismCanvasView() {
     };
 
     const onUp = (e: PointerEvent) => {
-      const completedMode = mode;
-      if (mode !== "none") {
+      const completedMode = gesture.mode;
+      if (gesture.mode !== "none") {
         moveScheduler.push(latestCoalescedPointerEvent(e));
         moveScheduler.flush();
       }
       const { sx, sy } = local(e);
-      if (mode === "press" && drag) {
+      const completed = completeCanvasGesture(gesture);
+      if (completed.mode === "press" && completed.drag) {
         const state = useLab.getState();
-        if (pressIntent === "toggle") {
-          state.toggleSelection(drag.id);
+        if (completed.pressIntent === "toggle") {
+          state.toggleSelection(completed.drag.id);
           resetCellActivation(activation);
         } else {
-          state.replaceSelection(drag.id);
-          if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
-            const nucleus = lastNuclei.find((candidate) => candidate.id === drag?.id);
+          state.replaceSelection(completed.drag.id);
+          if (registerCellActivation(activation, completed.drag.id, sx, sy, performance.now(), false)) {
+            const nucleus = lastNuclei.find((candidate) => candidate.id === completed.drag?.id);
             const client = projectClientPoint(
               nucleus ? { x: nucleus.sx, y: nucleus.sy } : { x: sx, y: sy },
               canvas.getBoundingClientRect()
             );
-            state.openContextSurface("inline-editor", { x: client.x + 14, y: client.y + 18 }, drag.id);
+            state.openContextSurface("inline-editor", { x: client.x + 14, y: client.y + 18 }, completed.drag.id);
           }
         }
-        drag = null;
       } else
-      if (mode === "drag" && drag) {
-        if (groupTranslation && translatedPositions.length > 0) {
-          useLab.getState().commitSpaceTransform(groupTranslation.before, translatedPositions);
+      if (completed.mode === "drag" && completed.drag) {
+        if (completed.groupTranslation && completed.translatedPositions.length > 0) {
+          useLab.getState().commitSpaceTransform(completed.groupTranslation.before, completed.translatedPositions);
         }
-        registerCellActivation(activation, drag.id, sx, sy, performance.now(), true);
-        drag = null;
-        groupTranslation = null;
-        translatedPositions = [];
-      } else if (mode === "pan") {
+        registerCellActivation(activation, completed.drag.id, sx, sy, performance.now(), true);
+      } else if (completed.mode === "pan") {
         commitCamera();
       }
-      groupTranslation = null;
-      translatedPositions = [];
-      mode = "none";
       canvas.style.cursor = "default";
       performanceGovernor.endInteraction();
       invalidate(completedMode === "drag" ? "MEMBRANE_FIELD" : completedMode === "pan" ? "CAMERA" : "CELL_PRESENTATION");
     };
 
+    const onCancel = () => {
+      const cancelledMode = gesture.mode;
+      if (cancelledMode === "pan" && gesture.pan) Object.assign(cam, gesture.pan.camera);
+      cancelCanvasGesture(gesture);
+      canvas.style.cursor = "default";
+      performanceGovernor.endInteraction();
+      invalidate(cancelledMode === "pan" ? "CAMERA" : "CELL_PRESENTATION");
+    };
+
     const onContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       const secondaryButton = e.ctrlKey ? 2 : e.button;
-      if (!shouldOpenContextFromGesture(secondaryButton, mode === "drag")) return;
-      mode = "none";
-      drag = null;
-      groupTranslation = null;
-      translatedPositions = [];
+      if (!shouldOpenContextFromGesture(secondaryButton, gesture.mode === "drag")) return;
+      cancelCanvasGesture(gesture);
       resetCellActivation(activation);
       const { sx, sy } = local(e);
       const hit = hitTestNuclei(lastNuclei, sx, sy);
@@ -914,13 +901,13 @@ export default function OrganismCanvasView() {
       cam.y = before.y - (sy - h / 2) / cam.zoom;
       invalidate("CAMERA");
       window.clearTimeout(camCommit);
-      camCommit = window.setTimeout(commitCamera, 160);
+      camCommit = window.setTimeout(commitCamera, CAMERA_COMMIT_DELAY_MS);
     };
     const wheelScheduler = createFrameScheduler<WheelFrame>({
       schedule: (callback) => requestAnimationFrame(callback),
       cancel: (id) => cancelAnimationFrame(id),
       process: processWheel,
-      merge: (queued, incoming) => ({ ...incoming, deltaY: queued.deltaY + incoming.deltaY }),
+      merge: mergeCanvasWheelFrame,
     });
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -933,7 +920,7 @@ export default function OrganismCanvasView() {
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerup", onUp);
-    canvas.addEventListener("pointercancel", onUp);
+    canvas.addEventListener("pointercancel", onCancel);
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("contextmenu", onContextMenu);
 
@@ -981,7 +968,7 @@ export default function OrganismCanvasView() {
         motionEnabled: resolved.motionActive,
         labelsVisible: settings.organism.showLabels && settings.annotationMode !== "hidden",
         gridVisible: settings.showGrid,
-        interactionActive: mode === "drag",
+        interactionActive: gesture.mode === "drag",
         snappingEnabled: false,
       });
       const membraneField = gates.membrane ? projectMembraneField({
@@ -1221,7 +1208,7 @@ export default function OrganismCanvasView() {
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
-      canvas.removeEventListener("pointercancel", onUp);
+      canvas.removeEventListener("pointercancel", onCancel);
       canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("contextmenu", onContextMenu);
       performanceGovernor.endInteraction();

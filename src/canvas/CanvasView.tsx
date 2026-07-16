@@ -19,6 +19,18 @@ import {
   type SpacePosition,
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
+import {
+  CAMERA_COMMIT_DELAY_MS,
+  advanceCanvasGesture,
+  beginCanvasCellGesture,
+  beginCanvasPanGesture,
+  cancelCanvasGesture,
+  completeCanvasGesture,
+  createCanvasGestureState,
+  mergeCanvasWheelFrame,
+  resolveCanvasPanCamera,
+  resolveCanvasPressSelection,
+} from "../interaction/canvasGestureController";
 import { createDemandFrameLoop, createFrameScheduler, latestCoalescedPointerEvent } from "../interaction/frameScheduler";
 import { performanceRuntime } from "../runtime/performanceRuntime";
 import { performanceGovernor } from "../runtime/performanceGovernor";
@@ -79,7 +91,6 @@ export default function CanvasView() {
       "classic",
     ); // ephemeral previews project through canonical renderer inputs
     let tokens = readTokens();
-    let drag: DragOverride | null = null;
     let dirty = true;
     let renderLoop: ReturnType<typeof createDemandFrameLoop> | null = null;
     const invalidate = () => {
@@ -177,19 +188,8 @@ export default function CanvasView() {
     };
 
     // ---- pointer: drag cell vs pan (decided once at pointerdown) ----
-    let mode: "none" | "press" | "drag" | "pan" = "none";
+    const gesture = createCanvasGestureState<DragOverride, GroupTranslation, SpacePosition>();
     const activation = createCellActivationState();
-    let pressSX = 0;
-    let pressSY = 0;
-    let grabDX = 0;
-    let grabDY = 0;
-    let panSX = 0;
-    let panSY = 0;
-    let panCX = 0;
-    let panCY = 0;
-    let pressIntent: "replace" | "toggle" = "replace";
-    let groupTranslation: GroupTranslation | null = null;
-    let translatedPositions: SpacePosition[] = [];
     let hoveredId: string | null = null;
 
     const commitCamera = () => {
@@ -215,33 +215,21 @@ export default function CanvasView() {
       }
       if (hit) {
         const state = useLab.getState();
-        pressIntent = resolveSelectionIntent(e);
-        mode = "press";
-        pressSX = sx;
-        pressSY = sy;
-        drag = { id: hit.id, x: hit.x, y: hit.y };
-        grabDX = hit.x - p.x;
-        grabDY = hit.y - p.y;
-        if (pressIntent === "replace") {
-          if (state.selectedIds.includes(hit.id)) state.addToSelection(hit.id);
-          else state.replaceSelection(hit.id);
-          const selected = useLab.getState();
-          groupTranslation = createGroupTranslation(spaces, selected.selectedIds, hit.id);
-        } else {
-          const selectedIds = state.selectedIds.includes(hit.id)
-            ? state.selectedIds.filter((id) => id !== hit.id)
-            : [...state.selectedIds, hit.id];
-          groupTranslation = createGroupTranslation(spaces, selectedIds, hit.id);
-        }
-        translatedPositions = [];
+        const pressIntent = resolveSelectionIntent(e);
+        const selection = resolveCanvasPressSelection(state.selectedIds, hit.id, pressIntent);
+        if (selection.action === "add") state.addToSelection(hit.id);
+        else if (selection.action === "replace") state.replaceSelection(hit.id);
+        beginCanvasCellGesture(
+          gesture,
+          { sx, sy },
+          { id: hit.id, x: hit.x, y: hit.y },
+          createGroupTranslation(spaces, selection.selectedIds, hit.id),
+          pressIntent,
+        );
         canvas.style.cursor = "grabbing";
       } else {
         resetCellActivation(activation);
-        mode = "pan";
-        panSX = sx;
-        panSY = sy;
-        panCX = cam.x;
-        panCY = cam.y;
+        beginCanvasPanGesture(gesture, { sx, sy }, cam);
         if (selectedIds.length > 0) useLab.getState().clearSelection();
         canvas.style.cursor = "grabbing";
       }
@@ -251,7 +239,7 @@ export default function CanvasView() {
 
     const processMove = (e: PointerEvent) => {
       const { sx, sy } = local(e);
-      if (mode === "none") {
+      if (gesture.mode === "none") {
         const pointerWorld = toWorld(sx, sy);
         const nextHoveredId = hitTest(spaces, pointerWorld.x, pointerWorld.y)?.id ?? null;
         if (nextHoveredId !== hoveredId) {
@@ -261,31 +249,32 @@ export default function CanvasView() {
         canvas.style.cursor = nextHoveredId ? "grab" : "default";
         return;
       }
-      if (mode === "press" && Math.hypot(sx - pressSX, sy - pressSY) >= CELL_DRAG_THRESHOLD_PX) {
-        mode = "drag";
+      const transition = advanceCanvasGesture(gesture, { sx, sy }, CELL_DRAG_THRESHOLD_PX);
+      if (transition.enteredDrag) {
         useLab.getState().closeContextSurface();
-        if (drag && pressIntent === "toggle") {
+        if (gesture.drag && gesture.pressIntent === "toggle") {
           const state = useLab.getState();
-          state.toggleSelection(drag.id);
+          state.toggleSelection(gesture.drag.id);
           const selected = useLab.getState();
-          if (!selected.selectedIds.includes(drag.id)) state.replaceSelection(drag.id);
+          if (!selected.selectedIds.includes(gesture.drag.id)) state.replaceSelection(gesture.drag.id);
         }
       }
-      if (mode === "drag" && drag) {
-        const dragId = drag.id;
+      if (gesture.mode === "drag" && gesture.drag) {
+        const dragId = gesture.drag.id;
         const p = toWorld(sx, sy);
-        const translation = groupTranslation;
+        const translation = gesture.groupTranslation;
         const origin = translation?.before.find((position) => position.id === dragId);
         if (!translation || !origin) return;
-        const delta = { x: p.x + grabDX - origin.x, y: p.y + grabDY - origin.y };
-        translatedPositions = resolveGroupTranslationPositions(translation, delta);
-        const primary = translatedPositions.find((position) => position.id === dragId);
+        const pressWorld = toWorld(gesture.press?.sx ?? sx, gesture.press?.sy ?? sy);
+        const delta = { x: p.x - pressWorld.x, y: p.y - pressWorld.y };
+        gesture.translatedPositions = resolveGroupTranslationPositions(translation, delta);
+        const primary = gesture.translatedPositions.find((position) => position.id === dragId);
         if (!primary) return;
-        drag.x = primary.x;
-        drag.y = primary.y;
-      } else if (mode === "pan") {
-        cam.x = panCX - (sx - panSX) / cam.zoom;
-        cam.y = panCY - (sy - panSY) / cam.zoom;
+        gesture.drag.x = primary.x;
+        gesture.drag.y = primary.y;
+      } else if (gesture.mode === "pan" && gesture.pan) {
+        const nextCamera = resolveCanvasPanCamera(gesture, { sx, sy }, cam.zoom);
+        if (nextCamera) Object.assign(cam, nextCamera);
       }
       invalidate();
     };
@@ -301,39 +290,40 @@ export default function CanvasView() {
     };
 
     const onUp = (e: PointerEvent) => {
-      if (mode !== "none") {
+      if (gesture.mode !== "none") {
         moveScheduler.push(latestCoalescedPointerEvent(e));
         moveScheduler.flush();
       }
       const { sx, sy } = local(e);
-      if (mode === "press" && drag) {
+      const completed = completeCanvasGesture(gesture);
+      if (completed.mode === "press" && completed.drag) {
         const state = useLab.getState();
-        if (pressIntent === "toggle") {
-          state.toggleSelection(drag.id);
+        if (completed.pressIntent === "toggle") {
+          state.toggleSelection(completed.drag.id);
           resetCellActivation(activation);
         } else {
-          state.replaceSelection(drag.id);
-          if (registerCellActivation(activation, drag.id, sx, sy, performance.now(), false)) {
-            const projected = projectCanvasPoint(drag, cam, { width: w, height: h });
+          state.replaceSelection(completed.drag.id);
+          if (registerCellActivation(activation, completed.drag.id, sx, sy, performance.now(), false)) {
+            const projected = projectCanvasPoint(completed.drag, cam, { width: w, height: h });
             const client = projectClientPoint(projected, canvas.getBoundingClientRect());
-            state.openContextSurface("inline-editor", { x: client.x + 14, y: client.y + 18 }, drag.id);
+            state.openContextSurface("inline-editor", { x: client.x + 14, y: client.y + 18 }, completed.drag.id);
           }
         }
-        drag = null;
-      } else if (mode === "drag" && drag) {
-        if (groupTranslation && translatedPositions.length > 0) {
-          useLab.getState().commitSpaceTransform(groupTranslation.before, translatedPositions);
+      } else if (completed.mode === "drag" && completed.drag) {
+        if (completed.groupTranslation && completed.translatedPositions.length > 0) {
+          useLab.getState().commitSpaceTransform(completed.groupTranslation.before, completed.translatedPositions);
         }
-        registerCellActivation(activation, drag.id, sx, sy, performance.now(), true);
-        drag = null;
-        groupTranslation = null;
-        translatedPositions = [];
-      } else if (mode === "pan") {
+        registerCellActivation(activation, completed.drag.id, sx, sy, performance.now(), true);
+      } else if (completed.mode === "pan") {
         commitCamera();
       }
-      groupTranslation = null;
-      translatedPositions = [];
-      mode = "none";
+      canvas.style.cursor = "grab";
+      invalidate();
+    };
+
+    const onCancel = () => {
+      if (gesture.mode === "pan" && gesture.pan) Object.assign(cam, gesture.pan.camera);
+      cancelCanvasGesture(gesture);
       canvas.style.cursor = "grab";
       invalidate();
     };
@@ -341,11 +331,8 @@ export default function CanvasView() {
     const onContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       const secondaryButton = e.ctrlKey ? 2 : e.button;
-      if (!shouldOpenContextFromGesture(secondaryButton, mode === "drag")) return;
-      mode = "none";
-      drag = null;
-      groupTranslation = null;
-      translatedPositions = [];
+      if (!shouldOpenContextFromGesture(secondaryButton, gesture.mode === "drag")) return;
+      cancelCanvasGesture(gesture);
       resetCellActivation(activation);
       const { sx, sy } = local(e);
       const p = toWorld(sx, sy);
@@ -375,13 +362,13 @@ export default function CanvasView() {
       cam.y = before.y - (sy - h / 2) / cam.zoom;
       invalidate();
       window.clearTimeout(camCommit);
-      camCommit = window.setTimeout(commitCamera, 160);
+      camCommit = window.setTimeout(commitCamera, CAMERA_COMMIT_DELAY_MS);
     };
     const wheelScheduler = createFrameScheduler<WheelFrame>({
       schedule: (callback) => requestAnimationFrame(callback),
       cancel: (id) => cancelAnimationFrame(id),
       process: processWheel,
-      merge: (queued, incoming) => ({ ...incoming, deltaY: queued.deltaY + incoming.deltaY }),
+      merge: mergeCanvasWheelFrame,
     });
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -392,7 +379,7 @@ export default function CanvasView() {
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerup", onUp);
-    canvas.addEventListener("pointercancel", onUp);
+    canvas.addEventListener("pointercancel", onCancel);
     canvas.addEventListener("wheel", onWheel, { passive: false });
     canvas.addEventListener("contextmenu", onContextMenu);
 
@@ -424,10 +411,10 @@ export default function CanvasView() {
       dirty = false;
       // Organism style/attachment transitions keep settling for a few frames.
       if (!firstUsableFrame) announceReadiness("render-requested");
-      const renderSpaces = translatedPositions.length > 0
-        ? applySpacePositionsPreview(spaces, translatedPositions)
+      const renderSpaces = gesture.translatedPositions.length > 0
+        ? applySpacePositionsPreview(spaces, gesture.translatedPositions)
         : spaces;
-      if (drawScene(ctx, w, h, dpr, cam, renderSpaces, selectedId, drag, tokens, now, settings, {
+      if (drawScene(ctx, w, h, dpr, cam, renderSpaces, selectedId, gesture.drag, tokens, now, settings, {
         includeLabels: settings.organism.showLabels && settings.annotationMode !== "hidden",
         selectedIds,
         hoveredId,
@@ -462,7 +449,7 @@ export default function CanvasView() {
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
-      canvas.removeEventListener("pointercancel", onUp);
+      canvas.removeEventListener("pointercancel", onCancel);
       canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("contextmenu", onContextMenu);
     };
