@@ -40,6 +40,7 @@ import {
   TABLE_FILE_ACCEPT,
   canImportTablePreview,
   clearTableFileInput,
+  downloadTableCsvTemplate,
   downloadTableTemplate,
   parseTableFile,
   type ParsedTableFile,
@@ -738,7 +739,8 @@ export default function TableView() {
   const [rowsReady, setRowsReady] = useState(false);
   const [query, setQuery] = useState("");
   const [dragActive, setDragActive] = useState(false);
-  const [templateLoading, setTemplateLoading] = useState(false);
+  const [xlsxTemplateLoading, setXlsxTemplateLoading] = useState(false);
+  const [csvTemplateLoading, setCsvTemplateLoading] = useState(false);
   const [loadingFilename, setLoadingFilename] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [reviewFile, setReviewFile] = useState<ParsedTableFile | null>(null);
@@ -763,16 +765,29 @@ export default function TableView() {
     };
   }, []);
 
-  const handleDownloadTemplate = async () => {
-    if (templateLoading) return;
-    setTemplateLoading(true);
+  const handleDownloadXlsxTemplate = async () => {
+    if (xlsxTemplateLoading) return;
+    setXlsxTemplateLoading(true);
     try {
       await downloadTableTemplate();
-      toast.success("Template downloaded");
+      toast.success("XLSX template downloaded");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Template download failed.");
     } finally {
-      setTemplateLoading(false);
+      setXlsxTemplateLoading(false);
+    }
+  };
+
+  const handleDownloadCsvTemplate = async () => {
+    if (csvTemplateLoading) return;
+    setCsvTemplateLoading(true);
+    try {
+      await downloadTableCsvTemplate();
+      toast.success("CSV template downloaded");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Template download failed.");
+    } finally {
+      setCsvTemplateLoading(false);
     }
   };
 
@@ -995,23 +1010,36 @@ export default function TableView() {
                 </span>
                 <div>
                   <h2>Download template</h2>
-                  <p>XLSX · SPACES + README</p>
+                  <p>CSV or XLSX · stable No. column</p>
                 </div>
               </div>
               <p className="table-download-card__copy">
                 Name and Area are required. Optional fields are included.
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadTemplate}
-                disabled={templateLoading}
-              >
-                {templateLoading
-                  ? <LoaderCircle className="animate-spin" />
-                  : <Download />}
-                {templateLoading ? "Preparing…" : "Download XLSX"}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadXlsxTemplate}
+                  disabled={xlsxTemplateLoading}
+                >
+                  {xlsxTemplateLoading
+                    ? <LoaderCircle className="animate-spin" />
+                    : <Download />}
+                  {xlsxTemplateLoading ? "Preparing…" : "Download XLSX"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadCsvTemplate}
+                  disabled={csvTemplateLoading}
+                >
+                  {csvTemplateLoading
+                    ? <LoaderCircle className="animate-spin" />
+                    : <Download />}
+                  {csvTemplateLoading ? "Preparing…" : "Download CSV"}
+                </Button>
+              </div>
             </aside>
           </div>
         </section>

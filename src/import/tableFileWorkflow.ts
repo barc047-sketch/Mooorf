@@ -2,6 +2,7 @@ import type * as Xlsx from "xlsx";
 import { parseCsvTable, parseWorksheetTable, type TablePreview } from "./tableImport";
 
 export const TABLE_TEMPLATE_FILENAME = "mooorf-space-schedule-template.xlsx";
+export const TABLE_CSV_TEMPLATE_FILENAME = "mooorf-space-schedule-template.csv";
 export const TABLE_FILE_ACCEPT = ".csv,.xlsx,.xls";
 
 type XlsxModule = typeof Xlsx;
@@ -44,6 +45,18 @@ const README_ROWS = [
   ["Do not rename the SPACES sheet unnecessarily."],
 ];
 
+const csvCell = (value: string | number): string => {
+  const text = String(value);
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+};
+
+/** A UTF-8 counterpart of the workbook's SPACES sheet; both formats draw from
+ * the same headers and examples so schedule templates cannot drift. */
+export const buildTableTemplateCsv = (): string =>
+  [TEMPLATE_HEADERS, ...TEMPLATE_ROWS]
+    .map((row) => row.map(csvCell).join(","))
+    .join("\r\n") + "\r\n";
+
 export const buildTableTemplateWorkbook = (XLSX: XlsxModule): Xlsx.WorkBook => {
   const workbook = XLSX.utils.book_new();
   const spacesSheet = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, ...TEMPLATE_ROWS]);
@@ -79,6 +92,14 @@ export const downloadTableTemplate = async (): Promise<void> => {
       { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
     ),
     TABLE_TEMPLATE_FILENAME,
+  );
+};
+
+export const downloadTableCsvTemplate = async (): Promise<void> => {
+  const { saveAs } = await import("file-saver");
+  saveAs(
+    new Blob([buildTableTemplateCsv()], { type: "text/csv;charset=utf-8" }),
+    TABLE_CSV_TEMPLATE_FILENAME,
   );
 };
 

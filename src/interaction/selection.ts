@@ -74,6 +74,13 @@ export const shouldCloseFromOutsidePointer = (
   pointerInsideSurface: boolean
 ): boolean => contextOpen && !pointerInsideSurface;
 
+/** Let a focused enabled radial action receive its native Enter activation;
+ * otherwise Enter is a compact, deterministic dismissal shortcut. */
+export const shouldCloseRadialFromEnter = (
+  contextSurface: ContextSurface,
+  focusedEnabledAction: boolean,
+): boolean => contextSurface === "object-radial" && !focusedEnabledAction;
+
 export type SelectionRingState = "none" | "hover" | "primary" | "secondary";
 
 /** Presentation-only selection language. Selected state always wins over

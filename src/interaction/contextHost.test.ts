@@ -15,6 +15,9 @@ ok(host.includes("DropdownMenu"), "blank context uses the existing Base UI dropd
 ok(host.includes("getContextActions"), "host derives menu presentation from the canonical registry");
 ok(host.includes("executeContextCommand"), "host delegates product commands to the command layer");
 ok(host.includes("InlineCellEditor"), "root host opens the existing shared inline editor");
+ok(host.includes("shouldCloseRadialFromEnter"), "the root host owns plain-Enter radial dismissal without a second listener");
+ok(host.includes("selectedIds.includes(contextTargetId)"), "selection replacement cannot leave a radial menu floating");
+ok(host.includes("closeContextSurface"), "enabled radial actions and outside interactions resolve through the host close action");
 ok(radial.includes("layoutRadialActions"), "object menu uses the adaptive radial layout helper");
 ok(!radial.includes("selection-command-core"), "object radial has no centre object");
 ok(radial.includes("data-empty-centre=\"true\""), "object radial explicitly preserves an empty centre");

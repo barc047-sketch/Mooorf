@@ -19,6 +19,7 @@ import { executeContextCommand } from "../../interaction/contextCommands";
 import {
   resolveEscapeAction,
   shouldCloseFromOutsidePointer,
+  shouldCloseRadialFromEnter,
 } from "../../interaction/selection";
 import "./contextSurfaces.css";
 
@@ -35,6 +36,7 @@ export default function ContextSurfaceHost() {
   const contextSurface = useLab((state) => state.contextSurface);
   const contextPoint = useLab((state) => state.contextPoint);
   const contextTargetId = useLab((state) => state.contextTargetId);
+  const selectedIds = useLab((state) => state.selectedIds);
   const spaces = useLab((state) => state.spaces);
   const closeContextSurface = useLab((state) => state.closeContextSurface);
   const intake = useFileIntake();
@@ -66,6 +68,12 @@ export default function ContextSurfaceHost() {
   }, [contextSurface, target, closeContextSurface]);
 
   useEffect(() => {
+    if (contextSurface === "object-radial" && contextTargetId && !selectedIds.includes(contextTargetId)) {
+      closeContextSurface();
+    }
+  }, [contextSurface, contextTargetId, selectedIds, closeContextSurface]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const state = useLab.getState();
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "z" && !editableTarget(event.target)) {
@@ -88,6 +96,16 @@ export default function ContextSurfaceHost() {
           event.preventDefault();
           event.stopImmediatePropagation();
           state.clearSelection();
+        }
+        return;
+      }
+      if (event.key === "Enter") {
+        const element = event.target instanceof Element ? event.target : null;
+        const focusedEnabledAction = Boolean(element?.closest("button.object-radial-action:not(:disabled)"));
+        if (shouldCloseRadialFromEnter(state.contextSurface, focusedEnabledAction)) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          state.closeContextSurface();
         }
         return;
       }

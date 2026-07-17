@@ -6,6 +6,7 @@ import {
   resolveEscapeAction,
   resolveSelectionIntent,
   shouldCloseFromOutsidePointer,
+  shouldCloseRadialFromEnter,
   visibleSelectableIds,
 } from "./selection";
 import {
@@ -56,6 +57,9 @@ for (const count of [6, 7, 8]) {
 
 assert.equal(shouldCloseFromOutsidePointer(true, false), true, "outside pointer closes an open context surface");
 assert.equal(shouldCloseFromOutsidePointer(true, true), false, "inside pointer preserves the context surface");
+assert.equal(shouldCloseRadialFromEnter("object-radial", false), true, "plain Enter closes an open radial menu");
+assert.equal(shouldCloseRadialFromEnter("object-radial", true), false, "Enter preserves an intentionally focused radial action");
+assert.equal(shouldCloseRadialFromEnter("blank-menu", false), false, "plain Enter does not alter the blank menu keyboard contract");
 assert.equal(resolveEscapeAction("object-radial", ["a"]), "close-context", "Escape closes context first");
 assert.equal(resolveEscapeAction(null, ["a"]), "clear-selection", "next Escape clears selection");
 assert.equal(resolveEscapeAction(null, []), "none", "Escape is inert without context or selection");

@@ -6,6 +6,7 @@ import { calculateVirtualRowWindow } from "../views/TableView";
 import { applySpaceSchedule } from "./projectTransfer";
 import {
   TABLE_TEMPLATE_FILENAME,
+  buildTableTemplateCsv,
   buildTableTemplateWorkbook,
   canImportTablePreview,
   clearTableFileInput,
@@ -57,6 +58,14 @@ test("template workbook contains the SPACES schema, examples, and README guidanc
   assert.match(guidance, /space or void/i);
   assert.match(guidance, /Duplicate No\. values are reassigned/i);
   assert.match(guidance, /Do not rename the SPACES sheet unnecessarily/i);
+});
+
+test("CSV template reuses the schedule schema and preserves stable Space Nos", () => {
+  const csv = buildTableTemplateCsv();
+  const preview = parseCsvTable(csv);
+  assert.equal(csv.split("\r\n")[0], "id,no,name,area,body,category,privacy,kind,color,x,y");
+  assert.deepEqual(preview.rows.map((row) => row.spaceCode), ["01", "02", "03"]);
+  assert.equal(preview.errorCount, 0, "CSV template is immediately importable");
 });
 
 test("CSV and XLSX uploads reuse the table parsers and select one worksheet", async () => {

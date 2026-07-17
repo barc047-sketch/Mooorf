@@ -57,6 +57,8 @@ test("Table owns the approved workspace structure and drop target", () => {
   assert.match(tableSource, /event\.stopPropagation\(\)/);
   assert.match(tableSource, /Search spaces…/);
   assert.match(tableSource, /visibleSpaces\.length/);
+  assert.match(tableSource, /Download XLSX/);
+  assert.match(tableSource, /Download CSV/);
 });
 
 test("Table CSS protects the 35/65 vertical and 70/30 card splits", () => {
