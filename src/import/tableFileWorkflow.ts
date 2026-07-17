@@ -14,6 +14,7 @@ export interface ParsedTableFile {
 }
 
 const TEMPLATE_HEADERS = [
+  "spaceCode",
   "id",
   "name",
   "area",
@@ -27,15 +28,16 @@ const TEMPLATE_HEADERS = [
 ];
 
 const TEMPLATE_ROWS = [
-  ["studio-a", "Studio", 80, "Open creative workspace", "Work", "shared", "space", "#c8a56a", 120, 140],
-  ["meeting-b", "Meeting Room", 28, "Eight-person meeting room", "Public", "public", "space", "#8aa8b8", 280, 180],
-  ["courtyard-c", "Courtyard", 45, "Open-air shared space", "Outdoor", "shared", "void", "#9cad88", "", ""],
+  ["01", "studio-a", "Studio", 80, "Open creative workspace", "Work", "shared", "space", "#c8a56a", 120, 140],
+  ["02", "meeting-b", "Meeting Room", 28, "Eight-person meeting room", "Public", "public", "space", "#8aa8b8", 280, 180],
+  ["03", "courtyard-c", "Courtyard", 45, "Open-air shared space", "Outdoor", "shared", "void", "#9cad88", "", ""],
 ];
 
 const README_ROWS = [
   ["MOOORF Space Schedule Template"],
   [""],
   ["Name and Area are required."],
+  ["Space No. (spaceCode) is optional and remains attached to the Cell when supplied."],
   ["Area must be a positive number in m²."],
   ["Privacy: public, shared, private."],
   ["Kind: space or void."],
@@ -47,6 +49,7 @@ export const buildTableTemplateWorkbook = (XLSX: XlsxModule): Xlsx.WorkBook => {
   const workbook = XLSX.utils.book_new();
   const spacesSheet = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, ...TEMPLATE_ROWS]);
   spacesSheet["!cols"] = [
+    { wch: 12 },
     { wch: 16 },
     { wch: 24 },
     { wch: 12 },
@@ -59,7 +62,7 @@ export const buildTableTemplateWorkbook = (XLSX: XlsxModule): Xlsx.WorkBook => {
     { wch: 10 },
   ];
   const readmeSheet = XLSX.utils.aoa_to_sheet(README_ROWS);
-  readmeSheet["!cols"] = [{ wch: 62 }];
+  readmeSheet["!cols"] = [{ wch: 76 }];
   XLSX.utils.book_append_sheet(workbook, spacesSheet, "SPACES");
   XLSX.utils.book_append_sheet(workbook, readmeSheet, "README");
   return workbook;
