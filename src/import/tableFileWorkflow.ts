@@ -15,6 +15,7 @@ export interface ParsedTableFile {
 
 const TEMPLATE_HEADERS = [
   "id",
+  "no",
   "name",
   "area",
   "body",
@@ -27,9 +28,9 @@ const TEMPLATE_HEADERS = [
 ];
 
 const TEMPLATE_ROWS = [
-  ["studio-a", "Studio", 80, "Open creative workspace", "Work", "shared", "space", "#c8a56a", 120, 140],
-  ["meeting-b", "Meeting Room", 28, "Eight-person meeting room", "Public", "public", "space", "#8aa8b8", 280, 180],
-  ["courtyard-c", "Courtyard", 45, "Open-air shared space", "Outdoor", "shared", "void", "#9cad88", "", ""],
+  ["studio-a", "01", "Studio", 80, "Open creative workspace", "Work", "shared", "space", "#c8a56a", 120, 140],
+  ["meeting-b", "02", "Meeting Room", 28, "Eight-person meeting room", "Public", "public", "space", "#8aa8b8", 280, 180],
+  ["courtyard-c", "03", "Courtyard", 45, "Open-air shared space", "Outdoor", "shared", "void", "#9cad88", "", ""],
 ];
 
 const README_ROWS = [
@@ -39,7 +40,7 @@ const README_ROWS = [
   ["Area must be a positive number in m²."],
   ["Privacy: public, shared, private."],
   ["Kind: space or void."],
-  ["ID, body, color, x and y are optional."],
+  ["ID, No., body, color, x and y are optional. Duplicate No. values are reassigned."],
   ["Do not rename the SPACES sheet unnecessarily."],
 ];
 

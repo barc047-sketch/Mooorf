@@ -1,8 +1,9 @@
 import Papa from "papaparse";
 import { scatterPoint } from "../lib/geometry";
 import type { Privacy, SpaceCell, SpaceKind } from "../types";
+import { ensureSpaceCodes, normalizeSpaceCode } from "../domain/spaceCode";
 
-export type ImportField = "id" | "name" | "area" | "body" | "category" | "privacy" | "kind" | "color" | "x" | "y";
+export type ImportField = "id" | "spaceCode" | "name" | "area" | "body" | "category" | "privacy" | "kind" | "color" | "x" | "y";
 export type ColumnMapping = Partial<Record<ImportField, number>>;
 export type TableImportMode = "replace" | "merge-id" | "merge-name" | "append";
 export const MAX_TABLE_ROWS = 50_000;
@@ -10,6 +11,7 @@ export const MAX_TABLE_ROWS = 50_000;
 export interface ImportedSpaceRow {
   sourceRow: number;
   id?: string;
+  spaceCode?: string;
   name: string;
   area: number;
   body: string;
@@ -42,6 +44,7 @@ export interface TablePreview {
 
 const ALIASES: Record<ImportField, readonly string[]> = {
   id: ["id", "space id", "room id"],
+  spaceCode: ["no", "no.", "space no", "space no.", "space number", "space code"],
   name: ["name", "space", "space name", "room", "room name"],
   area: ["area", "area m2", "area m²", "area sqm", "sqm", "m2", "m²"],
   body: ["body", "description", "notes"],
@@ -100,6 +103,7 @@ const parseRows = (
   }
   const seenIds = new Map<string, number>();
   const seenNames = new Map<string, number>();
+  const seenCodes = new Map<string, number>();
   if (headerRow < 0 || mapping.name === undefined || mapping.area === undefined) {
     diagnostics.push({ row: Math.max(1, headerRow + 1), level: "error", message: "Could not identify required Name and Area columns." });
     return { sheetName, headers: headerRow >= 0 ? sourceRows[headerRow].map(cleanText) : [], sourceRows, headerRow, mapping, rows, diagnostics, validCount: 0, warningCount: 0, errorCount: 1 };
@@ -120,11 +124,14 @@ const parseRows = (
       continue;
     }
     const id = mapping.id === undefined ? "" : cleanText(source[mapping.id], 160);
+    const spaceCode = mapping.spaceCode === undefined ? "" : normalizeSpaceCode(source[mapping.spaceCode]);
     const normalizedName = normalize(name);
     if (id && seenIds.has(id)) diagnostics.push({ row: sourceRow, level: "warning", message: `Duplicate ID "${id}" (first seen at row ${seenIds.get(id)}).` });
     if (seenNames.has(normalizedName)) diagnostics.push({ row: sourceRow, level: "warning", message: `Duplicate name "${name}" (first seen at row ${seenNames.get(normalizedName)}).` });
+    if (spaceCode && seenCodes.has(spaceCode)) diagnostics.push({ row: sourceRow, level: "warning", message: `Duplicate Space No. "${spaceCode}" (first seen at row ${seenCodes.get(spaceCode)}).` });
     if (id && !seenIds.has(id)) seenIds.set(id, sourceRow);
     if (!seenNames.has(normalizedName)) seenNames.set(normalizedName, sourceRow);
+    if (spaceCode && !seenCodes.has(spaceCode)) seenCodes.set(spaceCode, sourceRow);
     const privacyText = mapping.privacy === undefined ? "shared" : normalize(source[mapping.privacy]);
     const privacy: Privacy = privacyText === "public" || privacyText === "private" || privacyText === "shared" ? privacyText : "shared";
     if (privacyText && privacyText !== privacy) diagnostics.push({ row: sourceRow, level: "warning", message: `Unknown privacy "${privacyText}" normalized to shared.` });
@@ -141,6 +148,7 @@ const parseRows = (
     rows.push({
       sourceRow,
       id: id || undefined,
+      spaceCode: spaceCode || undefined,
       name,
       area,
       body: mapping.body === undefined ? "" : cleanText(source[mapping.body], 1200),
@@ -206,6 +214,7 @@ const newSpace = (row: ImportedSpaceRow, index: number, used: Set<string>): Spac
   const point = scatterPoint(index);
   return {
     id: uniqueId(row.id ?? "", used, `import-${index + 1}`),
+    spaceCode: row.spaceCode,
     name: row.name,
     area: row.area,
     body: row.body,
@@ -237,7 +246,7 @@ export const applyTableImport = (
         : -1;
     if (matchIndex >= 0) {
       const current = base[matchIndex];
-      base[matchIndex] = { ...current, name: row.name, area: row.area, body: row.body, category: row.category, privacy: row.privacy, kind: row.kind, color: row.color || current.color, x: row.x ?? current.x, y: row.y ?? current.y };
+      base[matchIndex] = { ...current, spaceCode: row.spaceCode ?? current.spaceCode, name: row.name, area: row.area, body: row.body, category: row.category, privacy: row.privacy, kind: row.kind, color: row.color || current.color, x: row.x ?? current.x, y: row.y ?? current.y };
       updated += 1;
       continue;
     }
@@ -248,5 +257,5 @@ export const applyTableImport = (
     base.push(newSpace(row, base.length, used));
     added += 1;
   }
-  return { spaces: base, added, updated, ignored };
+  return { spaces: ensureSpaceCodes(base), added, updated, ignored };
 };

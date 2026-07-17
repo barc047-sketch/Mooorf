@@ -10,9 +10,10 @@ import { DEFAULT_CELL_SHADOW, normalizeCellShadow } from "../canvas/cellShadow";
 export const normalizeLabelScaleMode = (
   value: unknown,
   legacyRenderer: RendererMode = "organism"
-): LabelScaleMode => value === "screen" || value === "adaptive" || value === "world"
-  ? value
-  : legacyRenderer === "classic" ? "world" : "screen";
+): LabelScaleMode => {
+  void legacyRenderer;
+  return value === "screen" || value === "adaptive" || value === "world" ? value : "world";
+};
 
 export const normalizeLabelColourMode = (value: unknown): LabelColourMode =>
   value === "black" || value === "white" || value === "custom" ? value : "auto";
@@ -33,4 +34,3 @@ export const normalizeLegacyCellShadow = (
   : renderer === "classic"
     ? normalizeCellShadow({ ...DEFAULT_CELL_SHADOW, enabled: true, mode: "soft" })
     : { ...DEFAULT_CELL_SHADOW };
-

@@ -91,12 +91,20 @@ export function filterTableSpaces(
   if (!needle) return spaces;
   return spaces.filter((space) => [
     space.id,
+    space.spaceCode ?? "",
     space.name,
     space.body ?? "",
     space.category,
     space.privacy,
     space.kind ?? "space",
   ].some((value) => value.toLowerCase().includes(needle)));
+}
+
+function SpaceNoCell({ cell }: { cell: SpaceCell }) {
+  const updateSpace = useLab((s) => s.updateSpace);
+  const [draft, setDraft] = useState(cell.spaceCode ?? "");
+  useEffect(() => setDraft(cell.spaceCode ?? ""), [cell.spaceCode]);
+  return <Input className="h-7 w-16 tabular-nums" value={draft} onChange={(event) => setDraft(event.target.value)} onBlur={() => updateSpace(cell.id, { spaceCode: draft })} aria-label={`Space No. of ${cell.name}`} />;
 }
 
 type VirtualRowWindow = {
@@ -287,7 +295,7 @@ function Row({
       data-row-index={index}
     >
       <TableCell className="text-muted-foreground tabular-nums">
-        {String(index + 1).padStart(2, "0")}
+        <SpaceNoCell cell={cell} />
       </TableCell>
       <TableCell>
         <span className="table-kind-chip" data-kind={kind}>
@@ -381,7 +389,7 @@ function TableRowsSkeleton() {
     <TableBody data-table-rows-ready="false" aria-hidden="true">
       {Array.from({ length: 11 }, (_, row) => (
         <TableRow className="border-0" key={row}>
-          <TableCell colSpan={11} className="p-0">
+          <TableCell colSpan={12} className="p-0">
             <div className="table-skeleton__row">
               {Array.from({ length: 5 }, (_, column) => <span key={column} />)}
             </div>
@@ -494,7 +502,7 @@ function VirtualizedTableBody({
           style={{ height: virtualWindow.topSpacerHeight }}
         >
           <td
-            colSpan={11}
+            colSpan={12}
             style={{ height: virtualWindow.topSpacerHeight, padding: 0 }}
           />
         </tr>
@@ -518,7 +526,7 @@ function VirtualizedTableBody({
           style={{ height: virtualWindow.bottomSpacerHeight }}
         >
           <td
-            colSpan={11}
+            colSpan={12}
             style={{ height: virtualWindow.bottomSpacerHeight, padding: 0 }}
           />
         </tr>
@@ -526,7 +534,7 @@ function VirtualizedTableBody({
       {spaces.length === 0 && (
         <TableRow>
           <TableCell
-            colSpan={11}
+            colSpan={12}
             className="py-10 text-center text-muted-foreground"
           >
             {emptyMessage}
@@ -1034,7 +1042,7 @@ export default function TableView() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10">#</TableHead>
+                  <TableHead className="w-20">No.</TableHead>
                   <TableHead className="w-16">type</TableHead>
                   <TableHead>name</TableHead>
                   <TableHead>area m²</TableHead>

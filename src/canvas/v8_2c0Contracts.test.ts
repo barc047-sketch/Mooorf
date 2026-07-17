@@ -9,6 +9,8 @@ import { resolveLabelContrast } from "../design/labelContrast";
 import { DEFAULT_CELL_SHADOW, normalizeCellShadow, resolveCellShadow } from "./cellShadow";
 import { resolveWidgetOpen } from "../ui/widgets/widgetLifecycle";
 import { layoutRadialActions } from "../interaction/radialLayout";
+import { CELL_LABEL_SCALE_OPTIONS, resolveCellLabelToken } from "../domain/labels/foundation";
+import { normalizeLabelScaleMode } from "../state/visualSettings";
 
 const cell = (patch: Partial<SpaceCell> = {}): SpaceCell => ({
   id: "space-a",
@@ -119,13 +121,25 @@ assert.deepEqual(radial.center, { x: 4, y: 4 }, "radial semantic centre is never
 assert.equal(radial.nodes.every((node) => node.x >= 20 && node.x <= 300 && node.y >= 20 && node.y <= 220), true, "individual action buttons remain in the viewport");
 assert.equal(radial.nodes.some((node) => node.x === radial.center.x && node.y === radial.center.y), false, "radial has no centre object");
 
-// SETTINGS — plain new-project startup, screen labels, Auto Contrast, no Cell Shadow or Motion.
+// SETTINGS — plain new-project startup, Cell-scaled labels, Auto Contrast, no Cell Shadow or Motion.
 const defaults = useLab.getState().settings;
 assert.equal(defaults.blobOn, false, "new projects start with Morph off");
-assert.equal(defaults.labelScaleMode, "screen", "new projects start with screen-fixed labels");
+assert.equal(defaults.labelScaleMode, "world", "new projects start with labels scaled with their Cells");
 assert.equal(defaults.labelColourMode, "auto", "new projects start with Auto Contrast");
 assert.equal(defaults.cellShadow.mode, "off", "new projects start with Cell Shadow off");
 assert.equal(defaults.organism.drift + defaults.organism.breathing + defaults.organism.wobble, 0, "new projects start with Motion off");
+assert.deepEqual(
+  CELL_LABEL_SCALE_OPTIONS,
+  [
+    { id: "world", label: "Scale with Cell" },
+    { id: "adaptive", label: "Auto" },
+    { id: "screen", label: "Keep readable" },
+  ],
+  "Cell label foundation exposes all three scale contracts",
+);
+assert.equal(normalizeLabelScaleMode("invalid"), "world", "legacy or invalid label scales migrate to Cell scaling");
+assert.equal(resolveCellLabelToken(cell({ spaceCode: "07", body: "North light" }), "no"), "07", "label foundation reads the stable Space No.");
+assert.equal(resolveCellLabelToken(cell({ spaceCode: "07", body: "North light" }), "body"), "North light", "label foundation reads authored body content");
 
 const classicSource = readFileSync(new URL("./CanvasView.tsx", import.meta.url), "utf8");
 const organismSource = readFileSync(new URL("./OrganismCanvasView.tsx", import.meta.url), "utf8");

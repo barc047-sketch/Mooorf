@@ -30,6 +30,7 @@ import { areaToRadius, clamp, scatterPoint } from "../lib/geometry";
 import { DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
 import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
+import { allocateSpaceCode, ensureSpaceCodes, normalizeSpaceCode } from "../domain/spaceCode";
 import { placeBatchCells } from "../canvas/layoutPresets";
 import { calculateArrangement, isLegacyLayoutPreset, regenerateArrangementSeed, resolveArrangementScope } from "../arrangement/engine";
 import { arrangementRuntime } from "../arrangement/runtime";
@@ -629,6 +630,7 @@ const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
   const kind = normalizeSpaceKind(partial?.kind);
   return {
     id: uid(),
+    spaceCode: partial?.spaceCode ? normalizeSpaceCode(partial.spaceCode) : undefined,
     name: kind === "void" ? "Void Nucleus" : "New Space",
     body: "",
     kind,
@@ -661,7 +663,7 @@ export const useLab = create<LabState>((set) => ({
     layoutPreset: "organic",
     annotationMode: "editorial",
     annotationDetail: { ...DEFAULT_ANNOTATION_DETAIL },
-    labelScaleMode: "screen",
+    labelScaleMode: "world",
     labelColourMode: "auto",
     labelCustomColour: "#171719",
     cellShadow: { ...DEFAULT_CELL_SHADOW },
@@ -879,7 +881,7 @@ export const useLab = create<LabState>((set) => ({
 
   addSpace: (partial) =>
     set((s) => {
-      const cell = makeCell(s.spaces.length, partial);
+      const cell = makeCell(s.spaces.length, { ...partial, spaceCode: partial?.spaceCode ?? allocateSpaceCode(s.spaces) });
       return {
         spaces: [...s.spaces, cell],
         ...replaceSelectionState(cell.id),
@@ -890,6 +892,7 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const cell = makeCell(s.spaces.length, {
         kind: "void",
+        spaceCode: allocateSpaceCode(s.spaces),
         x: s.camera.x,
         y: s.camera.y,
       });
@@ -909,7 +912,8 @@ export const useLab = create<LabState>((set) => ({
           born: now + k * 45,
         })
       );
-      const added = placeBatchCells(s.spaces, candidates, { x: s.camera.x, y: s.camera.y });
+      const positioned = placeBatchCells(s.spaces, candidates, { x: s.camera.x, y: s.camera.y });
+      const added = ensureSpaceCodes([...s.spaces, ...positioned]).slice(s.spaces.length);
       const beforeSelection: SelectionSnapshot = {
         selectedIds: [...s.selectedIds],
         primarySelectedId: s.primarySelectedId,
@@ -938,6 +942,7 @@ export const useLab = create<LabState>((set) => ({
       const source = s.spaces.find((space) => space.id === id);
       if (!source) return {};
       const duplicate = makeCell(s.spaces.length, {
+        spaceCode: allocateSpaceCode(s.spaces),
         name: `${source.name} Copy`,
         body: source.body ?? "",
         kind: source.kind,
@@ -974,9 +979,12 @@ export const useLab = create<LabState>((set) => ({
     }),
 
   updateSpace: (id, patch) =>
-    set((s) => ({
-      spaces: s.spaces.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-    })),
+    set((s) => {
+      const requested = patch.spaceCode === undefined ? undefined : normalizeSpaceCode(patch.spaceCode);
+      const otherCodes = s.spaces.filter((space) => space.id !== id);
+      const code = requested === undefined ? undefined : (requested && !otherCodes.some((space) => space.spaceCode === requested) ? requested : allocateSpaceCode(otherCodes));
+      return { spaces: s.spaces.map((c) => (c.id === id ? { ...c, ...patch, ...(code === undefined ? {} : { spaceCode: code }) } : c)) };
+    }),
 
   commitSpaceEdit: (id, patch) =>
     set((s) => {

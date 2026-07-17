@@ -56,14 +56,15 @@ equal(
 
 // ---- csv ----
 const spaces: SpaceCell[] = [
-  { id: "a", name: "Kitchen", area: 20, category: "Service", privacy: "shared", color: "#000", x: 1, y: 2 },
-  { id: "b", name: "Void Nucleus", kind: "void", area: 36, category: "Void", privacy: "shared", color: "#111", x: -1, y: 0 },
-  { id: "c", name: 'Quote"s, comma', area: Number.NaN, category: "Test", privacy: "private", color: "#222", x: 0, y: 0 },
+  { id: "a", spaceCode: "01", name: "Kitchen", area: 20, category: "Service", privacy: "shared", color: "#000", x: 1, y: 2 },
+  { id: "b", spaceCode: "02", name: "Void Nucleus", kind: "void", area: 36, category: "Void", privacy: "shared", color: "#111", x: -1, y: 0 },
+  { id: "c", spaceCode: "03", name: 'Quote"s, comma', area: Number.NaN, category: "Test", privacy: "private", color: "#222", x: 0, y: 0 },
 ];
 const csv = spacesToCsv(spaces);
 const csvLines = csv.trim().split("\r\n");
-equal(csvLines[0], "id,name,area,category,privacy,kind,color,x,y", "CSV header order");
+equal(csvLines[0], "id,no,name,area,category,privacy,kind,color,x,y", "CSV header order includes the stable Space No.");
 equal(csvLines.length, 4, "one row per space plus header");
+ok(csvLines[1].startsWith("a,01,Kitchen,"), "CSV preserves authored Space Nos independently from row order");
 ok(csv.includes('"Quote""s, comma"'), "CSV escapes embedded quotes/commas");
 ok(csvLines[2].includes(",void,"), "void kind is labeled explicitly");
 ok(csvLines[3].includes(",0,"), "NaN area serializes as 0, never NaN");

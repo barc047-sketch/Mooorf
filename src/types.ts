@@ -202,6 +202,8 @@ export type OrgPanelFocus = "annotation" | "style" | "organism" | "display" | nu
 
 export interface SpaceCell {
   id: string;
+  /** Stable user-authored Space No.; independent from row order and geometry. */
+  spaceCode?: string;
   name: string;
   /** M1 architectural subtext. It is content only and never drives geometry. */
   body?: string;

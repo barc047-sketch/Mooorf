@@ -1,6 +1,7 @@
 import { buildCurrentProjectSnapshot, download } from "../export/exportService";
 import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import { useLab, type LabSettings } from "../state/store";
+import { ensureSpaceCodes } from "../domain/spaceCode";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme, ViewMode } from "../types";
 import { normalizeSelectionState, replaceSelectionState } from "../interaction/selection";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
@@ -163,7 +164,7 @@ export const applySpaceSchedule = (spaces: readonly SpaceCell[]): RecoverySnapsh
   try {
     useLab.getState().cancelArrangementPreview();
     useLab.setState({
-      spaces: cloneSpaces(spaces),
+      spaces: ensureSpaceCodes(cloneSpaces(spaces)),
       ...replaceSelectionState(null),
       contextSurface: null,
       contextPoint: null,

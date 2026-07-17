@@ -37,11 +37,12 @@ const common = <T,>(values: readonly T[]): { value: T | undefined; mixed: boolea
 
 function ContentField({ label, field, spaces }: {
   label: string;
-  field: "name" | "area" | "body";
+  field: "spaceCode" | "name" | "area" | "body";
   spaces: readonly SpaceCell[];
 }) {
   const commitSpaceContent = useLab((state) => state.commitSpaceContent);
-  const values = spaces.map((space) => field === "body" ? space.body ?? "" : space[field]);
+  const updateSpace = useLab((state) => state.updateSpace);
+  const values = spaces.map((space) => field === "body" ? space.body ?? "" : space[field] ?? "");
   const shared = common(values);
   const canonical = shared.mixed ? "" : String(shared.value ?? "");
   const [draft, setDraft] = useState(canonical);
@@ -53,7 +54,9 @@ function ContentField({ label, field, spaces }: {
 
   const commit = (value: string) => {
     if (!spaces.length || (shared.mixed && value === "")) return;
-    if (field === "area") {
+    if (field === "spaceCode") {
+      spaces.forEach((space) => updateSpace(space.id, { spaceCode: value }));
+    } else if (field === "area") {
       const area = Number.parseFloat(value);
       if (Number.isFinite(area)) commitSpaceContent(spaces.map((space) => space.id), { area: Math.max(1, area) });
     } else {
@@ -193,6 +196,7 @@ export default function InspectorWidget() {
       {tab === "symbol" ? <SymbolInspectorPane /> : tab === "content" ? <div className="m1-pane" role="tabpanel">
         {selected.length ? <section className="m1-section">
           <h3>Architectural content</h3>
+          <ContentField label="No." field="spaceCode" spaces={selected} />
           <ContentField label="Space Name" field="name" spaces={selected} />
           <ContentField label="Area · m²" field="area" spaces={selected} />
           <ContentField label="Body / subtext" field="body" spaces={selected} />

@@ -41,8 +41,9 @@ test("template workbook contains the SPACES schema, examples, and README guidanc
     raw: true,
     defval: "",
   }) as unknown[][];
-  assert.deepEqual(rows[0], ["id", "name", "area", "body", "category", "privacy", "kind", "color", "x", "y"]);
+  assert.deepEqual(rows[0], ["id", "no", "name", "area", "body", "category", "privacy", "kind", "color", "x", "y"]);
   assert.equal(rows.length, 4, "template includes exactly three example rows");
+  assert.deepEqual(rows.slice(1).map((row) => row[1]), ["01", "02", "03"], "template examples provide stable Space Nos");
 
   const readme = XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets.README, {
     header: 1,
@@ -54,6 +55,7 @@ test("template workbook contains the SPACES schema, examples, and README guidanc
   assert.match(guidance, /positive number in m²/i);
   assert.match(guidance, /public, shared, private/i);
   assert.match(guidance, /space or void/i);
+  assert.match(guidance, /Duplicate No\. values are reassigned/i);
   assert.match(guidance, /Do not rename the SPACES sheet unnecessarily/i);
 });
 

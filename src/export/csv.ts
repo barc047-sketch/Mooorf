@@ -2,10 +2,11 @@ import Papa from "papaparse";
 import type { SpaceCell } from "../types";
 
 /** Column order is fixed and explicit — never derived from object key order. */
-const CSV_FIELDS = ["id", "name", "area", "category", "privacy", "kind", "color", "x", "y"] as const;
+const CSV_FIELDS = ["id", "no", "name", "area", "category", "privacy", "kind", "color", "x", "y"] as const;
 
 const toRow = (space: SpaceCell): (string | number)[] => [
   space.id,
+  space.spaceCode ?? "",
   space.name,
   Number.isFinite(space.area) ? space.area : 0,
   space.category,
