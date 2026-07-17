@@ -1,87 +1,37 @@
 {
   "worker": "Codex",
   "model": "Sol / GPT-5 Codex",
-  "status": "WAITING_REVIEW",
-  "task": "C0 M2 Correction 1 — Owner Review Regressions and Symbol/Void Completion",
-  "brief": "docs/worker-briefs/C0_M2_CORRECTION_1_OWNER_REVIEW_REGRESSIONS.md",
-  "launch_prompt": "docs/worker-briefs/C0_M2_CORRECTION_1_LAUNCH_PROMPT.md",
-  "contract_branch": "docs/mooorf-ai-team-operating-protocol",
-  "source_branch": "main",
-  "source_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
-  "planned_work_branch": "feature/c0-m2-advanced-inspector-symbols-runtime-gates",
-  "feature_sha": "a537102f9a9b71d0397266b7a22daef20e49282d",
-  "owner_authorization": "GO CODEX M2 CORRECTION 1",
-  "assignment_summary": [
-    "repair visible Random and current layout preset execution through the canonical store owner with all-versus-selected scope and one history transaction",
-    "make batch Cell creation radius-aware, visibly non-overlapping, multi-selected and undoable as one action",
-    "separate canonical Symbol pane state from ephemeral Canvas preview to remove hover/focus flicker",
-    "remove the hard-coded dashed Void edge and share one current-six-style Stroke Style control/projection between Cell Boundary and Void Edge",
-    "add deterministic Auto Contrast versus Custom symbol tint with live, persistence, migration and export parity",
-    "support one presentation-only Symbol on a Void without affecting subtractive geometry, Area, radius or hit testing",
-    "preserve every Owner-confirmed M2 behavior"
-  ],
-  "research_inputs": {
-    "claude_prototype": "design/c0-3-cell-inspector-v2-lab@462bf9bacbb1ee60015fc1e794539ab3b25f6b97",
-    "baseline_registry": "feature/c0-2-icon-grid-asset-registry@028c90541481b07a185e768fae921a7108a4e5d2",
-    "symbol_research": "research/c0-2-symbol-asset-expansion@9aa52779deac12701ba30eed1ff6e919e88091f4",
-    "ag2_accepted": "research/m2-prototype-and-icon-gap-audit@55bbda488ae223a6ad53de8cc2a5ea5de0cdcf51"
+  "status": "HOLD",
+  "task": null,
+  "active_implementation": false,
+  "completion_state": "MERGED_COMPLETE",
+  "main_branch": "main",
+  "main_sha": "a411a2341007d50851f1497a8a569090e5431aee",
+  "integrated_product_sha": "342022a64638aa143245ae763a88edee6eeec1fc",
+  "included_c0_m2_sha": "a537102f9a9b71d0397266b7a22daef20e49282d",
+  "merge_method": "direct non-forced fast-forward of main to the complete PF1D lineage",
+  "owner_qa": {
+    "c0_m2_correction_1": "PASS",
+    "pf1d_3": "PASS"
   },
-  "explicit_exclusions": [
-    "separate Symbol Inspector",
-    "custom architectural vectors without later Owner approval",
-    "bottom-left Quick Bar and final Dock redesign",
-    "snapping UI or snapping engine",
-    "full Material Browser or Material Studio",
-    "Connections",
-    "Annotation or Markup",
-    "broad Table or import redesign",
-    "100+ space Table optimization",
-    "Floors, Stats or Dashboard",
-    "merge to main",
-    "beginning M3, M4 or M5",
-    "common rail or visible Undo/Redo buttons",
-    "right-click Copy/Paste Style",
-    "expanded arrangement catalogue, Quick Bar or snapping",
-    "Wavy or Corner-Bracket stroke styles"
+  "integrated_scope": [
+    "C0-M2 Advanced Appearance, Production Symbols and Runtime Power Gates",
+    "PF1A Static Organism runtime",
+    "PF1B Global Runtime Status",
+    "PF1C Auto Performance Governor and advanced preview",
+    "R0.1-R0.3 refactor and parity sequence",
+    "E1 detached Organism export overlay alignment",
+    "PF1D.1 lazy Table workspace",
+    "PF1D.2 Organism pause, instant Table shell and bounded virtualization",
+    "PF1D.3 Search, CSV/XLS/XLSX upload, multirow review, Add/Replace and XLSX template"
   ],
-  "qa_policy": {
-    "document": "docs/governance/FAST_OWNER_QA_MODE.md",
-    "focused_tests_only": true,
-    "exactly_one_final_build": true,
-    "exhaustive_cdp_required": false,
-    "browser_harness_tuning_limit_minutes": 10,
-    "owner_manual_checklist_items": "5"
-  },
-  "expected_reports": [
-    "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
-    "docs/C0_M2_CONTROL_OWNERSHIP_MAP.md"
+  "historical_backup_branches": [
+    "feature/pf1d-lazy-workspaces",
+    "feature/c0-m2-advanced-inspector-symbols-runtime-gates"
   ],
-  "report_paths": [
-    "docs/C0_M2_ADVANCED_INSPECTOR_SYMBOLS_RUNTIME_GATES_REPORT.md",
-    "docs/C0_M2_CONTROL_OWNERSHIP_MAP.md"
-  ],
-  "verification_summary": [
-    "7/7 focused C0 M2 Correction 1 contracts passed",
-    "24/24 affected history, persistence, migration, renderer, import and export tests passed across 18 focused files",
-    "npx tsc -b --pretty false passed",
-    "git diff --check 1cc8ec0c7ab756bc6b091b87014da2c3e27383d2...a537102f9a9b71d0397266b7a22daef20e49282d passed",
-    "exactly one npm run build passed with only the accepted existing Vite chunk-size warning",
-    "bounded 1280x800 real-browser smoke passed for one Inspector, 133 symbols, canonical apply, pointer/keyboard preview stability, favourites and zero shell overflow",
-    "verified production preview remains live at http://127.0.0.1:4173/ with zero console errors"
-  ],
-  "known_limitations": [
-    "Organism SVG remains truthfully unavailable; Organism symbol export uses PNG/PDF while Classic owns true-vector SVG",
-    "Fast Owner-QA intentionally used one bounded browser viewport; the five-item Owner review remains the acceptance gate",
-    "the existing Vite large-chunk warning remains unchanged"
-  ],
-  "previous_task": {
-    "id": "C0 M1",
-    "status": "MERGED",
-    "main_sha": "bd160b8c615cdafbbdd8a76332be46b69a6e765e",
-    "merge_method": "protected non-forced fast-forward"
-  },
-  "updated_at": "2026-07-15T22:00:03+05:30",
+  "ag3_state": "UNCHANGED",
+  "updated_at": "2026-07-18",
   "blocked_reason": null,
-  "next_worker_action": "STOP. Owner reviews the fixed correction head against the five-item checklist; Codex must not merge or begin M3, M4 or M5.",
-  "next_gate": "Owner acceptance of Correction 1 and a separate exact merge command; merge authority remains withheld."
+  "next_worker_action": "HOLD. No implementation task is active. Do not begin Text Layouts, Target Rail, Materials or Connections without a separate explicit Owner GO command.",
+  "next_gate": "Owner-led discussion and mapping only."
 }
