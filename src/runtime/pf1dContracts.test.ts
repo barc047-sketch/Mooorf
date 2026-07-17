@@ -28,11 +28,11 @@ test("Canvas and conditional Table overlay are direct app-shell layers", () => {
   assert.match(app, /const tableActive = view === "table"/);
   assert.match(
     shell,
-    /<section[\s\S]*?className="canvas-workspace"[\s\S]*?(?:<OrganismCanvasView \/>|<CanvasView \/>)[\s\S]*?<\/section>\s*<AnimatePresence>[\s\S]*?\{tableActive && \([\s\S]*?className="table-workspace-overlay"[\s\S]*?className="table-workspace-scrim"[\s\S]*?className="table-workspace-panel"[\s\S]*?<Suspense[\s\S]*?<TableView \/>[\s\S]*?<\/Suspense>[\s\S]*?\)\}/,
+    /<section[\s\S]*?className="canvas-workspace"[\s\S]*?<OrganismCanvasView[\s\S]*?active=\{!tableActive\}[\s\S]*?onResumeReady=\{handleOrganismResumeReady\}[\s\S]*?\/>[\s\S]*?: <CanvasView \/>[\s\S]*?<\/section>\s*<AnimatePresence>\s*\{\(tableActive \|\| resumePending\) && \([\s\S]*?className="table-workspace-overlay"[\s\S]*?className="table-workspace-scrim"[\s\S]*?<AnimatePresence>[\s\S]*?\{tableActive && \([\s\S]*?className="table-workspace-panel"[\s\S]*?<Suspense[\s\S]*?<TableView \/>[\s\S]*?<\/Suspense>[\s\S]*?\)\}/,
   );
   assert.doesNotMatch(shell, /<main className="stage">/);
   assert.doesNotMatch(app, /view === "canvas" \?[\s\S]*?<OrganismCanvasView/);
-  assert.match(app, /className="canvas-workspace"[\s\S]*?aria-hidden=\{tableActive\}[\s\S]*?inert=\{tableActive\}/);
+  assert.match(app, /className="canvas-workspace"[\s\S]*?aria-hidden=\{tableActive \|\| resumePending\}[\s\S]*?inert=\{tableActive \|\| resumePending\}/);
   assert.match(app, /className="table-workspace-overlay"[\s\S]*?aria-label="Space schedule workspace"/);
 });
 
@@ -100,13 +100,17 @@ test("PF1D.1D restores the conditional floating Table overlay with a static non-
     css.indexOf(".canvas-chrome-layer"),
   );
 
-  assert.match(app, /\{tableActive && \([\s\S]*?className="table-workspace-overlay"/);
-  assert.match(app, /className="table-workspace-scrim"/);
+  assert.match(app, /\{\(tableActive \|\| resumePending\) && \([\s\S]*?className="table-workspace-overlay"/);
+  assert.match(
+    app,
+    /className="table-workspace-scrim"[\s\S]*?initial=\{\{ opacity: 1 \}\}[\s\S]*?animate=\{\{ opacity: 1 \}\}/,
+  );
   assert.match(app, /className="table-workspace-panel"[\s\S]*?<Suspense[\s\S]*?<TableView \/>/);
   assert.ok(
     app.indexOf('className="table-workspace-scrim"') < app.indexOf('className="table-workspace-panel"'),
     "static scrim exists behind the Table panel",
   );
+  assert.match(app, /delay:\s*resumePending \? 0 :/);
   assert.doesNotMatch(css, /\.canvas-workspace\[aria-hidden="true"\][\s\S]*?(?:visibility:\s*hidden|display:\s*none)/);
   assert.match(tableWorkspace, /z-index:\s*90/);
   assert.doesNotMatch(tableWorkspace, /backdrop-filter|-webkit-backdrop-filter|\bfilter\s*:/);
@@ -129,7 +133,11 @@ test("PF1D.1E owns Table and chrome lifetimes through Motion", () => {
   assert.match(app, /import \{ AnimatePresence, motion, useReducedMotion \} from "motion\/react"/);
   assert.match(
     app,
-    /<AnimatePresence>[\s\S]*?\{tableActive && \([\s\S]*?<motion\.section[\s\S]*?className="table-workspace-overlay"[\s\S]*?initial=\{[\s\S]*?opacity:\s*0[\s\S]*?<motion\.div[\s\S]*?className="table-workspace-scrim"[\s\S]*?<motion\.div[\s\S]*?className="table-workspace-panel"/,
+    /<AnimatePresence>\s*\{\(tableActive \|\| resumePending\) && \([\s\S]*?<motion\.section[\s\S]*?className="table-workspace-overlay"[\s\S]*?initial=\{\{ opacity: 1 \}\}[\s\S]*?<motion\.div[\s\S]*?className="table-workspace-scrim"[\s\S]*?<AnimatePresence>[\s\S]*?\{tableActive && \([\s\S]*?<motion\.div[\s\S]*?className="table-workspace-panel"[\s\S]*?initial=\{reduceMotion \? \{ opacity: 0 \}/,
+  );
+  assert.match(
+    app,
+    /<OrganismCanvasView[\s\S]*?active=\{!tableActive\}[\s\S]*?onResumeReady=\{handleOrganismResumeReady\}[\s\S]*?\/>/,
   );
   assert.doesNotMatch(app, /className="table-workspace-overlay"[\s\S]{0,180}initial=\{false\}/);
 

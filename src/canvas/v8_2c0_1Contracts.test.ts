@@ -105,7 +105,6 @@ assert.equal(resolveSelectionRingState(true, true, true), "primary", "selected p
 assert.equal(resolveSelectionRingState(true, false, true), "secondary", "secondary selection remains distinct and singular");
 
 const appSource = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
-const classicSource = readFileSync(new URL("./CanvasView.tsx", import.meta.url), "utf8");
 const organismSource = readFileSync(new URL("./OrganismCanvasView.tsx", import.meta.url), "utf8");
 const editorSource = readFileSync(new URL("./InlineCellEditor.tsx", import.meta.url), "utf8");
 const contextSource = readFileSync(new URL("../ui/context/ContextSurfaceHost.tsx", import.meta.url), "utf8");
@@ -113,11 +112,17 @@ const dockSource = readFileSync(new URL("../ui/Dock.tsx", import.meta.url), "utf
 const shellCss = readFileSync(new URL("../ui/shell.css", import.meta.url), "utf8");
 const organismCss = readFileSync(new URL("./organismCanvas.css", import.meta.url), "utf8");
 
-assert.equal(appSource.includes('rendererMode === "organism" ? <OrganismCanvasView /> : <CanvasView />'), true, "App mounts exactly one Canvas strategy");
+const activeRendererMatch = appSource.match(
+  /rendererMode === "organism"\s*\?\s*\(\s*(<OrganismCanvasView[\s\S]*?\/>)\s*\)\s*:\s*<CanvasView\s*\/>/,
+);
+assert.notEqual(activeRendererMatch, null, "App mounts exactly one renderer strategy");
+const activeRendererSource = activeRendererMatch?.[1] ?? "";
+assert.equal(activeRendererSource.includes("active={!tableActive}"), true, "active Organism receives App workspace ownership");
+assert.equal(activeRendererSource.includes("onResumeReady={handleOrganismResumeReady}"), true, "active Organism receives App readiness ownership");
+assert.equal(activeRendererSource.includes("<CanvasView"), false, "active Organism path does not mount Classic Canvas");
+assert.equal(organismSource.includes('from "./CanvasView"'), false, "active Organism does not import Classic Canvas");
 assert.equal(organismSource.includes('setSettings({ rendererMode: "classic" })'), false, "Organism never switches the canonical renderer automatically");
-for (const [name, source] of [["Classic", classicSource], ["Organism", organismSource]] as const) {
-  assert.equal(source.includes("createDemandFrameLoop"), true, `${name} uses demand-driven rendering`);
-}
+assert.equal(organismSource.includes("createDemandFrameLoop"), true, "active Organism uses demand-driven rendering");
 assert.equal(dockSource.includes("ORG"), false, "ordinary UI does not expose ORG");
 assert.equal(dockSource.includes("CLS"), false, "ordinary UI does not expose CLS");
 assert.equal(dockSource.includes("useTransform"), false, "Dock has no proximity magnification transform");

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useLab } from "./state/store";
 import Loader from "./ui/Loader";
@@ -72,6 +72,50 @@ function MainApp() {
   const widgetScale = useLab((s) => s.settings.widgetScale);
   const reduceMotion = useReducedMotion();
   const tableActive = view === "table";
+  const [resumePending, setResumePending] = useState(false);
+  const resumeGenerationRef = useRef(0);
+  const resumeTimeoutRef = useRef<number | null>(null);
+  const resumeGeneration = resumeGenerationRef.current;
+
+  const handleOrganismResumeReady = useCallback(() => {
+    if (resumeGenerationRef.current !== resumeGeneration) return;
+    if (resumeTimeoutRef.current !== null) {
+      window.clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+    setResumePending(false);
+  }, [resumeGeneration]);
+
+  useLayoutEffect(() => {
+    const generation = ++resumeGenerationRef.current;
+    if (resumeTimeoutRef.current !== null) {
+      window.clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+    if (tableActive || rendererMode !== "organism") {
+      setResumePending(false);
+      return;
+    }
+    setResumePending(true);
+    resumeTimeoutRef.current = window.setTimeout(() => {
+      if (resumeGenerationRef.current !== generation) return;
+      resumeTimeoutRef.current = null;
+      setResumePending(false);
+      if (import.meta.env.DEV) {
+        console.warn("[PF1D.2] Organism resume preparation exceeded 400ms; releasing the scrim.");
+      }
+    }, 400);
+  }, [rendererMode, tableActive]);
+
+  useEffect(() => {
+    return () => {
+      ++resumeGenerationRef.current;
+      if (resumeTimeoutRef.current !== null) {
+        window.clearTimeout(resumeTimeoutRef.current);
+        resumeTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const state = useLab.getState();
@@ -136,10 +180,17 @@ function MainApp() {
         <section
           className="canvas-workspace"
           aria-label="Canvas workspace"
-          aria-hidden={tableActive}
-          inert={tableActive}
+          aria-hidden={tableActive || resumePending}
+          inert={tableActive || resumePending}
         >
-          {rendererMode === "organism" ? <OrganismCanvasView /> : <CanvasView />}
+          {rendererMode === "organism"
+            ? (
+              <OrganismCanvasView
+                active={!tableActive}
+                onResumeReady={handleOrganismResumeReady}
+              />
+            )
+            : <CanvasView />}
           {empty && (
             <div className="stage-empty stage-hint">
               <p className="eyebrow">CANVAS LAB</p>
@@ -150,7 +201,7 @@ function MainApp() {
         </section>
 
         <AnimatePresence>
-          {tableActive && (
+          {(tableActive || resumePending) && (
             <motion.section
               className="table-workspace-overlay"
               aria-label="Space schedule workspace"
@@ -160,7 +211,7 @@ function MainApp() {
                 opacity: 0,
                 transition: {
                   duration: reduceMotion ? 0.01 : 0.04,
-                  delay: reduceMotion ? 0.01 : 0.24,
+                  delay: resumePending ? 0 : reduceMotion ? 0.01 : 0.24,
                   ease: "linear",
                 },
               }}
@@ -171,20 +222,24 @@ function MainApp() {
                 initial={{ opacity: 1 }}
                 animate={{ opacity: 1 }}
               />
-              <motion.div
-                className="table-workspace-panel"
-                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.995 }}
-                animate={reduceMotion
-                  ? { opacity: 1, transition: { duration: 0.01 } }
-                  : { opacity: 1, y: 0, scale: 1, transition: { duration: 0.17, ease: [0.22, 1, 0.36, 1] } }}
-                exit={reduceMotion
-                  ? { opacity: 0, transition: { duration: 0.01 } }
-                  : { opacity: 0, y: 5, scale: 0.997, transition: { duration: 0.1, ease: [0.22, 1, 0.36, 1] } }}
-              >
-                <Suspense fallback={<TableWorkspaceSkeleton />}>
-                  <TableView />
-                </Suspense>
-              </motion.div>
+              <AnimatePresence>
+                {tableActive && (
+                  <motion.div
+                    className="table-workspace-panel"
+                    initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.995 }}
+                    animate={reduceMotion
+                      ? { opacity: 1, transition: { duration: 0.01 } }
+                      : { opacity: 1, y: 0, scale: 1, transition: { duration: 0.17, ease: [0.22, 1, 0.36, 1] } }}
+                    exit={reduceMotion
+                      ? { opacity: 0, transition: { duration: 0.01 } }
+                      : { opacity: 0, y: 5, scale: 0.997, transition: { duration: 0.1, ease: [0.22, 1, 0.36, 1] } }}
+                  >
+                    <Suspense fallback={<TableWorkspaceSkeleton />}>
+                      <TableView />
+                    </Suspense>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.section>
           )}
         </AnimatePresence>

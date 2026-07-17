@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   type CSSProperties,
@@ -59,7 +60,6 @@ import {
 } from "../interaction/groupDrag";
 import { resolveContextSurface, shouldOpenContextFromGesture } from "../interaction/contextActionRegistry";
 import {
-  CAMERA_COMMIT_DELAY_MS,
   advanceCanvasGesture,
   beginCanvasCellGesture,
   beginCanvasPanGesture,
@@ -143,13 +143,26 @@ type OrganismInvalidation =
   | "CAMERA"
   | "FULL";
 
-export default function OrganismCanvasView() {
+export interface OrganismCanvasActivityProps {
+  active: boolean;
+  onResumeReady?: () => void;
+}
+
+export default function OrganismCanvasView({
+  active,
+  onResumeReady,
+}: OrganismCanvasActivityProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const presentationCanvasRef = useRef<HTMLCanvasElement>(null);
   const presentationBackCanvasRef = useRef<HTMLCanvasElement>(null);
   const labelLayerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef(active);
+  const onResumeReadyRef = useRef(onResumeReady);
+  const runtimeActivityRef = useRef<((nextActive: boolean) => void) | null>(null);
+  activeRef.current = active;
+  onResumeReadyRef.current = onResumeReady;
   const incomingLabelSpaces = useLab((s) => s.appearancePreview
     && !(s.appearancePreviewTarget === "boundary" || s.appearancePreviewTarget === "core")
     ? s.appearancePreview
@@ -251,6 +264,9 @@ export default function OrganismCanvasView() {
     }
     announceReadiness("renderer-ready");
 
+    let runtimeActive = activeRef.current;
+    let resumePreparationPending = runtimeActive;
+    let pendingStoreState: ReturnType<typeof useLab.getState> | null = null;
     const cam = { ...useLab.getState().camera };
     const initialState = useLab.getState();
     let spaces = applySpacePositionsPreview(
@@ -268,12 +284,15 @@ export default function OrganismCanvasView() {
     );
     let effectiveRenderScale = performanceSnapshot.effectiveRenderScale;
     let previewFilter = performanceSnapshot.previewFilter;
+    let pendingPerformanceSnapshot: typeof performanceSnapshot | null = null;
     canvas.dataset.previewFilter = previewFilter;
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let reducedMotion = reducedMotionQuery.matches;
+    let pendingReducedMotion: boolean | null = null;
     let resolved = resolveOrganism(settings, reducedMotion);
     const motionState = createMotionState();
     let theme = readTheme();
+    let pendingTheme: LabTheme | null = null;
     let themeTransitionUntil = 0;
     const gesture = createCanvasGestureState<DragPosition, GroupTranslation, SpacePosition>();
     let dirty = true;
@@ -286,11 +305,12 @@ export default function OrganismCanvasView() {
       if (scope === "FULL" || scope === "MEMBRANE_FIELD" || scope === "CAMERA") {
         membraneNeedsRender = true;
       }
-      renderLoop?.invalidate();
+      if (runtimeActive) renderLoop?.invalidate();
     };
     const updateResolvedOrganism = (next: ReturnType<typeof resolveOrganism>) => {
       if (next.motionActive !== resolved.motionActive) resetMotionState(motionState);
       resolved = next;
+      canvas.dataset.motionActive = String(resolved.motionActive);
       renderLoop?.setContinuous(resolved.motionActive);
     };
     let effectivePixelRatio = 1;
@@ -302,6 +322,9 @@ export default function OrganismCanvasView() {
     let surfaceNeedsClear = true;
     let membraneRenderCount = 0;
     let membraneClearCount = 0;
+    let presentationRenderCount = 0;
+    let performanceReportCount = 0;
+    let resumePreparationCount = 0;
     let lastArrangementPreview = initialState.arrangementPreview;
     let lastSpaceSource = initialState.appearancePreview ?? initialState.spaces;
     let lastAppearancePreview = initialState.appearancePreview;
@@ -434,7 +457,10 @@ export default function OrganismCanvasView() {
     };
     let smooth: SmoothFrame | null = null;
 
-    const unsub = useLab.subscribe((s) => {
+    const applyStoreSnapshot = (
+      s: ReturnType<typeof useLab.getState>,
+      forceFull = false,
+    ) => {
       const nextSpaceSource = s.appearancePreview ?? s.spaces;
       const sourceChanged = nextSpaceSource !== lastSpaceSource;
       const arrangementChanged = s.arrangementPreview !== lastArrangementPreview;
@@ -465,7 +491,7 @@ export default function OrganismCanvasView() {
           surfaceNeedsClear = true;
           smooth = null;
         }
-        if (qualityChanged) resize();
+        if (qualityChanged && !forceFull) resize();
       }
       if (arrangementChanged) {
         lastArrangementPreview = s.arrangementPreview;
@@ -482,7 +508,7 @@ export default function OrganismCanvasView() {
         && !arrangementChanged
         && previewTarget !== null
         && previewIds !== null;
-      if (spacesChanged && localAppearanceChange) {
+      if (!forceFull && spacesChanged && localAppearanceChange) {
         patchSelectedPresentation(previewIds, nextSpaceSource);
         invalidation = previewTarget === "text" ? "LABEL_PRESENTATION" : "CELL_PRESENTATION";
         if (previewTarget === "cell" && cachedPresentation.membrane.colourMode === "cell-gradient") {
@@ -503,10 +529,27 @@ export default function OrganismCanvasView() {
       lastAppearancePreviewTarget = s.appearancePreviewTarget;
       lastSelectedIds = s.selectedIds;
       lastSelectedId = s.selectedId;
+      if (forceFull) {
+        derivedDirty = true;
+        invalidation = "FULL";
+      }
       if (invalidation) invalidate(invalidation);
+    };
+    const unsub = useLab.subscribe((s) => {
+      if (!runtimeActive) {
+        pendingStoreState = s;
+        return;
+      }
+      applyStoreSnapshot(s);
     });
-    const unsubGovernor = performanceGovernor.subscribe(() => {
-      const nextPerformanceSnapshot = performanceGovernor.getSnapshot();
+    const applyPerformanceSnapshot = (
+      nextPerformanceSnapshot: typeof performanceSnapshot,
+      deferResize = false,
+    ) => {
+      if (!runtimeActive) {
+        pendingPerformanceSnapshot = nextPerformanceSnapshot;
+        return;
+      }
       const nextSettings = resolveLivePerformanceSettings(
         authoredSettings,
         nextPerformanceSnapshot,
@@ -524,11 +567,18 @@ export default function OrganismCanvasView() {
       renderer?.setFilter(previewFilter);
       updateResolvedOrganism(resolveOrganism(settings, reducedMotion));
       derivedDirty = true;
-      if (qualityChanged || previewScaleChanged) resizeTarget();
+      if ((qualityChanged || previewScaleChanged) && !deferResize) resizeTarget();
       invalidate();
+    };
+    const unsubGovernor = performanceGovernor.subscribe(() => {
+      applyPerformanceSnapshot(performanceGovernor.getSnapshot());
     });
 
     const mo = new MutationObserver(() => {
+      if (!runtimeActive) {
+        pendingTheme = readTheme();
+        return;
+      }
       theme = readTheme();
       themeTransitionUntil = performance.now() + THEME_TRANSITION_MS;
       derivedDirty = true;
@@ -546,10 +596,12 @@ export default function OrganismCanvasView() {
       renderer?.resizeTarget(w, h, effectivePixelRatio);
       renderer?.setFilter(previewFilter);
     };
-    const resize = () => {
+    type Dimensions = { width: number; height: number };
+    let pendingDimensions: Dimensions | null = null;
+    const applyDimensions = (dimensions: Dimensions) => {
       presentationPixelRatio = resolveOrganismDpr(window.devicePixelRatio || 1, "high");
-      w = host.clientWidth;
-      h = host.clientHeight;
+      w = dimensions.width;
+      h = dimensions.height;
       renderer?.resize(w, h, presentationPixelRatio);
       resizeTarget();
       const presentationWidth = Math.max(1, Math.round(w * presentationPixelRatio));
@@ -562,11 +614,25 @@ export default function OrganismCanvasView() {
       surfaceNeedsClear = true;
       invalidate();
     };
+    const resize = () => {
+      const dimensions = { width: host.clientWidth, height: host.clientHeight };
+      if (!runtimeActive) {
+        pendingDimensions = dimensions;
+        w = dimensions.width;
+        h = dimensions.height;
+        return;
+      }
+      applyDimensions(dimensions);
+    };
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(host);
 
     const onReducedMotion = () => {
+      if (!runtimeActive) {
+        pendingReducedMotion = reducedMotionQuery.matches;
+        return;
+      }
       reducedMotion = reducedMotionQuery.matches;
       updateResolvedOrganism(resolveOrganism(settings, reducedMotion));
       derivedDirty = true;
@@ -612,7 +678,7 @@ export default function OrganismCanvasView() {
     let lastNuclei: ProductionNucleus[] = [];
 
     const drawPresentationOverlay = (nuclei: ProductionNucleus[], scale: number) => {
-      if (!activePresentationCtx || !stagingPresentationCtx) return;
+      if (!activePresentationCtx || !stagingPresentationCtx) return false;
       const drawCtx = stagingPresentationCtx;
       const pixelScale = Math.max(1, scale);
       const targetWidth = Math.max(1, Math.round(w * pixelScale));
@@ -667,6 +733,9 @@ export default function OrganismCanvasView() {
       activePresentationCanvas.dataset.boundaryFallbackCount = "0";
       activePresentationCanvas.dataset.presentationDrawCount = String(drawnPresentationCount);
       activePresentationCanvas.dataset.presentationSourceCount = String(nuclei.length);
+      presentationRenderCount += 1;
+      canvas.dataset.presentationRenderCount = String(presentationRenderCount);
+      return true;
     };
 
     /* camera-synced technical grid — cheap CSS background, render-loop offsets */
@@ -722,6 +791,7 @@ export default function OrganismCanvasView() {
     let hoveredId: string | null = null;
 
     const onDown = (e: PointerEvent) => {
+      if (!runtimeActive) return;
       if (e.button !== 0 || (e.ctrlKey && e.pointerType === "mouse")) return;
       if (isInlineEditorCommitPointer(e)) {
         resetCellActivation(activation);
@@ -816,10 +886,12 @@ export default function OrganismCanvasView() {
     });
 
     const onMove = (e: PointerEvent) => {
+      if (!runtimeActive) return;
       moveScheduler.push(latestCoalescedPointerEvent(e));
     };
 
     const onUp = (e: PointerEvent) => {
+      if (!runtimeActive) return;
       const completedMode = gesture.mode;
       if (gesture.mode !== "none") {
         moveScheduler.push(latestCoalescedPointerEvent(e));
@@ -858,6 +930,7 @@ export default function OrganismCanvasView() {
     };
 
     const onCancel = () => {
+      if (!runtimeActive) return;
       const cancelledMode = gesture.mode;
       if (cancelledMode === "pan" && gesture.pan) Object.assign(cam, gesture.pan.camera);
       cancelCanvasGesture(gesture);
@@ -867,6 +940,7 @@ export default function OrganismCanvasView() {
     };
 
     const onContextMenu = (e: MouseEvent) => {
+      if (!runtimeActive) return;
       e.preventDefault();
       const secondaryButton = e.ctrlKey ? 2 : e.button;
       if (!shouldOpenContextFromGesture(secondaryButton, gesture.mode === "drag")) return;
@@ -891,7 +965,6 @@ export default function OrganismCanvasView() {
       invalidate("CELL_PRESENTATION");
     };
 
-    let camCommit = 0;
     type WheelFrame = { deltaY: number; sx: number; sy: number };
     const processWheel = ({ deltaY, sx, sy }: WheelFrame) => {
       camTarget = null;
@@ -899,9 +972,8 @@ export default function OrganismCanvasView() {
       cam.zoom = clamp(cam.zoom * Math.exp(-deltaY * 0.0016), Z_MIN, Z_MAX);
       cam.x = before.x - (sx - w / 2) / cam.zoom;
       cam.y = before.y - (sy - h / 2) / cam.zoom;
+      commitCamera();
       invalidate("CAMERA");
-      window.clearTimeout(camCommit);
-      camCommit = window.setTimeout(commitCamera, CAMERA_COMMIT_DELAY_MS);
     };
     const wheelScheduler = createFrameScheduler<WheelFrame>({
       schedule: (callback) => requestAnimationFrame(callback),
@@ -910,6 +982,7 @@ export default function OrganismCanvasView() {
       merge: mergeCanvasWheelFrame,
     });
     const onWheel = (e: WheelEvent) => {
+      if (!runtimeActive) return;
       e.preventDefault();
       performanceGovernor.beginInteraction();
       const { sx, sy } = local(e);
@@ -1163,16 +1236,27 @@ export default function OrganismCanvasView() {
         } else {
           renderer?.present();
         }
-        drawPresentationOverlay(nuclei, presentationPixelRatio);
+        if (!drawPresentationOverlay(nuclei, presentationPixelRatio)) {
+          throw new Error("Organism presentation surface unavailable");
+        }
         performanceRuntime.reportFrame({
           renderer: "organism",
           timestamp: now,
           visibleCells: count,
           totalCells: spaces.length,
         });
+        performanceReportCount += 1;
+        canvas.dataset.performanceReportCount = String(performanceReportCount);
+        canvas.dataset.lastRenderedTheme = theme;
         if (!firstUsableFrame) {
           firstUsableFrame = true;
           announceReadiness("ready");
+        }
+        if (resumePreparationPending) {
+          resumePreparationPending = false;
+          resumePreparationCount += 1;
+          canvas.dataset.resumePreparationCount = String(resumePreparationCount);
+          onResumeReadyRef.current?.();
         }
       } catch {
         rendererFailed = true;
@@ -1190,12 +1274,55 @@ export default function OrganismCanvasView() {
       );
       },
     });
+    const setRuntimeActive = (nextActive: boolean) => {
+      if (runtimeActive === nextActive) return;
+      runtimeActive = nextActive;
+      if (!runtimeActive) {
+        resumePreparationPending = false;
+        renderLoop?.setPaused(true);
+        moveScheduler.cancel();
+        wheelScheduler.cancel();
+        cancelCanvasGesture(gesture);
+        performanceGovernor.endInteraction();
+        return;
+      }
+
+      const latestState = pendingStoreState ?? useLab.getState();
+      pendingStoreState = null;
+      applyStoreSnapshot(latestState, true);
+      const latestPerformanceSnapshot = pendingPerformanceSnapshot ?? performanceGovernor.getSnapshot();
+      pendingPerformanceSnapshot = null;
+      applyPerformanceSnapshot(latestPerformanceSnapshot, true);
+      reducedMotion = pendingReducedMotion ?? reducedMotionQuery.matches;
+      pendingReducedMotion = null;
+      updateResolvedOrganism(resolveOrganism(settings, reducedMotion));
+      theme = pendingTheme ?? readTheme();
+      pendingTheme = null;
+      themeTransitionUntil = 0;
+      const latestDimensions = pendingDimensions ?? {
+        width: host.clientWidth,
+        height: host.clientHeight,
+      };
+      pendingDimensions = null;
+      applyDimensions(latestDimensions);
+      smooth = null;
+      smoothNucleusColors.clear();
+      derivedDirty = true;
+      dirty = true;
+      membraneNeedsRender = true;
+      last = performance.now();
+      resumePreparationPending = true;
+      renderLoop?.invalidate();
+      renderLoop?.setPaused(false);
+    };
+    runtimeActivityRef.current = setRuntimeActive;
+    if (!runtimeActive) renderLoop.setPaused(true);
     renderLoop.setContinuous(resolved.motionActive);
-    renderLoop.invalidate();
+    if (runtimeActive) renderLoop.invalidate();
 
     return () => {
+      if (runtimeActivityRef.current === setRuntimeActive) runtimeActivityRef.current = null;
       renderLoop?.cancel();
-      window.clearTimeout(camCommit);
       moveScheduler.cancel();
       wheelScheduler.cancel();
       unsub();
@@ -1214,6 +1341,10 @@ export default function OrganismCanvasView() {
       performanceGovernor.endInteraction();
     };
   }, []);
+
+  useLayoutEffect(() => {
+    runtimeActivityRef.current?.(active);
+  }, [active]);
 
   return (
     <div ref={hostRef} className="organism-canvas-host">

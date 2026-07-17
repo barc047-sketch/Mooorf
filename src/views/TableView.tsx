@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useLab } from "../state/store";
 import type { AreaRange } from "../design/colorMapping";
@@ -47,6 +56,57 @@ const CATEGORY_OPTIONS = [
 ];
 
 const MIN_AREA = 1;
+const DEFAULT_ROW_HEIGHT = 55;
+const ROW_OVERSCAN = 8;
+const MAX_MOUNTED_DATA_ROWS = 60;
+
+type VirtualRowWindow = {
+  startIndex: number;
+  endIndex: number;
+  topSpacerHeight: number;
+  bottomSpacerHeight: number;
+  mountedRowCount: number;
+};
+
+export function calculateVirtualRowWindow({
+  rowCount,
+  scrollTop,
+  viewportHeight,
+  rowHeight,
+  overscan,
+}: {
+  rowCount: number;
+  scrollTop: number;
+  viewportHeight: number;
+  rowHeight: number;
+  overscan: number;
+}): VirtualRowWindow {
+  const safeRowCount = Math.max(0, Math.floor(rowCount));
+  const safeRowHeight = rowHeight > 0 ? rowHeight : DEFAULT_ROW_HEIGHT;
+  const safeScrollTop = Math.max(0, scrollTop);
+  const safeViewportHeight = Math.max(0, viewportHeight);
+  const safeOverscan = Math.max(0, Math.floor(overscan));
+  const visibleStart = Math.min(safeRowCount, Math.floor(safeScrollTop / safeRowHeight));
+  const visibleEnd = Math.min(
+    safeRowCount,
+    Math.max(visibleStart, Math.ceil((safeScrollTop + safeViewportHeight) / safeRowHeight)),
+  );
+  let startIndex = Math.max(0, visibleStart - safeOverscan);
+  let endIndex = Math.min(safeRowCount, visibleEnd + safeOverscan);
+
+  if (endIndex - startIndex > MAX_MOUNTED_DATA_ROWS) {
+    startIndex = Math.max(0, Math.min(startIndex, safeRowCount - MAX_MOUNTED_DATA_ROWS));
+    endIndex = Math.min(safeRowCount, startIndex + MAX_MOUNTED_DATA_ROWS);
+  }
+
+  return {
+    startIndex,
+    endIndex,
+    topSpacerHeight: startIndex * safeRowHeight,
+    bottomSpacerHeight: (safeRowCount - endIndex) * safeRowHeight,
+    mountedRowCount: endIndex - startIndex,
+  };
+}
 
 // Area edits go through a local draft so the field can be cleared while
 // typing without writing NaN into the store; only valid parses commit.
@@ -165,6 +225,7 @@ function Row({
   areaRange,
   nucleusPaletteId,
   colorSource,
+  measureRef,
 }: {
   cell: SpaceCell;
   index: number;
@@ -172,6 +233,7 @@ function Row({
   areaRange: AreaRange;
   nucleusPaletteId: string;
   colorSource: ColorSource;
+  measureRef?: (node: HTMLTableRowElement | null) => void;
 }) {
   const updateSpace = useLab((s) => s.updateSpace);
   const removeSpace = useLab((s) => s.removeSpace);
@@ -179,7 +241,12 @@ function Row({
   const kind = cell.kind === "void" ? "void" : "space";
 
   return (
-    <TableRow data-kind={kind}>
+    <TableRow
+      ref={measureRef}
+      data-kind={kind}
+      data-table-row="true"
+      data-row-index={index}
+    >
       <TableCell className="text-muted-foreground tabular-nums">
         {String(index + 1).padStart(2, "0")}
       </TableCell>
@@ -270,25 +337,197 @@ function Row({
   );
 }
 
-// Table view — same Zustand store as the canvas (no local copy of spaces),
-// so every edit ripples to CanvasView automatically and switching views
-// never resets spaces or camera.
-export default function TableView() {
+function TableRowsSkeleton() {
+  return (
+    <TableBody data-table-rows-ready="false" aria-hidden="true">
+      {Array.from({ length: 11 }, (_, row) => (
+        <TableRow className="border-0" key={row}>
+          <TableCell colSpan={11} className="p-0">
+            <div className="table-skeleton__row">
+              {Array.from({ length: 5 }, (_, column) => <span key={column} />)}
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  );
+}
+
+function VirtualizedTableBody({
+  scrollContainerRef,
+}: {
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
+}) {
   const spaces = useLab((s) => s.spaces);
-  const addSpace = useLab((s) => s.addSpace);
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const colorSource = useLab((s) => s.settings.colorSource);
   const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
+  const bodyRef = useRef<HTMLTableSectionElement>(null);
+  const measuredRowRef = useRef(false);
+  const [rowHeight, setRowHeight] = useState(DEFAULT_ROW_HEIGHT);
+  const [viewport, setViewport] = useState({
+    scrollTop: 0,
+    viewportHeight: 0,
+    rowsTop: 0,
+  });
+
+  useLayoutEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const measureViewport = () => {
+      setViewport((current) => ({
+        ...current,
+        scrollTop: scrollContainer.scrollTop,
+        viewportHeight: scrollContainer.clientHeight,
+      }));
+    };
+    const handleScroll = () => {
+      setViewport((current) => (
+        current.scrollTop === scrollContainer.scrollTop
+          ? current
+          : { ...current, scrollTop: scrollContainer.scrollTop }
+      ));
+    };
+
+    measureViewport();
+    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", measureViewport);
+    return () => {
+      scrollContainer.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", measureViewport);
+    };
+  }, [scrollContainerRef]);
+
+  useLayoutEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    const body = bodyRef.current;
+    if (!scrollContainer || !body) return;
+    const rowsTop = (
+      body.getBoundingClientRect().top
+      - scrollContainer.getBoundingClientRect().top
+      + scrollContainer.scrollTop
+    );
+    setViewport((current) => (
+      Math.abs(current.rowsTop - rowsTop) < 0.5
+        ? current
+        : { ...current, rowsTop }
+    ));
+  }, [rowHeight, scrollContainerRef, spaces.length]);
+
+  const measureRow = useCallback((node: HTMLTableRowElement | null) => {
+    if (!node || measuredRowRef.current) return;
+    const measuredHeight = node.getBoundingClientRect().height;
+    if (measuredHeight <= 0) return;
+    measuredRowRef.current = true;
+    setRowHeight(measuredHeight);
+  }, []);
+
+  const virtualWindow = useMemo(
+    () => calculateVirtualRowWindow({
+      rowCount: spaces.length,
+      scrollTop: Math.max(0, viewport.scrollTop - viewport.rowsTop),
+      viewportHeight: viewport.viewportHeight,
+      rowHeight,
+      overscan: ROW_OVERSCAN,
+    }),
+    [rowHeight, spaces.length, viewport.rowsTop, viewport.scrollTop, viewport.viewportHeight],
+  );
+  const visibleSpaces = spaces.slice(virtualWindow.startIndex, virtualWindow.endIndex);
 
   return (
-    <div className="table-view h-full w-full overflow-y-auto px-6 pt-24 pb-40">
+    <TableBody
+      ref={bodyRef}
+      data-table-rows-ready="true"
+      data-mounted-row-count={virtualWindow.mountedRowCount}
+      data-total-row-count={spaces.length}
+      data-row-height={rowHeight}
+    >
+      {virtualWindow.topSpacerHeight > 0 && (
+        <tr
+          aria-hidden="true"
+          data-table-spacer="top"
+          style={{ height: virtualWindow.topSpacerHeight }}
+        >
+          <td
+            colSpan={11}
+            style={{ height: virtualWindow.topSpacerHeight, padding: 0 }}
+          />
+        </tr>
+      )}
+      {visibleSpaces.map((cell, visibleIndex) => (
+        <Row
+          key={cell.id}
+          cell={cell}
+          index={virtualWindow.startIndex + visibleIndex}
+          paletteMode={paletteMode}
+          areaRange={areaRange}
+          nucleusPaletteId={nucleusPaletteId}
+          colorSource={colorSource}
+          measureRef={visibleIndex === 0 ? measureRow : undefined}
+        />
+      ))}
+      {virtualWindow.bottomSpacerHeight > 0 && (
+        <tr
+          aria-hidden="true"
+          data-table-spacer="bottom"
+          style={{ height: virtualWindow.bottomSpacerHeight }}
+        >
+          <td
+            colSpan={11}
+            style={{ height: virtualWindow.bottomSpacerHeight, padding: 0 }}
+          />
+        </tr>
+      )}
+      {spaces.length === 0 && (
+        <TableRow>
+          <TableCell
+            colSpan={11}
+            className="py-10 text-center text-muted-foreground"
+          >
+            No spaces yet — add one above.
+          </TableCell>
+        </TableRow>
+      )}
+    </TableBody>
+  );
+}
+
+// Table view — same Zustand store as the canvas (no local copy of spaces),
+// so every edit ripples to CanvasView automatically and switching views
+// never resets spaces or camera.
+export default function TableView() {
+  const spaceCount = useLab((s) => s.spaces.length);
+  const addSpace = useLab((s) => s.addSpace);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [rowsReady, setRowsReady] = useState(false);
+
+  useEffect(() => {
+    let rowsFrame: number | null = null;
+    const shellFrame = requestAnimationFrame(() => {
+      rowsFrame = requestAnimationFrame(() => {
+        setRowsReady(true);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(shellFrame);
+      if (rowsFrame !== null) cancelAnimationFrame(rowsFrame);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={scrollContainerRef}
+      className="table-view h-full w-full overflow-y-auto px-6 pt-24 pb-40"
+      data-table-stage={rowsReady ? "rows" : "shell"}
+    >
       <div className="mx-auto max-w-6xl">
         <div className="mb-3 flex items-end justify-between">
           <div>
             <p className="eyebrow">PROGRAM</p>
             <p className="text-sm text-muted-foreground">
-              {spaces.length} spaces · edits sync to canvas
+              {spaceCount} spaces · edits sync to canvas
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={() => addSpace()}>
@@ -313,29 +552,9 @@ export default function TableView() {
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {spaces.map((cell, i) => (
-                <Row
-                  key={cell.id}
-                  cell={cell}
-                  index={i}
-                  paletteMode={paletteMode}
-                  areaRange={areaRange}
-                  nucleusPaletteId={nucleusPaletteId}
-                  colorSource={colorSource}
-                />
-              ))}
-              {spaces.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={11}
-                    className="py-10 text-center text-muted-foreground"
-                  >
-                    No spaces yet — add one above.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+            {rowsReady
+              ? <VirtualizedTableBody scrollContainerRef={scrollContainerRef} />
+              : <TableRowsSkeleton />}
           </Table>
         </div>
       </div>

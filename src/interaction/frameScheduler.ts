@@ -19,9 +19,11 @@ export interface DemandFrameLoopOptions {
 }
 
 export interface DemandFrameLoop {
-  invalidate: () => void;
-  setContinuous: (active: boolean) => void;
-  cancel: () => void;
+  invalidate(): void;
+  setContinuous(active: boolean): void;
+  setPaused(paused: boolean): void;
+  isPaused(): boolean;
+  cancel(): void;
 }
 
 /** One canonical raw-input -> animation-frame boundary. The latest value wins
@@ -66,34 +68,61 @@ export const createDemandFrameLoop = ({
   let frameId: number | null = null;
   let invalidated = false;
   let continuous = false;
+  let paused = false;
   let cancelled = false;
 
   const request = () => {
-    if (cancelled || frameId !== null) return;
+    if (cancelled || paused || frameId !== null) return;
     frameId = schedule(run);
   };
 
   const run = (now: number) => {
     frameId = null;
-    if (cancelled) return;
+    if (cancelled || paused) return;
     invalidated = false;
-    const needsAnotherFrame = render(now);
+    let needsAnotherFrame: boolean;
+    try {
+      needsAnotherFrame = render(now);
+    } catch {
+      invalidated = true;
+      return;
+    }
     if (invalidated || continuous || needsAnotherFrame) request();
   };
 
   return {
     invalidate() {
+      if (cancelled) return;
       invalidated = true;
       request();
     },
     setContinuous(active) {
+      if (cancelled) return;
       continuous = active;
       if (active) request();
     },
+    setPaused(active) {
+      if (cancelled || paused === active) return;
+      paused = active;
+      if (paused) {
+        if (frameId !== null) {
+          cancel(frameId);
+          frameId = null;
+          invalidated = true;
+        }
+        return;
+      }
+      if (invalidated || continuous) request();
+    },
+    isPaused() {
+      return !cancelled && paused;
+    },
     cancel() {
+      if (cancelled) return;
       cancelled = true;
       invalidated = false;
       continuous = false;
+      paused = false;
       if (frameId !== null) cancel(frameId);
       frameId = null;
     },
