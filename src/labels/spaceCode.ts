@@ -7,10 +7,9 @@ export const normalizeSpaceCode = (value: unknown): string | undefined => {
   const normalized = value
     .trim()
     .toUpperCase()
-    .replace(/\s*([/._-])\s*/g, "$1")
+    .replace(/\s*([._/-])\s*/g, "$1")
     .replace(/\s+/g, "-")
     .replace(/[^A-Z0-9._/-]/g, "")
-    .replace(/-{2,}/g, "-")
     .slice(0, MAX_SPACE_CODE_LENGTH);
   return normalized || undefined;
 };
@@ -60,19 +59,20 @@ export const findDuplicateSpaceCodes = (
 export const ensureMissingSpaceCodes = <T extends SpaceCell>(
   spaces: readonly T[],
 ): { spaces: T[]; changed: boolean } => {
+  const needsWork = spaces.some((space) => {
+    const normalized = normalizeSpaceCode(space.spaceCode);
+    return !normalized || normalized !== space.spaceCode;
+  });
+  if (!needsWork) return { spaces: spaces as T[], changed: false };
+
   const result: T[] = [];
-  let changed = false;
   for (const space of spaces) {
     const normalized = normalizeSpaceCode(space.spaceCode);
     if (normalized) {
-      const next = normalized === space.spaceCode ? space : { ...space, spaceCode: normalized };
-      result.push(next as T);
-      changed ||= next !== space;
+      result.push({ ...space, spaceCode: normalized } as T);
       continue;
     }
-    const spaceCode = nextSpaceCode(result);
-    result.push({ ...space, spaceCode } as T);
-    changed = true;
+    result.push({ ...space, spaceCode: nextSpaceCode(result) } as T);
   }
-  return { spaces: changed ? result : [...spaces], changed };
+  return { spaces: result, changed: true };
 };
