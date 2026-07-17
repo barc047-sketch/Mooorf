@@ -44,6 +44,7 @@ import {
   parseTableFile,
   type ParsedTableFile,
 } from "../import/tableFileWorkflow";
+import SpaceCodeCell from "./SpaceCodeCell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -90,6 +91,7 @@ export function filterTableSpaces(
   const needle = query.trim().toLowerCase();
   if (!needle) return spaces;
   return spaces.filter((space) => [
+    space.spaceCode ?? "",
     space.id,
     space.name,
     space.body ?? "",
@@ -286,8 +288,8 @@ function Row({
       data-table-row="true"
       data-row-index={index}
     >
-      <TableCell className="text-muted-foreground tabular-nums">
-        {String(index + 1).padStart(2, "0")}
+      <TableCell>
+        <SpaceCodeCell cell={cell} />
       </TableCell>
       <TableCell>
         <span className="table-kind-chip" data-kind={kind}>
@@ -1034,7 +1036,7 @@ export default function TableView() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-10">#</TableHead>
+                  <TableHead className="w-20">No.</TableHead>
                   <TableHead className="w-16">type</TableHead>
                   <TableHead>name</TableHead>
                   <TableHead>area m²</TableHead>
