@@ -1,5 +1,6 @@
 import type { ProjectExportSettings, ProjectExportSnapshot } from "../export/projectSnapshot";
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION } from "../export/types";
+import { ensureMissingSpaceCodes, normalizeSpaceCode } from "../labels/spaceCode";
 import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme } from "../types";
 import { cloneResourceSettings, normalizeResourceSettings } from "../resources/resourcePersistence";
@@ -105,6 +106,7 @@ const validateSpace = (
   if (area <= 0) throw new Error(`Space row ${index + 1} area must be positive.`);
   return {
     id: clean(value.id, `Space row ${index + 1} id`, 160),
+    spaceCode: normalizeSpaceCode(value.spaceCode),
     name: clean(value.name, `Space row ${index + 1} name`),
     body: value.body === undefined ? "" : clean(value.body, `Space row ${index + 1} body`, 1200),
     kind,
@@ -194,7 +196,9 @@ const validateSnapshot = (value: unknown): ProjectExportSnapshot => {
   const theme = value.theme;
   if (theme !== "day" && theme !== "night") throw new Error("Project theme is invalid.");
   const settings = validateSettings(value.settings);
-  const spaces = value.spaces.map((space, index) => validateSpace(space, index, settings.presentationDefaults));
+  const spaces = ensureMissingSpaceCodes(
+    value.spaces.map((space, index) => validateSpace(space, index, settings.presentationDefaults)),
+  ).spaces as SpaceCell[];
   return {
     schemaVersion: PROJECT_SNAPSHOT_SCHEMA_VERSION,
     exportedAt: clean(value.exportedAt, "Exported date", 80),
@@ -245,7 +249,9 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     id: clean(value.id, `Saved view ${index + 1} id`, 160),
     name: clean(value.name, `Saved view ${index + 1} name`),
     createdAt: finite(value.createdAt, `Saved view ${index + 1} createdAt`),
-    spaces: value.spaces.map((space, spaceIndex) => validateSpace(space, spaceIndex, presentationDefaults)),
+    spaces: ensureMissingSpaceCodes(
+      value.spaces.map((space, spaceIndex) => validateSpace(space, spaceIndex, presentationDefaults)),
+    ).spaces as SpaceCell[],
     camera: validateCamera(value.camera),
     theme,
     rendererMode,
