@@ -1,6 +1,7 @@
 .app-shell {
   position: fixed;
   inset: 0;
+  isolation: isolate;
   overflow: hidden;
 }
 
@@ -11,7 +12,7 @@
   font-size: var(--text-body);
   font-weight: 600;
   letter-spacing: 0.14em;
-  z-index: var(--z-shell);
+  z-index: 60;
 }
 
 .stage {
@@ -19,6 +20,187 @@
   inset: 0;
   display: grid;
   place-items: center;
+}
+
+.canvas-workspace {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.canvas-workspace[aria-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.table-workspace-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  pointer-events: auto;
+}
+
+.table-workspace-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: auto;
+  background:
+    radial-gradient(circle at 34% 12%, color-mix(in srgb, var(--ink) 7%, transparent), transparent 46%),
+    linear-gradient(148deg, color-mix(in srgb, var(--bg) 95%, transparent), color-mix(in srgb, var(--bg) 92%, transparent));
+}
+
+[data-theme="night"] .table-workspace-scrim {
+  background:
+    radial-gradient(circle at 34% 12%, color-mix(in srgb, var(--ink) 6%, transparent), transparent 46%),
+    linear-gradient(148deg, color-mix(in srgb, var(--bg) 97%, transparent), color-mix(in srgb, var(--bg) 94%, transparent));
+}
+
+.table-workspace-panel {
+  position: absolute;
+  inset: clamp(72px, 7vh, 96px) max(36px, calc((100vw - 1600px) / 2)) clamp(28px, 4vh, 52px);
+  z-index: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  color: var(--ink);
+  background:
+    linear-gradient(152deg, color-mix(in srgb, var(--glass-bg) 90%, var(--bg)), color-mix(in srgb, var(--glass-bg) 72%, var(--bg))),
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--ink) 7%, transparent), transparent 42%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-panel);
+  pointer-events: auto;
+}
+
+.table-workspace-panel::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: inherit;
+}
+
+.canvas-chrome-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.canvas-chrome-layer > * {
+  pointer-events: auto;
+}
+
+.canvas-chrome-layer[aria-hidden="true"],
+.canvas-chrome-layer[aria-hidden="true"] > * {
+  pointer-events: none;
+}
+
+.canvas-chrome-layer--widgets {
+  z-index: 40;
+}
+
+.canvas-chrome-layer--rail {
+  z-index: 60;
+}
+
+.canvas-chrome-layer--dock {
+  z-index: 60;
+}
+
+.canvas-chrome-layer--auxiliary {
+  z-index: 60;
+}
+
+.app-shell > .view-toggle {
+  position: fixed;
+  z-index: 100;
+}
+
+.table-workspace-skeleton {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(var(--sp-24), 3vw, 48px);
+}
+
+.table-skeleton__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  margin-bottom: var(--sp-24);
+}
+
+.table-skeleton__title span,
+.table-skeleton__header span,
+.table-skeleton__row span {
+  display: block;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  animation: table-skeleton-pulse 1.4s ease-in-out infinite alternate;
+}
+
+.table-skeleton__title span:first-child {
+  width: min(240px, 32vw);
+  height: 22px;
+}
+
+.table-skeleton__title span:last-child {
+  width: 52px;
+  height: 16px;
+}
+
+.table-skeleton__table {
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-panel);
+}
+
+.table-skeleton__header,
+.table-skeleton__row {
+  display: grid;
+  grid-template-columns: minmax(160px, 2.2fr) minmax(96px, 1fr) minmax(110px, 1.2fr) minmax(92px, 0.9fr) minmax(84px, 0.8fr);
+  align-items: center;
+  column-gap: clamp(var(--sp-12), 2vw, var(--sp-24));
+  min-height: 46px;
+  padding-inline: clamp(var(--sp-12), 2vw, var(--sp-24));
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.table-skeleton__header {
+  min-height: 40px;
+}
+
+.table-skeleton__row:last-child {
+  border-bottom: 0;
+}
+
+.table-skeleton__header span,
+.table-skeleton__row span {
+  width: min(100%, 132px);
+  height: 8px;
+}
+
+.table-skeleton__header span {
+  height: 6px;
+  opacity: 0.72;
+}
+
+.table-skeleton__row span:first-child {
+  width: min(100%, 210px);
+}
+
+@keyframes table-skeleton-pulse {
+  from { opacity: 0.42; }
+  to { opacity: 0.78; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-skeleton__title span,
+  .table-skeleton__header span,
+  .table-skeleton__row span {
+    animation: none;
+  }
 }
 
 .stage-empty {
