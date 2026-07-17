@@ -1,47 +1,38 @@
 # Dependency-Safe Roadmap
 
-Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEFERRED**, **BLOCKED**.
+Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **BLOCKED**.
 
 | Order | Milestone | Status | Dependency-safe meaning |
 |---:|---|---|---|
-| 1 | M1 Inspector | COMPLETE | One production Inspector, global `I`, content/appearance ownership, and recovery are established. |
-| 2 | M2 Advanced Inspector/Symbol runtime gates | COMPLETE | Advanced appearance, symbol runtime, and Off-as-power gates are established on the pushed M2 lineage. |
-| 3 | PF1A Static Organism runtime | COMPLETE | Motion-off static runtime and one visible Organism strategy are protected. |
-| 4 | Arrangement V2 | COMPLETE | Deterministic position-only preview/apply/cancel foundation is pushed independently. |
-| 5 | PF1B Runtime Status | COMPLETE | One global activity/FPS/download status surface is the current committed base. |
-| 6 | PF1C Auto Performance and advanced preview | COMPLETE | Adaptive runtime, detached export, and the approved Canvas/Quick Controls corrections are complete; branch remains unmerged. |
-| 7 | R0 Read-only Structural Refactor Audit | COMPLETE | Audit and parity matrix established the targeted R0.1 → R0.2 → R0.3 sequence. |
-| 8 | R0.1 Shared Canvas Gesture Transaction Core | COMPLETE | Shared renderer-neutral gesture transactions are committed; Owner QA passed; no merge authority. |
-| 9 | R0.2 Behaviour-first parity and contract split | COMPLETE | Test-only behavioural, wiring, and style contract split is complete; no production change or merge. |
-| 10 | R0.3 Split Widget-owned CSS from Edge Shell | COMPLETE | CSS ownership parity and Owner visual review passed; no production TypeScript or React change. |
-| 11 | E1 Organism Detached Export Overlay Alignment | COMPLETE | Detached Organism overlay geometry is aligned to resolved nuclei; Owner export QA passed and Classic SVG remains unchanged. |
-| 12 | PF1D.1 Table overlay and animation foundation | COMPLETE | Lazy conditional floating Table, persistent Canvas, deterministic stacking, static non-blur scrim, browser verification, and Owner QA passed; feature branch remains unmerged. |
-| 13 | PF1D.2 Canvas Pause and Table Theme Performance | COMPLETE | Organism fully pauses in Table and resumes through one prepared current-theme frame plus an App-owned 400ms fallback. Instant shell and basic bounded row windowing were completed with 300/500-row Owner QA; Classic is unchanged and the branch remains unmerged. |
-| 13.1 | PF1D.3 Table file workflow | COMPLETE | Owner QA passed for the approved 35/65 Table workspace, 70/30 Upload/Download cards, full-width Search, CSV/XLS/XLSX upload, XLSX `SPACES`/`README` template, multirow review, diagnostics, Add/Replace, and 500-row bounded-window sync. Product and closeout are pushed unmerged on the feature branch; no merge authority. |
-| 14 | M3A core interaction/Undo/Redo | PLANNED | Extend the existing bounded history and interaction contracts; no second history path. |
-| 15 | G1 Master Graph relationship/connection engine | PLANNED | Add semantic relationships before visible connection tooling or graph analytics. |
-| 16 | G2 reference-image layer, calibration, and rulers | PLANNED | Requires durable project ownership and background preprocessing outside the interaction loop. |
-| 17 | M3C snapping/guides | BLOCKED | Requires G1/interaction geometry ownership; Magnet remains disabled until this milestone. |
-| 18 | M3D typography | PLANNED | Extend canonical label/annotation state and renderer/export parity. |
-| 19 | M3E callouts/label arrangement | BLOCKED | Requires M3D typography and safe layout/relationship anchors. |
-| 20 | G3 Membrane bridge relationships | BLOCKED | Requires stable G1 semantics and advanced Membrane performance evidence. |
-| 21 | M4 asset platform | PLANNED | Promote existing registries into bounded browsers/import workflows without persisting definitions. |
-| 22 | M5 advanced boundaries | PLANNED | Extend established presentation targets with renderer/export parity. |
-| 23 | Table/Canvas/Graph analytics | BLOCKED | Requires G1 Master Graph semantics and later PF1D dense-table gates. |
-| 24 | Bylaws | DEFERRED | Product/governance semantics wait on mature graph and collaboration scope. |
-| 25 | GIF/WebM/MP4 animation export | DEFERRED | Requires export queue/worker architecture and authored animation timeline. |
-| 26 | Export expansion | PLANNED | Queue, Download Center, references, and additional formats extend existing export owners. |
-| 27 | Accounts/plans/collaboration | DEFERRED | No backend/auth/billing/collaboration work before the local desktop product is complete. |
+| 1 | M1 Inspector recovery | COMPLETE | One production Inspector, global `I`, canonical content and appearance ownership. |
+| 2 | C0-M2 Advanced Inspector / Symbols / Runtime Gates | COMPLETE | Owner approved and included in the official `main` lineage. |
+| 3 | PF1A Static Organism runtime | COMPLETE | Included in `main`. |
+| 4 | Arrangement V2 foundation | COMPLETE | Included in `main`. |
+| 5 | PF1B Runtime Status | COMPLETE | Included in `main`. |
+| 6 | PF1C Auto Performance Governor | COMPLETE | Included in `main`. |
+| 7 | R0.1–R0.3 refactor/parity sequence | COMPLETE | Included in `main`. |
+| 8 | E1 Detached Organism export alignment | COMPLETE | Included in `main`. |
+| 9 | PF1D.1 Lazy Table workspace | COMPLETE | Included in `main`. |
+| 10 | PF1D.2 Table pause / instant shell / virtualization | COMPLETE | Included in `main`; bounded 500-row evidence recorded. |
+| 11 | PF1D.3 Table file workflow | COMPLETE | Search, CSV/XLS/XLSX, multirow review, Add/Replace and XLSX template included in `main`. |
+| 12 | Owner-led architecture mapping | HOLD | Discussion only; no implementation worker or automatic next stage. |
+| 13 | Cell Text Layouts and Flag | PLANNED | Requires a separate bounded Owner GO. |
+| 14 | Organism Target Rail | PLANNED | Requires stable Text/appearance sequencing and separate Owner GO. |
+| 15 | Quick Materials | PLANNED | Reuses the one Material Registry and requires separate Owner GO. |
+| 16 | Material Browser | PLANNED | Follows target-safe Quick Materials. |
+| 17 | Relationship foundation | PLANNED | Semantic Master Graph ownership before visible connections. |
+| 18 | Visual Connections | PLANNED | Follows stable Relationship ownership. |
+| 19 | Morph Bridge and Cell Behaviour | BLOCKED | Requires stable Relationship semantics and bounded performance architecture. |
+| 20 | Annotation Card / broader Markup | PLANNED | Later reviewed Markup stage; no active implementation. |
+
+## Official integration checkpoint
+
+- Product integration commit: `342022a64638aa143245ae763a88edee6eeec1fc`.
+- C0-M2 approved commit included as ancestor: `a537102f9a9b71d0397266b7a22daef20e49282d`.
+- Former feature branches are historical backups, not active branches.
 
 ## Current gate
 
-PF1D.3 Table file workflow is COMPLETE and Owner approved. The next work is discussion and mapping for Text Layouts, Materials, and Connections; no automatic next implementation is authorized.
+HOLD. Owner-led mapping only for Text Layouts, Target Rail, Materials and Connections.
 
-## Status rules
-
-- **COMPLETE** describes completed milestone scope, not automatic merge authority.
-- **LOCAL** means implemented only in the current uncommitted working tree.
-- **NEXT** means the single dependency-safe action after explicit Owner GO.
-- **PLANNED** means sequenced but not authorized to start.
-- **DEFERRED** means intentionally outside the current product horizon.
-- **BLOCKED** means a named dependency must close first.
+No automatic implementation, worker dispatch, feature merge, branch deletion or AG3 modification is authorized.

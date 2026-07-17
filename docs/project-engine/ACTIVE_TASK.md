@@ -1,17 +1,20 @@
 # Active Task
 
-## PF1D.3 — Table File Workflow
+## HOLD — No active implementation
 
-**Status:** COMPLETE — OWNER QA PASSED — PUSHED UNMERGED
+**Status:** COMPLETE / MERGED / OWNER QA PASSED
 
-- **Owner verdict:** PF1D.3 PASS. Finalization was authorized on `feature/pf1d-lazy-workspaces` from source SHA `9011ff2ba56fbda3831b4405b0960c0ddb3075ea`; no PR or merge is authorized.
-- **Approved workspace:** Table keeps the approved 35/65 workspace split, 70/30 Upload/Download cards, and full-width Search.
-- **File workflow:** CSV, XLS, and XLSX uploads validate before inline multirow scrollable review. The XLSX download template contains `SPACES` and `README`; diagnostics distinguish blocking errors from warnings.
-- **Apply boundary:** Add and Replace apply atomically through the existing central store, retain the existing Canvas/Table projection, and clear stale preview/selection state as protected by import contracts.
-- **Scale evidence:** The Table window remains bounded for a 500-row imported schedule and preserves synchronized store/Canvas data.
-- **Verification:** Final suite 29/29 passed with zero skips; TypeScript and tracked/untracked diff checks passed. The one authorized build exited 0, transformed 2,899 modules, emitted `TableView-DG_Zb1Rp.js` at 59.32 kB / 20.19 kB gzip, and retained the known non-blocking Vite chunk-size warning.
-- **Git closeout:** Product commit `6293831ebe63b0f7a2d6f0027f9c14b15b03549a`; this Project Engine record is pushed on the feature branch. Canvas and Classic are unchanged.
+The latest complete approved product version is now the official `main` lineage.
 
-## Next required action
+- Product integration commit: `342022a64638aa143245ae763a88edee6eeec1fc`.
+- C0-M2 approved commit `a537102f9a9b71d0397266b7a22daef20e49282d` is already included in that lineage.
+- PF1A–PF1D.3 are included.
+- PF1D.3 Owner QA passed.
+- Table Search, CSV/XLS/XLSX Upload, multirow review, Add/Replace, XLSX template and bounded 500-row virtualization are complete.
+- No implementation worker is running.
 
-Discussion and mapping for Text Layouts, Materials, and Connections only. No automatic next implementation, PR, or merge is authorized.
+## Next safe action
+
+Owner-led discussion and mapping only for Text Layouts, Target Rail, Materials and Connections.
+
+Do not implement, dispatch, merge another feature, delete backup branches or modify AG3 without a separate explicit Owner command.
