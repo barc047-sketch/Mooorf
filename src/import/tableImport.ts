@@ -1,14 +1,16 @@
 import Papa from "papaparse";
 import { scatterPoint } from "../lib/geometry";
+import { nextSpaceCode, normalizeSpaceCode } from "../labels/spaceCode";
 import type { Privacy, SpaceCell, SpaceKind } from "../types";
 
-export type ImportField = "id" | "name" | "area" | "body" | "category" | "privacy" | "kind" | "color" | "x" | "y";
+export type ImportField = "spaceCode" | "id" | "name" | "area" | "body" | "category" | "privacy" | "kind" | "color" | "x" | "y";
 export type ColumnMapping = Partial<Record<ImportField, number>>;
 export type TableImportMode = "replace" | "merge-id" | "merge-name" | "append";
 export const MAX_TABLE_ROWS = 50_000;
 
 export interface ImportedSpaceRow {
   sourceRow: number;
+  spaceCode?: string;
   id?: string;
   name: string;
   area: number;
@@ -41,6 +43,7 @@ export interface TablePreview {
 }
 
 const ALIASES: Record<ImportField, readonly string[]> = {
+  spaceCode: ["spacecode", "space code", "space no", "space no.", "no", "no.", "number", "serial", "code"],
   id: ["id", "space id", "room id"],
   name: ["name", "space", "space name", "room", "room name"],
   area: ["area", "area m2", "area m²", "area sqm", "sqm", "m2", "m²"],
@@ -98,6 +101,7 @@ const parseRows = (
     diagnostics.push({ row: 1, level: "error", message: `Table exceeds the ${MAX_TABLE_ROWS.toLocaleString()} row limit.` });
     return { sheetName, headers: [], sourceRows: [], headerRow: -1, mapping: {}, rows, diagnostics, validCount: 0, warningCount: 0, errorCount: 1 };
   }
+  const seenCodes = new Map<string, number>();
   const seenIds = new Map<string, number>();
   const seenNames = new Map<string, number>();
   if (headerRow < 0 || mapping.name === undefined || mapping.area === undefined) {
@@ -119,10 +123,13 @@ const parseRows = (
       diagnostics.push({ row: sourceRow, level: "error", message: "Area must be a finite positive number." });
       continue;
     }
+    const spaceCode = mapping.spaceCode === undefined ? undefined : normalizeSpaceCode(source[mapping.spaceCode]);
     const id = mapping.id === undefined ? "" : cleanText(source[mapping.id], 160);
     const normalizedName = normalize(name);
+    if (spaceCode && seenCodes.has(spaceCode)) diagnostics.push({ row: sourceRow, level: "warning", message: `Duplicate Space No. "${spaceCode}" (first seen at row ${seenCodes.get(spaceCode)}).` });
     if (id && seenIds.has(id)) diagnostics.push({ row: sourceRow, level: "warning", message: `Duplicate ID "${id}" (first seen at row ${seenIds.get(id)}).` });
     if (seenNames.has(normalizedName)) diagnostics.push({ row: sourceRow, level: "warning", message: `Duplicate name "${name}" (first seen at row ${seenNames.get(normalizedName)}).` });
+    if (spaceCode && !seenCodes.has(spaceCode)) seenCodes.set(spaceCode, sourceRow);
     if (id && !seenIds.has(id)) seenIds.set(id, sourceRow);
     if (!seenNames.has(normalizedName)) seenNames.set(normalizedName, sourceRow);
     const privacyText = mapping.privacy === undefined ? "shared" : normalize(source[mapping.privacy]);
@@ -140,6 +147,7 @@ const parseRows = (
     if (mapping.y !== undefined && cleanText(source[mapping.y]) && y === undefined) diagnostics.push({ row: sourceRow, level: "warning", message: "Invalid Y coordinate ignored." });
     rows.push({
       sourceRow,
+      spaceCode,
       id: id || undefined,
       name,
       area,
@@ -202,10 +210,27 @@ const uniqueId = (desired: string, used: Set<string>, fallback: string): string 
   return candidate;
 };
 
-const newSpace = (row: ImportedSpaceRow, index: number, used: Set<string>): SpaceCell => {
+const codeFromUsed = (usedCodes: Set<string>, desired?: string): string => {
+  const preferred = normalizeSpaceCode(desired);
+  if (preferred) {
+    usedCodes.add(preferred);
+    return preferred;
+  }
+  const code = nextSpaceCode([...usedCodes].map((spaceCode) => ({ spaceCode })));
+  usedCodes.add(code);
+  return code;
+};
+
+const newSpace = (
+  row: ImportedSpaceRow,
+  index: number,
+  usedIds: Set<string>,
+  usedCodes: Set<string>,
+): SpaceCell => {
   const point = scatterPoint(index);
   return {
-    id: uniqueId(row.id ?? "", used, `import-${index + 1}`),
+    id: uniqueId(row.id ?? "", usedIds, `import-${index + 1}`),
+    spaceCode: codeFromUsed(usedCodes, row.spaceCode),
     name: row.name,
     area: row.area,
     body: row.body,
@@ -225,7 +250,8 @@ export const applyTableImport = (
   mode: TableImportMode
 ): { spaces: SpaceCell[]; added: number; updated: number; ignored: number } => {
   const base = mode === "replace" ? [] : existing.map((space) => ({ ...space }));
-  const used = new Set(base.map((space) => space.id));
+  const usedIds = new Set(base.map((space) => space.id));
+  const usedCodes = new Set(base.map((space) => normalizeSpaceCode(space.spaceCode)).filter((code): code is string => Boolean(code)));
   let added = 0;
   let updated = 0;
   let ignored = 0;
@@ -237,7 +263,21 @@ export const applyTableImport = (
         : -1;
     if (matchIndex >= 0) {
       const current = base[matchIndex];
-      base[matchIndex] = { ...current, name: row.name, area: row.area, body: row.body, category: row.category, privacy: row.privacy, kind: row.kind, color: row.color || current.color, x: row.x ?? current.x, y: row.y ?? current.y };
+      const importedCode = normalizeSpaceCode(row.spaceCode);
+      if (importedCode) usedCodes.add(importedCode);
+      base[matchIndex] = {
+        ...current,
+        spaceCode: importedCode ?? current.spaceCode,
+        name: row.name,
+        area: row.area,
+        body: row.body,
+        category: row.category,
+        privacy: row.privacy,
+        kind: row.kind,
+        color: row.color || current.color,
+        x: row.x ?? current.x,
+        y: row.y ?? current.y,
+      };
       updated += 1;
       continue;
     }
@@ -245,7 +285,7 @@ export const applyTableImport = (
       ignored += 1;
       continue;
     }
-    base.push(newSpace(row, base.length, used));
+    base.push(newSpace(row, base.length, usedIds, usedCodes));
     added += 1;
   }
   return { spaces: base, added, updated, ignored };
