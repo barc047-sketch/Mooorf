@@ -14,6 +14,7 @@ import {
   TEXT_STYLE_PRESETS,
 } from "../../domain/presentation/editing";
 import { cloneProjectPresentationDefaults } from "../../domain/presentation/validation";
+import { normalizeSpaceCode } from "../../labels/spaceCode";
 import { useLab } from "../../state/store";
 import type { SpaceCell } from "../../types";
 import { getAreaRange, getNucleusColor } from "../../design/colorMapping";
@@ -34,6 +35,49 @@ const common = <T,>(values: readonly T[]): { value: T | undefined; mixed: boolea
   const first = JSON.stringify(values[0]);
   return { value: values[0], mixed: values.some((value) => JSON.stringify(value) !== first) };
 };
+
+function SpaceCodeField({ space }: { space: SpaceCell }) {
+  const updateSpace = useLab((state) => state.updateSpace);
+  const canonical = space.spaceCode ?? "";
+  const [draft, setDraft] = useState(canonical);
+  const session = useRef(beginContentEdit(canonical));
+
+  useEffect(() => {
+    session.current = beginContentEdit(canonical);
+    setDraft(canonical);
+  }, [canonical]);
+
+  const commit = (value: string) => {
+    const spaceCode = normalizeSpaceCode(value);
+    if (spaceCode && spaceCode !== canonical) updateSpace(space.id, { spaceCode });
+  };
+  const apply = (result: ContentEditResolution) => {
+    session.current = result.session;
+    if (result.action.kind === "cancel") setDraft(result.action.value);
+    if (result.action.kind === "commit") commit(result.action.value);
+  };
+
+  return (
+    <label className="m1-field">
+      <span>No.</span>
+      <input
+        value={draft}
+        onChange={(event) => {
+          session.current = changeContentEdit(session.current, event.target.value);
+          setDraft(session.current.draft);
+        }}
+        onBlur={() => apply(resolveContentEditBlur(session.current))}
+        onKeyDown={(event) => {
+          const result = resolveContentEditKey(session.current, { key: event.key });
+          if (result.action.kind === "commit") event.preventDefault();
+          apply(result);
+          if (result.blur) event.currentTarget.blur();
+        }}
+        aria-label="Space No."
+      />
+    </label>
+  );
+}
 
 function ContentField({ label, field, spaces }: {
   label: string;
@@ -193,10 +237,13 @@ export default function InspectorWidget() {
       {tab === "symbol" ? <SymbolInspectorPane /> : tab === "content" ? <div className="m1-pane" role="tabpanel">
         {selected.length ? <section className="m1-section">
           <h3>Architectural content</h3>
+          {selected.length === 1
+            ? <SpaceCodeField space={selected[0]} />
+            : <p className="m1-mixed-note">Space No. is edited one Cell at a time.</p>}
           <ContentField label="Space Name" field="name" spaces={selected} />
           <ContentField label="Area · m²" field="area" spaces={selected} />
           <ContentField label="Body / subtext" field="body" spaces={selected} />
-        </section> : <p className="m1-empty-note">Select one or more Cells to edit Name, Area and Body. Typography below edits Project Defaults.</p>}
+        </section> : <p className="m1-empty-note">Select one or more Cells to edit No., Name, Area and Body. Typography below edits Project Defaults.</p>}
 
         <section className="m1-section">
           <div className="m1-section-title"><h3>Text system</h3><span className="m1-state-badge" data-state={textState}>{inheritanceStateLabel(textState)}</span></div>
