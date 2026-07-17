@@ -74,6 +74,13 @@ test("missing Space Nos receive stable two-digit values without changing authore
   assert.equal(nextSpaceCode(result.spaces), "03");
 });
 
+test("unchanged Space Nos preserve the original array reference", () => {
+  const spaces = [cell("a", "01"), cell("b", "02")];
+  const result = ensureMissingSpaceCodes(spaces);
+  assert.equal(result.changed, false);
+  assert.equal(result.spaces, spaces);
+});
+
 test("duplicate authored Space Nos remain visible for diagnostics", () => {
   const spaces = [cell("a", "a 01"), cell("b", "A-01")];
   const result = ensureMissingSpaceCodes(spaces);
