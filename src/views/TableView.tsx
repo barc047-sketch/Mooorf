@@ -5,10 +5,23 @@ import {
   useMemo,
   useRef,
   useState,
+  type ChangeEvent,
+  type DragEvent,
   type KeyboardEvent,
   type RefObject,
 } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Download,
+  FileSpreadsheet,
+  LoaderCircle,
+  Plus,
+  Search,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 import { useLab } from "../state/store";
 import type { AreaRange } from "../design/colorMapping";
 import type { ColorSource, PaletteMode, Privacy, SpaceCell } from "../types";
@@ -21,6 +34,16 @@ import {
   resolveContentEditKey,
   type ContentEditResolution,
 } from "../interaction/contentEditSession";
+import { applySpaceSchedule } from "../import/projectTransfer";
+import { applyTableImport, type TablePreview } from "../import/tableImport";
+import {
+  TABLE_FILE_ACCEPT,
+  canImportTablePreview,
+  clearTableFileInput,
+  downloadTableTemplate,
+  parseTableFile,
+  type ParsedTableFile,
+} from "../import/tableFileWorkflow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,6 +82,22 @@ const MIN_AREA = 1;
 const DEFAULT_ROW_HEIGHT = 55;
 const ROW_OVERSCAN = 8;
 const MAX_MOUNTED_DATA_ROWS = 60;
+
+export function filterTableSpaces(
+  spaces: readonly SpaceCell[],
+  query: string,
+): readonly SpaceCell[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return spaces;
+  return spaces.filter((space) => [
+    space.id,
+    space.name,
+    space.body ?? "",
+    space.category,
+    space.privacy,
+    space.kind ?? "space",
+  ].some((value) => value.toLowerCase().includes(needle)));
+}
 
 type VirtualRowWindow = {
   startIndex: number;
@@ -355,14 +394,18 @@ function TableRowsSkeleton() {
 
 function VirtualizedTableBody({
   scrollContainerRef,
+  spaces,
+  areaRange,
+  emptyMessage,
 }: {
   scrollContainerRef: RefObject<HTMLDivElement | null>;
+  spaces: readonly SpaceCell[];
+  areaRange: AreaRange;
+  emptyMessage: string;
 }) {
-  const spaces = useLab((s) => s.spaces);
   const paletteMode = useLab((s) => s.settings.paletteMode);
   const nucleusPaletteId = useLab((s) => s.settings.nucleusPaletteId);
   const colorSource = useLab((s) => s.settings.colorSource);
-  const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
   const bodyRef = useRef<HTMLTableSectionElement>(null);
   const measuredRowRef = useRef(false);
   const [rowHeight, setRowHeight] = useState(DEFAULT_ROW_HEIGHT);
@@ -486,7 +529,7 @@ function VirtualizedTableBody({
             colSpan={11}
             className="py-10 text-center text-muted-foreground"
           >
-            No spaces yet — add one above.
+            {emptyMessage}
           </TableCell>
         </TableRow>
       )}
@@ -494,14 +537,210 @@ function VirtualizedTableBody({
   );
 }
 
+const sourceDataRowCount = (preview: TablePreview): number =>
+  Math.max(0, preview.sourceRows.length - Math.max(0, preview.headerRow + 1));
+
+const yieldForLoadingState = (): Promise<void> =>
+  new Promise((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => {
+      channel.port1.close();
+      channel.port2.close();
+      resolve();
+    };
+    channel.port2.postMessage(undefined);
+  });
+
+function TableImportReview({
+  file,
+  replaceArmed,
+  onCancel,
+  onAdd,
+  onRequestReplace,
+  onConfirmReplace,
+}: {
+  file: ParsedTableFile;
+  replaceArmed: boolean;
+  onCancel: () => void;
+  onAdd: () => void;
+  onRequestReplace: () => void;
+  onConfirmReplace: () => void;
+}) {
+  const { preview } = file;
+  const canImport = canImportTablePreview(preview);
+  const diagnostics = preview.diagnostics.slice(0, 8);
+  const diagnosticsByRow = new Map<number, "warning" | "error">();
+  for (const diagnostic of preview.diagnostics) {
+    const current = diagnosticsByRow.get(diagnostic.row);
+    if (current !== "error") diagnosticsByRow.set(diagnostic.row, diagnostic.level);
+  }
+  const parsedSourceRows = new Set(preview.rows.map((row) => row.sourceRow));
+  const sourceValue = (
+    sourceRow: number,
+    field: "name" | "area" | "category" | "privacy" | "kind",
+  ): string => {
+    const column = preview.mapping[field];
+    if (column === undefined) return "—";
+    const value = preview.sourceRows[sourceRow - 1]?.[column];
+    const text = String(value ?? "").trim();
+    return text || "—";
+  };
+  const reviewRows = [
+    ...preview.rows.map((row) => ({
+      sourceRow: row.sourceRow,
+      name: row.name,
+      area: `${row.area} m²`,
+      category: row.category,
+      privacy: row.privacy,
+      kind: row.kind,
+      level: diagnosticsByRow.get(row.sourceRow),
+    })),
+    ...preview.diagnostics
+      .filter(
+        (diagnostic, index, items) =>
+          diagnostic.level === "error"
+          && !parsedSourceRows.has(diagnostic.row)
+          && items.findIndex((item) => item.row === diagnostic.row) === index,
+      )
+      .map((diagnostic) => ({
+        sourceRow: diagnostic.row,
+        name: sourceValue(diagnostic.row, "name"),
+        area: sourceValue(diagnostic.row, "area"),
+        category: sourceValue(diagnostic.row, "category"),
+        privacy: sourceValue(diagnostic.row, "privacy"),
+        kind: sourceValue(diagnostic.row, "kind"),
+        level: "error" as const,
+      })),
+  ].sort((left, right) => left.sourceRow - right.sourceRow);
+
+  return (
+    <div
+      className="table-import-review"
+      aria-label="Import review"
+      data-table-import-review="true"
+    >
+      <div className="table-import-review__summary">
+        <div className="table-import-review__file">
+          <strong>{file.filename}</strong>
+          <span>
+            {file.sheetName} · {sourceDataRowCount(preview)} source rows
+          </span>
+        </div>
+        <div className="table-import-review__counts">
+          <span>{preview.validCount} valid</span>
+          <span>{preview.warningCount} warnings</span>
+          <span>{preview.errorCount} errors</span>
+        </div>
+      </div>
+
+      {preview.errorCount > 0 && (
+        <div
+          className="table-import-review__blocking"
+          role="alert"
+        >
+          <AlertTriangle size={14} />
+          Fix the listed errors and upload again.
+        </div>
+      )}
+
+      <div className="table-import-review__preview" aria-label="First parsed rows">
+        <table>
+          <thead>
+            <tr>
+              <th>row</th>
+              <th>name</th>
+              <th>area</th>
+              <th>category</th>
+              <th>privacy</th>
+              <th>kind</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reviewRows.slice(0, 12).map((row) => (
+              <tr
+                key={`${row.sourceRow}-${row.name}`}
+                data-level={row.level}
+              >
+                <td>{row.sourceRow}</td>
+                <td>{row.name}</td>
+                <td>{row.area}</td>
+                <td>{row.category}</td>
+                <td>{row.privacy}</td>
+                <td>{row.kind}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {diagnostics.length > 0 && (
+        <div className="table-import-review__diagnostics" aria-label="Import diagnostics">
+          {diagnostics.map((diagnostic, index) => (
+            <p
+              key={`${diagnostic.row}-${diagnostic.level}-${index}`}
+              data-level={diagnostic.level}
+            >
+              Row {diagnostic.row}: {diagnostic.message}
+            </p>
+          ))}
+        </div>
+      )}
+
+      <div className="table-import-review__actions">
+        <Button variant="ghost" size="sm" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button size="sm" onClick={onAdd} disabled={!canImport}>
+          Add spaces
+        </Button>
+        {!replaceArmed ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRequestReplace}
+            disabled={!canImport}
+          >
+            Replace project spaces
+          </Button>
+        ) : (
+          <div className="table-import-review__confirm">
+            <span>
+              This removes the current project spaces.
+            </span>
+            <Button variant="destructive" size="sm" onClick={onConfirmReplace}>
+              Confirm replace
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Table view — same Zustand store as the canvas (no local copy of spaces),
 // so every edit ripples to CanvasView automatically and switching views
 // never resets spaces or camera.
 export default function TableView() {
-  const spaceCount = useLab((s) => s.spaces.length);
+  const spaces = useLab((s) => s.spaces);
   const addSpace = useLab((s) => s.addSpace);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadRequestRef = useRef(0);
+  const dragDepthRef = useRef(0);
   const [rowsReady, setRowsReady] = useState(false);
+  const [query, setQuery] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const [templateLoading, setTemplateLoading] = useState(false);
+  const [loadingFilename, setLoadingFilename] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [reviewFile, setReviewFile] = useState<ParsedTableFile | null>(null);
+  const [replaceArmed, setReplaceArmed] = useState(false);
+  const visibleSpaces = useMemo(
+    () => filterTableSpaces(spaces, query),
+    [query, spaces],
+  );
+  const areaRange = useMemo(() => getAreaRange(spaces), [spaces]);
+  const searching = query.trim().length > 0;
 
   useEffect(() => {
     let rowsFrame: number | null = null;
@@ -516,47 +755,311 @@ export default function TableView() {
     };
   }, []);
 
+  const handleDownloadTemplate = async () => {
+    if (templateLoading) return;
+    setTemplateLoading(true);
+    try {
+      await downloadTableTemplate();
+      toast.success("Template downloaded");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Template download failed.");
+    } finally {
+      setTemplateLoading(false);
+    }
+  };
+
+  const loadFile = async (file: File) => {
+    const requestId = ++uploadRequestRef.current;
+    setLoadingFilename(file.name);
+    setUploadError(null);
+    setReviewFile(null);
+    setReplaceArmed(false);
+    await yieldForLoadingState();
+
+    try {
+      const parsed = await parseTableFile(file);
+      if (uploadRequestRef.current !== requestId) return;
+      setReviewFile(parsed);
+    } catch (error) {
+      if (uploadRequestRef.current !== requestId) return;
+      setUploadError(error instanceof Error ? error.message : "File validation failed.");
+    } finally {
+      if (uploadRequestRef.current === requestId) setLoadingFilename(null);
+    }
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    clearTableFileInput(input);
+    if (file) void loadFile(file);
+  };
+
+  const acceptsDrop = (event: DragEvent<HTMLElement>) =>
+    Array.from(event.dataTransfer.types).includes("Files");
+
+  const handleDragEnter = (event: DragEvent<HTMLElement>) => {
+    if (!acceptsDrop(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current += 1;
+    setDragActive(true);
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLElement>) => {
+    if (!acceptsDrop(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = "copy";
+  };
+
+  const handleDragLeave = (event: DragEvent<HTMLElement>) => {
+    if (!acceptsDrop(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+    if (dragDepthRef.current === 0) setDragActive(false);
+  };
+
+  const handleDrop = (event: DragEvent<HTMLElement>) => {
+    if (!acceptsDrop(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepthRef.current = 0;
+    setDragActive(false);
+    const file = event.dataTransfer.files[0];
+    if (file) void loadFile(file);
+  };
+
+  const cancelReview = () => {
+    uploadRequestRef.current += 1;
+    setLoadingFilename(null);
+    setUploadError(null);
+    setReviewFile(null);
+    setReplaceArmed(false);
+  };
+
+  const applyReviewedFile = (mode: "append" | "replace") => {
+    if (!reviewFile || !canImportTablePreview(reviewFile.preview)) return;
+    try {
+      const result = applyTableImport(
+        useLab.getState().spaces,
+        reviewFile.preview.rows,
+        mode,
+      );
+      applySpaceSchedule(result.spaces);
+      toast.success(
+        mode === "append"
+          ? `Added ${result.added} spaces`
+          : `Replaced with ${result.spaces.length} spaces`,
+      );
+      setReviewFile(null);
+      setUploadError(null);
+      setReplaceArmed(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Import failed.");
+    }
+  };
+
   return (
     <div
-      ref={scrollContainerRef}
-      className="table-view h-full w-full overflow-y-auto px-6 pt-24 pb-40"
+      className="table-view"
       data-table-stage={rowsReady ? "rows" : "shell"}
     >
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
-            <p className="eyebrow">PROGRAM</p>
-            <p className="text-sm text-muted-foreground">
-              {spaceCount} spaces · edits sync to canvas
-            </p>
+      <div className="table-workspace-layout">
+        <section className="table-control-zone" data-table-control-zone="true">
+          <div className="table-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search spaces…"
+              aria-label="Search spaces"
+            />
+            {searching && (
+              <button
+                type="button"
+                className="table-search__clear"
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-          <Button variant="outline" size="sm" onClick={() => addSpace()}>
-            <Plus /> Add space
-          </Button>
-        </div>
 
-        <div className="glass rounded-xl px-3 py-1">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10">#</TableHead>
-                <TableHead className="w-16">type</TableHead>
-                <TableHead>name</TableHead>
-                <TableHead>area m²</TableHead>
-                <TableHead>body</TableHead>
-                <TableHead>category</TableHead>
-                <TableHead>privacy</TableHead>
-                <TableHead className="w-14">x</TableHead>
-                <TableHead className="w-14">y</TableHead>
-                <TableHead className="w-14">r</TableHead>
-                <TableHead className="w-10" />
-              </TableRow>
-            </TableHeader>
-            {rowsReady
-              ? <VirtualizedTableBody scrollContainerRef={scrollContainerRef} />
-              : <TableRowsSkeleton />}
-          </Table>
-        </div>
+          <div className="table-control-cards" data-table-card-row="true">
+            <section
+              className="table-upload-card"
+              data-table-upload-card="true"
+              data-drag-active={dragActive}
+              data-state={reviewFile
+                ? "review"
+                : loadingFilename
+                  ? "loading"
+                  : uploadError
+                    ? "error"
+                    : "idle"}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className="table-card__heading">
+                <span className="table-card__icon" aria-hidden="true">
+                  <FileSpreadsheet size={19} />
+                </span>
+                <div>
+                  <h2>Upload space schedule</h2>
+                  <p>CSV, XLSX or XLS</p>
+                </div>
+              </div>
+
+            <input
+              ref={fileInputRef}
+              className="hidden"
+              type="file"
+              accept={TABLE_FILE_ACCEPT}
+              onChange={handleFileChange}
+            />
+
+              {loadingFilename ? (
+                <div className="table-upload-card__loading" role="status">
+                  <LoaderCircle className="animate-spin" size={18} />
+                  <span>Reading {loadingFilename}…</span>
+                  <i />
+                  <i />
+                </div>
+              ) : uploadError ? (
+                <div className="table-upload-card__error" role="alert">
+                  <span><AlertTriangle size={15} /> {uploadError}</span>
+                  <div>
+                    <Button variant="ghost" size="sm" onClick={cancelReview}>
+                      Dismiss
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Choose another
+                    </Button>
+                  </div>
+                </div>
+              ) : reviewFile ? (
+                <TableImportReview
+                  file={reviewFile}
+                  replaceArmed={replaceArmed}
+                  onCancel={cancelReview}
+                  onAdd={() => applyReviewedFile("append")}
+                  onRequestReplace={() => setReplaceArmed(true)}
+                  onConfirmReplace={() => applyReviewedFile("replace")}
+                />
+              ) : (
+                <div className="table-upload-card__idle">
+                  <div>
+                    <Upload size={22} aria-hidden="true" />
+                    <p>Drag and drop a space schedule here</p>
+                    <span>Files are parsed locally in your browser.</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Choose file
+                  </Button>
+                </div>
+              )}
+
+              {dragActive && (
+                <div className="table-upload-card__drop" aria-hidden="true">
+                  <Upload size={24} />
+                  <strong>Drop to review</strong>
+                </div>
+              )}
+            </section>
+
+            <aside className="table-download-card" data-table-download-card="true">
+              <div className="table-card__heading">
+                <span className="table-card__icon" aria-hidden="true">
+                  <Download size={18} />
+                </span>
+                <div>
+                  <h2>Download template</h2>
+                  <p>XLSX · SPACES + README</p>
+                </div>
+              </div>
+              <p className="table-download-card__copy">
+                Name and Area are required. Optional fields are included.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadTemplate}
+                disabled={templateLoading}
+              >
+                {templateLoading
+                  ? <LoaderCircle className="animate-spin" />
+                  : <Download />}
+                {templateLoading ? "Preparing…" : "Download XLSX"}
+              </Button>
+            </aside>
+          </div>
+        </section>
+
+        <section className="table-zone" data-table-zone="true">
+          <div className="table-zone__header">
+            <div>
+              <p className="eyebrow">PROGRAM / SPACE SCHEDULE</p>
+              <p className="table-zone__count">
+                {searching
+                  ? `${visibleSpaces.length} / ${spaces.length} spaces`
+                  : `${spaces.length} spaces`}
+                {" · "}edits sync to canvas
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => addSpace()}>
+              <Plus /> Add space
+            </Button>
+          </div>
+
+          <div
+            ref={scrollContainerRef}
+            className="table-zone__scroll glass"
+            data-table-scroll-container="true"
+            data-visible-space-count={visibleSpaces.length}
+            data-total-space-count={spaces.length}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10">#</TableHead>
+                  <TableHead className="w-16">type</TableHead>
+                  <TableHead>name</TableHead>
+                  <TableHead>area m²</TableHead>
+                  <TableHead>body</TableHead>
+                  <TableHead>category</TableHead>
+                  <TableHead>privacy</TableHead>
+                  <TableHead className="w-14">x</TableHead>
+                  <TableHead className="w-14">y</TableHead>
+                  <TableHead className="w-14">r</TableHead>
+                  <TableHead className="w-10" />
+                </TableRow>
+              </TableHeader>
+              {rowsReady
+                ? <VirtualizedTableBody
+                    scrollContainerRef={scrollContainerRef}
+                    spaces={visibleSpaces}
+                    areaRange={areaRange}
+                    emptyMessage={searching
+                      ? "No spaces match this search."
+                      : "No spaces yet — add one above."}
+                  />
+                : <TableRowsSkeleton />}
+            </Table>
+          </div>
+        </section>
       </div>
     </div>
   );

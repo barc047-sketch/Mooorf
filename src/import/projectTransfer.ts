@@ -161,12 +161,22 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
 export const applySpaceSchedule = (spaces: readonly SpaceCell[]): RecoverySnapshot => {
   const recovery = captureRecoverySnapshot();
   try {
+    useLab.getState().cancelArrangementPreview();
     useLab.setState({
       spaces: cloneSpaces(spaces),
       ...replaceSelectionState(null),
       contextSurface: null,
       contextPoint: null,
       contextTargetId: null,
+      appearancePreview: null,
+      appearancePreviewIds: null,
+      appearancePreviewTarget: null,
+      presentationDefaultsPreview: null,
+      membraneRuntimePreview: null,
+      visualSettingsPreview: null,
+      resourcesPreview: null,
+      arrangementPreview: null,
+      arrangementPreviewPatternId: null,
     });
     return recovery;
   } catch (error) {

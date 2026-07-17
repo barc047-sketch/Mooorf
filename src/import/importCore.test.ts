@@ -162,11 +162,12 @@ const badScale = parseConfigEnvelope(JSON.stringify({ ...config, settings: { ...
 ok(badScale.settings.uiScale <= 1.18 && badScale.settings.widgetScale >= 0.82, "invalid scales normalize safely");
 ok(!("spaces" in badScale), "config never contains semantic space replacement");
 
-const csv = 'Space Name,Area sqm,Category,Access,Colour,Pos X,Pos Y\n"Studio,\nNorth",80.5,Work,shared,#abcdef,10,20\n\n';
+const csv = 'Space Name,Area sqm,Body,Category,Access,Colour,Pos X,Pos Y\n"Studio,\nNorth",80.5,"North light",Work,shared,#abcdef,10,20\n\n';
 const csvPreview = parseCsvTable(csv);
 equal(csvPreview.rows.length, 1, "quoted newline and empty row handling");
 equal(csvPreview.rows[0].name, "Studio,\nNorth", "quoted comma and newline preserved");
 equal(csvPreview.rows[0].area, 80.5, "area alias mapped");
+equal(csvPreview.rows[0].body, "North light", "optional body mapped");
 equal(csvPreview.rows[0].color, "#abcdef", "optional color mapped");
 equal(csvPreview.rows[0].x, 10, "optional x mapped");
 const aliases = autoMapHeaders(["Room", "Area m2", "Type", "Privacy"]);
@@ -188,7 +189,13 @@ equal(merged.spaces[0].x, 10, "merge preserves existing x without imported x");
 equal(merged.spaces[0].name, "Studio Updated", "merge updates semantic fields");
 const appended = applyTableImport(spaces, parseCsvTable("name,area\nNew Room,30").rows, "append");
 equal(appended.spaces.length, 2, "append adds new spaces");
-const replaced = applyTableImport(spaces, parseCsvTable("name,area\nReplacement,50").rows, "replace");
+equal(appended.spaces[0].name, "Studio", "append preserves existing spaces");
+const replaced = applyTableImport(spaces, parseCsvTable("name,area,body,x,y\nReplacement,50,Imported body,123,456").rows, "replace");
 equal(replaced.spaces.length, 1, "replace produces only imported schedule");
+equal(replaced.spaces[0].body, "Imported body", "body round-trips through table import");
+equal(replaced.spaces[0].x, 123, "imported x coordinate is preserved");
+equal(replaced.spaces[0].y, 456, "imported y coordinate is preserved");
+const scattered = applyTableImport([], parseCsvTable("name,area\nScatter me,20").rows, "replace");
+ok(Number.isFinite(scattered.spaces[0].x) && Number.isFinite(scattered.spaces[0].y), "missing coordinates use scatter placement");
 
 console.info("file intake contracts passed");

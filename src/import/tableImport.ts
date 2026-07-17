@@ -2,7 +2,7 @@ import Papa from "papaparse";
 import { scatterPoint } from "../lib/geometry";
 import type { Privacy, SpaceCell, SpaceKind } from "../types";
 
-export type ImportField = "id" | "name" | "area" | "category" | "privacy" | "kind" | "color" | "x" | "y";
+export type ImportField = "id" | "name" | "area" | "body" | "category" | "privacy" | "kind" | "color" | "x" | "y";
 export type ColumnMapping = Partial<Record<ImportField, number>>;
 export type TableImportMode = "replace" | "merge-id" | "merge-name" | "append";
 export const MAX_TABLE_ROWS = 50_000;
@@ -12,6 +12,7 @@ export interface ImportedSpaceRow {
   id?: string;
   name: string;
   area: number;
+  body: string;
   category: string;
   privacy: Privacy;
   kind: SpaceKind;
@@ -43,6 +44,7 @@ const ALIASES: Record<ImportField, readonly string[]> = {
   id: ["id", "space id", "room id"],
   name: ["name", "space", "space name", "room", "room name"],
   area: ["area", "area m2", "area m²", "area sqm", "sqm", "m2", "m²"],
+  body: ["body", "description", "notes"],
   category: ["category", "type", "program"],
   privacy: ["privacy", "access"],
   kind: ["kind", "space kind"],
@@ -136,7 +138,19 @@ const parseRows = (
     const y = mapping.y === undefined ? undefined : finiteOptional(source[mapping.y]);
     if (mapping.x !== undefined && cleanText(source[mapping.x]) && x === undefined) diagnostics.push({ row: sourceRow, level: "warning", message: "Invalid X coordinate ignored." });
     if (mapping.y !== undefined && cleanText(source[mapping.y]) && y === undefined) diagnostics.push({ row: sourceRow, level: "warning", message: "Invalid Y coordinate ignored." });
-    rows.push({ sourceRow, id: id || undefined, name, area, category: mapping.category === undefined ? "Uncategorized" : cleanText(source[mapping.category]) || "Uncategorized", privacy, kind, color, x, y });
+    rows.push({
+      sourceRow,
+      id: id || undefined,
+      name,
+      area,
+      body: mapping.body === undefined ? "" : cleanText(source[mapping.body], 1200),
+      category: mapping.category === undefined ? "Uncategorized" : cleanText(source[mapping.category]) || "Uncategorized",
+      privacy,
+      kind,
+      color,
+      x,
+      y,
+    });
   }
   return {
     sheetName,
@@ -194,6 +208,7 @@ const newSpace = (row: ImportedSpaceRow, index: number, used: Set<string>): Spac
     id: uniqueId(row.id ?? "", used, `import-${index + 1}`),
     name: row.name,
     area: row.area,
+    body: row.body,
     category: row.category,
     privacy: row.privacy,
     kind: row.kind,
@@ -222,7 +237,7 @@ export const applyTableImport = (
         : -1;
     if (matchIndex >= 0) {
       const current = base[matchIndex];
-      base[matchIndex] = { ...current, name: row.name, area: row.area, category: row.category, privacy: row.privacy, kind: row.kind, color: row.color || current.color, x: row.x ?? current.x, y: row.y ?? current.y };
+      base[matchIndex] = { ...current, name: row.name, area: row.area, body: row.body, category: row.category, privacy: row.privacy, kind: row.kind, color: row.color || current.color, x: row.x ?? current.x, y: row.y ?? current.y };
       updated += 1;
       continue;
     }
