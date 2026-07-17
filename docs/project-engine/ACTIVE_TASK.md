@@ -1,24 +1,17 @@
 # Active Task
 
-## PF1D.2 — Canvas Pause and Table Theme Performance
+## PF1D.3 — Table File Workflow
 
 **Status:** COMPLETE — OWNER QA PASSED — PUSHED UNMERGED
 
-- **Owner verdict:** PF1D.2 PASS. Finalization was authorized on `feature/pf1d-lazy-workspaces` from source SHA `a3ed336fb0e72fbdb8d8a513a27487c3cb0f73ca`; merge is not authorized.
-- **Organism pause lifecycle:** Table activation fully pauses existing Organism frame scheduling and drawing. Store, theme, resize, and continuous-motion invalidations collapse while inactive. Canvas return prepares exactly one current-state/current-theme frame before the App removes resume protection.
-- **Resume safety:** `src/App.tsx` owns a generation-safe readiness gate and one 400ms fallback. Stale callbacks cannot release a newer Table/resume cycle. The existing static non-blur scrim may remain mounted for `tableActive || resumePending`; no screenshot, live-blur, second scheduler, or renderer-local timeout path was added.
-- **Classic boundary:** Classic remains frozen, unchanged, and outside PF1D.2 production ownership. Activity/readiness props execute only on Organism.
-- **Instant Table shell:** Table separates shell-ready and rows-ready stages. The shell publishes after its first frame without waiting for full rows, and canceled activations cannot publish stale readiness.
-- **Bounded row window:** `TableView` uses one fixed-row virtual window with overscan and renders only the canonical editable slice. Scroll height remains truthful; edits still use existing store actions. Basic row windowing was accelerated from PF1D.3 into PF1D.2.
-- **Browser evidence:** 30-row uncached, 300-row cached, and 500-row cached Table entry passed. Shell presentation was measured at 53.2ms, 65.6ms, and 68.2ms respectively; mounted rows remained bounded at 25 initially, 34 mid-scroll for 300 rows, and 22 at the 500-row end. The last row was reachable, virtualized edits persisted to Canvas, lazy Table requests remained deduplicated at one, 12 rapid switch cycles were clean, and a 750ms Table-mode probe observed zero Organism WebGL or 2D overlay draws.
-- **Focused verification:** the three repaired PF1D.1 compatibility contracts passed 3/3. The complete required final suite passed 28/28 with zero skipped tests; TypeScript and tracked/untracked diff checks passed.
-- **Build:** the one authorized `npm run build` passed, transformed 2,898 modules, and emitted `TableView-IzkUI7Jx.js` at 48.35 kB / 16.54 kB gzip. The known non-blocking Vite warning for chunks above 500 kB remained.
-- **Git closeout:** product commit `ee58458282ffb6446ff1c74c2483fb392a5bf55a`; Project Engine closeout is this documentation commit. Both are pushed to `origin/feature/pf1d-lazy-workspaces`; the branch remains unmerged.
-
-### Remaining PF1D.3 scope
-
-PF1D.3 no longer includes basic fixed-row windowing. Dense-table work still requires a separate Owner GO for progressive materialization beyond the current window, text-first editing expansion, search, numeric area queries, sorting, Upload Space Schedule, Download Template, and inline import review.
+- **Owner verdict:** PF1D.3 PASS. Finalization was authorized on `feature/pf1d-lazy-workspaces` from source SHA `9011ff2ba56fbda3831b4405b0960c0ddb3075ea`; no PR or merge is authorized.
+- **Approved workspace:** Table keeps the approved 35/65 workspace split, 70/30 Upload/Download cards, and full-width Search.
+- **File workflow:** CSV, XLS, and XLSX uploads validate before inline multirow scrollable review. The XLSX download template contains `SPACES` and `README`; diagnostics distinguish blocking errors from warnings.
+- **Apply boundary:** Add and Replace apply atomically through the existing central store, retain the existing Canvas/Table projection, and clear stale preview/selection state as protected by import contracts.
+- **Scale evidence:** The Table window remains bounded for a 500-row imported schedule and preserves synchronized store/Canvas data.
+- **Verification:** Final suite 29/29 passed with zero skips; TypeScript and tracked/untracked diff checks passed. The one authorized build exited 0, transformed 2,899 modules, emitted `TableView-DG_Zb1Rp.js` at 59.32 kB / 20.19 kB gzip, and retained the known non-blocking Vite chunk-size warning.
+- **Git closeout:** Product commit `6293831ebe63b0f7a2d6f0027f9c14b15b03549a`; this Project Engine record is pushed on the feature branch. Canvas and Classic are unchanged.
 
 ## Next required action
 
-Wait for explicit Owner GO. Do not begin remaining PF1D.3 work and do not merge this feature branch without a separate exact command.
+Discussion and mapping for Text Layouts, Materials, and Connections only. No automatic next implementation, PR, or merge is authorized.

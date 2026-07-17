@@ -17,7 +17,7 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 | 11 | E1 Organism Detached Export Overlay Alignment | COMPLETE | Detached Organism overlay geometry is aligned to resolved nuclei; Owner export QA passed and Classic SVG remains unchanged. |
 | 12 | PF1D.1 Table overlay and animation foundation | COMPLETE | Lazy conditional floating Table, persistent Canvas, deterministic stacking, static non-blur scrim, browser verification, and Owner QA passed; feature branch remains unmerged. |
 | 13 | PF1D.2 Canvas Pause and Table Theme Performance | COMPLETE | Organism fully pauses in Table and resumes through one prepared current-theme frame plus an App-owned 400ms fallback. Instant shell and basic bounded row windowing were completed with 300/500-row Owner QA; Classic is unchanged and the branch remains unmerged. |
-| 13.1 | PF1D.3 remaining dense-table workflow | NEXT | Basic fixed-row windowing was accelerated into PF1D.2. Progressive materialization beyond the current window, expanded text-first editing, search, numeric queries, sorting, schedule upload/template download, and inline import review require a separate explicit Owner GO. |
+| 13.1 | PF1D.3 Table file workflow | COMPLETE | Owner QA passed for the approved 35/65 Table workspace, 70/30 Upload/Download cards, full-width Search, CSV/XLS/XLSX upload, XLSX `SPACES`/`README` template, multirow review, diagnostics, Add/Replace, and 500-row bounded-window sync. Product and closeout are pushed unmerged on the feature branch; no merge authority. |
 | 14 | M3A core interaction/Undo/Redo | PLANNED | Extend the existing bounded history and interaction contracts; no second history path. |
 | 15 | G1 Master Graph relationship/connection engine | PLANNED | Add semantic relationships before visible connection tooling or graph analytics. |
 | 16 | G2 reference-image layer, calibration, and rulers | PLANNED | Requires durable project ownership and background preprocessing outside the interaction loop. |
@@ -35,7 +35,7 @@ Allowed status vocabulary: **COMPLETE**, **LOCAL**, **NEXT**, **PLANNED**, **DEF
 
 ## Current gate
 
-PF1D.2 Canvas pause, instant Table shell, and basic bounded row windowing are COMPLETE and Owner approved. Remaining PF1D.3 dense-table workflow is NEXT and waits for explicit Owner GO.
+PF1D.3 Table file workflow is COMPLETE and Owner approved. The next work is discussion and mapping for Text Layouts, Materials, and Connections; no automatic next implementation is authorized.
 
 ## Status rules
 
