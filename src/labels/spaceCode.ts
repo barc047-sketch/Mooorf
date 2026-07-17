@@ -7,8 +7,10 @@ export const normalizeSpaceCode = (value: unknown): string | undefined => {
   const normalized = value
     .trim()
     .toUpperCase()
+    .replace(/\s*([/._-])\s*/g, "$1")
     .replace(/\s+/g, "-")
     .replace(/[^A-Z0-9._/-]/g, "")
+    .replace(/-{2,}/g, "-")
     .slice(0, MAX_SPACE_CODE_LENGTH);
   return normalized || undefined;
 };
