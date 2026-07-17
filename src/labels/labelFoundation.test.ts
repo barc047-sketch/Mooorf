@@ -81,5 +81,5 @@ test("duplicate authored Space Nos remain visible for diagnostics", () => {
   assert.deepEqual(findDuplicateSpaceCodes(result.spaces), [
     { code: "A-01", firstIndex: 0, duplicateIndex: 1 },
   ]);
-  assert.equal(normalizeSpaceCode("  l2 / 07 "), "L2-/-07");
+  assert.equal(normalizeSpaceCode("  l2 / 07 "), "L2/07");
 });
