@@ -74,12 +74,59 @@ export const shouldCloseFromOutsidePointer = (
   pointerInsideSurface: boolean
 ): boolean => contextOpen && !pointerInsideSurface;
 
+type MatchableEventTarget = {
+  matches: (selector: string) => boolean;
+};
+
+const pathMatches = (
+  path: readonly unknown[],
+  selector: string,
+): boolean => path.some((target) => {
+  if (!target || typeof target !== "object" || !("matches" in target)) return false;
+  const candidate = target as Partial<MatchableEventTarget>;
+  return typeof candidate.matches === "function" && candidate.matches(selector);
+});
+
+/** The full-screen radial wrapper is positioning only. Only a radial action is
+ * interactive; blank-menu content keeps its existing outside-click boundary,
+ * while the inline editor continues to own outside-click commit itself. */
+export const shouldCloseContextFromPointer = (
+  contextSurface: ContextSurface,
+  composedPath: readonly unknown[],
+): boolean => {
+  if (!contextSurface || contextSurface === "inline-editor") return false;
+  if (contextSurface === "object-radial") {
+    return !pathMatches(composedPath, ".object-radial-action");
+  }
+  return !pathMatches(composedPath, '[data-context-surface="blank-menu"]');
+};
+
+export const shouldCloseRadialFromSelection = (
+  contextSurface: ContextSurface,
+  contextTargetId: string | null,
+  selectedIds: readonly string[],
+): boolean =>
+  contextSurface === "object-radial"
+  && contextTargetId !== null
+  && !selectedIds.includes(contextTargetId);
+
+export const isEnabledRadialActionActivation = (
+  contextSurface: ContextSurface,
+  key: string,
+  focusedEnabledAction: boolean,
+): boolean =>
+  contextSurface === "object-radial"
+  && focusedEnabledAction
+  && (key === "Enter" || key === " ");
+
 /** Let a focused enabled radial action receive its native Enter activation;
  * otherwise Enter is a compact, deterministic dismissal shortcut. */
 export const shouldCloseRadialFromEnter = (
   contextSurface: ContextSurface,
   focusedEnabledAction: boolean,
-): boolean => contextSurface === "object-radial" && !focusedEnabledAction;
+): boolean =>
+  contextSurface === "object-radial"
+  && !isEnabledRadialActionActivation(contextSurface, "Enter", focusedEnabledAction);
 
 export type SelectionRingState = "none" | "hover" | "primary" | "secondary";
 

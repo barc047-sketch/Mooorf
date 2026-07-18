@@ -17,9 +17,11 @@ import {
 } from "../../interaction/contextActionRegistry";
 import { executeContextCommand } from "../../interaction/contextCommands";
 import {
+  isEnabledRadialActionActivation,
   resolveEscapeAction,
-  shouldCloseFromOutsidePointer,
+  shouldCloseContextFromPointer,
   shouldCloseRadialFromEnter,
+  shouldCloseRadialFromSelection,
 } from "../../interaction/selection";
 import "./contextSurfaces.css";
 
@@ -50,12 +52,12 @@ export default function ContextSurfaceHost() {
   useEffect(() => {
     if (!contextSurface) return;
     const onPointer = (event: PointerEvent) => {
-      // The editor owns outside-pointer commit. Closing it here in the parent
-      // can unmount the form before its capture listener records the draft.
-      if (useLab.getState().contextSurface === "inline-editor") return;
-      const element = event.target instanceof Element ? event.target : null;
-      const inside = Boolean(element?.closest("[data-context-surface]"));
-      if (shouldCloseFromOutsidePointer(true, inside)) closeContextSurface();
+      const surface = useLab.getState().contextSurface;
+      if (shouldCloseContextFromPointer(surface, event.composedPath())) {
+        // Capture observes the pointer without cancelling it, so the Canvas
+        // still receives this same event for selection, drag, or clearing.
+        closeContextSurface();
+      }
     };
     document.addEventListener("pointerdown", onPointer, true);
     return () => document.removeEventListener("pointerdown", onPointer, true);
@@ -68,7 +70,7 @@ export default function ContextSurfaceHost() {
   }, [contextSurface, target, closeContextSurface]);
 
   useEffect(() => {
-    if (contextSurface === "object-radial" && contextTargetId && !selectedIds.includes(contextTargetId)) {
+    if (shouldCloseRadialFromSelection(contextSurface, contextTargetId, selectedIds)) {
       closeContextSurface();
     }
   }, [contextSurface, contextTargetId, selectedIds, closeContextSurface]);
@@ -102,6 +104,9 @@ export default function ContextSurfaceHost() {
       if (event.key === "Enter") {
         const element = event.target instanceof Element ? event.target : null;
         const focusedEnabledAction = Boolean(element?.closest("button.object-radial-action:not(:disabled)"));
+        if (isEnabledRadialActionActivation(state.contextSurface, event.key, focusedEnabledAction)) {
+          return;
+        }
         if (shouldCloseRadialFromEnter(state.contextSurface, focusedEnabledAction)) {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -116,6 +121,11 @@ export default function ContextSurfaceHost() {
         return;
       }
       if (event.code === "Space" && !event.repeat && !editableTarget(event.target)) {
+        const element = event.target instanceof Element ? event.target : null;
+        const focusedEnabledAction = Boolean(element?.closest("button.object-radial-action:not(:disabled)"));
+        if (isEnabledRadialActionActivation(state.contextSurface, event.key, focusedEnabledAction)) {
+          return;
+        }
         event.preventDefault();
         state.setTemporaryTool("pan");
       }

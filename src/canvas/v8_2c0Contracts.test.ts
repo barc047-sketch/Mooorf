@@ -120,6 +120,14 @@ const radial = layoutRadialActions(["a", "b", "c", "d", "e", "f", "g", "h"], { x
 assert.deepEqual(radial.center, { x: 4, y: 4 }, "radial semantic centre is never moved away from the cell");
 assert.equal(radial.nodes.every((node) => node.x >= 20 && node.x <= 300 && node.y >= 20 && node.y <= 220), true, "individual action buttons remain in the viewport");
 assert.equal(radial.nodes.some((node) => node.x === radial.center.x && node.y === radial.center.y), false, "radial has no centre object");
+const originalView = useLab.getState().view;
+useLab.getState().openContextSurface("object-radial", { x: 20, y: 20 }, "space-a");
+useLab.getState().openContextSurface("blank-menu", { x: 40, y: 40 }, null);
+assert.equal(useLab.getState().contextSurface, "blank-menu", "opening another context surface replaces the radial");
+useLab.getState().openContextSurface("object-radial", { x: 20, y: 20 }, "space-a");
+useLab.getState().setView("table");
+assert.equal(useLab.getState().contextSurface, null, "switching to Table closes the radial");
+useLab.getState().setView(originalView);
 
 // SETTINGS — plain new-project startup, Cell-scaled labels, Auto Contrast, no Cell Shadow or Motion.
 const defaults = useLab.getState().settings;

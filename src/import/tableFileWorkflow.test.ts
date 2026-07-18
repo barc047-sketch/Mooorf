@@ -1,4 +1,5 @@
 import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import * as XLSX from "xlsx";
 import { useLab } from "../state/store";
@@ -31,6 +32,9 @@ const workbookBuffer = (workbook: XLSX.WorkBook): ArrayBuffer => {
   if (data instanceof ArrayBuffer) return data;
   return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
 };
+
+const tableViewSource = readFileSync(new URL("../views/TableView.tsx", import.meta.url), "utf8");
+const appCssSource = readFileSync(new URL("../App.css", import.meta.url), "utf8");
 
 test("template workbook contains the SPACES schema, examples, and README guidance", () => {
   const workbook = buildTableTemplateWorkbook(XLSX);
@@ -86,6 +90,23 @@ test("CSV and XLSX uploads reuse the table parsers and select one worksheet", as
   const fallback = await parseTableFile(fileLike("fallback.xls", workbookBuffer(fallbackWorkbook)));
   assert.equal(fallback.sheetName, "SCHEDULE");
   assert.equal(fallback.preview.rows[0].name, "Fallback");
+});
+
+test("parsed CSV, XLSX, and XLS schedules share one viewport-safe review Dialog", () => {
+  assert.match(tableViewSource, /<Dialog[\s\S]*open=\{Boolean\(reviewFile && reviewOpen\)\}/);
+  assert.match(tableViewSource, /className="table-import-dialog"/);
+  assert.match(tableViewSource, /className="table-import-review__body"/);
+  assert.match(tableViewSource, /className="table-import-review__footer"/);
+  assert.match(tableViewSource, /<th>No\.<\/th>/);
+  assert.match(tableViewSource, /Import spaces/);
+  assert.match(tableViewSource, /Replace project spaces/);
+  assert.match(tableViewSource, /Review import/);
+  assert.match(tableViewSource, /Choose another/);
+  assert.match(appCssSource, /\.table-import-dialog\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0,\s*1fr\) auto/);
+  assert.match(appCssSource, /\.table-import-dialog\s*\{[\s\S]*max-height:\s*min\(86vh,\s*calc\(100vh - 24px\)\)/);
+  assert.match(appCssSource, /\.table-import-review__body\s*\{[\s\S]*min-height:\s*0/);
+  assert.match(appCssSource, /\.table-import-review__preview\s*\{[\s\S]*overflow-x:\s*auto[\s\S]*overflow-y:\s*auto/);
+  assert.match(appCssSource, /\.table-import-review__footer\s*\{[\s\S]*flex:\s*0 0 auto/);
 });
 
 test("upload validation blocks errors, permits warnings, and resets repeated selection", async () => {

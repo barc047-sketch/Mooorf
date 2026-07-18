@@ -46,6 +46,14 @@ import {
   type ParsedTableFile,
 } from "../import/tableFileWorkflow";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -577,6 +585,10 @@ function TableImportReview({
 }) {
   const { preview } = file;
   const canImport = canImportTablePreview(preview);
+  const format = file.filename.split(".").pop()?.toUpperCase() || "TABLE";
+  const sourceLabel = file.sheetName.toUpperCase() === format
+    ? format
+    : `${format} · ${file.sheetName}`;
   const diagnostics = preview.diagnostics.slice(0, 8);
   const diagnosticsByRow = new Map<number, "warning" | "error">();
   for (const diagnostic of preview.diagnostics) {
@@ -586,7 +598,7 @@ function TableImportReview({
   const parsedSourceRows = new Set(preview.rows.map((row) => row.sourceRow));
   const sourceValue = (
     sourceRow: number,
-    field: "name" | "area" | "category" | "privacy" | "kind",
+    field: "spaceCode" | "name" | "area" | "category" | "privacy" | "kind",
   ): string => {
     const column = preview.mapping[field];
     if (column === undefined) return "—";
@@ -597,6 +609,7 @@ function TableImportReview({
   const reviewRows = [
     ...preview.rows.map((row) => ({
       sourceRow: row.sourceRow,
+      spaceCode: row.spaceCode ?? "—",
       name: row.name,
       area: `${row.area} m²`,
       category: row.category,
@@ -613,6 +626,7 @@ function TableImportReview({
       )
       .map((diagnostic) => ({
         sourceRow: diagnostic.row,
+        spaceCode: sourceValue(diagnostic.row, "spaceCode"),
         name: sourceValue(diagnostic.row, "name"),
         area: sourceValue(diagnostic.row, "area"),
         category: sourceValue(diagnostic.row, "category"),
@@ -623,84 +637,84 @@ function TableImportReview({
   ].sort((left, right) => left.sourceRow - right.sourceRow);
 
   return (
-    <div
-      className="table-import-review"
-      aria-label="Import review"
-      data-table-import-review="true"
-    >
-      <div className="table-import-review__summary">
+    <>
+      <DialogHeader className="table-import-review__header">
         <div className="table-import-review__file">
-          <strong>{file.filename}</strong>
-          <span>
-            {file.sheetName} · {sourceDataRowCount(preview)} source rows
-          </span>
+          <DialogTitle>{file.filename}</DialogTitle>
+          <DialogDescription>
+            {sourceLabel} · {sourceDataRowCount(preview)} source rows
+          </DialogDescription>
         </div>
         <div className="table-import-review__counts">
           <span>{preview.validCount} valid</span>
           <span>{preview.warningCount} warnings</span>
           <span>{preview.errorCount} errors</span>
         </div>
-      </div>
+      </DialogHeader>
 
-      {preview.errorCount > 0 && (
-        <div
-          className="table-import-review__blocking"
-          role="alert"
-        >
-          <AlertTriangle size={14} />
-          Fix the listed errors and upload again.
-        </div>
-      )}
+      <div className="table-import-review__body">
+        {preview.errorCount > 0 && (
+          <div
+            className="table-import-review__blocking"
+            role="alert"
+          >
+            <AlertTriangle size={14} />
+            Fix the listed errors and upload again.
+          </div>
+        )}
 
-      <div className="table-import-review__preview" aria-label="First parsed rows">
-        <table>
-          <thead>
-            <tr>
-              <th>row</th>
-              <th>name</th>
-              <th>area</th>
-              <th>category</th>
-              <th>privacy</th>
-              <th>kind</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reviewRows.slice(0, 12).map((row) => (
-              <tr
-                key={`${row.sourceRow}-${row.name}`}
-                data-level={row.level}
-              >
-                <td>{row.sourceRow}</td>
-                <td>{row.name}</td>
-                <td>{row.area}</td>
-                <td>{row.category}</td>
-                <td>{row.privacy}</td>
-                <td>{row.kind}</td>
+        <div className="table-import-review__preview" aria-label="First parsed rows">
+          <table>
+            <thead>
+              <tr>
+                <th>row</th>
+                <th>No.</th>
+                <th>name</th>
+                <th>area</th>
+                <th>category</th>
+                <th>privacy</th>
+                <th>kind</th>
               </tr>
+            </thead>
+            <tbody>
+              {reviewRows.slice(0, 12).map((row) => (
+                <tr
+                  key={`${row.sourceRow}-${row.name}`}
+                  data-level={row.level}
+                >
+                  <td>{row.sourceRow}</td>
+                  <td>{row.spaceCode}</td>
+                  <td>{row.name}</td>
+                  <td>{row.area}</td>
+                  <td>{row.category}</td>
+                  <td>{row.privacy}</td>
+                  <td>{row.kind}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {diagnostics.length > 0 && (
+          <div className="table-import-review__diagnostics" aria-label="Import diagnostics">
+            {diagnostics.map((diagnostic, index) => (
+              <p
+                key={`${diagnostic.row}-${diagnostic.level}-${index}`}
+                data-level={diagnostic.level}
+              >
+                Row {diagnostic.row}: {diagnostic.message}
+              </p>
             ))}
-          </tbody>
-        </table>
+          </div>
+        )}
       </div>
 
-      {diagnostics.length > 0 && (
-        <div className="table-import-review__diagnostics" aria-label="Import diagnostics">
-          {diagnostics.map((diagnostic, index) => (
-            <p
-              key={`${diagnostic.row}-${diagnostic.level}-${index}`}
-              data-level={diagnostic.level}
-            >
-              Row {diagnostic.row}: {diagnostic.message}
-            </p>
-          ))}
-        </div>
-      )}
-
-      <div className="table-import-review__actions">
+      <DialogFooter className="table-import-review__footer">
         <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
         <Button size="sm" onClick={onAdd} disabled={!canImport}>
-          Add spaces
+          Import spaces
         </Button>
         {!replaceArmed ? (
           <Button
@@ -721,8 +735,8 @@ function TableImportReview({
             </Button>
           </div>
         )}
-      </div>
-    </div>
+      </DialogFooter>
+    </>
   );
 }
 
@@ -744,6 +758,7 @@ export default function TableView() {
   const [loadingFilename, setLoadingFilename] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [reviewFile, setReviewFile] = useState<ParsedTableFile | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [replaceArmed, setReplaceArmed] = useState(false);
   const visibleSpaces = useMemo(
     () => filterTableSpaces(spaces, query),
@@ -796,6 +811,7 @@ export default function TableView() {
     setLoadingFilename(file.name);
     setUploadError(null);
     setReviewFile(null);
+    setReviewOpen(false);
     setReplaceArmed(false);
     await yieldForLoadingState();
 
@@ -803,6 +819,7 @@ export default function TableView() {
       const parsed = await parseTableFile(file);
       if (uploadRequestRef.current !== requestId) return;
       setReviewFile(parsed);
+      setReviewOpen(true);
     } catch (error) {
       if (uploadRequestRef.current !== requestId) return;
       setUploadError(error instanceof Error ? error.message : "File validation failed.");
@@ -854,11 +871,17 @@ export default function TableView() {
     if (file) void loadFile(file);
   };
 
-  const cancelReview = () => {
+  const clearReview = () => {
     uploadRequestRef.current += 1;
     setLoadingFilename(null);
     setUploadError(null);
     setReviewFile(null);
+    setReviewOpen(false);
+    setReplaceArmed(false);
+  };
+
+  const closeReviewDialog = () => {
+    setReviewOpen(false);
     setReplaceArmed(false);
   };
 
@@ -877,6 +900,7 @@ export default function TableView() {
           : `Replaced with ${result.spaces.length} spaces`,
       );
       setReviewFile(null);
+      setReviewOpen(false);
       setUploadError(null);
       setReplaceArmed(false);
     } catch (error) {
@@ -957,7 +981,7 @@ export default function TableView() {
                 <div className="table-upload-card__error" role="alert">
                   <span><AlertTriangle size={15} /> {uploadError}</span>
                   <div>
-                    <Button variant="ghost" size="sm" onClick={cancelReview}>
+                    <Button variant="ghost" size="sm" onClick={clearReview}>
                       Dismiss
                     </Button>
                     <Button
@@ -970,14 +994,26 @@ export default function TableView() {
                   </div>
                 </div>
               ) : reviewFile ? (
-                <TableImportReview
-                  file={reviewFile}
-                  replaceArmed={replaceArmed}
-                  onCancel={cancelReview}
-                  onAdd={() => applyReviewedFile("append")}
-                  onRequestReplace={() => setReplaceArmed(true)}
-                  onConfirmReplace={() => applyReviewedFile("replace")}
-                />
+                <div className="table-upload-card__ready">
+                  <div>
+                    <strong>{reviewFile.filename}</strong>
+                    <span>
+                      {reviewFile.preview.validCount} valid · {reviewFile.preview.warningCount} warnings · {reviewFile.preview.errorCount} errors
+                    </span>
+                  </div>
+                  <div>
+                    <Button variant="ghost" size="sm" onClick={() => setReviewOpen(true)}>
+                      Review import
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Choose another
+                    </Button>
+                  </div>
+                </div>
               ) : (
                 <div className="table-upload-card__idle">
                   <div>
@@ -1097,6 +1133,27 @@ export default function TableView() {
           </div>
         </section>
       </div>
+
+      {reviewFile && (
+        <Dialog
+          open={Boolean(reviewFile && reviewOpen)}
+          onOpenChange={(open) => {
+            setReviewOpen(open);
+            if (!open) setReplaceArmed(false);
+          }}
+        >
+          <DialogContent className="table-import-dialog">
+            <TableImportReview
+              file={reviewFile}
+              replaceArmed={replaceArmed}
+              onCancel={closeReviewDialog}
+              onAdd={() => applyReviewedFile("append")}
+              onRequestReplace={() => setReplaceArmed(true)}
+              onConfirmReplace={() => applyReviewedFile("replace")}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

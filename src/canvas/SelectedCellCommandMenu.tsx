@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { ContextPoint } from "../types";
 import type { ContextActionDefinition, ContextTargetKind } from "../interaction/contextActionRegistry";
 import { layoutRadialActions, type RadialViewport } from "../interaction/radialLayout";
@@ -23,7 +23,6 @@ export default function ObjectRadialMenu({
   onAction,
 }: ObjectRadialMenuProps) {
   const [viewport, setViewport] = useState(readViewport);
-  const firstActionRef = useRef<HTMLButtonElement>(null);
   const layout = useMemo(
     () => layoutRadialActions(actions.map((action) => action.id), point, viewport),
     [actions, point, viewport]
@@ -35,21 +34,12 @@ export default function ObjectRadialMenu({
     return () => window.removeEventListener("resize", resize);
   }, []);
 
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => firstActionRef.current?.focus({ preventScroll: true }));
-    return () => cancelAnimationFrame(frame);
-  }, [targetId, point.x, point.y]);
-
-  const stopPointer = (event: PointerEvent<HTMLElement>) => event.stopPropagation();
-
   return (
     <div
       className="object-radial-surface"
       role="menu"
       aria-label="Object actions"
-      data-context-surface="object-radial"
       data-empty-centre="true"
-      onPointerDown={stopPointer}
       onContextMenu={(event) => event.preventDefault()}
     >
       {layout.nodes.map((node, index) => {
@@ -58,7 +48,6 @@ export default function ObjectRadialMenu({
         const Icon = action.icon;
         return (
           <button
-            ref={index === 0 ? firstActionRef : undefined}
             key={action.id}
             type="button"
             className="object-radial-action"
