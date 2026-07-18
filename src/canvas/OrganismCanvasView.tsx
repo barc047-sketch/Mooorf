@@ -94,6 +94,9 @@ import {
   projectRuntimePresentation,
 } from "./presentationLayers";
 import { textStylePreset } from "../domain/presentation/editing";
+import { LABEL_COMPACT_SCREEN_RADIUS } from "../domain/labels/layoutContract";
+import { resolveFlagAutoDirection, resolveLabelRuntimeScale } from "../domain/labels/resolveLayout";
+import OrganismCellLabel from "./OrganismCellLabel";
 import "./organismCanvas.css";
 
 const THEME_TRANSITION_MS = 200;
@@ -231,6 +234,21 @@ export default function OrganismCanvasView({
     hoveredId: null,
     include: true,
   }), [spaces, selectedIds, selectedId]);
+  const iconPlacements = useLab((s) => s.settings.resources.iconPlacements);
+  const symbolTargets = useMemo(
+    () => new Set(iconPlacements.map((placement) => placement.targetSpaceId)),
+    [iconPlacements]
+  );
+  /* Deterministic Flag auto-placement reference: the organism centroid. */
+  const labelCentroid = useMemo(
+    () => spaces.length
+      ? spaces.reduce(
+          (sum, space) => ({ x: sum.x + space.x / spaces.length, y: sum.y + space.y / spaces.length }),
+          { x: 0, y: 0 }
+        )
+      : null,
+    [spaces]
+  );
 
   useEffect(() => {
     const host = hostRef.current;
@@ -763,6 +781,16 @@ export default function OrganismCanvasView({
         "--label-scale",
         String(resolveLabelScale(settings.labelScaleMode, cam.zoom, 1))
       );
+      /* Per-mode label scales for the layout system. Frame-loop CSS variables
+       * only — the store is never written during pan or zoom. */
+      const scales = {
+        world: resolveLabelRuntimeScale("world", cam.zoom),
+        adaptive: resolveLabelRuntimeScale("adaptive", cam.zoom),
+        screen: 1,
+      } as const;
+      layer.style.setProperty("--ls-world", String(scales.world));
+      layer.style.setProperty("--ls-adaptive", String(scales.adaptive));
+      layer.style.setProperty("--ls-screen", "1");
       layer.querySelectorAll<HTMLElement>(".organism-label-anchor").forEach((anchor) => {
         const id = anchor.dataset.nucleusId;
         const nucleus = id ? byId.get(id) : null;
@@ -783,6 +811,32 @@ export default function OrganismCanvasView({
           const keylineSize = Math.max(24, nucleus.screenR * 2 + (editing ? 14 : 10));
           keyline.style.width = `${keylineSize}px`;
           keyline.style.height = `${keylineSize}px`;
+        }
+        anchor.style.setProperty("--cell-r", `${nucleus.screenR.toFixed(1)}px`);
+        const compact = nucleus.screenR < LABEL_COMPACT_SCREEN_RADIUS ? "true" : "false";
+        if (anchor.dataset.compact !== compact) anchor.dataset.compact = compact;
+        /* Zoom/room visibility gates re-evaluate only when the zoom or radius
+         * bucket moves, keeping the per-frame DOM work bounded. */
+        const gateKey = `${Math.round(cam.zoom * 20)}|${Math.round(nucleus.screenR / 3)}`;
+        if (anchor.dataset.gateKey !== gateKey) {
+          anchor.dataset.gateKey = gateKey;
+          anchor.querySelectorAll<HTMLElement>("[data-hide-below]").forEach((el) => {
+            const hidden = cam.zoom < Number(el.dataset.hideBelow) ? "true" : "false";
+            if (el.dataset.zoomHidden !== hidden) el.dataset.zoomHidden = hidden;
+          });
+          anchor.querySelectorAll<HTMLElement>("[data-auto-hide]").forEach((el) => {
+            const extent = Number(el.dataset.extent) || 0;
+            const mode = (el.dataset.scaleMode ?? "world") as keyof typeof scales;
+            const hidden = extent * (scales[mode] ?? 1) > nucleus.screenR * 0.94 ? "true" : "false";
+            if (el.dataset.roomHidden !== hidden) el.dataset.roomHidden = hidden;
+          });
+        }
+        const ringEl = anchor.querySelector<HTMLElement>(".organism-ring-label");
+        if (ringEl) {
+          const ratio = Number(ringEl.dataset.ringRatio) || 0.78;
+          const mode = (ringEl.dataset.ringScaleMode ?? "world") as keyof typeof scales;
+          const k = ((scales[mode] ?? 1) / Math.max(1, nucleus.screenR * ratio)) * (180 / Math.PI);
+          ringEl.style.setProperty("--ring-k", `${k.toFixed(4)}deg`);
         }
       });
     };
@@ -1401,25 +1455,7 @@ export default function OrganismCanvasView({
             "--nucleus-muted": mappedColor.muted,
             "--label-ink": labelContrast.color,
             "--label-keyline": labelContrast.keyline,
-            "--m1-text-size": text.size,
-            "--m1-heading-scale": preset.heading.scale,
-            "--m1-heading-weight": preset.heading.weight,
-            "--m1-heading-tracking": `${preset.heading.tracking}em`,
-            "--m1-area-scale": preset.area.scale,
-            "--m1-area-weight": preset.area.weight,
-            "--m1-body-scale": preset.body.scale,
-            "--m1-body-weight": preset.body.weight,
-            "--m1-body-leading": preset.body.lineHeight,
-            "--m1-text-align": preset.align,
           } as CSSProperties;
-          const meta = [
-            annotationDetail.showArea ? `${Math.round(space.area)} m²` : null,
-            annotationMode === "technical" && annotationDetail.showCategory
-              ? space.category
-              : null,
-          ]
-            .filter(Boolean)
-            .join(" · ");
           return (
             <div
               key={space.id}
@@ -1434,11 +1470,18 @@ export default function OrganismCanvasView({
               style={labelStyle}
             >
               <span className="organism-cell-keyline" aria-hidden="true" />
-              <span className="organism-label">
-                {annotationDetail.showName && <span className="organism-label-main">{space.name}</span>}
-                {meta && <span className="organism-label-meta">{meta}</span>}
-                {space.body?.trim() && <span className="organism-label-body">{space.body.trim()}</span>}
-              </span>
+              <OrganismCellLabel
+                space={space}
+                defaults={presentationDefaults}
+                globalScaleMode={labelScaleMode}
+                textSize={text.size * preset.heading.scale}
+                showName={annotationDetail.showName}
+                showArea={annotationDetail.showArea}
+                showMetadata={annotationMode === "technical" && annotationDetail.showCategory}
+                hasSymbol={symbolTargets.has(space.id)}
+                flagAutoDirection={resolveFlagAutoDirection(space, labelCentroid)}
+                theme={themeMode}
+              />
             </div>
           );
         })}

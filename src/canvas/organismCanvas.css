@@ -713,3 +713,170 @@
   font: inherit;
   cursor: pointer;
 }
+
+/* --- Cell Label Layout system (Cell Text Layouts & Flag) ------------------
+   React renders structure; the frame loop only writes --cell-r, --ls-*,
+   --ring-k and data gates. All colours route through --label-ink /
+   --label-keyline so Auto Contrast and day/night stay authoritative. */
+
+.organism-cell-layout {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  color: var(--label-ink, var(--ink));
+}
+
+.organism-label-layer[data-hidden="true"] .organism-cell-layout {
+  display: none;
+}
+
+.organism-layout-group {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(2px * var(--ls-world, 1));
+  transform: translate(-50%, -50%);
+  white-space: normal;
+}
+
+.organism-layout-block {
+  --bs: var(--ls-world, 1);
+  display: block;
+  min-width: 0;
+  color: inherit;
+}
+
+.organism-layout-block[data-overflow="truncate"] {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.organism-layout-block[data-overflow="wrap"] {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.organism-layout-segment {
+  display: inline;
+}
+
+.organism-label-layer[data-shadow="true"] .organism-layout-block,
+.organism-label-layer[data-shadow="true"] .organism-ring-glyph {
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--label-keyline, var(--bg)) 46%, transparent);
+}
+
+/* Visibility gates written by the frame loop. */
+.organism-cell-layout [data-zoom-hidden="true"],
+.organism-cell-layout [data-room-hidden="true"] {
+  display: none !important;
+}
+
+/* Small-cell fallback: primary composition yields to the compact stack. */
+.organism-cell-layout [data-tier="fallback"] {
+  display: none;
+}
+
+.organism-label-anchor[data-compact="true"]
+  .organism-cell-layout[data-has-fallback="true"]
+  [data-tier="primary"] {
+  display: none;
+}
+
+.organism-label-anchor[data-compact="true"]
+  .organism-cell-layout[data-has-fallback="true"]
+  .organism-layout-group[data-tier="fallback"] {
+  display: flex;
+}
+
+.organism-label-anchor[data-compact="true"]
+  .organism-cell-layout[data-has-fallback="true"]
+  .organism-ring-label {
+  display: none;
+}
+
+.organism-layout-divider {
+  position: absolute;
+  left: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--label-ink, var(--ink)) 30%, transparent);
+  transform: translate(-50%, -50%);
+}
+
+/* Ring label — per-glyph placement along the live nucleus radius. */
+.organism-ring-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  letter-spacing: 0;
+}
+
+.organism-ring-glyph {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  line-height: 1;
+}
+
+/* Flag — leader stem plus compact glass panel. Presentation only. */
+.organism-flag-label {
+  --bs: var(--ls-world, 1);
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.organism-flag-stem {
+  position: absolute;
+  background: color-mix(in srgb, var(--label-ink, var(--ink)) 44%, transparent);
+}
+
+.organism-flag-tick {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--label-ink, var(--ink)) 52%, transparent);
+  transform: translate(-50%, -50%);
+}
+
+.organism-flag-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: calc(1.2px * var(--bs));
+  border: 1px solid color-mix(in srgb, var(--nucleus-color) 14%, var(--glass-border));
+  border-radius: 7px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 54%),
+    color-mix(in srgb, var(--bg) 72%, transparent);
+  backdrop-filter: blur(11px) saturate(138%);
+  -webkit-backdrop-filter: blur(11px) saturate(138%);
+}
+
+/* Pill mode keeps its glass chip identity on the central composition. */
+.organism-label-layer[data-mode="pill"]
+  .organism-cell-layout[data-layout="centre-stack"]
+  .organism-layout-group[data-tier="primary"],
+.organism-label-layer[data-mode="pill"]
+  .organism-cell-layout[data-layout="compact-technical"]
+  .organism-layout-group[data-tier="primary"] {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--nucleus-color) 14%, var(--glass-border));
+  border-radius: var(--glass-pill-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 54%),
+    color-mix(in srgb, var(--bg) 62%, transparent);
+  backdrop-filter: blur(11px) saturate(138%);
+  -webkit-backdrop-filter: blur(11px) saturate(138%);
+}
+
+.organism-label-anchor[data-kind="void"] .organism-layout-block[data-role="name"]::before {
+  content: "− ";
+  color: var(--chrome-accent);
+}

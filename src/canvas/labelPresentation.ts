@@ -1,20 +1,17 @@
 import type { Camera, LabelScaleMode } from "../types";
+import { resolveLabelRuntimeScale } from "../domain/labels/resolveLayout";
 
 export interface CanvasViewport {
   width: number;
   height: number;
 }
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
 /** Shared live/export label-scale contract. Interface Scale remains chrome-only;
- * the existing annotation text scale is the authored label multiplier. */
+ * the existing annotation text scale is the authored label multiplier. The
+ * formula itself is owned by the domain label resolver. */
 export const resolveLabelScale = (mode: LabelScaleMode, zoom: number, authoredScale = 1): number => {
-  const safeZoom = Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
   const safeAuthored = Number.isFinite(authoredScale) && authoredScale > 0 ? authoredScale : 1;
-  if (mode === "world") return safeAuthored * safeZoom;
-  if (mode === "adaptive") return safeAuthored * clamp(Math.sqrt(safeZoom), 0.82, 1.22);
-  return safeAuthored;
+  return safeAuthored * resolveLabelRuntimeScale(mode, zoom);
 };
 
 export const projectCanvasPoint = (
