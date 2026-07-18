@@ -329,9 +329,12 @@ export const resolveCellLabelLayout = (input: CellLabelLayoutInput): ResolvedCel
     maxWidthRatio: 0.85,
   } : null);
 
-  /** Area line: number + optional unit segment; unit can also drop below. */
+  /** Area line: number + optional unit segment; unit can also drop below.
+   * Hero-scale numeric layouts stay unconstrained so the number is never
+   * ellipsized — the numeric hero may overflow the Cell like the references. */
   const areaSeeds = (): BlockSeed[] => {
     if (!areaNumber.visible || !areaNumberText) return [];
+    const unconstrained = layout === "area-hero" || layout === "minimal-number";
     const showUnit = area.showUnit && areaUnit.visible;
     const inlineUnit = showUnit && area.unitPosition === "after";
     const numberSegments: ResolvedLabelSegment[] = [segment("areaNumber", areaNumberText, areaNumber.style)];
@@ -341,7 +344,7 @@ export const resolveCellLabelLayout = (input: CellLabelLayoutInput): ResolvedCel
       role: "areaNumber",
       segments: numberSegments,
       style: areaNumber.style,
-      maxWidthRatio: 0.85,
+      maxWidthRatio: unconstrained ? 0 : 0.85,
     }];
     if (showUnit && area.unitPosition === "below") {
       seeds.push({
@@ -349,7 +352,7 @@ export const resolveCellLabelLayout = (input: CellLabelLayoutInput): ResolvedCel
         role: "areaUnit",
         segments: [segment("areaUnit", AREA_UNIT_TEXT, areaUnit.style)],
         style: areaUnit.style,
-        maxWidthRatio: 0.85,
+        maxWidthRatio: unconstrained ? 0 : 0.85,
       });
     }
     return seeds;

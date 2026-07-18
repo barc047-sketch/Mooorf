@@ -47,7 +47,7 @@ export const BASE_LABEL_ROLE_STYLES: Record<LabelRoleId, LabelRoleStyle> = {
     colour: "#171715",
     opacity: 1,
     maxLines: 2,
-    overflow: "truncate",
+    overflow: "wrap",
     offsetX: 0,
     offsetY: 0,
     rotation: 0,
@@ -214,7 +214,7 @@ export const CELL_LABEL_PRESETS: readonly CellLabelPresetDefinition[] = [
     description: "Name and Area hold separate horizontal zones.",
     seed: {
       roles: {
-        name: { align: "left" },
+        name: { align: "left", maxLines: 1, overflow: "truncate" },
         areaNumber: { align: "right", size: 0.9, weight: "bold" },
         areaUnit: { align: "right" },
         body: { visible: false },

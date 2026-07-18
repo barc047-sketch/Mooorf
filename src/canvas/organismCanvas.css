@@ -758,6 +758,12 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: normal;
+}
+
+/* Only Body may break long words; Name and metadata wrap at spaces like the
+   shared canvas wrapper. */
+.organism-layout-block[data-overflow="wrap"][data-role="body"] {
   overflow-wrap: anywhere;
 }
 

@@ -120,6 +120,7 @@ const wrapLines = (
   maxLines: number,
   overflow: "wrap" | "truncate"
 ): string[] => {
+  if (!Number.isFinite(maxWidth)) return [text];
   const key = `${overflow}|${maxLines}|${bucket(maxWidth)}|${font}|${text}`;
   return remember(lineCache, key, () => {
     ctx.font = font;
@@ -311,10 +312,11 @@ const drawBlockContent = (
 
   if (block.segments.length > 1) {
     const width = segmentsWidth(ctx, block.segments);
+    const boxWidth = Number.isFinite(box.widthWorld) ? box.widthWorld : width;
     const startX = block.align === "left"
-      ? box.x - box.widthWorld / 2
+      ? box.x - boxWidth / 2
       : block.align === "right"
-        ? box.x + box.widthWorld / 2 - width
+        ? box.x + boxWidth / 2 - width
         : box.x - width / 2;
     segmentBaselineDraw(ctx, block.segments, startX, box.y + primary.font.sizeWorld * 0.36, draw.textShadow, contrast.keyline);
   } else {
@@ -324,14 +326,15 @@ const drawBlockContent = (
     const totalHeight = lineHeight * lines.length;
     let baseline = box.y - totalHeight / 2 + primary.font.sizeWorld * 0.86;
     for (const [index, line] of lines.entries()) {
-      if (block.align === "justify" && index < lines.length - 1) {
+      if (block.align === "justify" && Number.isFinite(box.widthWorld) && index < lines.length - 1) {
         drawJustifiedLine(ctx, line, box.x - box.widthWorld / 2, baseline, box.widthWorld, draw.textShadow, contrast.keyline);
       } else {
         const width = ctx.measureText(line).width;
+        const boxWidth = Number.isFinite(box.widthWorld) ? box.widthWorld : width;
         const x = block.align === "left" || block.align === "justify"
-          ? box.x - box.widthWorld / 2
+          ? box.x - boxWidth / 2
           : block.align === "right"
-            ? box.x + box.widthWorld / 2 - width
+            ? box.x + boxWidth / 2 - width
             : box.x - width / 2;
         if (draw.textShadow) {
           ctx.strokeStyle = `${contrast.keyline}55`;
@@ -360,7 +363,7 @@ const drawBlock = (
   const anchorY = draw.sy + block.anchorUnit.y * draw.screenRadius + block.offsetWorld.y * scale;
   const widthWorld = block.maxWidthRatio > 0
     ? Math.max(52, (block.maxWidthRatio * 2 * draw.screenRadius) / scale)
-    : 52;
+    : Number.POSITIVE_INFINITY;
   ctx.save();
   ctx.translate(anchorX, anchorY);
   if (block.rotationDeg) ctx.rotate((block.rotationDeg * Math.PI) / 180);
