@@ -26,6 +26,8 @@ import {
   type ContentEditResolution,
 } from "../../interaction/contentEditSession";
 import SymbolInspectorPane from "./SymbolInspectorPane";
+import LabelLayoutPane from "./LabelLayoutPane";
+import { mergeCellLabelConfig } from "../../domain/labels/layoutContract";
 
 type TabId = "content" | "appearance" | "symbol";
 
@@ -165,21 +167,24 @@ export default function InspectorWidget() {
     "#f7f6f2",
   ].filter((value): value is string => Boolean(value && /^#[0-9a-f]{6}$/i.test(value))))];
 
+  const mergedTextDefaults = (patch: Partial<TextAppearanceOverride>) => {
+    const next = cloneProjectPresentationDefaults(defaults);
+    next.text = {
+      ...next.text,
+      ...patch,
+      labels: patch.labels !== undefined
+        ? mergeCellLabelConfig(next.text.labels, patch.labels) ?? {}
+        : next.text.labels,
+    };
+    return next;
+  };
   const applyText = (patch: Partial<TextAppearanceOverride>) => {
     if (selected.length) commitText(selectedIds, patch);
-    else {
-      const next = cloneProjectPresentationDefaults(defaults);
-      next.text = { ...next.text, ...patch };
-      commitProjectDefaults(next);
-    }
+    else commitProjectDefaults(mergedTextDefaults(patch));
   };
   const previewTextSetting = (patch: Partial<TextAppearanceOverride>) => {
     if (selected.length) previewText(selectedIds, patch);
-    else {
-      const next = cloneProjectPresentationDefaults(defaults);
-      next.text = { ...next.text, ...patch };
-      previewProjectDefaults(next);
-    }
+    else previewProjectDefaults(mergedTextDefaults(patch));
   };
 
   return (
@@ -217,6 +222,14 @@ export default function InspectorWidget() {
           </div>
           {selected.length > 0 && <button type="button" className="m1-link-btn" onClick={() => resetTarget(selectedIds, "text")}><RotateCcw size={11} /> Return text to Project Default</button>}
         </section>
+
+        <LabelLayoutPane
+          selected={selected}
+          defaults={defaults}
+          apply={(labels) => applyText({ labels })}
+          preview={(labels) => previewTextSetting({ labels })}
+          onPreviewEnd={selected.length ? commitAppearancePreview : commitDefaultsPreview}
+        />
       </div> : <div className="m1-pane" role="tabpanel">
         <section className="m1-section">
           <div className="m1-section-title"><h3>Appearance family</h3><span className="m1-state-badge" data-state={familyState}>{inheritanceStateLabel(familyState)}</span></div>

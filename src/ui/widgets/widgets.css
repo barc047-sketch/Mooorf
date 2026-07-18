@@ -1234,3 +1234,55 @@
     background: var(--glass-fallback);
   }
 }
+
+/* --- Inspector · Cell Label Layout pane ---------------------------------- */
+.m1-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.m1-layout-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px 5px;
+  border: 1px solid color-mix(in srgb, var(--hairline) 55%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass-panel) 45%, transparent);
+  color: var(--ink-soft);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+
+.m1-layout-grid button:hover {
+  border-color: color-mix(in srgb, var(--hairline) 90%, transparent);
+  color: var(--ink);
+}
+
+.m1-layout-grid button[data-active="true"] {
+  border-color: var(--chrome-accent);
+  background: color-mix(in srgb, var(--glass-panel) 80%, transparent);
+  color: var(--ink);
+}
+
+.m1-layout-grid button svg {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+}
+
+.m1-inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.m1-inline-row > * {
+  min-width: 0;
+}

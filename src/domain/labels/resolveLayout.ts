@@ -271,6 +271,15 @@ const resolveRole = (
   return { style, visible };
 };
 
+/** Inspector-facing truth for the Elements switches: authored visibility wins,
+ * then the legacy annotation gates, then the preset seed. */
+export const resolveEffectiveRoleVisibility = (
+  layout: CellLabelLayoutId,
+  role: LabelRoleId,
+  config: CellLabelConfig | undefined,
+  legacy: CellLabelLayoutInput["legacyVisibility"]
+): boolean => resolveRole(layout, role, config, legacy).visible;
+
 export const resolveCellLabelLayout = (input: CellLabelLayoutInput): ResolvedCellLabelLayout => {
   const config = input.config;
   const layout = config?.layout ?? DEFAULT_CELL_LABEL_LAYOUT;
