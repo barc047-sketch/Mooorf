@@ -20,6 +20,7 @@ import {
 } from "./types";
 import { MEMBRANE_SOLID_MATERIAL_IDS } from "../../materials/materialRegistry";
 import { cloneCellLabelConfig, normalizeCellLabelConfig } from "../labels/layoutContract";
+import { sparsifyCellLabelOverride } from "../labels/presets";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -225,7 +226,10 @@ export const normalizeCellAppearanceOverrides = (
       const colour = canonicalHex(value.text.colour);
       return colour && colour !== defaults.text.colour ? colour : undefined;
     })(),
-    labels: normalizeCellLabelConfig(value.text.labels),
+    labels: sparsifyCellLabelOverride(
+      normalizeCellLabelConfig(value.text.labels),
+      defaults.text.labels
+    ),
   }) : undefined;
   const boundary = isRecord(value.boundary) ? compact({
     visible: changedBoolean(value.boundary.visible, defaults.boundary.visible),

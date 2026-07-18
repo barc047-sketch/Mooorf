@@ -716,7 +716,7 @@
 
 /* --- Cell Label Layout system (Cell Text Layouts & Flag) ------------------
    React renders structure; the frame loop only writes --cell-r, --ls-*,
-   --ring-k and data gates. All colours route through --label-ink /
+   shared runtime-fit variables and data gates. All colours route through --label-ink /
    --label-keyline so Auto Contrast and day/night stay authoritative. */
 
 .organism-cell-layout {
@@ -736,7 +736,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: calc(2px * var(--ls-world, 1));
+  gap: calc(2px * var(--ls-world, 1) * var(--layout-fit, 1));
   transform: translate(-50%, -50%);
   white-space: normal;
 }
@@ -772,13 +772,14 @@
 }
 
 .organism-label-layer[data-shadow="true"] .organism-layout-block,
-.organism-label-layer[data-shadow="true"] .organism-ring-glyph {
+.organism-label-layer[data-shadow="true"] .organism-ring-text {
   text-shadow: 0 1px 0 color-mix(in srgb, var(--label-keyline, var(--bg)) 46%, transparent);
 }
 
 /* Visibility gates written by the frame loop. */
 .organism-cell-layout [data-zoom-hidden="true"],
-.organism-cell-layout [data-room-hidden="true"] {
+.organism-cell-layout [data-room-hidden="true"],
+.organism-cell-layout [data-runtime-hidden="true"] {
   display: none !important;
 }
 
@@ -813,20 +814,29 @@
   transform: translate(-50%, -50%);
 }
 
-/* Ring label — per-glyph placement along the live nucleus radius. */
+/* Ring label — one SVG text path; the frame loop updates only path geometry,
+   fitted text and bounded typography from the shared runtime projection. */
 .organism-ring-label {
   position: absolute;
   left: 0;
   top: 0;
-  letter-spacing: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  transform-origin: 0 0;
+  pointer-events: none;
 }
 
-.organism-ring-glyph {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform-origin: 0 0;
-  line-height: 1;
+.organism-ring-path {
+  fill: none;
+  stroke: none;
+}
+
+.organism-ring-text {
+  fill: currentColor;
+  font-size: calc(var(--ring-font-world) * var(--bs));
+  letter-spacing: var(--ring-tracking);
+  dominant-baseline: middle;
 }
 
 /* Flag — leader stem plus compact glass panel. Presentation only. */

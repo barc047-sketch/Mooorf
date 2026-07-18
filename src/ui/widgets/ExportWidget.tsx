@@ -29,6 +29,7 @@ import {
 import { ChipRow, SwitchRow, WidgetSection } from "./controls";
 import { downloadConfig, downloadFullProject } from "../../import/projectTransfer";
 import { activity } from "../../runtime/activityRuntime";
+import { useLab } from "../../state/store";
 
 type ExportFormatChoice = "png" | "pdf" | "data" | "pack";
 
@@ -92,6 +93,7 @@ const ACTIVE_EXPORT_LABEL: Record<ExportFormatChoice, string> = {
 };
 
 export default function ExportWidget() {
+  const rendererMode = useLab((state) => state.settings.rendererMode);
   const [format, setFormat] = useState<ExportFormatChoice>("png");
   const [visual, setVisual] = useState(DEFAULT_VISUAL_OPTIONS);
   const [presentation, setPresentation] = useState(DEFAULT_PRESENTATION_OPTIONS);
@@ -107,13 +109,15 @@ export default function ExportWidget() {
   const busy = stage === "preparing";
   const project = defaultProjectTitle();
   const exportTaskId = "export:widget";
+  const vectorSvgAvailable = rendererMode !== "organism";
+  const useVectorExport = vectorSvgAvailable && useVectorSvg;
 
   const runExport = async () => {
     if (runningRef.current) return;
     runningRef.current = true;
     setStage("preparing");
     setStatusMessage("Preparing…");
-    const activeExportLabel = format === "png" && useVectorSvg ? "Exporting SVG" : ACTIVE_EXPORT_LABEL[format];
+    const activeExportLabel = format === "png" && useVectorExport ? "Exporting SVG" : ACTIVE_EXPORT_LABEL[format];
     activity.start({
       id: exportTaskId,
       label: activeExportLabel,
@@ -123,7 +127,7 @@ export default function ExportWidget() {
       cancellable: false,
     });
     try {
-      if (format === "png" && useVectorSvg) {
+      if (format === "png" && useVectorExport) {
         await exportSvg(project);
       } else if (format === "png") {
         await exportPng(project, visual);
@@ -174,20 +178,24 @@ export default function ExportWidget() {
           ariaLabel="Export format"
         />
         {format === "png" && (
-          <>
-            <SwitchRow
-              label="Vector (SVG)"
-              on={useVectorSvg}
-              onToggle={() => setUseVectorSvg((v) => !v)}
-            />
-            {useVectorSvg && (
-              <p className="wexport-unavailable">Vector export includes Cells and labels; the Membrane remains raster-only.</p>
-            )}
-          </>
+          vectorSvgAvailable ? (
+            <>
+              <SwitchRow
+                label="Vector (SVG)"
+                on={useVectorSvg}
+                onToggle={() => setUseVectorSvg((v) => !v)}
+              />
+              {useVectorSvg && (
+                <p className="wexport-unavailable">Vector export includes Cells and labels; the Membrane remains raster-only.</p>
+              )}
+            </>
+          ) : (
+            <p className="wexport-unavailable">SVG remains a legacy Classic-only export.</p>
+          )
         )}
       </WidgetSection>
 
-      {showVisual && !(format === "png" && useVectorSvg) && (
+      {showVisual && !(format === "png" && useVectorExport) && (
         <WidgetSection title="Visual" defaultOpen>
           <ChipRow
             options={RESOLUTION_OPTIONS}
@@ -269,7 +277,7 @@ export default function ExportWidget() {
       <WidgetSection title="Generate" defaultOpen>
         <button type="button" className="wexport-primary" disabled={busy} onClick={runExport}>
           {busy && <Loader2 size={12} className="wexport-spin" />}
-          {format === "png" && useVectorSvg ? "Export SVG" : PRIMARY_LABEL[format]}
+          {format === "png" && useVectorExport ? "Export SVG" : PRIMARY_LABEL[format]}
         </button>
         {stage !== "idle" && (
           <p className="wexport-status" data-stage={stage}>

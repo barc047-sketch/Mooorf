@@ -94,8 +94,8 @@ import {
   projectRuntimePresentation,
 } from "./presentationLayers";
 import { textStylePreset } from "../domain/presentation/editing";
-import { LABEL_COMPACT_SCREEN_RADIUS } from "../domain/labels/layoutContract";
 import { resolveFlagAutoDirection, resolveLabelRuntimeScale } from "../domain/labels/resolveLayout";
+import { getCellLabelLayout, selectRuntimeLabelLayout } from "./cellLabelDraw";
 import OrganismCellLabel from "./OrganismCellLabel";
 import "./organismCanvas.css";
 
@@ -770,6 +770,19 @@ export default function OrganismCanvasView({
       const layer = labelLayerRef.current;
       if (!layer) return;
       const byId = new Map(nuclei.map((n) => [n.id, n]));
+      const spacesById = new Map(spaces.slice(0, MAX_NUCLEI).map((space) => [space.id, space]));
+      const symbolById = new Map(
+        settings.resources.iconPlacements.map((placement) => [placement.targetSpaceId, placement])
+      );
+      const centroid = spaces.length
+        ? spaces.reduce(
+            (sum, space) => ({
+              x: sum.x + space.x / spaces.length,
+              y: sum.y + space.y / spaces.length,
+            }),
+            { x: 0, y: 0 }
+          )
+        : null;
       const selection = projectSelectionOverlay({
         visibleIds: nuclei.map((nucleus) => nucleus.id),
         selectedIds: [...selectedIdSet],
@@ -801,6 +814,9 @@ export default function OrganismCanvasView({
         }
         anchor.style.opacity = "1";
         anchor.style.transform = `translate(${nucleus.sx}px, ${nucleus.sy}px)`;
+        const space = spacesById.get(nucleus.id);
+        const appearance = cachedPresentation.byId.get(nucleus.id);
+        if (!space || !appearance) return;
         const selected = selectedIdSet.has(nucleus.id);
         anchor.dataset.selected = selected ? "true" : "false";
         anchor.dataset.primary = selectedId === nucleus.id ? "true" : "false";
@@ -813,30 +829,60 @@ export default function OrganismCanvasView({
           keyline.style.height = `${keylineSize}px`;
         }
         anchor.style.setProperty("--cell-r", `${nucleus.screenR.toFixed(1)}px`);
-        const compact = nucleus.screenR < LABEL_COMPACT_SCREEN_RADIUS ? "true" : "false";
+        const text = appearance.text;
+        const preset = textStylePreset(text.preset);
+        const resolvedLabel = getCellLabelLayout(space, settings.presentationDefaults, {
+          globalScaleMode: settings.labelScaleMode,
+          textSize: text.size * preset.heading.scale,
+          showName: settings.annotationDetail.showName,
+          showArea: settings.annotationDetail.showArea,
+          showMetadata:
+            settings.annotationMode === "technical" && settings.annotationDetail.showCategory,
+          hasSymbol: symbolById.has(space.id),
+          flagAutoDirection: resolveFlagAutoDirection(space, centroid),
+        });
+        const runtimeLabel = selectRuntimeLabelLayout(resolvedLabel, {
+          zoom: cam.zoom,
+          radiusWorld: nucleus.screenR / Math.max(cam.zoom, 0.0001),
+        });
+        anchor.style.setProperty("--layout-fit", runtimeLabel.fitScale.toFixed(4));
+        const compact = runtimeLabel.usedFallback ? "true" : "false";
         if (anchor.dataset.compact !== compact) anchor.dataset.compact = compact;
-        /* Zoom/room visibility gates re-evaluate only when the zoom or radius
-         * bucket moves, keeping the per-frame DOM work bounded. */
-        const gateKey = `${Math.round(cam.zoom * 20)}|${Math.round(nucleus.screenR / 3)}`;
-        if (anchor.dataset.gateKey !== gateKey) {
-          anchor.dataset.gateKey = gateKey;
-          anchor.querySelectorAll<HTMLElement>("[data-hide-below]").forEach((el) => {
-            const hidden = cam.zoom < Number(el.dataset.hideBelow) ? "true" : "false";
-            if (el.dataset.zoomHidden !== hidden) el.dataset.zoomHidden = hidden;
-          });
-          anchor.querySelectorAll<HTMLElement>("[data-auto-hide]").forEach((el) => {
-            const extent = Number(el.dataset.extent) || 0;
-            const mode = (el.dataset.scaleMode ?? "world") as keyof typeof scales;
-            const hidden = extent * (scales[mode] ?? 1) > nucleus.screenR * 0.94 ? "true" : "false";
-            if (el.dataset.roomHidden !== hidden) el.dataset.roomHidden = hidden;
-          });
+        const visibleBlockIds = new Set(runtimeLabel.blocks.map((block) => block.id));
+        anchor.querySelectorAll<HTMLElement>("[data-block-id]").forEach((element) => {
+          const hidden = visibleBlockIds.has(element.dataset.blockId ?? "") ? "false" : "true";
+          if (element.dataset.runtimeHidden !== hidden) {
+            element.dataset.runtimeHidden = hidden;
+          }
+        });
+        const divider = anchor.querySelector<HTMLElement>(".organism-layout-divider");
+        if (divider) {
+          divider.dataset.runtimeHidden = runtimeLabel.divider ? "false" : "true";
         }
-        const ringEl = anchor.querySelector<HTMLElement>(".organism-ring-label");
+        const ringEl = anchor.querySelector<SVGSVGElement>(".organism-ring-label");
         if (ringEl) {
-          const ratio = Number(ringEl.dataset.ringRatio) || 0.78;
-          const mode = (ringEl.dataset.ringScaleMode ?? "world") as keyof typeof scales;
-          const k = ((scales[mode] ?? 1) / Math.max(1, nucleus.screenR * ratio)) * (180 / Math.PI);
-          ringEl.style.setProperty("--ring-k", `${k.toFixed(4)}deg`);
+          const ring = runtimeLabel.ring;
+          ringEl.dataset.runtimeHidden = ring ? "false" : "true";
+          if (ring) {
+            const radius = Math.max(1, nucleus.screenR * ring.radiusRatio);
+            const path = ringEl.querySelector<SVGPathElement>(".organism-ring-path");
+            const textPath = ringEl.querySelector<SVGTextPathElement>(
+              ".organism-ring-text-path"
+            );
+            const sweep = ring.flipped ? 0 : 1;
+            path?.setAttribute(
+              "d",
+              `M ${(-radius).toFixed(2)} 0 A ${radius.toFixed(2)} ${radius.toFixed(2)} 0 0 ${sweep} ${radius.toFixed(2)} 0`
+            );
+            if (textPath && textPath.textContent !== ring.text) {
+              textPath.textContent = ring.text;
+            }
+            ringEl.style.setProperty("--ring-font-world", `${ring.font.sizeWorld.toFixed(3)}px`);
+            ringEl.style.setProperty("--ring-tracking", `${ring.fit.trackingEm.toFixed(4)}em`);
+            ringEl.style.transform = `rotate(${(
+              ring.startAngleDeg - (ring.flipped ? 180 : 0)
+            ).toFixed(2)}deg)`;
+          }
         }
       });
     };

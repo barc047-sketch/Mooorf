@@ -3,8 +3,15 @@ import {
   type CellLabelLayoutId,
   type LabelRoleId,
   type LabelRoleStyle,
+  DEFAULT_AREA_LABEL_OPTIONS,
+  DEFAULT_BODY_LABEL_OPTIONS,
   DEFAULT_CELL_LABEL_LAYOUT,
+  DEFAULT_FLAG_LABEL_OPTIONS,
+  DEFAULT_MINIMAL_NUMBER_SOURCE,
+  DEFAULT_RING_LABEL_OPTIONS,
+  LABEL_ROLE_IDS,
   mergeCellLabelConfig,
+  normalizeCellLabelConfig,
 } from "./layoutContract";
 
 /* Registry data only. Preset seeds are never persisted; project defaults and
@@ -337,4 +344,65 @@ export const resolveEffectiveRoleStyle = (
 export const resolveEffectiveLabelConfig = (config: CellLabelConfig | undefined): CellLabelConfig => {
   const layout = config?.layout ?? DEFAULT_CELL_LABEL_LAYOUT;
   return mergeCellLabelConfig(cellLabelPreset(layout).seed, config) ?? {};
+};
+
+const difference = (
+  value: Record<string, unknown> | undefined,
+  inherited: Record<string, unknown>
+): Record<string, unknown> | undefined => {
+  if (!value) return undefined;
+  const entries = Object.entries(value).filter(([key, item]) => !Object.is(item, inherited[key]));
+  return entries.length ? Object.fromEntries(entries) : undefined;
+};
+
+/** Reduces a Cell's normalized label config to deviations from the effective
+ * preset + Project Default projection. Project Defaults remain independently
+ * sparse over preset data; Cells never persist values they merely inherit. */
+export const sparsifyCellLabelOverride = (
+  value: CellLabelConfig | undefined,
+  projectDefaults: CellLabelConfig | undefined
+): CellLabelConfig | undefined => {
+  const normalized = normalizeCellLabelConfig(value);
+  if (!normalized) return undefined;
+  const defaults = normalizeCellLabelConfig(projectDefaults);
+  const layout = normalized.layout ?? defaults?.layout ?? DEFAULT_CELL_LABEL_LAYOUT;
+  const inheritedForLayout = mergeCellLabelConfig(defaults, { layout });
+  const roles: Partial<Record<LabelRoleId, Record<string, unknown>>> = {};
+  for (const role of LABEL_ROLE_IDS) {
+    const patch = normalized.roles?.[role] as Record<string, unknown> | undefined;
+    const inherited = resolveEffectiveRoleStyle(layout, role, inheritedForLayout) as unknown as Record<string, unknown>;
+    const sparse = difference(patch, inherited);
+    if (sparse) roles[role] = sparse;
+  }
+  const area = difference(
+    normalized.area as Record<string, unknown> | undefined,
+    { ...DEFAULT_AREA_LABEL_OPTIONS, ...defaults?.area }
+  );
+  const body = difference(
+    normalized.body as Record<string, unknown> | undefined,
+    { ...DEFAULT_BODY_LABEL_OPTIONS, ...defaults?.body }
+  );
+  const ring = difference(
+    normalized.ring as Record<string, unknown> | undefined,
+    { ...DEFAULT_RING_LABEL_OPTIONS, ...defaults?.ring }
+  );
+  const flag = difference(
+    normalized.flag as Record<string, unknown> | undefined,
+    { ...DEFAULT_FLAG_LABEL_OPTIONS, ...defaults?.flag }
+  );
+  const sparse = normalizeCellLabelConfig({
+    layout: normalized.layout !== (defaults?.layout ?? DEFAULT_CELL_LABEL_LAYOUT)
+      ? normalized.layout
+      : undefined,
+    roles: Object.keys(roles).length ? roles : undefined,
+    area,
+    body,
+    ring,
+    flag,
+    minimalSource: normalized.minimalSource !==
+      (defaults?.minimalSource ?? DEFAULT_MINIMAL_NUMBER_SOURCE)
+      ? normalized.minimalSource
+      : undefined,
+  });
+  return sparse && Object.keys(sparse).length ? sparse : undefined;
 };

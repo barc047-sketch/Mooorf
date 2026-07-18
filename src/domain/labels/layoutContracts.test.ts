@@ -9,9 +9,15 @@ import {
   normalizeCellLabelConfig,
   type CellLabelConfig,
 } from "./layoutContract";
-import { CELL_LABEL_PRESETS, cellLabelPreset, resolveEffectiveRoleStyle } from "./presets";
+import {
+  CELL_LABEL_PRESETS,
+  cellLabelPreset,
+  resolveEffectiveRoleStyle,
+  sparsifyCellLabelOverride,
+} from "./presets";
 import {
   cellLabelContentSource,
+  fitRingLabel,
   formatAreaNumber,
   resolveCellLabelLayout,
   resolveFlagAutoDirection,
@@ -170,6 +176,29 @@ const patched = applyTextAppearancePatch(overrides, migrated, { labels: { ring: 
 assert.equal(patched?.text?.labels?.layout, "ring", "incremental patches deep-merge instead of replacing");
 assert.equal(patched?.text?.labels?.ring?.startAngleDeg, 40, "nested patch fields land");
 
+const presetSparse = sparsifyCellLabelOverride(
+  {
+    layout: "ring",
+    roles: { name: { size: 0.72 } },
+    ring: { radiusRatio: 0.78, startAngleDeg: 0, spacingEm: 0.14 },
+    flag: { direction: "auto", distance: 46, width: 120, align: "start" },
+  },
+  {}
+);
+assert.deepEqual(
+  presetSparse,
+  { layout: "ring" },
+  "Cell overrides discard values already supplied by preset and Project Defaults"
+);
+assert.equal(
+  sparsifyCellLabelOverride(
+    { roles: { name: { size: 0.8 } } },
+    { roles: { name: { size: 0.8 } } }
+  ),
+  undefined,
+  "a Cell override equal to the Project Default stays sparse"
+);
+
 const resolvedAppearance = resolveCellAppearance(
   cell({ appearance: { text: { labels: { layout: "flag" } } } }),
   migrated,
@@ -217,6 +246,37 @@ assert.ok(
 assert.ok(
   ringTop.blocks.some((block) => block.role === "areaNumber"),
   "Area remains readable inside the ring"
+);
+const longRing = resolveCellLabelLayout(layoutInput({
+  space: cellLabelContentSource(cell({
+    name: "Interdisciplinary Advanced Materials Research and Fabrication Laboratory",
+  })),
+  config: { layout: "ring" },
+}));
+const fittedLongRing = fitRingLabel(longRing.ring!, { screenRadius: 48, zoom: 1 });
+assert.ok(fittedLongRing, "a medium Cell produces a fitted Ring projection");
+assert.ok(
+  fittedLongRing!.fit.totalArcWorld <= fittedLongRing!.fit.availableArcWorld + 0.001,
+  "Ring fitting never exceeds the deterministic available arc"
+);
+assert.ok(
+  fittedLongRing!.fit.trackingEm <=
+    longRing.ring!.font.letterSpacingEm + longRing.ring!.spacingEm,
+  "Ring fitting reduces tracking before truncation"
+);
+assert.ok(
+  fittedLongRing!.font.sizeWorld <= longRing.ring!.font.sizeWorld
+    && fittedLongRing!.font.sizeWorld >= longRing.ring!.font.sizeWorld * 0.72,
+  "Ring fitting reduces font size only within the preset bound"
+);
+assert.ok(
+  fittedLongRing!.fit.truncated && fittedLongRing!.text.endsWith("…"),
+  "a still-overlong Ring name truncates with a truthful ellipsis"
+);
+assert.equal(
+  fitRingLabel(longRing.ring!, { screenRadius: 20, zoom: 1 }),
+  null,
+  "a physically unsuitable Ring requests the preset fallback"
 );
 
 /* --- flag determinism ------------------------------------------------------ */
@@ -269,6 +329,34 @@ assert.equal(ringRuntime.ring, null, "small cells drop the ring");
 assert.equal(ringRuntime.usedFallback, true, "small cells switch to the compact fallback");
 const ringRuntimeLarge = selectRuntimeLabelLayout(ringTop, { zoom: 1, radiusWorld: 80 });
 assert.ok(ringRuntimeLarge.ring, "large cells keep the ring");
+
+const denseResolved = resolveCellLabelLayout(layoutInput({
+  config: {
+    roles: {
+      name: { size: 2.4 },
+      body: { visible: true, size: 1.2 },
+      metadata: { visible: true, size: 0.8 },
+    },
+  },
+}));
+const denseRuntime = selectRuntimeLabelLayout(denseResolved, { zoom: 1, radiusWorld: 28 });
+assert.ok(
+  !denseRuntime.blocks.some((block) => block.role === "body"),
+  "bounded degradation hides Body first"
+);
+assert.ok(
+  !denseRuntime.blocks.some((block) => block.role === "metadata"),
+  "bounded degradation hides optional metadata second"
+);
+assert.ok(
+  denseRuntime.blocks.some((block) => block.role === "name")
+    && denseRuntime.blocks.some((block) => block.role === "areaNumber"),
+  "bounded degradation preserves enabled Name and Area"
+);
+assert.ok(
+  denseRuntime.fitScale >= 0.72 && denseRuntime.fitScale <= 1,
+  "bounded degradation reduces typography and spacing within safe bounds"
+);
 
 /* --- legacy visibility gates keep one owner -------------------------------- */
 

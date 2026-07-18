@@ -2,7 +2,12 @@ import { getAreaRange, getOrganismPalette, hexToRgb01 } from "../design/colorMap
 import { resolveCellShadowGated } from "../canvas/cellShadow";
 import { spacesToNuclei } from "../canvas/organismAdapter";
 import { resolveOrganism } from "../canvas/organismProductionSettings";
-import { projectMembraneField, projectRuntimePresentation } from "../canvas/presentationLayers";
+import {
+  drawOrganismCircleOverlay,
+  projectCircleLayers,
+  projectMembraneField,
+  projectRuntimePresentation,
+} from "../canvas/presentationLayers";
 import { effectiveField, styleColors } from "../experiments/organism-lab/organism-controls";
 import { MAX_NUCLEI } from "../experiments/organism-lab/organism-types";
 import {
@@ -11,28 +16,30 @@ import {
   type OrganismRenderer,
 } from "../experiments/organism-lab/organism-shader";
 import type { CanvasExportSnapshot, CaptureRequestOptions, CaptureResult } from "../canvas/exportCapture";
-import { buildClassicSvg, type ResolvedCircleGeometry } from "./svgExport";
+import { iconRegistry } from "../icons/iconRegistry";
+import { drawSymbolPlacement, resolveSymbolTint } from "../icons/iconDrawing";
+import {
+  drawCellLabelLayout,
+  getCellLabelLayout,
+  selectRuntimeLabelLayout,
+} from "../canvas/cellLabelDraw";
+import { textStylePreset } from "../domain/presentation/editing";
+import { resolveFlagAutoDirection } from "../domain/labels/resolveLayout";
 
-const drawSvgOverlay = async (
-  canvas: HTMLCanvasElement,
-  svg: string,
-): Promise<void> => {
-  const context = canvas.getContext("2d");
-  if (!context) throw new Error("Could not create the export presentation surface.");
-  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
-  try {
-    const image = new Image();
-    const loaded = new Promise<void>((resolve, reject) => {
-      image.onload = () => resolve();
-      image.onerror = () => reject(new Error("Could not render export presentation layers."));
-    });
-    image.src = url;
-    await loaded;
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-};
+const rgb01ToHex = (rgb: readonly number[]): string =>
+  `#${rgb
+    .slice(0, 3)
+    .map((value) =>
+      Math.round(Math.min(1, Math.max(0, value)) * 255)
+        .toString(16)
+        .padStart(2, "0")
+    )
+    .join("")}`;
+
+const exportOverlayTokens = (theme: CanvasExportSnapshot["theme"]) =>
+  theme === "night"
+    ? { surface: "#151614", hairline: "#5b5d58" }
+    : { surface: "#f5f6ee", hairline: "#a8aaa3" };
 
 /** One short-lived authored-quality Organism renderer. It never reads or
  * mutates the mounted Canvas, preview owners, Governor, selection, or camera. */
@@ -169,39 +176,126 @@ export const renderDetachedOrganismExport = async (
     const outputContext = output.getContext("2d");
     if (!outputContext) throw new Error("Could not create the export capture surface.");
     outputContext.drawImage(renderSurface, 0, 0, output.width, output.height);
-
-    const resolvedGeometryById = new Map<string, ResolvedCircleGeometry>(
-      nuclei.map((nucleus) => [nucleus.id, {
-        screenX: nucleus.sx,
-        screenY: nucleus.sy,
-        screenRadius: nucleus.screenR,
-      }]),
+    outputContext.save();
+    outputContext.setTransform(scale, 0, 0, scale, 0, 0);
+    const spacesById = new Map(visibleSpaces.map((space) => [space.id, space]));
+    const placementsByTarget = new Map(
+      settings.resources.iconPlacements.map((placement) => [
+        placement.targetSpaceId,
+        placement,
+      ])
     );
-    const overlay = buildClassicSvg({
-      spaces: visibleSpaces,
-      camera: snapshot.camera,
-      cssWidth: width,
-      cssHeight: height,
-      paletteMode: settings.paletteMode,
-      nucleusPaletteId: settings.nucleusPaletteId,
-      organismPaletteId: settings.organismPaletteId,
-      morphMode: settings.morphMode,
-      presentationDefaults: settings.presentationDefaults,
-      colorSource: settings.colorSource,
-      labelScaleMode: settings.labelScaleMode,
-      labelColourMode: settings.labelColourMode,
-      labelCustomColour: settings.labelCustomColour,
-      annotationDetail: settings.annotationDetail,
-      cellShadow: settings.cellShadow,
-      performanceQuality: "high",
-      resources: settings.resources,
-      theme: snapshot.theme,
-      background: null,
-      includeLabels: options.includeLabels,
-      paddingPx: 0,
-      resolvedGeometryById,
-    });
-    await drawSvgOverlay(output, overlay);
+    const centroid = snapshot.spaces.length
+      ? snapshot.spaces.reduce(
+          (sum, space) => ({
+            x: sum.x + space.x / snapshot.spaces.length,
+            y: sum.y + space.y / snapshot.spaces.length,
+          }),
+          { x: 0, y: 0 }
+        )
+      : null;
+    const plainMode =
+      !settings.blobOn ||
+      !(presentation.membrane.visible || presentation.membraneEdge.visible);
+    const canvasColor = rgb01ToHex(palette.ground);
+    const tokens = exportOverlayTokens(snapshot.theme);
+    const labelsVisible =
+      options.includeLabels &&
+      settings.organism.showLabels &&
+      settings.annotationMode !== "hidden";
+
+    for (const nucleus of nuclei) {
+      const space = spacesById.get(nucleus.id);
+      const appearance = presentation.byId.get(nucleus.id);
+      if (!space || !appearance) continue;
+      const isVoid = space.kind === "void";
+      const backgroundColor = isVoid
+        ? appearance.void.fill.colour
+        : appearance.cell.paint.colour;
+      const layers = projectCircleLayers(
+        space,
+        appearance,
+        nucleus.screenR,
+        snapshot.camera.zoom,
+        "organism"
+      );
+      drawOrganismCircleOverlay(
+        outputContext,
+        nucleus.sx,
+        nucleus.sy,
+        layers,
+        {
+          spaceKind: isVoid ? "void" : "space",
+          plainMode,
+          backgroundColour: canvasColor,
+          baseRadiusPx: nucleus.screenR,
+        }
+      );
+
+      const placement = placementsByTarget.get(space.id);
+      const definition = placement ? iconRegistry.get(placement.iconId) : null;
+      if (placement && definition) {
+        drawSymbolPlacement(outputContext, definition, placement, {
+          x: nucleus.sx,
+          y: nucleus.sy,
+          radius: nucleus.screenR,
+          zoom: snapshot.camera.zoom,
+          tint: resolveSymbolTint(placement, {
+            theme: snapshot.theme,
+            backgroundColor,
+            surfaceOpacity: isVoid
+              ? appearance.void.fill.opacity
+              : appearance.cell.paint.opacity,
+            canvasColor,
+            voidBackground: isVoid,
+          }),
+        });
+      }
+
+      if (!labelsVisible) continue;
+      const text = appearance.text;
+      const preset = textStylePreset(text.preset);
+      const resolvedLabel = getCellLabelLayout(
+        space,
+        settings.presentationDefaults,
+        {
+          globalScaleMode: settings.labelScaleMode,
+          textSize: text.size * preset.heading.scale,
+          showName: settings.annotationDetail.showName,
+          showArea: settings.annotationDetail.showArea,
+          showMetadata:
+            settings.annotationMode === "technical" &&
+            settings.annotationDetail.showCategory,
+          hasSymbol: Boolean(placement && definition),
+          flagAutoDirection: resolveFlagAutoDirection(space, centroid),
+        }
+      );
+      const runtimeLabel = selectRuntimeLabelLayout(resolvedLabel, {
+        zoom: snapshot.camera.zoom,
+        radiusWorld:
+          nucleus.screenR / Math.max(snapshot.camera.zoom, 0.0001),
+      });
+      drawCellLabelLayout(outputContext, runtimeLabel, {
+        sx: nucleus.sx,
+        sy: nucleus.sy,
+        screenRadius: nucleus.screenR,
+        zoom: snapshot.camera.zoom,
+        theme: snapshot.theme,
+        backgroundColor,
+        voidBackground: isVoid,
+        legacyColour: {
+          mode: text.colourMode === "custom" ? "custom" : "auto",
+          colour:
+            text.colourMode === "custom"
+              ? text.colour
+              : settings.labelCustomColour,
+        },
+        textShadow: settings.annotationDetail.textShadow,
+        surfaceColor: tokens.surface,
+        hairlineColor: tokens.hairline,
+      });
+    }
+    outputContext.restore();
     return { canvas: output, cssWidth: width, cssHeight: height };
   } finally {
     renderer?.dispose();

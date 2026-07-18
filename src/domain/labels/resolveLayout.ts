@@ -93,6 +93,19 @@ export interface ResolvedRingLabel {
   scaleMode: LabelScaleMode;
 }
 
+export interface RingFitEvidence {
+  availableArcWorld: number;
+  totalArcWorld: number;
+  trackingEm: number;
+  usedTrackingReduction: boolean;
+  usedFontReduction: boolean;
+  truncated: boolean;
+}
+
+export interface RuntimeRingLabel extends ResolvedRingLabel {
+  fit: RingFitEvidence;
+}
+
 export interface ResolvedFlagLabel {
   direction: Exclude<FlagDirection, "auto">;
   requestedDirection: FlagDirection;
@@ -509,12 +522,112 @@ export const resolveLabelRuntimeScale = (mode: LabelScaleMode, zoom: number): nu
 };
 const runtimeScale = resolveLabelRuntimeScale;
 
+const RING_AVAILABLE_ARC_RADIANS = Math.PI * 0.9;
+const RING_MIN_TRACKING_EM = -0.04;
+const RING_MIN_FONT_SCALE = 0.72;
+
+const glyphAdvanceEm = (glyph: string): number => {
+  if (/\s/.test(glyph)) return 0.34;
+  if (/[ilI1|.,'`]/.test(glyph)) return 0.31;
+  if (/[mwMW@%&]/.test(glyph)) return 0.84;
+  if (glyph === "…") return 0.72;
+  if (/[A-Z0-9]/.test(glyph)) return 0.62;
+  return 0.56;
+};
+
+const ringArcWorld = (
+  text: string,
+  fontSizeWorld: number,
+  trackingEm: number
+): number => {
+  const glyphs = [...text];
+  if (!glyphs.length) return 0;
+  const advances = glyphs.reduce((sum, glyph) => sum + glyphAdvanceEm(glyph), 0);
+  return Math.max(0, (advances + trackingEm * Math.max(0, glyphs.length - 1)) * fontSizeWorld);
+};
+
+/** Shared deterministic Ring fitter. It deliberately uses bounded authored
+ * metrics rather than renderer measurement, so live Organism and detached
+ * exports make the same spacing/font/ellipsis/fallback decision. */
+export const fitRingLabel = (
+  ring: ResolvedRingLabel,
+  viewport: { screenRadius: number; zoom: number }
+): RuntimeRingLabel | null => {
+  const screenRadius = Number.isFinite(viewport.screenRadius) ? Math.max(0, viewport.screenRadius) : 0;
+  if (!ring.text || screenRadius < LABEL_COMPACT_SCREEN_RADIUS) return null;
+  const scale = resolveLabelRuntimeScale(ring.scaleMode, viewport.zoom);
+  if (scale <= 0) return null;
+  const availableArcWorld =
+    (screenRadius * ring.radiusRatio * RING_AVAILABLE_ARC_RADIANS) / scale;
+  if (availableArcWorld < ring.font.sizeWorld * 2.2) return null;
+
+  const originalTracking = ring.font.letterSpacingEm + ring.spacingEm;
+  const glyphCount = [...ring.text].length;
+  const advanceEm = [...ring.text].reduce((sum, glyph) => sum + glyphAdvanceEm(glyph), 0);
+  let trackingEm = originalTracking;
+  let fontSizeWorld = ring.font.sizeWorld;
+  let totalArcWorld = ringArcWorld(ring.text, fontSizeWorld, trackingEm);
+
+  if (totalArcWorld > availableArcWorld && glyphCount > 1) {
+    const availableTracking =
+      (availableArcWorld / fontSizeWorld - advanceEm) / (glyphCount - 1);
+    trackingEm = Math.max(
+      RING_MIN_TRACKING_EM,
+      Math.min(originalTracking, availableTracking)
+    );
+    totalArcWorld = ringArcWorld(ring.text, fontSizeWorld, trackingEm);
+  }
+
+  if (totalArcWorld > availableArcWorld) {
+    const requiredScale = availableArcWorld / Math.max(totalArcWorld, 0.0001);
+    fontSizeWorld *= Math.max(RING_MIN_FONT_SCALE, Math.min(1, requiredScale));
+    totalArcWorld = ringArcWorld(ring.text, fontSizeWorld, trackingEm);
+  }
+
+  let text = ring.text;
+  let truncated = false;
+  if (totalArcWorld > availableArcWorld) {
+    const glyphs = [...ring.text.trim()];
+    text = "";
+    for (let length = glyphs.length - 1; length >= 1; length -= 1) {
+      const candidate = `${glyphs.slice(0, length).join("").trimEnd()}…`;
+      if (ringArcWorld(candidate, fontSizeWorld, trackingEm) <= availableArcWorld) {
+        text = candidate;
+        break;
+      }
+    }
+    if (!text || text === "…") return null;
+    truncated = true;
+    totalArcWorld = ringArcWorld(text, fontSizeWorld, trackingEm);
+  }
+
+  return {
+    ...ring,
+    text,
+    font: {
+      ...ring.font,
+      sizeWorld: fontSizeWorld,
+      letterSpacingEm: trackingEm,
+    },
+    spacingEm: 0,
+    fit: {
+      availableArcWorld,
+      totalArcWorld,
+      trackingEm,
+      usedTrackingReduction: trackingEm < originalTracking - 0.0001,
+      usedFontReduction: fontSizeWorld < ring.font.sizeWorld - 0.0001,
+      truncated,
+    },
+  };
+};
+
 export interface RuntimeLabelSelection {
   blocks: readonly ResolvedLabelBlock[];
-  ring: ResolvedRingLabel | null;
+  ring: RuntimeRingLabel | null;
   flag: ResolvedFlagLabel | null;
   divider: ResolvedLabelDivider | null;
   usedFallback: boolean;
+  fitScale: number;
 }
 
 /** Pure per-frame gate: hide-below-zoom thresholds, small-cell fallbacks and
@@ -524,29 +637,55 @@ export const selectRuntimeLabelLayout = (
   viewport: LabelRuntimeViewport
 ): RuntimeLabelSelection => {
   const screenRadius = viewport.radiusWorld * (Number.isFinite(viewport.zoom) && viewport.zoom > 0 ? viewport.zoom : 1);
-  const compact = screenRadius < LABEL_COMPACT_SCREEN_RADIUS
+  let compact = screenRadius < LABEL_COMPACT_SCREEN_RADIUS
     && (resolved.ring !== null || resolved.fallbackBlocks.length > 0)
     && resolved.layout !== "flag";
-  const sourceBlocks = compact && resolved.fallbackBlocks.length > 0 ? resolved.fallbackBlocks : resolved.blocks;
+  let ring = compact || !resolved.ring
+    ? null
+    : fitRingLabel(resolved.ring, { screenRadius, zoom: viewport.zoom });
+  if (resolved.ring && !ring && resolved.fallbackBlocks.length > 0) compact = true;
+  let sourceBlocks = compact && resolved.fallbackBlocks.length > 0
+    ? resolved.fallbackBlocks
+    : resolved.blocks;
 
-  const zoomVisible = sourceBlocks.filter(
+  let visible = sourceBlocks.filter(
     (block) => block.hideBelowZoom <= 0 || viewport.zoom >= block.hideBelowZoom
   );
+  const availableHalfExtent = screenRadius * 0.9;
+  const requiredHalfExtent = (blocks: readonly ResolvedLabelBlock[]): number =>
+    blocks.reduce((maximum, block) => {
+      const scale = runtimeScale(block.scaleMode, viewport.zoom);
+      return Math.max(
+        maximum,
+        Math.abs(block.anchorUnit.y) * screenRadius
+          + (Math.abs(block.offsetWorld.y) + block.estimatedHeightWorld / 2) * scale
+      );
+    }, 0);
 
-  const roomBounded = zoomVisible.filter((block) => {
-    if (!block.autoHide) return true;
-    const scale = runtimeScale(block.scaleMode, viewport.zoom);
-    const bottom = Math.abs(block.anchorUnit.y) * screenRadius
-      + (Math.abs(block.offsetWorld.y) + block.estimatedHeightWorld / 2) * scale;
-    return bottom <= screenRadius * 0.94;
-  });
+  if (
+    visible.some((block) => block.role === "body" && block.autoHide)
+    && requiredHalfExtent(visible) > availableHalfExtent
+  ) {
+    visible = visible.filter((block) => block.role !== "body");
+  }
+  if (
+    visible.some((block) => block.role === "metadata")
+    && requiredHalfExtent(visible) > availableHalfExtent
+  ) {
+    visible = visible.filter((block) => block.role !== "metadata");
+  }
+  const required = requiredHalfExtent(visible);
+  const fitScale = required > 0
+    ? Math.max(0.72, Math.min(1, availableHalfExtent / required))
+    : 1;
 
   return {
-    blocks: roomBounded,
-    ring: compact ? null : resolved.ring,
+    blocks: visible,
+    ring,
     flag: resolved.flag,
     divider: compact ? null : resolved.divider,
     usedFallback: compact,
+    fitScale,
   };
 };
 

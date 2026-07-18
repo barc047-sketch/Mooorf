@@ -1,4 +1,4 @@
-import { memo, useMemo, type CSSProperties } from "react";
+import { memo, useId, useMemo, type CSSProperties } from "react";
 import type { LabelScaleMode, SpaceCell, Theme } from "../types";
 import type { ProjectPresentationDefaults } from "../domain/presentation/types";
 import {
@@ -14,7 +14,6 @@ import {
   type ResolvedCellLabelLayout,
 } from "../domain/labels/resolveLayout";
 import { resolveLabelContrast } from "../design/labelContrast";
-import { ringGlyphLayout } from "./cellLabelDraw";
 
 /* Memoized per-Cell label content for the Organism DOM layer. React renders
    structure only when content/style commits change; the per-frame loop in
@@ -52,7 +51,7 @@ const blockStyle = (block: ResolvedLabelBlock, theme: Theme): CSSProperties => {
     : "";
   const rotate = block.rotationDeg ? `rotate(${block.rotationDeg}deg)` : "";
   return {
-    "--bs": scaleVar(block.scaleMode),
+    "--bs": `calc(${scaleVar(block.scaleMode)} * var(--layout-fit, 1))`,
     fontFamily: LABEL_FONT_FAMILY_CSS[primary.font.family],
     fontWeight: primary.font.weight,
     fontStyle: primary.font.italic ? "italic" : "normal",
@@ -75,6 +74,7 @@ function LabelBlock({ block, theme }: { block: ResolvedLabelBlock; theme: Theme 
     <span
       className="organism-layout-block"
       data-role={block.role}
+      data-block-id={block.id}
       data-overflow={block.overflow}
       data-hide-below={block.hideBelowZoom > 0 ? block.hideBelowZoom : undefined}
       data-auto-hide={block.autoHide ? "true" : undefined}
@@ -154,44 +154,47 @@ function RingLabel({ ring, theme }: {
   ring: NonNullable<ResolvedCellLabelLayout["ring"]>;
   theme: Theme;
 }) {
-  const glyphs = useMemo(
-    () => ringGlyphLayout(ring.text, ring.font, ring.spacingEm),
-    [ring.text, ring.font, ring.spacingEm]
-  );
+  const pathId = `organism-ring-${useId().replace(/:/g, "")}`;
   const colour = blockColour(ring, theme);
   return (
-    <div
+    <svg
       className="organism-ring-label"
       data-ring-ratio={ring.radiusRatio}
       data-ring-scale-mode={ring.scaleMode}
+      data-ring-flipped={ring.flipped ? "true" : "false"}
       style={{
         "--bs": scaleVar(ring.scaleMode),
+        "--ring-font-world": `${ring.font.sizeWorld}px`,
+        "--ring-tracking": `${ring.font.letterSpacingEm + ring.spacingEm}em`,
         color: colour,
         opacity: ring.opacity,
-        fontFamily: LABEL_FONT_FAMILY_CSS[ring.font.family],
-        fontWeight: ring.font.weight,
-        fontStyle: ring.font.italic ? "italic" : "normal",
-        fontSize: `calc(${ring.font.sizeWorld}px * var(--bs))`,
-        letterSpacing: 0,
+        transform: `rotate(${ring.startAngleDeg}deg)`,
       } as CSSProperties}
       aria-hidden="true"
     >
-      {glyphs.map((glyph, index) => (
-        /* --ring-k (deg per world px) is written per frame by syncLabels, so
-         * glyph angles track the live nucleus radius without React work. */
-        <span
-          key={`${index}-${glyph.glyph}`}
-          className="organism-ring-glyph"
-          style={{
-            transform: ring.flipped
-              ? `rotate(calc(${ring.startAngleDeg + 180}deg - var(--ring-k, 0.6deg) * ${glyph.arcWorld.toFixed(2)})) translateY(calc(var(--cell-r) * ${ring.radiusRatio})) translate(-50%, -50%)`
-              : `rotate(calc(${ring.startAngleDeg}deg + var(--ring-k, 0.6deg) * ${glyph.arcWorld.toFixed(2)})) translateY(calc(var(--cell-r) * -${ring.radiusRatio})) translate(-50%, -50%)`,
-          }}
+      <path
+        id={pathId}
+        className="organism-ring-path"
+        d="M -1 0 A 1 1 0 0 1 1 0"
+      />
+      <text
+        className="organism-ring-text"
+        style={{
+          fontFamily: LABEL_FONT_FAMILY_CSS[ring.font.family],
+          fontWeight: ring.font.weight,
+          fontStyle: ring.font.italic ? "italic" : "normal",
+        }}
+      >
+        <textPath
+          className="organism-ring-text-path"
+          href={`#${pathId}`}
+          startOffset="50%"
+          textAnchor="middle"
         >
-          {glyph.glyph}
-        </span>
-      ))}
-    </div>
+          {ring.text}
+        </textPath>
+      </text>
+    </svg>
   );
 }
 
@@ -231,7 +234,11 @@ function FlagLabel({ flag, theme }: {
     ...(direction === "below" && { top: offset, left: 0, transform: `translateX(${cross})` }),
   };
   return (
-    <div className="organism-flag-label" data-direction={direction} style={{ "--bs": scaleVar(flag.scaleMode) } as CSSProperties}>
+    <div
+      className="organism-flag-label"
+      data-direction={direction}
+      style={{ "--bs": `calc(${scaleVar(flag.scaleMode)} * var(--layout-fit, 1))` } as CSSProperties}
+    >
       <span className="organism-flag-tick" style={tickStyle} aria-hidden="true" />
       <span className="organism-flag-stem" style={stemStyle} aria-hidden="true" />
       <div className="organism-flag-panel" style={panelStyle}>

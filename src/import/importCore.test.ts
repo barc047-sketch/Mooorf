@@ -112,6 +112,75 @@ const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", create
 const parsedSavedView = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [savedView]))).savedViews[0];
 equal(parsedSavedView.presentationDefaults?.schemaVersion, 6, "saved-view presentation defaults round-trip");
 equal(parsedSavedView.spaces[0].appearance?.boundary?.visible, true, "saved-view sparse appearance round-trips");
+const labelPresentationDefaults = {
+  ...presentationDefaults,
+  text: {
+    ...presentationDefaults.text,
+    labels: {
+      layout: "ring" as const,
+      ring: { startAngleDeg: 28, radiusRatio: 0.82 },
+    },
+  },
+};
+const labelSpace: SpaceCell = {
+  ...spaces[0],
+  appearance: {
+    ...spaces[0].appearance,
+    text: {
+      labels: {
+        layout: "flag",
+        flag: { direction: "right", distance: 54, width: 104 },
+      },
+    },
+  },
+};
+const labelSnapshot: ProjectExportSnapshot = {
+  ...snapshot,
+  spaces: [labelSpace],
+  settings: {
+    ...settingsWithPresentation,
+    labelScaleMode: "world",
+    presentationDefaults: labelPresentationDefaults,
+  },
+};
+const parsedLabelProject = parseProjectEnvelope(
+  JSON.stringify(buildProjectEnvelope(labelSnapshot, []))
+);
+equal(
+  parsedLabelProject.snapshot.settings.presentationDefaults.text.labels.layout,
+  "ring",
+  "project files preserve the Project Default label layout"
+);
+equal(
+  parsedLabelProject.snapshot.spaces[0].appearance?.text?.labels?.layout,
+  "flag",
+  "project files preserve sparse Cell label overrides"
+);
+equal(
+  parsedLabelProject.snapshot.settings.labelScaleMode,
+  "world",
+  "project files preserve the Scale with Cell default"
+);
+const labelSavedView: SavedCanvasSnapshot = {
+  ...savedView,
+  id: "view-labels",
+  spaces: [labelSpace],
+  presentationDefaults: labelPresentationDefaults,
+  labelScaleMode: "world",
+};
+const parsedLabelSavedView = parseProjectEnvelope(
+  JSON.stringify(buildProjectEnvelope(labelSnapshot, [labelSavedView]))
+).savedViews[0];
+equal(
+  parsedLabelSavedView.presentationDefaults?.text.labels.layout,
+  "ring",
+  "Saved Views preserve Project Default label layouts"
+);
+equal(
+  parsedLabelSavedView.spaces[0].appearance?.text?.labels?.layout,
+  "flag",
+  "Saved Views preserve sparse Cell label overrides"
+);
 const legacySavedView = {
   ...savedView,
   spaces: savedView.spaces.map(({ appearance: _appearance, ...space }) => space),

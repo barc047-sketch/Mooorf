@@ -20,8 +20,15 @@ ok(view.includes("projectOrganismDebugPresentation"), "Organism debug projection
 ok(view.includes("projectSelectionOverlay"), "Organism selection uses the explicit temporary projection");
 ok(view.includes("presentationCanvasRef"), "Organism owns a lightweight presentation overlay");
 ok(view.includes("renderDetachedOrganismExport(snapshot, options, w, h)"), "Organism delegates capture to detached authored export");
-ok(detachedExport.includes("buildClassicSvg"), "Detached Organism export builds authored presentation overlays");
-ok(detachedExport.includes("drawSvgOverlay(output, overlay)"), "Detached Organism export composites authored presentation overlays");
+ok(detachedExport.includes("drawOrganismCircleOverlay"), "Detached Organism export builds authored circle presentation overlays");
+ok(detachedExport.includes("drawSymbolPlacement"), "Detached Organism export builds authored Symbol presentation overlays");
+ok(
+  detachedExport.includes("getCellLabelLayout")
+    && detachedExport.includes("selectRuntimeLabelLayout")
+    && detachedExport.includes("drawCellLabelLayout"),
+  "Detached Organism export resolves, fits and draws the shared authored label projection"
+);
+ok(!detachedExport.includes("buildClassicSvg"), "Detached Organism export does not route through legacy Classic SVG");
 ok(!view.includes("drawImage(presentationCanvas"), "Mounted live presentation Canvas is not used as export truth");
 ok(css.includes(".organism-presentation-canvas") && css.includes("pointer-events: none"), "Organism presentation overlay cannot block drag, pan, or zoom");
 

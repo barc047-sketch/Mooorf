@@ -19,9 +19,8 @@ import {
 import { resolveLabelContrast } from "../design/labelContrast";
 
 /* Canvas2D adapter for the shared Cell Label Layout projection. Pure module —
-   no React, no store. Owns the bounded text-measurement cache and the
-   per-Space resolved-layout cache so pan/zoom frames never re-run expensive
-   layout or write state. */
+   no React, no store and no renderer-specific preset truth. Organism detached
+   exports and the compile-only Classic path consume this same projection. */
 
 export interface CellLabelLayoutOptions {
   globalScaleMode: LabelScaleMode;
@@ -355,9 +354,10 @@ const drawBlockContent = (
 const drawBlock = (
   ctx: CanvasRenderingContext2D,
   block: ResolvedLabelBlock,
-  draw: CellLabelDrawContext
+  draw: CellLabelDrawContext,
+  fitScale = 1
 ): void => {
-  const scale = resolveLabelRuntimeScale(block.scaleMode, draw.zoom);
+  const scale = resolveLabelRuntimeScale(block.scaleMode, draw.zoom) * fitScale;
   if (scale <= 0) return;
   const anchorX = draw.sx + block.anchorUnit.x * draw.screenRadius + block.offsetWorld.x * scale;
   const anchorY = draw.sy + block.anchorUnit.y * draw.screenRadius + block.offsetWorld.y * scale;
@@ -437,9 +437,10 @@ const FLAG_PANEL_PADDING = 7;
 const drawFlag = (
   ctx: CanvasRenderingContext2D,
   flag: NonNullable<ResolvedCellLabelLayout["flag"]>,
-  draw: CellLabelDrawContext
+  draw: CellLabelDrawContext,
+  fitScale = 1
 ): void => {
-  const scale = resolveLabelRuntimeScale(flag.scaleMode, draw.zoom);
+  const scale = resolveLabelRuntimeScale(flag.scaleMode, draw.zoom) * fitScale;
   if (scale <= 0 || flag.blocks.length === 0) return;
   const vector = FLAG_VECTORS[flag.direction];
   const startX = draw.sx + vector.x * draw.screenRadius;
@@ -514,7 +515,7 @@ const drawFlag = (
   }
 };
 
-/** Full per-Cell label pass for the Classic renderer and its PNG export. */
+/** Full per-Cell label pass shared by Organism export and compile-only Classic. */
 export const drawCellLabelLayout = (
   ctx: CanvasRenderingContext2D,
   selection: RuntimeLabelSelection,
@@ -531,9 +532,11 @@ export const drawCellLabelLayout = (
     ctx.stroke();
     ctx.restore();
   }
-  for (const block of selection.blocks) drawBlock(ctx, block, draw);
+  for (const block of selection.blocks) {
+    drawBlock(ctx, block, draw, selection.fitScale);
+  }
   if (selection.ring) drawRing(ctx, selection.ring, draw);
-  if (selection.flag) drawFlag(ctx, selection.flag, draw);
+  if (selection.flag) drawFlag(ctx, selection.flag, draw, selection.fitScale);
 };
 
 export { selectRuntimeLabelLayout };
