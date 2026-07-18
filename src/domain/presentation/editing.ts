@@ -12,6 +12,7 @@ import {
   normalizeCellAppearanceOverrides,
   resetCellAppearanceTarget,
 } from "./validation";
+import { mergeCellLabelConfig } from "../labels/layoutContract";
 
 export type InheritanceState = "project-default" | "local-override" | "mixed";
 export type AppearanceFamilyId = "cell" | "membrane" | "void";
@@ -93,7 +94,11 @@ export const applyTextAppearancePatch = (
   patch: Partial<TextAppearanceOverride>
 ): CellAppearanceOverrides | undefined => {
   const next = cloneCellAppearanceOverrides(current) ?? {};
-  next.text = { ...next.text, ...patch };
+  const labels = patch.labels !== undefined
+    ? mergeCellLabelConfig(next.text?.labels, patch.labels)
+    : next.text?.labels;
+  next.text = { ...next.text, ...patch, ...(labels !== undefined ? { labels } : {}) };
+  if (labels === undefined) delete next.text.labels;
   return normalizeCellAppearanceOverrides(next, defaults);
 };
 

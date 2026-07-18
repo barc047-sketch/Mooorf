@@ -1,7 +1,9 @@
 import type { LabelScaleMode, SpaceCell } from "../../types";
+import { LABEL_BASE_SIZE_WORLD, LABEL_FONT_FAMILY_CSS, LABEL_WEIGHT_VALUES, type LabelRoleId } from "./layoutContract";
+import { CELL_LABEL_PRESETS, resolveEffectiveRoleStyle } from "./presets";
 
-/** Contract-only foundation for future Cell and floating-card text. No renderer
- * consumes a layout preset in Step 1. */
+/** Step 1 foundation, now backed by the production Cell Label Layout system
+ * in layoutContract.ts / presets.ts / resolveLayout.ts. */
 export type CellLabelToken = "no" | "name" | "area" | "body";
 export type LabelJustification = "left" | "centre" | "right";
 export type LabelAlignment = "top" | "middle" | "bottom";
@@ -36,5 +38,34 @@ export const resolveCellLabelToken = (space: Pick<SpaceCell, "spaceCode" | "name
   return space.body ?? "";
 };
 
-/** Registry is deliberately data-only until a later visual-layout stage. */
-export const CELL_LABEL_LAYOUT_REGISTRY: Readonly<Record<string, readonly CellLabelStyleContract[]>> = {};
+const TOKEN_ROLES: ReadonlyArray<{ token: CellLabelToken; role: LabelRoleId }> = [
+  { token: "no", role: "no" },
+  { token: "name", role: "name" },
+  { token: "area", role: "areaNumber" },
+  { token: "body", role: "body" },
+];
+
+/** Step 1 registry, projected from the production preset definitions so the
+ * data-only contract and the visual system can never drift apart. */
+export const CELL_LABEL_LAYOUT_REGISTRY: Readonly<Record<string, readonly CellLabelStyleContract[]>> =
+  Object.fromEntries(
+    CELL_LABEL_PRESETS.map((preset) => [
+      preset.id,
+      TOKEN_ROLES.flatMap(({ token, role }) => {
+        const style = resolveEffectiveRoleStyle(preset.id, role, undefined);
+        if (!style.visible) return [];
+        return [{
+          token,
+          typography: {
+            family: LABEL_FONT_FAMILY_CSS[style.fontFamily],
+            size: LABEL_BASE_SIZE_WORLD * style.size,
+            weight: LABEL_WEIGHT_VALUES[style.weight],
+            lineHeight: style.lineHeight,
+            letterSpacing: style.letterSpacing,
+          },
+          justify: style.align === "justify" ? "left" : style.align,
+          align: "middle",
+        } satisfies CellLabelStyleContract];
+      }),
+    ])
+  );

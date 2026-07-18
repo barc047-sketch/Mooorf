@@ -1,4 +1,5 @@
 import type { MaterialTarget } from "../../materials/types";
+import type { CellLabelConfig } from "../labels/layoutContract";
 
 export const PRESENTATION_TARGET_IDS = [
   "cell",
@@ -102,6 +103,9 @@ export interface TextPresentationDefaults {
   size: number;
   colourMode: TextColourMode;
   colour: string;
+  /** Cell Label Layout system — sparse deviations over the preset registry.
+   * The text channel stays the single owner; no parallel label state exists. */
+  labels: CellLabelConfig;
 }
 
 export interface TextAppearanceOverride {
@@ -109,6 +113,7 @@ export interface TextAppearanceOverride {
   size?: number;
   colourMode?: TextColourMode;
   colour?: string;
+  labels?: CellLabelConfig;
 }
 
 export interface BoundaryPresentationDefaults extends SurfacePresentationDefaults {
@@ -185,7 +190,7 @@ export interface VoidAppearanceOverride {
 }
 
 export interface ProjectPresentationDefaults {
-  schemaVersion: 5;
+  schemaVersion: 6;
   text: TextPresentationDefaults;
   cell: SurfacePresentationDefaults;
   boundary: BoundaryPresentationDefaults;

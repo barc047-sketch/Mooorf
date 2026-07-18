@@ -18,7 +18,7 @@ const appearance = normalizeProjectPresentationDefaults({
   membraneEdge: { ...settings.presentationDefaults.membraneEdge, softness: 0.62 },
   core: { ...settings.presentationDefaults.core, offsetX: 14, offsetY: -9 },
 }, settings);
-assert.equal(appearance.schemaVersion, 5);
+assert.equal(appearance.schemaVersion, 6);
 assert.equal(appearance.membraneEdge.softness, 0.62);
 assert.equal(appearance.core.offsetX, 14);
 assert.equal(appearance.core.offsetY, -9);

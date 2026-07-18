@@ -5,6 +5,7 @@ import type { MaterialTarget } from "../../materials/types";
 import { styleColors } from "../../experiments/organism-lab/organism-controls";
 import type { MorphMode, SpaceCell, Theme } from "../../types";
 import { normalizeCellAppearanceOverrides } from "./validation";
+import { mergeCellLabelConfig } from "../labels/layoutContract";
 import type {
   CellAppearanceOverrides,
   MaterialResolutionStatus,
@@ -132,6 +133,7 @@ export const resolveCellAppearance = (
       size: overrides?.text?.size ?? defaults.text.size,
       colourMode: overrides?.text?.colourMode ?? defaults.text.colourMode,
       colour: overrides?.text?.colour ?? defaults.text.colour,
+      labels: mergeCellLabelConfig(defaults.text.labels, overrides?.text?.labels) ?? {},
     },
     cell: {
       visible: overrides?.cell?.visible ?? defaults.cell.visible,

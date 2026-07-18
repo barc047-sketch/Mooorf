@@ -3,7 +3,7 @@ import type { ResourceSettings } from "../../resources/types";
 import type { MaterialBinding } from "../../materials/types";
 import type { PresentationPaintDefaults, ProjectPresentationDefaults } from "./types";
 
-export const PRESENTATION_SCHEMA_VERSION = 5 as const;
+export const PRESENTATION_SCHEMA_VERSION = 6 as const;
 
 export interface LegacyPresentationSettings {
   blobOn?: boolean;
@@ -46,6 +46,9 @@ export const createProjectPresentationDefaults = (
       size: legacyTextSize(legacy.annotationDetail?.textScale),
       colourMode: legacy.labelColourMode && legacy.labelColourMode !== "auto" ? "custom" : "auto",
       colour: legacyTextColour(legacy),
+      /* Sparse Cell Label Layout config; empty means Centre Stack over the
+       * preset registry, matching the pre-phase composition. */
+      labels: {},
     },
     cell: { visible: true, paint: paint(bindings.spaceFill) },
     boundary: {

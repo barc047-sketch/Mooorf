@@ -163,7 +163,7 @@ test("resource migration preserves legacy tint while new Auto Contrast and Void 
 
 test("Void Edge defaults solid and reuses all six shared stroke projections", () => {
   const defaults = normalizeProjectPresentationDefaults(createProjectPresentationDefaults());
-  assert.equal(defaults.schemaVersion, 5);
+  assert.equal(defaults.schemaVersion, 6);
   assert.equal(defaults.void.style, "solid");
   const voidCell = cell("void-stroke", 0, 0, 80, "void");
   const context = {

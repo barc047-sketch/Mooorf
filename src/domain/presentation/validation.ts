@@ -19,6 +19,7 @@ import {
   type TextStylePresetId,
 } from "./types";
 import { MEMBRANE_SOLID_MATERIAL_IDS } from "../../materials/materialRegistry";
+import { cloneCellLabelConfig, normalizeCellLabelConfig } from "../labels/layoutContract";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -101,6 +102,7 @@ export const normalizeProjectPresentationDefaults = (
       size: finiteOr(text.size, fallback.text.size, 0.65, 1.8),
       colourMode: textColourMode(text.colourMode, fallback.text.colourMode),
       colour: canonicalHex(text.colour) ?? fallback.text.colour,
+      labels: normalizeCellLabelConfig(text.labels) ?? cloneCellLabelConfig(fallback.text.labels) ?? {},
     },
     cell: {
       visible: typeof cell.visible === "boolean" ? cell.visible : fallback.cell.visible,
@@ -223,6 +225,7 @@ export const normalizeCellAppearanceOverrides = (
       const colour = canonicalHex(value.text.colour);
       return colour && colour !== defaults.text.colour ? colour : undefined;
     })(),
+    labels: normalizeCellLabelConfig(value.text.labels),
   }) : undefined;
   const boundary = isRecord(value.boundary) ? compact({
     visible: changedBoolean(value.boundary.visible, defaults.boundary.visible),
@@ -296,7 +299,7 @@ export const resetCellAppearanceTarget = (
   if (!value) return undefined;
   const next: CellAppearanceOverrides = {
     ...value,
-    text: value.text ? { ...value.text } : undefined,
+    text: value.text ? { ...value.text, ...(value.text.labels ? { labels: cloneCellLabelConfig(value.text.labels) } : {}) } : undefined,
     cell: value.cell ? { ...value.cell, paint: value.cell.paint ? { ...value.cell.paint } : undefined } : undefined,
     boundary: value.boundary ? { ...value.boundary, paint: value.boundary.paint ? { ...value.boundary.paint } : undefined } : undefined,
     membrane: value.membrane ? { ...value.membrane, paint: value.membrane.paint ? { ...value.membrane.paint } : undefined } : undefined,
@@ -317,7 +320,7 @@ export const cloneCellAppearanceOverrides = (
 ): CellAppearanceOverrides | undefined => {
   if (!value) return undefined;
   return {
-    text: value.text ? { ...value.text } : undefined,
+    text: value.text ? { ...value.text, ...(value.text.labels ? { labels: cloneCellLabelConfig(value.text.labels) } : {}) } : undefined,
     cell: value.cell ? { ...value.cell, paint: value.cell.paint ? { ...value.cell.paint } : undefined } : undefined,
     boundary: value.boundary ? { ...value.boundary, paint: value.boundary.paint ? { ...value.boundary.paint } : undefined } : undefined,
     membrane: value.membrane ? { ...value.membrane, paint: value.membrane.paint ? { ...value.membrane.paint } : undefined } : undefined,
