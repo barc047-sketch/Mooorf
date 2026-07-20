@@ -17,6 +17,12 @@ import {
 } from "../controlMeta";
 import { ChipRow, ChoiceRow, MiniSwitch, SliderRow, SwitchRow, WidgetSection } from "./controls";
 
+const LOW_ZOOM_DETAIL_OPTIONS = [
+  { id: "full", label: "Full" },
+  { id: "balanced", label: "Balanced" },
+  { id: "simplified", label: "Simplified" },
+] as const;
+
 export default function OrganismWidget() {
   const organism = useLab((s) => s.settings.organism);
   const morphMode = useLab((s) => s.settings.morphMode);
@@ -82,9 +88,36 @@ export default function OrganismWidget() {
 
       <WidgetSection title="Membrane" hint="body + smoothing">
         <SwitchRow
-          label="Camera-aware morph"
-          on={organism.cameraAwareMorph}
-          onToggle={() => setOrganism({ cameraAwareMorph: !organism.cameraAwareMorph })}
+          label="Preserve morphology"
+          on={organism.preserveMorphology}
+          onToggle={() => setOrganism({ preserveMorphology: !organism.preserveMorphology })}
+        />
+        <p className="org-attach-hint">
+          Camera zoom changes projection only; it never changes the authored membrane field.
+        </p>
+        <ChipRow
+          options={LOW_ZOOM_DETAIL_OPTIONS}
+          value={organism.lowZoomDetail}
+          onChange={(lowZoomDetail) => setOrganism({ lowZoomDetail })}
+          ariaLabel="Low zoom membrane detail"
+        />
+        <SliderRow
+          label="Minimum Detail"
+          value={organism.minimumMorphologyDetail}
+          min={0.2}
+          max={1}
+          step={0.01}
+          fmt={(value) => `${Math.round(value * 100)}%`}
+          onChange={(minimumMorphologyDetail) => setOrganism({ minimumMorphologyDetail })}
+        />
+        <SliderRow
+          label="Edge Stability"
+          value={organism.edgeStability}
+          min={0}
+          max={1}
+          step={0.01}
+          fmt={(value) => `${Math.round(value * 100)}%`}
+          onChange={(edgeStability) => setOrganism({ edgeStability })}
         />
         {sections.organism.sliders.map((def) => (
           <SliderRow

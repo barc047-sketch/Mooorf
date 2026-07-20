@@ -116,6 +116,7 @@ export default function InspectorWidget() {
   const commitText = useLab((state) => state.commitTextAppearancePatch);
   const previewText = useLab((state) => state.previewTextAppearancePatch);
   const commitAppearancePreview = useLab((state) => state.commitAppearancePreview);
+  const cancelAppearancePreview = useLab((state) => state.cancelAppearancePreview);
   const resetTarget = useLab((state) => state.resetAppearanceTarget);
   const resetFamily = useLab((state) => state.resetAppearanceFamily);
   const resetAll = useLab((state) => state.resetAllAppearance);
@@ -125,6 +126,7 @@ export default function InspectorWidget() {
   const commitProjectDefaults = useLab((state) => state.commitProjectPresentationDefaults);
   const previewProjectDefaults = useLab((state) => state.previewProjectPresentationDefaults);
   const commitDefaultsPreview = useLab((state) => state.commitPresentationDefaultsPreview);
+  const cancelDefaultsPreview = useLab((state) => state.cancelPresentationDefaultsPreview);
   const selected = useMemo(() => spaces.filter((space) => selectedIds.includes(space.id)), [selectedIds, spaces]);
   const contextLabel = selected.length === 0
     ? "Project Defaults"
@@ -211,7 +213,7 @@ export default function InspectorWidget() {
           <div className="m1-section-title"><h3>Text system</h3><span className="m1-state-badge" data-state={textState}>{inheritanceStateLabel(textState)}</span></div>
           <ChipRow options={TEXT_STYLE_PRESETS.map(({ id, label }) => ({ id, label }))} value={(preset.value ?? defaults.text.preset) as TextStylePresetId} onChange={(value) => applyText({ preset: value })} ariaLabel="Text Style preset" />
           {preset.mixed && <p className="m1-mixed-note">Text Style · Mixed</p>}
-          <SliderRow label={`Text Size${size.mixed ? " · Mixed" : ""}`} value={size.value ?? defaults.text.size} min={0.65} max={1.8} step={0.05} fmt={(value) => `${Math.round(value * 100)}%`} onChange={(value) => previewTextSetting({ size: value })} onChangeEnd={selected.length ? commitAppearancePreview : commitDefaultsPreview} />
+          <SliderRow label={`Text Size${size.mixed ? " · Mixed" : ""}`} value={size.value ?? defaults.text.size} min={0.65} max={1.8} step={0.05} fmt={(value) => `${Math.round(value * 100)}%`} onChange={(value) => previewTextSetting({ size: value })} onChangeEnd={selected.length ? commitAppearancePreview : commitDefaultsPreview} onChangeCancel={selected.length ? cancelAppearancePreview : cancelDefaultsPreview} />
           <SwitchRow label={colourMode.mixed ? "Auto Contrast · Mixed" : "Auto Contrast"} on={colourMode.value !== "custom"} onToggle={() => applyText({ colourMode: colourMode.value === "custom" ? "auto" : "custom" })} />
           <label className="m1-colour-row">
             <span>Text Colour{colour.mixed ? " · Mixed" : ""}</span>
@@ -229,6 +231,11 @@ export default function InspectorWidget() {
           apply={(labels) => applyText({ labels })}
           preview={(labels) => previewTextSetting({ labels })}
           onPreviewEnd={selected.length ? commitAppearancePreview : commitDefaultsPreview}
+          onPreviewCancel={selected.length ? cancelAppearancePreview : cancelDefaultsPreview}
+          applyGlobal={(labels) => commitProjectDefaults(mergedTextDefaults({ labels }))}
+          previewGlobal={(labels) => previewProjectDefaults(mergedTextDefaults({ labels }))}
+          onGlobalPreviewEnd={commitDefaultsPreview}
+          onGlobalPreviewCancel={cancelDefaultsPreview}
         />
       </div> : <div className="m1-pane" role="tabpanel">
         <section className="m1-section">

@@ -21,8 +21,18 @@ useLab.getState().openWidget("export");
 useLab.getState().openWidget("palette");
 equal(useLab.getState().openWidgets.join(","), "export,palette", "reselect focuses without duplicating widget id");
 equal(new Set(useLab.getState().openWidgets).size, 2, "stable widget ids remain unique");
+
 useLab.getState().focusWidget("palette");
 equal(useLab.getState().openWidgets.join(","), "export,palette", "focusing front widget is a no-op");
+
+useLab.getState().openWidget("label-studio");
+equal(useLab.getState().openWidgets.includes("label-studio"), true, "Label Studio uses the canonical widget lifecycle");
+useLab.getState().openWidget("label-studio");
+equal(
+  useLab.getState().openWidgets.filter((id) => id === "label-studio").length,
+  1,
+  "reopening Label Studio focuses its existing frame without duplication"
+);
 
 const lifecycleStore = useLab.getState() as LifecycleStore;
 equal(typeof lifecycleStore.setWidgetMinimized, "function", "widget lifecycle exposes one generic minimize owner");

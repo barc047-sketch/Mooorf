@@ -13,6 +13,7 @@ import LayoutWidget from "./LayoutWidget";
 import PaletteWidget from "./PaletteWidget";
 import SavedViewsWidget from "./SavedViewsWidget";
 import DisplayWidget from "./DisplayWidget";
+import LabelStudioWidget from "./LabelStudioWidget";
 import AdvancedWidget from "./AdvancedWidget";
 import ExportWidget from "./ExportWidget";
 import FileIntakeWidget from "./FileIntakeWidget";
@@ -41,6 +42,7 @@ const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
   palette: () => <PaletteWidget />,
   saved: () => <SavedViewsWidget />,
   display: () => <DisplayWidget />,
+  "label-studio": () => <LabelStudioWidget />,
   advanced: () => <AdvancedWidget />,
   stats: () => <ProjectPulseWidget />,
   "category-mix": () => <CategoryMixWidget />,

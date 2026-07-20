@@ -122,6 +122,7 @@ export type WidgetId =
   | "palette"
   | "saved"
   | "display"
+  | "label-studio"
   | "advanced"
   | "stats"
   | "category-mix"
@@ -150,6 +151,14 @@ export type OrganismLayerRole =
   | "nucleus-body"
   | "inner-core"
   | "void";
+
+/** Detail policy for the low-resolution membrane target. This may simplify
+ * shading work, but it must never change the authored field geometry. */
+export type OrganismLowZoomDetail = "full" | "balanced" | "simplified";
+
+/** Visual feedback only. Camera coordinates, history and exports never use
+ * this preference or its temporary displacement. */
+export type CameraShakeMode = "off" | "soft" | "responsive" | "custom";
 
 /* Production organism control surface (V6H.1). Persisted in the store so the
    advanced panel survives canvas/table switches. Defaults live in
@@ -192,7 +201,23 @@ export interface OrganismSettings {
   // display / debug
   showLabels: boolean;
   showNuclei: boolean;
+  /** Keeps authored membrane geometry independent of camera zoom. */
+  preserveMorphology: boolean;
+  /** Low-resolution shading policy; never a camera-to-geometry transform. */
+  lowZoomDetail: OrganismLowZoomDetail;
+  /** Lower bound for non-geometric membrane detail at reduced target scales. */
+  minimumMorphologyDetail: number;
+  /** 0..1 artistic edge-AA stability preference. */
+  edgeStability: number;
+  /** @deprecated Persisted only to migrate older projects. Camera zoom never mutates field geometry. */
   cameraAwareMorph: boolean;
+  // visual camera feedback (runtime-only displacement, authored preference)
+  cameraShakeMode: CameraShakeMode;
+  cameraShakeIntensity: number;
+  cameraShakeFrequency: number;
+  cameraShakeDamping: number;
+  cameraShakeDragInfluence: number;
+  cameraShakeSettleDuration: number;
   showFieldDebug: boolean;
   showNucleiDebug: boolean;
 }

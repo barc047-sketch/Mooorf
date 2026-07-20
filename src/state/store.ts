@@ -29,7 +29,7 @@ import type {
 import { areaToRadius, clamp, scatterPoint } from "../lib/geometry";
 import { DEMO_PROGRAM } from "../lib/demo";
 import { DEFAULT_CAMERA, fitCamera, Z_MAX, Z_MIN } from "../lib/camera";
-import { DEFAULT_ORGANISM_SETTINGS } from "../canvas/organismProductionSettings";
+import { DEFAULT_ORGANISM_SETTINGS, normalizeOrganismSettings } from "../canvas/organismProductionSettings";
 import { allocateSpaceCode, ensureSpaceCodes, normalizeSpaceCode } from "../domain/spaceCode";
 import { placeBatchCells } from "../canvas/layoutPresets";
 import { calculateArrangement, isLegacyLayoutPreset, regenerateArrangementSeed, resolveArrangementScope } from "../arrangement/engine";
@@ -84,6 +84,7 @@ import {
   cloneStyle,
   resetAppearanceChannel,
   resetAppearanceFamilyChannels,
+  resetTextLabelAppearance,
   type AppearanceFamilyId,
 } from "../domain/presentation/editing";
 
@@ -251,6 +252,7 @@ interface LabState {
   setCamera: (camera: Camera) => void;
   zoomBy: (factor: number) => void;
   fitView: () => void;
+  fitSelection: () => void;
   resetView: () => void;
 
   addSpace: (partial?: Partial<SpaceCell>) => void;
@@ -268,6 +270,7 @@ interface LabState {
   cancelAppearancePreview: () => void;
   commitTextAppearancePatch: (ids: readonly string[], patch: Partial<TextAppearanceOverride>) => void;
   previewTextAppearancePatch: (ids: readonly string[], patch: Partial<TextAppearanceOverride>) => void;
+  resetTextLabelAppearance: (ids: readonly string[]) => void;
   resetAppearanceTarget: (ids: readonly string[], target: PresentationTargetId | "text") => void;
   resetAppearanceFamily: (ids: readonly string[], family: AppearanceFamilyId) => void;
   resetAllAppearance: (ids: readonly string[]) => void;
@@ -328,7 +331,7 @@ const cloneSpace = (space: SpaceCell): SpaceCell => ({
   appearance: cloneCellAppearanceOverrides(space.appearance),
 });
 const cloneCamera = (camera: Camera): Camera => ({ ...camera });
-const cloneOrganism = (organism: OrganismSettings): OrganismSettings => ({ ...organism });
+const cloneOrganism = (organism: OrganismSettings): OrganismSettings => normalizeOrganismSettings(organism);
 const snapshotVisualSettings = (settings: LabSettings): VisualSettingsSnapshot => ({
   organism: cloneOrganism(settings.organism),
   cellShadow: normalizeCellShadow(settings.cellShadow),
@@ -736,7 +739,9 @@ export const useLab = create<LabState>((set) => ({
               ? migrateLegacyGridSettings(patch.showGrid)
               : cloneResourceSettings(s.settings.resources).grid,
           };
-      const organism = patch.organism ? { ...s.settings.organism, ...patch.organism } : s.settings.organism;
+      const organism = patch.organism
+        ? normalizeOrganismSettings({ ...s.settings.organism, ...patch.organism })
+        : s.settings.organism;
       const presentationDefaults = syncLegacyPresentationDefaults(
         s.settings.presentationDefaults,
         patch,
@@ -752,6 +757,7 @@ export const useLab = create<LabState>((set) => ({
           labelCustomColour: normalizeLabelCustomColour(patch.labelCustomColour ?? s.settings.labelCustomColour),
           cellShadow: patch.cellShadow ? normalizeCellShadow(patch.cellShadow) : normalizeCellShadow(s.settings.cellShadow),
           performanceQuality: normalizePerformanceQuality(patch.performanceQuality ?? s.settings.performanceQuality),
+          organism,
           resources,
           presentationDefaults,
         },
@@ -765,7 +771,7 @@ export const useLab = create<LabState>((set) => ({
 
   setOrganism: (patch) =>
     set((s) => {
-      const organism = { ...s.settings.organism, ...patch };
+      const organism = normalizeOrganismSettings({ ...s.settings.organism, ...patch });
       const presentationDefaults = cloneProjectPresentationDefaults(s.settings.presentationDefaults);
       if (typeof patch.showNuclei === "boolean") presentationDefaults.core.visible = patch.showNuclei;
       return {
@@ -876,6 +882,14 @@ export const useLab = create<LabState>((set) => ({
     set((s) => ({
       camera: fitCamera(s.spaces, window.innerWidth, window.innerHeight),
     })),
+
+  fitSelection: () =>
+    set((s) => {
+      const selected = s.spaces.filter((space) => s.selectedIds.includes(space.id));
+      return selected.length
+        ? { camera: fitCamera(selected, window.innerWidth, window.innerHeight) }
+        : {};
+    }),
 
   resetView: () => set({ camera: { ...DEFAULT_CAMERA } }),
 
@@ -1106,6 +1120,22 @@ export const useLab = create<LabState>((set) => ({
       };
     }),
 
+  resetTextLabelAppearance: (ids) =>
+    set((s) => {
+      const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
+        ...space,
+        appearance: resetTextLabelAppearance(space.appearance),
+      }));
+      if (!result) return {};
+      return {
+        spaces: result.spaces,
+        appearancePreviewIds: [...ids],
+        appearancePreviewTarget: "text",
+        transformUndoStack: pushHistory(s.transformUndoStack, result.entry),
+        transformRedoStack: [],
+      };
+    }),
+
   resetAppearanceTarget: (ids, target) =>
     set((s) => {
       const result = updateCellsWithHistory(s.spaces, ids, (space) => ({
@@ -1284,7 +1314,7 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const before = snapshotVisualSettings(s.settings);
       const after: VisualSettingsSnapshot = {
-        organism: { ...before.organism, ...(patch.organism ?? {}) },
+        organism: normalizeOrganismSettings({ ...before.organism, ...(patch.organism ?? {}) }),
         cellShadow: normalizeCellShadow({ ...before.cellShadow, ...(patch.cellShadow ?? {}) }),
       };
       if (JSON.stringify(before) === JSON.stringify(after)) return { visualSettingsPreview: null };
@@ -1301,7 +1331,7 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const base = s.visualSettingsPreview ?? snapshotVisualSettings(s.settings);
       return { visualSettingsPreview: {
-        organism: { ...base.organism, ...(patch.organism ?? {}) },
+        organism: normalizeOrganismSettings({ ...base.organism, ...(patch.organism ?? {}) }),
         cellShadow: normalizeCellShadow({ ...base.cellShadow, ...(patch.cellShadow ?? {}) }),
       } };
     }),
@@ -1588,7 +1618,7 @@ export const useLab = create<LabState>((set) => ({
       const snapshot = s.savedViews.find((view) => view.id === id);
       if (!snapshot) return {};
       const now = Date.now();
-      const organism = { ...DEFAULT_ORGANISM_SETTINGS, ...cloneOrganism(snapshot.organism) };
+      const organism = normalizeOrganismSettings({ ...DEFAULT_ORGANISM_SETTINGS, ...cloneOrganism(snapshot.organism) });
       const resources = snapshot.resources
         ? cloneResourceSettings(snapshot.resources)
         : {

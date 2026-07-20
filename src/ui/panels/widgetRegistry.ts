@@ -128,11 +128,20 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   display: {
     id: "display",
     label: "Display",
-    responsibility: "Theme, technical grid, label/Cell visibility, and persistent interface scale.",
+    responsibility: "Camera framing, label zoom/fit, canvas visibility and persistent display preferences.",
     launcher: "rail",
     status: "live",
     icon: Eye,
-    geometry: { variant: "compact", width: 288, minWidth: 260, maxHeight: 470, aspectIntent: "balanced" },
+    geometry: { variant: "vertical", width: 318, minWidth: 288, minHeight: 420, maxHeight: 748, aspectIntent: "tall" },
+  },
+  "label-studio": {
+    id: "label-studio",
+    label: "Label Studio",
+    responsibility: "Project-default Cell label composition, fit, Ring arcs and Flag callouts through the canonical text channel.",
+    launcher: "widget",
+    status: "live",
+    icon: Type,
+    geometry: { variant: "vertical", width: 372, minWidth: 320, minHeight: 480, maxHeight: 748, aspectIntent: "tall" },
   },
   advanced: {
     id: "advanced",

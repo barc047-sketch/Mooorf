@@ -111,6 +111,21 @@ export const resetTextAppearance = (
   return Object.values(next).some((value) => value !== undefined) ? next : undefined;
 };
 
+/** Remove only the local Cell-label override. Other local text choices such
+ * as preset, size and colour stay intact, so Label Studio can genuinely
+ * return labels to Project Default without broadening its scope. */
+export const resetTextLabelAppearance = (
+  current: CellAppearanceOverrides | undefined
+): CellAppearanceOverrides | undefined => {
+  if (!current?.text?.labels) return current;
+  const next = cloneCellAppearanceOverrides(current)!;
+  if (next.text) {
+    delete next.text.labels;
+    if (Object.keys(next.text).length === 0) delete next.text;
+  }
+  return Object.values(next).some((value) => value !== undefined) ? next : undefined;
+};
+
 export const resetAllAppearance = (): undefined => undefined;
 
 export const resolveInheritanceState = (
