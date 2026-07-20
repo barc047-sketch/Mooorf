@@ -1,6 +1,6 @@
 # Current Project State
 
-**Last updated:** 2026-07-18
+**Last updated:** 2026-07-21
 
 **Repository:** `barc047-sketch/Mooorf`
 
@@ -15,6 +15,7 @@
 | ACTIVE FINALIZATION BRANCH | `work/next-feature`, based on `2c81c00fb4ef19acbb911acdd9ac402814ecb1da`. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
+| CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67` |
 | STATUS | FINALIZED / WAITING OWNER QA — no merge authorized. |
 | NEXT AUTHORITY | Owner QA on the finalized Organism-only Cell Label work; no automatic next stage. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
@@ -45,21 +46,23 @@
 - XLSX template with `SPACES` and `README`;
 - synchronized Canvas/Table/store data.
 
-### Organism Cell Label Run 2
+### Organism Cell Label Run 2 — Owner-QA Correction 2
 
-- Organism is the sole production renderer; Classic is retained as legacy compile-only code.
-- nine distinct Cell Label layouts share one contract, preset registry and pure resolved projection;
-- Ring uses deterministic arc, tracking, font, ellipsis and small-Cell fallback decisions in live Organism and detached export;
-- Flag remains presentation-only with deterministic Auto/Above/Below/Left/Right placement and no Relationship creation;
-- Project Default, sparse Cell overrides, multi-selection Mixed state, preview/commit history, project files and Saved Views reuse existing owners;
-- Organism PNG, PDF and presentation ZIP draw labels and symbols through the shared Canvas2D composition path;
-- CSV and JSON remain intact; SVG remains excluded as a Classic-oriented legacy route.
+- Organism remains the sole production renderer; Classic remains compile-only legacy code.
+- twelve production Cell Label layouts share one contract, preset registry and pure resolved projection: the original nine plus Dual Ring, Ring + Core and Technical Orbit.
+- Ring retains the `ring` layout identity at every zoom; primary and secondary curved arcs support canonical Body content, bounded fitting/degradation, readable flip and an explicit user-controlled hide threshold.
+- shared runtime inside-text fitting keeps fitted inside layouts within the configured Cell occupancy without authored-setting, store or history writes while zooming.
+- Flag remains presentation-only and deterministic, with advanced placement, leader, panel and content controls; it never creates a Relationship.
+- the compact Inspector and WidgetHost-based Label Studio edit the same Project Default, sparse local override and Mixed-state label owner.
+- Display reuses the canonical camera and label-fit settings; camera shake is runtime-only and excluded from persistence, exports and camera history.
+- Membrane zoom preferences change sampling/detail only: camera zoom preserves authored geometry, fusion, reach and Cell-to-Membrane proportions.
+- project files, Saved Views where applicable, migration and authored-history paths retain the correction settings; PNG, PDF and presentation ZIP use the shared detached Organism label projection.
 
 ## Verification disposition
 
-The Organism-only finalization passed the ordered focused label, migration/history, Inspector, renderer and export suites; TypeScript; tracked and untracked diff checks; browser QA at 1440×900 and 1280×800; real PNG/PDF/ZIP/CSV/JSON generation; save/load and Saved View round trips; 20/51/101/251/501 authored-space probes with the existing 96-nucleus render cap; and exactly one production build.
+Correction 2 passed its focused correction contracts, `npx tsc -b --pretty false`, the final diff check, and exactly one production build. Codex browser checks were recorded at 1440×900 and 1280×800; Owner visual/interaction QA remains the active gate. The baseline Owner-QA failures were recorded before repair: Flag lost stable callout behaviour, Ring changed identity at low zoom, inside text overflowed, Membrane distorted across zoom, and the compact Inspector/Display lacked the requested controls.
 
-The sole build transformed 2,928 modules and retained only the accepted Vite chunk-size warning. Classic visual output, browser QA, performance and SVG were not audited or developed.
+Classic visual output and SVG were not audited or developed. Codex did not complete manual drag, reduced-motion/Table-shake, or downloaded-artifact comparison QA for this correction.
 
 ## Current gate
 

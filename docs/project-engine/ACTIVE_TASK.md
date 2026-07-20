@@ -1,39 +1,31 @@
 # Active Task
 
-## WAITING OWNER QA — Organism Cell Label finalization
+## WAITING OWNER QA — Organism Cell Label Correction 2
 
 **Status:** FINALIZED / NOT MERGED / WAITING OWNER QA
 
 **Branch:** `work/next-feature`
 
-**Remote base:** `2c81c00fb4ef19acbb911acdd9ac402814ecb1da`
+**Correction source:** `9366d9d25a9cfb5d89cc72af13664fd1a85b50eb`
 
-**Preserved Fable head:** `52293c4dff1fc9be05561935337e9846da1d4ce6`
-
-**Sol product commit:** `e18b2dd5b23a0610a570f9c5322630534cf379d6`
+**Correction product commits:** `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`
 
 Completed scope:
 
-- nine Organism Cell Label layouts finalized through one shared projection;
-- deterministic Ring fitting, readable flip, ellipsis and fallback;
-- deterministic Flag placement, bounded geometry and presentation-only semantics;
-- single Inspector with Project Default, sparse Local Override and Mixed state;
-- project/save/load/Saved View/history contracts retained;
-- Organism PNG/PDF/presentation ZIP parity through the shared Canvas2D label adapter;
-- CSV/JSON retained and Organism SVG explicitly excluded;
-- persistent Organism mounting and Table pause/resume ownership retained.
+- twelve Organism-only production label layouts, including two-arc Ring composition;
+- Ring identity preservation, shared inside-text fitting and advanced deterministic Flag controls;
+- Label Studio through the existing WidgetHost/Frame lifecycle, sharing the canonical compact-Inspector settings;
+- Display camera/label-fit controls, Membrane quality-only zoom controls and runtime-only camera shake;
+- existing persistence, history, import/export and Table pause/resume owners retained.
 
-Verification passed:
+Verification recorded:
 
-- ordered focused label, migration/history, Inspector, Organism renderer and Organism export suites;
-- `npx tsc -b --pretty false`;
-- browser QA at 1440×900 and 1280×800;
-- real PNG, PDF, presentation ZIP, CSV, JSON and `.mooorf` round-trip artifacts;
-- practical 20/51/101/251/501 authored-space probes with 96 rendered nuclei;
-- exactly one `npm run build`.
+- focused correction suites;
+- TypeScript, final diff check and one production build;
+- Codex browser checks at 1440×900 and 1280×800.
 
 ## Next safe action
 
-Owner QA of the finalized Organism-only branch.
+Owner QA of Correction 2 on `work/next-feature`.
 
-Do not merge, modify `main`, start a later feature phase, delete backup branches or modify AG3 without a separate explicit Owner command.
+Do not merge, modify `main`, begin a later product phase, or modify Classic without a separate explicit Owner command.
