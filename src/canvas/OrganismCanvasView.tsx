@@ -39,7 +39,7 @@ import {
   type DragPosition,
   type ProductionNucleus,
 } from "./organismAdapter";
-import { resolveOrganism } from "./organismProductionSettings";
+import { resolveMembraneSamplingScale, resolveOrganism } from "./organismProductionSettings";
 import {
   CELL_DRAG_THRESHOLD_PX,
   createCellActivationState,
@@ -94,8 +94,20 @@ import {
   projectRuntimePresentation,
 } from "./presentationLayers";
 import { textStylePreset } from "../domain/presentation/editing";
-import { resolveFlagAutoDirection, resolveLabelRuntimeScale } from "../domain/labels/resolveLayout";
+import {
+  resolveFlagAutoDirection,
+  resolveFlagRuntimeGeometry,
+  resolveLabelRuntimeScale,
+} from "../domain/labels/resolveLayout";
 import { getCellLabelLayout, selectRuntimeLabelLayout } from "./cellLabelDraw";
+import {
+  advanceCameraShake,
+  createCameraShakeState,
+  nudgeCameraShakeForDrag,
+  pulseCameraShake,
+  resetCameraShake,
+  resolveCameraShake,
+} from "./cameraShake";
 import OrganismCellLabel from "./OrganismCellLabel";
 import "./organismCanvas.css";
 
@@ -308,6 +320,7 @@ export default function OrganismCanvasView({
     let reducedMotion = reducedMotionQuery.matches;
     let pendingReducedMotion: boolean | null = null;
     let resolved = resolveOrganism(settings, reducedMotion);
+    const cameraShake = createCameraShakeState();
     const motionState = createMotionState();
     let theme = readTheme();
     let pendingTheme: LabTheme | null = null;
@@ -501,15 +514,18 @@ export default function OrganismCanvasView({
         );
         const membraneTurnedOff = settings.blobOn && !nextSettings.blobOn;
         const qualityChanged = nextSettings.performanceQuality !== settings.performanceQuality;
+        const previousDetail = resolved.membraneDetail;
         settings = nextSettings;
-        updateResolvedOrganism(resolveOrganism(settings, reducedMotion));
+        const nextResolved = resolveOrganism(settings, reducedMotion);
+        const detailChanged = JSON.stringify(nextResolved.membraneDetail) !== JSON.stringify(previousDetail);
+        updateResolvedOrganism(nextResolved);
         derivedDirty = true;
         invalidation = "FULL";
         if (membraneTurnedOff) {
           surfaceNeedsClear = true;
           smooth = null;
         }
-        if (qualityChanged && !forceFull) resize();
+        if ((qualityChanged || detailChanged) && !forceFull) resize();
       }
       if (arrangementChanged) {
         lastArrangementPreview = s.arrangementPreview;
@@ -605,12 +621,18 @@ export default function OrganismCanvasView({
     });
     mo.observe(document.documentElement, { attributeFilter: ["data-theme"] });
 
+    let lastMembraneSamplingScale = Number.NaN;
     const resizeTarget = () => {
+      const detail = resolved.membraneDetail;
+      /* Detail preference changes sampling density only. World-field radii,
+       * positions and topology remain in the adapter/shader contract. */
+      const morphologyDetailScale = resolveMembraneSamplingScale(detail, cam.zoom);
+      lastMembraneSamplingScale = morphologyDetailScale;
       effectivePixelRatio = resolveOrganismPixelRatio(
         window.devicePixelRatio || 1,
         settings.performanceQuality,
         effectiveRenderScale,
-      );
+      ) * morphologyDetailScale;
       renderer?.resizeTarget(w, h, effectivePixelRatio);
       renderer?.setFilter(previewFilter);
     };
@@ -653,6 +675,7 @@ export default function OrganismCanvasView({
       }
       reducedMotion = reducedMotionQuery.matches;
       updateResolvedOrganism(resolveOrganism(settings, reducedMotion));
+      if (reducedMotion) resetCameraShake(cameraShake);
       derivedDirty = true;
       invalidate();
     };
@@ -666,6 +689,25 @@ export default function OrganismCanvasView({
       const r = canvas.getBoundingClientRect();
       return { sx: e.clientX - r.left, sy: e.clientY - r.top };
     };
+
+    const applyCameraShakeOffset = () => {
+      const transform = cameraShake.active
+        ? `translate3d(${cameraShake.x.toFixed(3)}px, ${cameraShake.y.toFixed(3)}px, 0)`
+        : "";
+      /* This is a presentation transform over the existing camera path. It
+       * never touches `cam`, persistence, undo history, or export capture. */
+      canvas.style.transform = transform;
+      presentationCanvas.style.transform = transform;
+      presentationBackCanvas.style.transform = transform;
+      gridRef.current?.style.setProperty("transform", transform);
+      labelLayerRef.current?.style.setProperty("transform", transform);
+      host.dataset.cameraShake = cameraShake.active ? "active" : "off";
+    };
+
+    const cameraShakeSettings = () => resolveCameraShake(settings.organism, {
+      reducedMotion,
+      fastPerformance: settings.performanceQuality === "fast",
+    });
 
     const commitCamera = () => {
       const snapshot = { ...cam };
@@ -846,11 +888,13 @@ export default function OrganismCanvasView({
           radiusWorld: nucleus.screenR / Math.max(cam.zoom, 0.0001),
         });
         anchor.style.setProperty("--layout-fit", runtimeLabel.fitScale.toFixed(4));
+        anchor.style.setProperty("--layout-occupancy", runtimeLabel.insideOccupancy.toFixed(4));
         const compact = runtimeLabel.usedFallback ? "true" : "false";
         if (anchor.dataset.compact !== compact) anchor.dataset.compact = compact;
         const visibleBlockIds = new Set(runtimeLabel.blocks.map((block) => block.id));
         anchor.querySelectorAll<HTMLElement>("[data-block-id]").forEach((element) => {
-          const hidden = visibleBlockIds.has(element.dataset.blockId ?? "") ? "false" : "true";
+          const inFlag = Boolean(element.closest(".organism-flag-label"));
+          const hidden = inFlag || visibleBlockIds.has(element.dataset.blockId ?? "") ? "false" : "true";
           if (element.dataset.runtimeHidden !== hidden) {
             element.dataset.runtimeHidden = hidden;
           }
@@ -859,29 +903,138 @@ export default function OrganismCanvasView({
         if (divider) {
           divider.dataset.runtimeHidden = runtimeLabel.divider ? "false" : "true";
         }
-        const ringEl = anchor.querySelector<SVGSVGElement>(".organism-ring-label");
-        if (ringEl) {
-          const ring = runtimeLabel.ring;
+        const arcs = new Map((runtimeLabel.ring?.arcs ?? []).map((ring) => [ring.id, ring]));
+        anchor.querySelectorAll<SVGSVGElement>(".organism-ring-label").forEach((ringEl) => {
+          const ring = arcs.get((ringEl.dataset.ringId ?? "") as "primary" | "secondary");
           ringEl.dataset.runtimeHidden = ring ? "false" : "true";
-          if (ring) {
-            const radius = Math.max(1, nucleus.screenR * ring.radiusRatio);
-            const path = ringEl.querySelector<SVGPathElement>(".organism-ring-path");
-            const textPath = ringEl.querySelector<SVGTextPathElement>(
-              ".organism-ring-text-path"
-            );
-            const sweep = ring.flipped ? 0 : 1;
-            path?.setAttribute(
-              "d",
-              `M ${(-radius).toFixed(2)} 0 A ${radius.toFixed(2)} ${radius.toFixed(2)} 0 0 ${sweep} ${radius.toFixed(2)} 0`
-            );
-            if (textPath && textPath.textContent !== ring.text) {
-              textPath.textContent = ring.text;
+          if (!ring) return;
+          const ringScale = resolveLabelRuntimeScale(ring.scaleMode, cam.zoom);
+          const radius = Math.max(
+            1,
+            nucleus.screenR * ring.radiusRatio
+              + (ring.orientation === "inside" ? -1 : 1) * ring.font.sizeWorld * ringScale * 0.34,
+          );
+          const half = (ring.arcSpanDeg * Math.PI) / 360;
+          const start = { x: radius * Math.sin(-half), y: -radius * Math.cos(-half) };
+          const end = { x: radius * Math.sin(half), y: -radius * Math.cos(half) };
+          const path = ringEl.querySelector<SVGPathElement>(".organism-ring-path");
+          const textPath = ringEl.querySelector<SVGTextPathElement>(".organism-ring-text-path");
+          const sweep = ring.clockwise === ring.flipped ? 0 : 1;
+          path?.setAttribute(
+            "d",
+            `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${radius.toFixed(2)} ${radius.toFixed(2)} 0 ${ring.arcSpanDeg > 180 ? 1 : 0} ${sweep} ${end.x.toFixed(2)} ${end.y.toFixed(2)}`
+          );
+          if (textPath && textPath.textContent !== ring.text) textPath.textContent = ring.text;
+          ringEl.style.setProperty("--ring-font-world", `${ring.font.sizeWorld.toFixed(3)}px`);
+          ringEl.style.setProperty("--ring-tracking", `${ring.fit.trackingEm.toFixed(4)}em`);
+          ringEl.style.transform = `translate(${(ring.offsetWorld.x * ringScale).toFixed(2)}px, ${(ring.offsetWorld.y * ringScale).toFixed(2)}px) rotate(${(
+            ring.startAngleDeg - (ring.flipped ? 180 : 0)
+          ).toFixed(2)}deg)`;
+        });
+        const flagEl = anchor.querySelector<HTMLElement>(".organism-flag-label");
+        if (flagEl) {
+          const flag = runtimeLabel.flag;
+          flagEl.dataset.runtimeHidden = flag ? "false" : "true";
+          if (flag) {
+            const contentHeightWorld = flag.blocks.reduce(
+              (maximum, block) => Math.max(maximum, Math.abs(block.offsetWorld.y) + block.estimatedHeightWorld / 2),
+              0,
+            ) * 2;
+            const contentWidthWorld = flag.blocks.reduce((maximum, block) => Math.max(
+              maximum,
+              block.segments.reduce((sum, segment) => sum + [...segment.text].length * segment.font.sizeWorld * 0.62, 0),
+            ), 0);
+            const geometry = resolveFlagRuntimeGeometry({
+              flag,
+              /* The Flag resolver works in viewport coordinates so its frame
+               * clamp stays correct at every Cell position. The DOM anchor is
+               * already translated to this nucleus below, therefore all
+               * emitted geometry is converted back to local coordinates. */
+              centre: { x: nucleus.sx, y: nucleus.sy },
+              screenRadius: nucleus.screenR,
+              zoom: cam.zoom,
+              contentWidthWorld,
+              contentHeightWorld,
+              frame: { width: w, height: h },
+            });
+            flagEl.dataset.runtimeHidden = geometry.visible ? "false" : "true";
+            flagEl.style.setProperty("--flag-scale", geometry.scale.toFixed(4));
+            const local = (point: { x: number; y: number }) => ({
+              x: point.x - nucleus.sx,
+              y: point.y - nucleus.sy,
+            });
+            const localPanel = {
+              ...geometry.panel,
+              x: geometry.panel.x - nucleus.sx,
+              y: geometry.panel.y - nucleus.sy,
+            };
+            const panel = flagEl.querySelector<HTMLElement>("[data-flag-panel]");
+            if (panel) {
+              panel.style.transform = `translate(${localPanel.x.toFixed(2)}px, ${localPanel.y.toFixed(2)}px)`;
+              panel.style.width = `${localPanel.width.toFixed(2)}px`;
+              panel.style.height = `${localPanel.height.toFixed(2)}px`;
+              panel.style.padding = `${(flag.options.paddingY * geometry.scale).toFixed(2)}px ${(flag.options.paddingX * geometry.scale).toFixed(2)}px`;
+              panel.style.borderRadius = `${(flag.options.cornerRadius * geometry.scale).toFixed(2)}px`;
+              panel.style.backgroundColor = flag.options.background === "none"
+                ? "transparent"
+                : flag.options.background === "solid"
+                  ? `color-mix(in srgb, var(--bg) ${(flag.options.backgroundOpacity * 100).toFixed(0)}%, transparent)`
+                  : `color-mix(in srgb, var(--bg) ${(flag.options.backgroundOpacity * 72).toFixed(0)}%, transparent)`;
+              panel.style.borderWidth = flag.options.border ? `${(flag.options.borderThickness * geometry.scale).toFixed(2)}px` : "0px";
+              panel.style.borderColor = flag.options.border
+                ? `color-mix(in srgb, var(--label-ink, var(--ink)) ${(flag.options.borderOpacity * 100).toFixed(0)}%, transparent)`
+                : "transparent";
+              panel.style.setProperty("--flag-content-gap", String(flag.options.contentGap));
             }
-            ringEl.style.setProperty("--ring-font-world", `${ring.font.sizeWorld.toFixed(3)}px`);
-            ringEl.style.setProperty("--ring-tracking", `${ring.fit.trackingEm.toFixed(4)}em`);
-            ringEl.style.transform = `rotate(${(
-              ring.startAngleDeg - (ring.flipped ? 180 : 0)
-            ).toFixed(2)}deg)`;
+            const leader = flagEl.querySelector<SVGSVGElement>(".organism-flag-leader");
+            const leaderPath = flagEl.querySelector<SVGPathElement>(".organism-flag-leader-path");
+            const endpoint = flagEl.querySelector<SVGPathElement>(".organism-flag-endpoint");
+            if (leader && leaderPath) {
+              const start = local(geometry.start);
+              const end = local(geometry.end);
+              const elbow = geometry.elbow ? local(geometry.elbow) : null;
+              const controlA = geometry.controlA ? local(geometry.controlA) : null;
+              const controlB = geometry.controlB ? local(geometry.controlB) : null;
+              const d = geometry.elbow
+                ? `M ${start.x} ${start.y} L ${elbow?.x} ${elbow?.y} L ${end.x} ${end.y}`
+                : controlA && controlB
+                  ? `M ${start.x} ${start.y} C ${controlA.x} ${controlA.y} ${controlB.x} ${controlB.y} ${end.x} ${end.y}`
+                  : `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+              leaderPath.setAttribute("d", d);
+              leaderPath.setAttribute("stroke-width", String(flag.options.lineThickness * geometry.scale));
+              leaderPath.setAttribute("stroke-opacity", String(flag.options.lineOpacity));
+              leaderPath.setAttribute("stroke-dasharray", flag.options.lineStyle === "dashed" ? `${5 * geometry.scale} ${4 * geometry.scale}` : flag.options.lineStyle === "dotted" ? `${1 * geometry.scale} ${3 * geometry.scale}` : "");
+              if (endpoint) {
+                if (flag.options.endpoint === "dot") {
+                  endpoint.setAttribute("d", `M ${start.x} ${start.y} m ${-1.6 * geometry.scale} 0 a ${1.6 * geometry.scale} ${1.6 * geometry.scale} 0 1 0 ${3.2 * geometry.scale} 0 a ${1.6 * geometry.scale} ${1.6 * geometry.scale} 0 1 0 ${-3.2 * geometry.scale} 0`);
+                  endpoint.setAttribute("fill", "currentColor");
+                  endpoint.setAttribute("stroke", "none");
+                } else if (flag.options.endpoint === "bar") {
+                  const dx = -geometry.vector.y * 3 * geometry.scale;
+                  const dy = geometry.vector.x * 3 * geometry.scale;
+                  endpoint.setAttribute("d", `M ${(start.x - dx).toFixed(2)} ${(start.y - dy).toFixed(2)} L ${(start.x + dx).toFixed(2)} ${(start.y + dy).toFixed(2)}`);
+                  endpoint.setAttribute("fill", "none");
+                  endpoint.setAttribute("stroke", "currentColor");
+                  endpoint.setAttribute("stroke-width", String(Math.max(1, flag.options.lineThickness * geometry.scale)));
+                } else if (flag.options.endpoint === "arrow") {
+                  const angle = Math.atan2(geometry.vector.y, geometry.vector.x);
+                  const tip = start;
+                  const left = {
+                    x: tip.x + Math.cos(angle + 2.55) * 6 * geometry.scale,
+                    y: tip.y + Math.sin(angle + 2.55) * 6 * geometry.scale,
+                  };
+                  const right = {
+                    x: tip.x + Math.cos(angle - 2.55) * 6 * geometry.scale,
+                    y: tip.y + Math.sin(angle - 2.55) * 6 * geometry.scale,
+                  };
+                  endpoint.setAttribute("d", `M ${tip.x} ${tip.y} L ${left.x} ${left.y} L ${right.x} ${right.y} Z`);
+                  endpoint.setAttribute("fill", "currentColor");
+                  endpoint.setAttribute("stroke", "none");
+                } else {
+                  endpoint.setAttribute("d", "");
+                }
+              }
+            }
           }
         }
       });
@@ -920,6 +1073,10 @@ export default function OrganismCanvasView({
           createGroupTranslation(spaces, selection.selectedIds, hit.id),
           pressIntent,
         );
+        pulseCameraShake(cameraShake, cameraShakeSettings(), {
+          x: sx - hit.sx,
+          y: sy - hit.sy,
+        });
         canvas.style.cursor = "grabbing";
       } else {
         resetCellActivation(activation);
@@ -955,6 +1112,10 @@ export default function OrganismCanvasView({
         }
       }
       if (gesture.mode === "drag" && gesture.drag) {
+        nudgeCameraShakeForDrag(cameraShake, cameraShakeSettings(), {
+          x: e.movementX,
+          y: e.movementY,
+        });
         const dragId = gesture.drag.id;
         const world = screenToWorld(sx, sy, cam, w, h);
         const translation = gesture.groupTranslation;
@@ -1124,8 +1285,17 @@ export default function OrganismCanvasView({
         dirty = true;
       }
 
+      /* Camera zoom can cross a bounded low-detail sampling bucket without
+       * mutating project state. Reallocate only when the density meaningfully
+       * changes; the renderer itself no-ops unchanged target dimensions. */
+      if (Math.abs(resolveMembraneSamplingScale(resolved.membraneDetail, cam.zoom) - lastMembraneSamplingScale) >= 0.01) {
+        resizeTarget();
+      }
+
       if (derivedDirty) refreshDerived();
       if (resolved.motionActive) advanceMotion(motionState, dt, resolved.adapter.timeScale);
+      const shakeActive = advanceCameraShake(cameraShake, cameraShakeSettings(), dt);
+      applyCameraShakeOffset();
       const nuclei = currentNuclei();
       lastNuclei = nuclei;
       const sc = cachedStyle;
@@ -1370,7 +1540,8 @@ export default function OrganismCanvasView({
         settling ||
         !!camTarget ||
         resolved.motionActive ||
-        motionState.settling
+        motionState.settling ||
+        shakeActive
       );
       },
     });
@@ -1383,6 +1554,8 @@ export default function OrganismCanvasView({
         moveScheduler.cancel();
         wheelScheduler.cancel();
         cancelCanvasGesture(gesture);
+        resetCameraShake(cameraShake);
+        applyCameraShakeOffset();
         performanceGovernor.endInteraction();
         return;
       }
@@ -1432,6 +1605,8 @@ export default function OrganismCanvasView({
       reducedMotionQuery.removeEventListener("change", onReducedMotion);
       unregisterCapture();
       renderer?.dispose();
+      resetCameraShake(cameraShake);
+      applyCameraShakeOffset();
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);

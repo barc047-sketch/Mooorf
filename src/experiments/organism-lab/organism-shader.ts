@@ -24,6 +24,9 @@ precision highp float;
 #define MAX_NUCLEI ${MAX_NUCLEI}
 
 uniform vec2 uResolution;
+/* Target-pixel derivative → visible-pixel derivative. When the detached
+   membrane target is downscaled, raw fwidth() is too broad after upsampling. */
+uniform float uTargetToVisibleSamplingScale;
 uniform int uCount;
 /* xy = position (field units), z = radius, w = signed strength */
 uniform vec4 uNuclei[MAX_NUCLEI];
@@ -70,6 +73,13 @@ out vec4 outColor;
 const float KEPS = 0.09;
 const float TAU = 6.28318530718;
 
+/* Keep AA widths stable in visible pixels even when the membrane is rendered
+   into a lower-resolution target. This affects smoothing only, never the
+   implicit field or nucleus geometry. */
+float visibleSampleWidth(float rawDerivative) {
+  return rawDerivative * clamp(uTargetToVisibleSamplingScale, 0.05, 1.0);
+}
+
 float fieldAt(vec2 p) {
   float f = 0.0;
   for (int i = 0; i < MAX_NUCLEI; i++) {
@@ -115,7 +125,7 @@ float plainBodyAt(vec2 p, float spread, float softness) {
     if (n.w <= 0.0) continue;
     float radius = max(n.z + spread, 0.001);
     float d = length(p - n.xy);
-    float edge = max(softness, fwidth(d) * 1.2);
+    float edge = max(softness, visibleSampleWidth(fwidth(d)) * 1.2);
     mask = max(mask, 1.0 - smoothstep(radius - edge, radius + edge, d));
   }
   return mask;
@@ -128,7 +138,7 @@ float plainVoidRingAt(vec2 p) {
     vec4 n = uNuclei[i];
     if (n.w >= 0.0) continue;
     float d = length(p - n.xy);
-    float edge = max(fwidth(d) * 1.4, 0.003);
+    float edge = max(visibleSampleWidth(fwidth(d)) * 1.4, 0.003);
     ring = max(ring, 1.0 - smoothstep(edge, edge * 2.2, abs(d - n.z)));
   }
   return ring;
@@ -143,7 +153,7 @@ void main() {
   if (uMorphEnabled > 0.5) {
     f = fieldAt(p);
     /* pixel-exact anti-aliasing floor under the artistic softness */
-    aa = fwidth(f);
+    aa = visibleSampleWidth(fwidth(f));
     float wBody = max(uSoftness, aa * 0.9);
     body = smoothstep(uIso - wBody, uIso + wBody, f);
     /* inner field band opens controlled cellular voids where field energy stacks */
@@ -152,7 +162,7 @@ void main() {
   } else {
     body = plainBodyAt(p, 0.0, 0.0025);
     f = body;
-    aa = fwidth(body);
+    aa = visibleSampleWidth(fwidth(body));
   }
 
   float organism = body * (1.0 - pocket);
@@ -181,7 +191,7 @@ void main() {
     float shadowMask = 0.0;
     if (uMorphEnabled > 0.5) {
       float sf = fieldAt(p - uShadowOffset);
-      float sw = max(uSoftness + uShadowSoftness, fwidth(sf));
+      float sw = max(uSoftness + uShadowSoftness, visibleSampleWidth(fwidth(sf)));
       float spreadBias = uShadowSpread * 6.0;
       shadowMask = smoothstep(uIso - spreadBias - sw, uIso - spreadBias + sw, sf);
     } else {
@@ -211,7 +221,7 @@ void main() {
       if (n.w <= 0.0) continue;
       float dN = length(p - n.xy);
       float rr = n.z * 0.34;
-      float w = max(fwidth(dN) * 1.2, 0.0035);
+      float w = max(visibleSampleWidth(fwidth(dN)) * 1.2, 0.0035);
       float dot = 1.0 - smoothstep(rr - w, rr + w, dN);
       float dotAlpha = dot * uNucleusDots * 0.92;
       col = mix(col, uNucleusColors[i], dotAlpha);
@@ -239,7 +249,7 @@ void main() {
       if (i >= uCount) break;
       vec4 n = uNuclei[i];
       float dN = length(p - n.xy);
-      float w = max(fwidth(dN) * 1.6, 0.0035);
+      float w = max(visibleSampleWidth(fwidth(dN)) * 1.6, 0.0035);
       float ring = 1.0 - smoothstep(w, w * 2.0, abs(dN - n.z));
       float centerDot = uNucleiDebugCenterDots > 0.5
         ? 1.0 - smoothstep(0.006, 0.006 + w, dN)
@@ -312,6 +322,7 @@ export interface OrganismRenderer {
 
 const UNIFORM_NAMES = [
   "uResolution",
+  "uTargetToVisibleSamplingScale",
   "uCount",
   "uNuclei[0]",
   "uNucleusColors[0]",
@@ -512,6 +523,16 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       gl.viewport(0, 0, targetWidth, targetHeight);
       gl.useProgram(program);
       gl.uniform2f(loc["uResolution"] ?? null, targetWidth, targetHeight);
+      /* fwidth() is evaluated in target pixels. Convert it to the browser's
+         visible backing-store sampling so low-quality target scaling does not
+         broaden the membrane edge or soften nearby contours. */
+      gl.uniform1f(
+        loc["uTargetToVisibleSamplingScale"] ?? null,
+        Math.min(
+          targetWidth / Math.max(1, gl.drawingBufferWidth),
+          targetHeight / Math.max(1, gl.drawingBufferHeight),
+        ),
+      );
       gl.uniform1i(loc["uCount"] ?? null, Math.min(frame.count, MAX_NUCLEI));
       gl.uniform4fv(loc["uNuclei[0]"] ?? null, frame.nuclei);
       gl.uniform3fv(loc["uNucleusColors[0]"] ?? null, frame.nucleusColors);

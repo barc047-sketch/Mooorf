@@ -95,6 +95,7 @@ const DEFAULT_ADAPTER_OPTIONS: OrganismAdapterOptions = {
   breathing: DEFAULT_ORGANISM_SETTINGS.breathing,
   wobble: DEFAULT_ORGANISM_SETTINGS.wobble,
   phaseVariation: DEFAULT_ORGANISM_SETTINGS.phaseVariation,
+  preserveMorphology: DEFAULT_ORGANISM_SETTINGS.preserveMorphology,
   cameraAwareMorph: DEFAULT_ORGANISM_SETTINGS.cameraAwareMorph,
 };
 
@@ -303,8 +304,11 @@ export function spacesToNuclei(
     let fx = field.fx + opts.offsetX;
     let fy = field.fy + opts.offsetY;
 
-    const morphZoom = opts.cameraAwareMorph ? camera.zoom : 1;
-    const rBase = clamp((r * morphZoom) / halfMin, opts.radiusMin, opts.radiusMax);
+    /* Field centres are camera-projected, so the bounded authored radius must
+       receive the same camera scale. Bounding before zoom keeps the clamp in
+       world-normalized units; applying it after zoom would distort fusion at
+       the clamp limits. `cameraAwareMorph` remains an inert legacy setting. */
+    const rBase = clamp(r / halfMin, opts.radiusMin, opts.radiusMax) * camera.zoom;
     let rf = rBase;
 
     if (motionOn) {
