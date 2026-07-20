@@ -254,7 +254,7 @@ const advancedLabelSavedView: SavedCanvasSnapshot = {
 const parsedAdvancedLabelView = parseProjectEnvelope(
   JSON.stringify(buildProjectEnvelope(advancedLabelSnapshot, [advancedLabelSavedView]))
 ).savedViews[0]!;
-equal(parsedAdvancedLabelView.presentationDefaults?.text.labels.fit.maximumCellOccupancy, 0.73, "Saved Views preserve advanced label fit settings");
+equal(parsedAdvancedLabelView.presentationDefaults?.text.labels.fit?.maximumCellOccupancy, 0.73, "Saved Views preserve advanced label fit settings");
 equal(parsedAdvancedLabelView.presentationDefaults?.text.labels.ring?.primaryArc?.source, "space-no-name", "Saved Views preserve combined Space No. and Name Ring arcs");
 equal(parsedAdvancedLabelView.presentationDefaults?.text.labels.ring?.secondaryArc?.source, "body", "Saved Views preserve Body secondary Ring arcs");
 equal(parsedAdvancedLabelView.spaces[0].appearance?.text?.labels?.flag?.leader, "curved", "Saved Views preserve advanced Flag leader settings");
