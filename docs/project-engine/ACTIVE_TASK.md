@@ -1,31 +1,30 @@
 # Active Task
 
-## WAITING OWNER QA — Organism Cell Label Correction 2
+## WAITING OWNER QA — Organism Cell Label Correction 3
 
 **Status:** FINALIZED / NOT MERGED / WAITING OWNER QA
 
 **Branch:** `work/next-feature`
 
-**Correction source:** `9366d9d25a9cfb5d89cc72af13664fd1a85b50eb`
+**Correction source:** `411e4fb01d9ae41fab85ebd0613c984e23e0b35e`
 
-**Correction product commits:** `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a`
+**Correction product commit:** `48611c285dac6c11583ba8df251da01237e561b0`
 
 Completed scope:
 
-- twelve Organism-only production label layouts, including two-arc Ring composition;
-- Ring identity preservation, shared inside-text fitting and advanced deterministic Flag controls;
-- Label Studio through the existing WidgetHost/Frame lifecycle, sharing the canonical compact-Inspector settings;
-- Display camera/label-fit controls, Membrane quality-only zoom controls and runtime-only camera shake;
-- existing persistence, history, import/export and Table pause/resume owners retained.
+- direct left-Dock Label Studio and Membrane Detail launchers reuse `openWidget`, reveal/minimize/focus behavior and active state;
+- the dedicated Membrane Detail launcher suppresses the generic duplicate when Membrane is the active appearance family;
+- selected-state camera feedback remains deterministic, bounded and active for the full selection lifetime, then settles only after deselection;
+- Off, reduced-motion, Table/suspended runtime, exports, canonical camera coordinates and Undo/Redo remain unaffected.
 
 Verification recorded:
 
-- focused correction suites;
+- focused Dock/widget and camera-shake contracts;
 - TypeScript, final diff check and one production build;
-- Codex browser checks at 1440×900 and 1280×800.
+- Codex browser checks at 1440×900 and 1280×800 with no console errors.
 
 ## Next safe action
 
-Owner QA of Correction 2 on `work/next-feature`.
+Owner QA of Correction 3 on `work/next-feature`.
 
 Do not merge, modify `main`, begin a later product phase, or modify Classic without a separate explicit Owner command.
