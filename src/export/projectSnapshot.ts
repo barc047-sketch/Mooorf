@@ -17,6 +17,7 @@ import type {
   Theme,
 } from "../types";
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION } from "./types";
+import { normalizeOrganismSettings } from "../canvas/organismProductionSettings";
 import type { ResourceSettings } from "../resources/types";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
 import type { ProjectPresentationDefaults } from "../domain/presentation/types";
@@ -105,7 +106,7 @@ export const buildProjectSnapshot = (
     theme: input.theme,
     settings: {
       ...input.settings,
-      organism: { ...input.settings.organism },
+      organism: normalizeOrganismSettings(input.settings.organism),
       cellShadow: { ...input.settings.cellShadow },
       resources: cloneResourceSettings(input.settings.resources),
       presentationDefaults: cloneProjectPresentationDefaults(input.settings.presentationDefaults),

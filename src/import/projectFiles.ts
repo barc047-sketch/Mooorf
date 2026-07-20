@@ -4,6 +4,7 @@ import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme } from "../types";
 import { cloneResourceSettings, normalizeResourceSettings } from "../resources/resourcePersistence";
 import { normalizeCellShadow } from "../canvas/cellShadow";
+import { normalizeOrganismSettings } from "../canvas/organismProductionSettings";
 import {
   normalizeLabelColourMode,
   normalizeLabelCustomColour,
@@ -129,6 +130,14 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
     throw new Error("Project display settings are invalid.");
   }
   for (const [key, setting] of Object.entries(value.organism)) {
+    if (key === "lowZoomDetail") {
+      if (setting === "full" || setting === "balanced" || setting === "simplified") continue;
+      throw new Error(`Organism setting "${key}" is invalid.`);
+    }
+    if (key === "cameraShakeMode") {
+      if (setting === "off" || setting === "soft" || setting === "responsive" || setting === "custom") continue;
+      throw new Error(`Organism setting "${key}" is invalid.`);
+    }
     if (typeof setting === "number" && Number.isFinite(setting)) continue;
     if (typeof setting === "boolean") continue;
     throw new Error(`Organism setting "${key}" is invalid.`);
@@ -141,7 +150,7 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
     typeof annotation.boundingBox !== "boolean"
   ) throw new Error("Annotation settings are invalid.");
   const rendererMode = oneOf(value.rendererMode, ["organism", "classic"] as const, "Renderer mode");
-  const organism = { ...(value.organism as unknown as ProjectExportSettings["organism"]) };
+  const organism = normalizeOrganismSettings(value.organism);
   const resources = normalizeResourceSettings(value.resources, {
     showGrid: value.showGrid === true,
     nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
@@ -233,7 +242,7 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     nucleusPaletteId: typeof value.nucleusPaletteId === "string" ? value.nucleusPaletteId : "editorial-aurora",
     organismPaletteId: typeof value.organismPaletteId === "string" ? value.organismPaletteId : "mode",
   });
-  const organism = { ...(value.organism as unknown as SavedCanvasSnapshot["organism"]) };
+  const organism = normalizeOrganismSettings(value.organism);
   const presentationDefaults = normalizeProjectPresentationDefaults(value.presentationDefaults, {
     blobOn: typeof value.blobOn === "boolean" ? value.blobOn : true,
     organism,
@@ -298,7 +307,7 @@ export const buildProjectEnvelope = (
     settings: {
       ...snapshot.settings,
       annotationDetail: { ...snapshot.settings.annotationDetail },
-      organism: { ...snapshot.settings.organism },
+      organism: normalizeOrganismSettings(snapshot.settings.organism),
       resources: cloneResourceSettings(snapshot.settings.resources),
       presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
     },
@@ -309,9 +318,10 @@ export const buildProjectEnvelope = (
       nucleusPaletteId: view.nucleusPaletteId ?? "editorial-aurora",
       organismPaletteId: view.organismPaletteId ?? "mode",
     });
+    const organism = normalizeOrganismSettings(view.organism);
     const presentationDefaults = normalizeProjectPresentationDefaults(view.presentationDefaults, {
       blobOn: view.blobOn ?? true,
-      organism: view.organism,
+      organism,
       resources,
       annotationDetail: view.annotationDetail,
       labelColourMode: view.labelColourMode,
@@ -324,7 +334,7 @@ export const buildProjectEnvelope = (
         appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
       })),
       camera: { ...view.camera },
-      organism: { ...view.organism },
+      organism,
       resources,
       presentationDefaults,
     };
@@ -369,7 +379,7 @@ export const buildConfigEnvelope = (
     ...snapshot.settings,
     theme: snapshot.theme,
     annotationDetail: { ...snapshot.settings.annotationDetail },
-    organism: { ...snapshot.settings.organism },
+    organism: normalizeOrganismSettings(snapshot.settings.organism),
     resources: cloneResourceSettings(snapshot.settings.resources),
     presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
   },

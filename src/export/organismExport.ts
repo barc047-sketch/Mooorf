@@ -293,6 +293,7 @@ export const renderDetachedOrganismExport = async (
         textShadow: settings.annotationDetail.textShadow,
         surfaceColor: tokens.surface,
         hairlineColor: tokens.hairline,
+        frame: { width, height },
       });
     }
     outputContext.restore();

@@ -7,6 +7,7 @@ import {
   DEFAULT_BODY_LABEL_OPTIONS,
   DEFAULT_CELL_LABEL_LAYOUT,
   DEFAULT_FLAG_LABEL_OPTIONS,
+  DEFAULT_LABEL_FIT_OPTIONS,
   DEFAULT_MINIMAL_NUMBER_SOURCE,
   DEFAULT_RING_LABEL_OPTIONS,
   LABEL_ROLE_IDS,
@@ -323,6 +324,75 @@ export const CELL_LABEL_PRESETS: readonly CellLabelPresetDefinition[] = [
       { kind: "bar", x: 24, y: 12, w: 5.6, h: 1.4 },
     ],
   },
+  {
+    id: "dual-ring",
+    label: "Dual Ring",
+    description: "Name on the outer arc with Body or metadata on an inner arc.",
+    seed: {
+      roles: {
+        name: { size: 0.72, weight: "semibold", letterSpacing: 0.1, textCase: "uppercase" },
+        body: { visible: true, size: 0.5, maxLines: 1, overflow: "truncate" },
+        areaNumber: { size: 1.05, weight: "bold", opacity: 1 },
+        areaUnit: { size: 0.48 },
+      },
+      ring: {
+        primaryArc: { source: "name", radiusRatio: 0.88, startAngleDeg: 0, arcSpanDeg: 174, fontRole: "name" },
+        secondaryArc: { source: "body", radiusRatio: 0.57, startAngleDeg: 180, arcSpanDeg: 148, fontRole: "body", lowZoomPriority: 2 },
+      },
+    },
+    thumbnail: [
+      { kind: "ring", x: 18, y: 18, r: 12.2, emphasis: true },
+      { kind: "ring", x: 18, y: 18, r: 8.2 },
+      { kind: "bar", x: 13, y: 16.6, w: 10, h: 3 },
+    ],
+  },
+  {
+    id: "ring-core",
+    label: "Ring + Core",
+    description: "Name orbits outside while Area forms a clear central core.",
+    seed: {
+      roles: {
+        name: { size: 0.76, weight: "semibold", letterSpacing: 0.11, textCase: "uppercase" },
+        body: { visible: false, size: 0.46, maxLines: 1, overflow: "truncate" },
+        areaNumber: { size: 1.32, weight: "black", opacity: 1 },
+        areaUnit: { size: 0.54, opacity: 0.72 },
+      },
+      ring: {
+        primaryArc: { source: "name", radiusRatio: 0.91, startAngleDeg: 0, arcSpanDeg: 168, fontRole: "name" },
+        secondaryArc: { source: "body", radiusRatio: 0.62, startAngleDeg: 180, arcSpanDeg: 126, fontRole: "body", lowZoomPriority: 2 },
+      },
+    },
+    thumbnail: [
+      { kind: "ring", x: 18, y: 18, r: 11.8, emphasis: true },
+      { kind: "dot", x: 18, y: 18, r: 6.5 },
+      { kind: "bar", x: 12.5, y: 16.2, w: 11, h: 3.4, emphasis: true },
+    ],
+  },
+  {
+    id: "technical-orbit",
+    label: "Technical Orbit",
+    description: "Space No. and Name orbit Area with metadata on a second arc.",
+    seed: {
+      roles: {
+        no: { visible: true, size: 0.52, fontFamily: "mono", letterSpacing: 0.12 },
+        name: { size: 0.62, weight: "semibold", textCase: "uppercase", letterSpacing: 0.09 },
+        areaNumber: { size: 1.16, weight: "bold", opacity: 1 },
+        areaUnit: { size: 0.48 },
+        metadata: { visible: true, size: 0.42, fontFamily: "mono", letterSpacing: 0.08 },
+        body: { visible: false },
+      },
+      ring: {
+        primaryArc: { source: "space-no-name", radiusRatio: 0.9, startAngleDeg: -10, arcSpanDeg: 178, fontRole: "name" },
+        secondaryArc: { source: "metadata", radiusRatio: 0.59, startAngleDeg: 180, arcSpanDeg: 132, fontRole: "metadata", lowZoomPriority: 3 },
+      },
+    },
+    thumbnail: [
+      { kind: "ring", x: 18, y: 18, r: 11.8, emphasis: true },
+      { kind: "ring", x: 18, y: 18, r: 7.6 },
+      { kind: "bar", x: 13, y: 15.8, w: 10, h: 3.4, emphasis: true },
+      { kind: "bar", x: 11.5, y: 22.6, w: 13, h: 1.3 },
+    ],
+  },
 ];
 
 export const cellLabelPreset = (id: CellLabelLayoutId): CellLabelPresetDefinition =>
@@ -346,14 +416,33 @@ export const resolveEffectiveLabelConfig = (config: CellLabelConfig | undefined)
   return mergeCellLabelConfig(cellLabelPreset(layout).seed, config) ?? {};
 };
 
+const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const deepDifference = (value: unknown, inherited: unknown): unknown | undefined => {
+  if (Object.is(value, inherited)) return undefined;
+  if (Array.isArray(value)) {
+    return Array.isArray(inherited)
+      && value.length === inherited.length
+      && value.every((item, index) => deepDifference(item, inherited[index]) === undefined)
+        ? undefined
+        : value;
+  }
+  if (isPlainRecord(value)) {
+    const inheritedRecord = isPlainRecord(inherited) ? inherited : {};
+    const entries = Object.entries(value).flatMap(([key, item]) => {
+      const sparse = deepDifference(item, inheritedRecord[key]);
+      return sparse === undefined ? [] : [[key, sparse] as const];
+    });
+    return entries.length ? Object.fromEntries(entries) : undefined;
+  }
+  return value;
+};
+
 const difference = (
   value: Record<string, unknown> | undefined,
   inherited: Record<string, unknown>
-): Record<string, unknown> | undefined => {
-  if (!value) return undefined;
-  const entries = Object.entries(value).filter(([key, item]) => !Object.is(item, inherited[key]));
-  return entries.length ? Object.fromEntries(entries) : undefined;
-};
+): Record<string, unknown> | undefined => deepDifference(value, inherited) as Record<string, unknown> | undefined;
 
 /** Reduces a Cell's normalized label config to deviations from the effective
  * preset + Project Default projection. Project Defaults remain independently
@@ -382,6 +471,10 @@ export const sparsifyCellLabelOverride = (
     normalized.body as Record<string, unknown> | undefined,
     { ...DEFAULT_BODY_LABEL_OPTIONS, ...defaults?.body }
   );
+  const fit = difference(
+    normalized.fit as Record<string, unknown> | undefined,
+    { ...DEFAULT_LABEL_FIT_OPTIONS, ...defaults?.fit }
+  );
   const ring = difference(
     normalized.ring as Record<string, unknown> | undefined,
     { ...DEFAULT_RING_LABEL_OPTIONS, ...defaults?.ring }
@@ -397,6 +490,7 @@ export const sparsifyCellLabelOverride = (
     roles: Object.keys(roles).length ? roles : undefined,
     area,
     body,
+    fit,
     ring,
     flag,
     minimalSource: normalized.minimalSource !==

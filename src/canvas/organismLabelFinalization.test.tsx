@@ -39,6 +39,24 @@ const markup = renderToStaticMarkup(React.createElement(OrganismCellLabel, {
 assert.match(markup, /<textPath\b/, "live Organism Ring uses one text path");
 assert.doesNotMatch(markup, /organism-ring-glyph/, "live Organism Ring does not create one React node per glyph");
 
+for (const layout of ["area-hero", "minimal-number"] as const) {
+  const heroDefaults = createProjectPresentationDefaults();
+  heroDefaults.text.labels = { layout };
+  const heroMarkup = renderToStaticMarkup(React.createElement(OrganismCellLabel, {
+    space,
+    defaults: heroDefaults,
+    globalScaleMode: "world",
+    textSize: 1,
+    showName: true,
+    showArea: true,
+    showMetadata: true,
+    hasSymbol: false,
+    flagAutoDirection: "above",
+    theme: "day",
+  }));
+  assert.match(heroMarkup, /width:min\(calc\(var\(--cell-r\)/, `${layout} participates in the shared inside-Cell width cap`);
+}
+
 const viewSource = readFileSync(new URL("./OrganismCanvasView.tsx", import.meta.url), "utf8");
 assert.match(
   viewSource,
@@ -50,5 +68,13 @@ assert.match(
   /dataset\.runtimeHidden/,
   "live Organism applies shared bounded-degradation visibility"
 );
+assert.match(
+  viewSource,
+  /flag\.options\.background === "none"\s*\?\s*"transparent"/,
+  "live Flag Background=None clears the runtime inline panel fill"
+);
+const drawSource = readFileSync(new URL("./cellLabelDraw.ts", import.meta.url), "utf8");
+assert.match(drawSource, /Math\.max\(1, ring\.radiusRatio \* draw\.screenRadius\)/, "export preserves tiny fitted Ring arcs");
+assert.match(drawSource, /flag\.options\.background !== "none" \|\| flag\.options\.border/, "export handles transparent Flag panels and borders independently");
 
 console.log("Organism live label finalization contracts passed");

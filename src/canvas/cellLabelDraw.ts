@@ -7,6 +7,7 @@ import {
 } from "../domain/labels/layoutContract";
 import {
   resolveCellLabelLayout,
+  resolveFlagRuntimeGeometry,
   resolveLabelRuntimeScale,
   selectRuntimeLabelLayout,
   cellLabelContentSource,
@@ -15,6 +16,7 @@ import {
   type ResolvedLabelFont,
   type ResolvedLabelSegment,
   type RuntimeLabelSelection,
+  type RuntimeRingArc,
 } from "../domain/labels/resolveLayout";
 import { resolveLabelContrast } from "../design/labelContrast";
 
@@ -205,6 +207,8 @@ export interface CellLabelDrawContext {
   /** Canvas surface colour used for panels sitting outside the Cell. */
   surfaceColor: string;
   hairlineColor: string;
+  /** Live viewport / detached export frame for Flag clamping. */
+  frame?: { width: number; height: number };
 }
 
 const blockContrast = (block: Pick<ResolvedLabelBlock, "colourMode" | "colour">, draw: CellLabelDrawContext) =>
@@ -355,15 +359,18 @@ const drawBlock = (
   ctx: CanvasRenderingContext2D,
   block: ResolvedLabelBlock,
   draw: CellLabelDrawContext,
-  fitScale = 1
+  fitScale = 1,
+  insideOccupancy = 1,
 ): void => {
   const scale = resolveLabelRuntimeScale(block.scaleMode, draw.zoom) * fitScale;
   if (scale <= 0) return;
   const anchorX = draw.sx + block.anchorUnit.x * draw.screenRadius + block.offsetWorld.x * scale;
   const anchorY = draw.sy + block.anchorUnit.y * draw.screenRadius + block.offsetWorld.y * scale;
-  const widthWorld = block.maxWidthRatio > 0
-    ? Math.max(52, (block.maxWidthRatio * 2 * draw.screenRadius) / scale)
-    : Number.POSITIVE_INFINITY;
+  const occupiedWidth = Math.max(1, draw.screenRadius * 2 * insideOccupancy);
+  const widthWorld = Math.min(
+    occupiedWidth,
+    block.maxWidthRatio > 0 ? block.maxWidthRatio * 2 * draw.screenRadius : occupiedWidth,
+  ) / scale;
   ctx.save();
   ctx.translate(anchorX, anchorY);
   if (block.rotationDeg) ctx.rotate((block.rotationDeg * Math.PI) / 180);
@@ -372,23 +379,24 @@ const drawBlock = (
   ctx.restore();
 };
 
-const drawRing = (
+const drawRingArc = (
   ctx: CanvasRenderingContext2D,
-  ring: NonNullable<ResolvedCellLabelLayout["ring"]>,
+  ring: RuntimeRingArc,
   draw: CellLabelDrawContext
 ): void => {
   const scale = resolveLabelRuntimeScale(ring.scaleMode, draw.zoom);
   if (scale <= 0 || !ring.text) return;
-  const radius = ring.radiusRatio * draw.screenRadius;
-  if (radius <= 4) return;
+  /* Preserve is an explicit Ring policy: a small projected Cell may reduce
+   * and truncate the arc, but it must not silently disappear in exports. */
+  const radius = Math.max(1, ring.radiusRatio * draw.screenRadius);
   const font = fontCss(ring.font);
   const widths = glyphWidths(ctx, ring.text, font);
   const glyphSize = ring.font.sizeWorld * scale;
-  const tracking = (ring.font.letterSpacingEm + ring.spacingEm) * glyphSize;
+  const tracking = ring.font.letterSpacingEm * glyphSize;
   const totalArc = widths.reduce((sum, width) => sum + width * scale + tracking, -tracking);
   const anglePerPx = 1 / radius;
   const totalAngle = totalArc * anglePerPx;
-  if (totalAngle > Math.PI * 1.9) return; // never wrap the full circle illegibly
+  if (totalAngle > (ring.arcSpanDeg * Math.PI) / 180 + 0.001) return;
   const contrast = blockContrast(ring, draw);
   const centre = (ring.startAngleDeg * Math.PI) / 180;
   const previousAlpha = ctx.globalAlpha;
@@ -404,11 +412,12 @@ const drawRing = (
     const glyphCentre = cursor + glyphWidth / 2;
     /* Readable direction: top-arc text runs clockwise upright; lower-arc text
      * runs counter-clockwise flipped outward so it is never upside-down. */
-    const angle = ring.flipped
-      ? centre - glyphCentre * anglePerPx
-      : centre + glyphCentre * anglePerPx;
-    const x = draw.sx + radius * Math.sin(angle);
-    const y = draw.sy - radius * Math.cos(angle);
+    const traversal = ring.clockwise ? 1 : -1;
+    const direction = ring.flipped ? -traversal : traversal;
+    const angle = centre + direction * glyphCentre * anglePerPx;
+    const radialOffset = (ring.orientation === "inside" ? -1 : 1) * ring.font.sizeWorld * scale * 0.34;
+    const x = draw.sx + (radius + radialOffset) * Math.sin(angle) + ring.offsetWorld.x * scale;
+    const y = draw.sy - (radius + radialOffset) * Math.cos(angle) + ring.offsetWorld.y * scale;
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(ring.flipped ? angle + Math.PI : angle);
@@ -425,81 +434,103 @@ const drawRing = (
   ctx.globalAlpha = previousAlpha;
 };
 
-const FLAG_VECTORS: Record<Exclude<FlagDirection, "auto">, { x: number; y: number }> = {
-  above: { x: 0, y: -1 },
-  below: { x: 0, y: 1 },
-  left: { x: -1, y: 0 },
-  right: { x: 1, y: 0 },
-};
-
-const FLAG_PANEL_PADDING = 7;
-
 const drawFlag = (
   ctx: CanvasRenderingContext2D,
   flag: NonNullable<ResolvedCellLabelLayout["flag"]>,
   draw: CellLabelDrawContext,
-  fitScale = 1
 ): void => {
-  const scale = resolveLabelRuntimeScale(flag.scaleMode, draw.zoom) * fitScale;
-  if (scale <= 0 || flag.blocks.length === 0) return;
-  const vector = FLAG_VECTORS[flag.direction];
-  const startX = draw.sx + vector.x * draw.screenRadius;
-  const startY = draw.sy + vector.y * draw.screenRadius;
-  const endX = startX + vector.x * flag.distanceWorld * scale;
-  const endY = startY + vector.y * flag.distanceWorld * scale;
-
-  const panelWidth = flag.widthWorld * scale;
   const contentHeightWorld = flag.blocks.reduce(
     (max, block) => Math.max(max, Math.abs(block.offsetWorld.y) + block.estimatedHeightWorld / 2),
-    0
+    0,
   ) * 2;
-  const panelHeight = (contentHeightWorld + FLAG_PANEL_PADDING * 2) * scale;
+  const contentWidthWorld = flag.blocks.reduce((max, block) => Math.max(
+    max,
+    block.segments.reduce((sum, segment) => sum + [...segment.text].length * segment.font.sizeWorld * 0.62, 0),
+  ), 0);
+  const geometry = resolveFlagRuntimeGeometry({
+    flag,
+    centre: { x: draw.sx, y: draw.sy },
+    screenRadius: draw.screenRadius,
+    zoom: draw.zoom,
+    contentWidthWorld,
+    contentHeightWorld,
+    frame: draw.frame,
+  });
+  if (!geometry.visible) return;
+  const { scale } = geometry;
 
-  let panelX: number;
-  let panelY: number;
-  if (flag.direction === "right") {
-    panelX = endX;
-    panelY = flag.align === "start" ? endY : flag.align === "end" ? endY - panelHeight : endY - panelHeight / 2;
-  } else if (flag.direction === "left") {
-    panelX = endX - panelWidth;
-    panelY = flag.align === "start" ? endY : flag.align === "end" ? endY - panelHeight : endY - panelHeight / 2;
-  } else if (flag.direction === "above") {
-    panelY = endY - panelHeight;
-    panelX = flag.align === "start" ? endX : flag.align === "end" ? endX - panelWidth : endX - panelWidth / 2;
-  } else {
-    panelY = endY;
-    panelX = flag.align === "start" ? endX : flag.align === "end" ? endX - panelWidth : endX - panelWidth / 2;
-  }
-
-  /* Leader stem + edge tick. Hairline editorial language, never a data edge. */
+  /* Leader stem is presentation-only: it never constructs a data edge. */
   ctx.save();
   ctx.strokeStyle = draw.hairlineColor;
-  ctx.lineWidth = Math.max(1, scale);
+  ctx.globalAlpha = flag.options.lineOpacity;
+  ctx.lineWidth = flag.options.lineThickness * scale;
+  if (flag.options.lineStyle === "dashed") ctx.setLineDash([5 * scale, 4 * scale]);
+  if (flag.options.lineStyle === "dotted") ctx.setLineDash([1 * scale, 3 * scale]);
   ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  ctx.lineTo(endX, endY);
+  ctx.moveTo(geometry.start.x, geometry.start.y);
+  if (geometry.elbow) {
+    ctx.lineTo(geometry.elbow.x, geometry.elbow.y);
+    ctx.lineTo(geometry.end.x, geometry.end.y);
+  } else if (geometry.controlA && geometry.controlB) {
+    ctx.bezierCurveTo(
+      geometry.controlA.x,
+      geometry.controlA.y,
+      geometry.controlB.x,
+      geometry.controlB.y,
+      geometry.end.x,
+      geometry.end.y,
+    );
+  } else {
+    ctx.lineTo(geometry.end.x, geometry.end.y);
+  }
   ctx.stroke();
-  ctx.fillStyle = draw.hairlineColor;
-  ctx.beginPath();
-  ctx.arc(startX, startY, Math.max(1.4, 1.6 * scale), 0, Math.PI * 2);
-  ctx.fill();
-
-  /* Compact glass panel. */
-  const radius = Math.min(6 * scale, panelHeight / 2);
-  ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, radius);
-  ctx.fillStyle = draw.surfaceColor;
-  ctx.globalAlpha = 0.86;
-  ctx.fill();
+  ctx.setLineDash([]);
   ctx.globalAlpha = 1;
-  ctx.strokeStyle = draw.hairlineColor;
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  if (flag.options.endpoint === "dot") {
+    ctx.fillStyle = draw.hairlineColor;
+    ctx.beginPath();
+    ctx.arc(geometry.start.x, geometry.start.y, Math.max(1.4, 1.6 * scale), 0, Math.PI * 2);
+    ctx.fill();
+  } else if (flag.options.endpoint === "bar") {
+    ctx.lineWidth = Math.max(1, flag.options.lineThickness * scale);
+    ctx.beginPath();
+    ctx.moveTo(geometry.start.x - geometry.vector.y * 3 * scale, geometry.start.y + geometry.vector.x * 3 * scale);
+    ctx.lineTo(geometry.start.x + geometry.vector.y * 3 * scale, geometry.start.y - geometry.vector.x * 3 * scale);
+    ctx.stroke();
+  } else if (flag.options.endpoint === "arrow") {
+    const a = Math.atan2(geometry.vector.y, geometry.vector.x);
+    ctx.fillStyle = draw.hairlineColor;
+    ctx.beginPath();
+    ctx.moveTo(geometry.start.x, geometry.start.y);
+    ctx.lineTo(geometry.start.x + Math.cos(a + 2.55) * 6 * scale, geometry.start.y + Math.sin(a + 2.55) * 6 * scale);
+    ctx.lineTo(geometry.start.x + Math.cos(a - 2.55) * 6 * scale, geometry.start.y + Math.sin(a - 2.55) * 6 * scale);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  const panelRadius = Math.min(flag.options.cornerRadius * scale, geometry.panel.height / 2);
+  if (flag.options.background !== "none" || flag.options.border) {
+    ctx.beginPath();
+    ctx.roundRect(geometry.panel.x, geometry.panel.y, geometry.panel.width, geometry.panel.height, panelRadius);
+  }
+  if (flag.options.background !== "none") {
+    ctx.fillStyle = flag.options.background === "solid" ? draw.surfaceColor : draw.surfaceColor;
+    ctx.globalAlpha = flag.options.backgroundOpacity;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  if (flag.options.border) {
+    ctx.strokeStyle = draw.hairlineColor;
+    ctx.globalAlpha = flag.options.borderOpacity;
+    ctx.lineWidth = flag.options.borderThickness * scale;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
   ctx.restore();
 
-  const centreX = panelX + panelWidth / 2;
-  const centreY = panelY + panelHeight / 2;
-  const innerWidthWorld = flag.widthWorld - FLAG_PANEL_PADDING * 2;
+  const centreX = geometry.panel.x + geometry.panel.width / 2;
+  const centreY = geometry.panel.y + geometry.panel.height / 2;
+  const innerWidthWorld = Math.max(1, geometry.panel.width / scale - flag.options.paddingX * 2);
   const panelDraw: CellLabelDrawContext = {
     ...draw,
     backgroundColor: draw.surfaceColor,
@@ -533,10 +564,10 @@ export const drawCellLabelLayout = (
     ctx.restore();
   }
   for (const block of selection.blocks) {
-    drawBlock(ctx, block, draw, selection.fitScale);
+    drawBlock(ctx, block, draw, selection.fitScale, selection.insideOccupancy);
   }
-  if (selection.ring) drawRing(ctx, selection.ring, draw);
-  if (selection.flag) drawFlag(ctx, selection.flag, draw, selection.fitScale);
+  if (selection.ring) selection.ring.arcs.forEach((ring) => drawRingArc(ctx, ring, draw));
+  if (selection.flag) drawFlag(ctx, selection.flag, draw);
 };
 
 export { selectRuntimeLabelLayout };

@@ -16,6 +16,7 @@ import {
 import type { ExportPresentationOptions, ExportVisualOptions } from "./types";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
 import { cloneProjectPresentationDefaults } from "../domain/presentation/validation";
+import { normalizeOrganismSettings } from "../canvas/organismProductionSettings";
 import { createDownloadFeedback, type DownloadFeedback } from "../runtime/downloadActivity";
 
 export type PackProgressStage =
@@ -48,7 +49,7 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
     showGrid: s.showGrid,
     nucleusPaletteId: s.nucleusPaletteId,
     organismPaletteId: s.organismPaletteId,
-    organism: { ...s.organism },
+    organism: normalizeOrganismSettings(s.organism),
     uiScale: s.uiScale,
     widgetScale: s.widgetScale,
     resources: cloneResourceSettings(s.resources),

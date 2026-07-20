@@ -5,6 +5,7 @@ import { ensureSpaceCodes } from "../domain/spaceCode";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme, ViewMode } from "../types";
 import { normalizeSelectionState, replaceSelectionState } from "../interaction/selection";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
+import { normalizeOrganismSettings } from "../canvas/organismProductionSettings";
 import {
   buildConfigEnvelope,
   buildProjectEnvelope,
@@ -38,7 +39,7 @@ const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) =
   ...view,
   spaces: cloneSpaces(view.spaces),
   camera: { ...view.camera },
-  organism: { ...view.organism },
+  organism: normalizeOrganismSettings(view.organism),
   annotationDetail: view.annotationDetail ? { ...view.annotationDetail } : undefined,
   cellShadow: view.cellShadow ? { ...view.cellShadow } : undefined,
   resources: view.resources ? cloneResourceSettings(view.resources) : undefined,
@@ -54,7 +55,7 @@ export const captureRecoverySnapshot = (): RecoverySnapshot => {
     view: state.view,
     spaces: cloneSpaces(state.spaces),
     camera: { ...state.camera },
-    settings: { ...state.settings, organism: { ...state.settings.organism }, annotationDetail: { ...state.settings.annotationDetail }, cellShadow: { ...state.settings.cellShadow }, resources: cloneResourceSettings(state.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults) },
+    settings: { ...state.settings, organism: normalizeOrganismSettings(state.settings.organism), annotationDetail: { ...state.settings.annotationDetail }, cellShadow: { ...state.settings.cellShadow }, resources: cloneResourceSettings(state.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults) },
     selectedId: state.selectedId,
     primarySelectedId: state.primarySelectedId,
     selectedIds: [...state.selectedIds],
@@ -77,7 +78,7 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     view: snapshot.view,
     spaces: cloneSpaces(snapshot.spaces),
     camera: { ...snapshot.camera },
-    settings: { ...snapshot.settings, organism: { ...snapshot.settings.organism }, annotationDetail: { ...snapshot.settings.annotationDetail }, cellShadow: { ...snapshot.settings.cellShadow }, resources: cloneResourceSettings(snapshot.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults) },
+    settings: { ...snapshot.settings, organism: normalizeOrganismSettings(snapshot.settings.organism), annotationDetail: { ...snapshot.settings.annotationDetail }, cellShadow: { ...snapshot.settings.cellShadow }, resources: cloneResourceSettings(snapshot.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults) },
     ...normalizeSelectionState({
       selectedId: snapshot.selectedId,
       primarySelectedId: snapshot.primarySelectedId,
@@ -113,7 +114,7 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
         uiScale: normalizeUiScale(snapshot.settings.uiScale),
         widgetScale: normalizeWidgetScale(snapshot.settings.widgetScale),
         annotationDetail: { ...current.settings.annotationDetail, ...snapshot.settings.annotationDetail },
-        organism: { ...current.settings.organism, ...snapshot.settings.organism },
+        organism: normalizeOrganismSettings({ ...current.settings.organism, ...snapshot.settings.organism }),
         cellShadow: { ...snapshot.settings.cellShadow },
         resources: cloneResourceSettings(snapshot.settings.resources),
         presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
@@ -142,7 +143,7 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
         uiScale: normalizeUiScale(config.settings.uiScale),
         widgetScale: normalizeWidgetScale(config.settings.widgetScale),
         annotationDetail: { ...current.settings.annotationDetail, ...config.settings.annotationDetail },
-        organism: { ...current.settings.organism, ...config.settings.organism },
+        organism: normalizeOrganismSettings({ ...current.settings.organism, ...config.settings.organism }),
         cellShadow: { ...config.settings.cellShadow },
         resources: cloneResourceSettings(config.settings.resources),
         presentationDefaults: cloneProjectPresentationDefaults(config.settings.presentationDefaults),

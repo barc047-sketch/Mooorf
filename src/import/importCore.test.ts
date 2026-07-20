@@ -181,6 +181,85 @@ equal(
   "flag",
   "Saved Views preserve sparse Cell label overrides"
 );
+const advancedLabelPresentationDefaults: typeof presentationDefaults = {
+  ...presentationDefaults,
+  text: {
+    ...presentationDefaults.text,
+    labels: {
+      layout: "technical-orbit",
+      fit: {
+        fitInsideCell: true,
+        maximumCellOccupancy: 0.73,
+        minimumReadableScreenSize: 8,
+        maximumScreenTextSize: 26,
+        lowZoomBodyThreshold: 0.5,
+        lowZoomMetadataThreshold: 0.7,
+        hideAllLabelsBelow: 0.3,
+        overflowPolicy: "simplify",
+      },
+      ring: {
+        lowZoomBehavior: "simplify",
+        primaryArc: { source: "space-no-name", radiusRatio: 0.9, startAngleDeg: -12, arcSpanDeg: 176, fontRole: "name" },
+        secondaryArc: { source: "body", radiusRatio: 0.58, startAngleDeg: 180, arcSpanDeg: 142, fontRole: "body", lowZoomPriority: 2 },
+      },
+    },
+  },
+};
+const advancedLabelSpace: SpaceCell = {
+  ...labelSpace,
+  appearance: {
+    ...labelSpace.appearance,
+    text: {
+      ...labelSpace.appearance?.text,
+      labels: {
+        layout: "flag",
+        flag: {
+          direction: "custom",
+          anchorAngleDeg: 38,
+          distance: 64,
+          clampToFrame: true,
+          avoidSourceCell: true,
+          leader: "curved",
+          lineStyle: "dashed",
+          endpoint: "arrow",
+          autoWidth: false,
+          width: 136,
+          minimumWidth: 84,
+          maximumWidth: 220,
+          background: "none",
+          border: true,
+          content: { no: true, name: true, body: true, metadata: false },
+          contentOrder: ["name", "body", "no"],
+          bodyLineClamp: 3,
+          zoomMode: "adaptive",
+          minimumPanelScale: 0.62,
+          maximumPanelScale: 1.24,
+          keepReadable: true,
+        },
+      },
+    },
+  },
+};
+const advancedLabelSnapshot: ProjectExportSnapshot = {
+  ...labelSnapshot,
+  spaces: [advancedLabelSpace],
+  settings: { ...labelSnapshot.settings, presentationDefaults: advancedLabelPresentationDefaults },
+};
+const advancedLabelSavedView: SavedCanvasSnapshot = {
+  ...labelSavedView,
+  id: "view-advanced-labels",
+  spaces: [advancedLabelSpace],
+  presentationDefaults: advancedLabelPresentationDefaults,
+};
+const parsedAdvancedLabelView = parseProjectEnvelope(
+  JSON.stringify(buildProjectEnvelope(advancedLabelSnapshot, [advancedLabelSavedView]))
+).savedViews[0]!;
+equal(parsedAdvancedLabelView.presentationDefaults?.text.labels.fit.maximumCellOccupancy, 0.73, "Saved Views preserve advanced label fit settings");
+equal(parsedAdvancedLabelView.presentationDefaults?.text.labels.ring?.primaryArc?.source, "space-no-name", "Saved Views preserve combined Space No. and Name Ring arcs");
+equal(parsedAdvancedLabelView.presentationDefaults?.text.labels.ring?.secondaryArc?.source, "body", "Saved Views preserve Body secondary Ring arcs");
+equal(parsedAdvancedLabelView.spaces[0].appearance?.text?.labels?.flag?.leader, "curved", "Saved Views preserve advanced Flag leader settings");
+equal(parsedAdvancedLabelView.spaces[0].appearance?.text?.labels?.flag?.content?.body, true, "Saved Views preserve Flag content mapping");
+equal(parsedAdvancedLabelView.spaces[0].appearance?.text?.labels?.flag?.contentOrder?.join(","), "name,body,no", "Saved Views preserve Flag content ordering");
 const legacySavedView = {
   ...savedView,
   spaces: savedView.spaces.map(({ appearance: _appearance, ...space }) => space),

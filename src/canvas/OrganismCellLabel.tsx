@@ -12,6 +12,7 @@ import {
   resolveCellLabelLayout,
   type ResolvedLabelBlock,
   type ResolvedCellLabelLayout,
+  type ResolvedRingArc,
 } from "../domain/labels/resolveLayout";
 import { resolveLabelContrast } from "../design/labelContrast";
 
@@ -43,7 +44,7 @@ const blockColour = (
 
 const scaleVar = (mode: LabelScaleMode): string => `var(--ls-${mode})`;
 
-const blockStyle = (block: ResolvedLabelBlock, theme: Theme): CSSProperties => {
+const blockStyle = (block: ResolvedLabelBlock, theme: Theme, panel = false): CSSProperties => {
   const primary = block.segments[0];
   const colour = blockColour(block, theme);
   const translate = block.styleOffsetWorld.x || block.styleOffsetWorld.y
@@ -51,7 +52,7 @@ const blockStyle = (block: ResolvedLabelBlock, theme: Theme): CSSProperties => {
     : "";
   const rotate = block.rotationDeg ? `rotate(${block.rotationDeg}deg)` : "";
   return {
-    "--bs": `calc(${scaleVar(block.scaleMode)} * var(--layout-fit, 1))`,
+    "--bs": panel ? "var(--flag-scale, 1)" : `calc(${scaleVar(block.scaleMode)} * var(--layout-fit, 1))`,
     fontFamily: LABEL_FONT_FAMILY_CSS[primary.font.family],
     fontWeight: primary.font.weight,
     fontStyle: primary.font.italic ? "italic" : "normal",
@@ -61,15 +62,18 @@ const blockStyle = (block: ResolvedLabelBlock, theme: Theme): CSSProperties => {
     textAlign: block.align === "centre" ? "center" : block.align,
     opacity: block.opacity,
     color: colour,
-    width: block.maxWidthRatio > 0
-      ? `max(52px, calc(var(--cell-r) * ${(block.maxWidthRatio * 2).toFixed(3)}))`
+    /* Every inside composition, including numeric hero layouts, receives the
+     * same runtime occupancy cap. `0` means the authored layout has no tighter
+     * local ratio, not that it may escape the Cell when fitting is enabled. */
+    width: !panel
+      ? `min(calc(var(--cell-r) * ${((block.maxWidthRatio > 0 ? block.maxWidthRatio : 1) * 2).toFixed(3)}), calc(var(--cell-r) * 2 * var(--layout-occupancy, 0.82)))`
       : undefined,
     WebkitLineClamp: block.overflow === "wrap" ? block.maxLines : undefined,
     transform: translate || rotate ? `${translate} ${rotate}`.trim() : undefined,
   } as CSSProperties;
 };
 
-function LabelBlock({ block, theme }: { block: ResolvedLabelBlock; theme: Theme }) {
+function LabelBlock({ block, theme, panel = false }: { block: ResolvedLabelBlock; theme: Theme; panel?: boolean }) {
   return (
     <span
       className="organism-layout-block"
@@ -82,7 +86,7 @@ function LabelBlock({ block, theme }: { block: ResolvedLabelBlock; theme: Theme 
         ? (Math.abs(block.offsetWorld.y) + block.estimatedHeightWorld / 2).toFixed(1)
         : undefined}
       data-scale-mode={block.scaleMode}
-      style={blockStyle(block, theme)}
+      style={blockStyle(block, theme, panel)}
     >
       {block.segments.length === 1
         ? block.segments[0].text
@@ -151,7 +155,7 @@ function BlockGroups({ blocks, theme, tier }: {
 }
 
 function RingLabel({ ring, theme }: {
-  ring: NonNullable<ResolvedCellLabelLayout["ring"]>;
+  ring: ResolvedRingArc;
   theme: Theme;
 }) {
   const pathId = `organism-ring-${useId().replace(/:/g, "")}`;
@@ -159,13 +163,14 @@ function RingLabel({ ring, theme }: {
   return (
     <svg
       className="organism-ring-label"
+      data-ring-id={ring.id}
       data-ring-ratio={ring.radiusRatio}
       data-ring-scale-mode={ring.scaleMode}
       data-ring-flipped={ring.flipped ? "true" : "false"}
       style={{
         "--bs": scaleVar(ring.scaleMode),
         "--ring-font-world": `${ring.font.sizeWorld}px`,
-        "--ring-tracking": `${ring.font.letterSpacingEm + ring.spacingEm}em`,
+        "--ring-tracking": `${ring.font.letterSpacingEm}em`,
         color: colour,
         opacity: ring.opacity,
         transform: `rotate(${ring.startAngleDeg}deg)`,
@@ -198,52 +203,26 @@ function RingLabel({ ring, theme }: {
   );
 }
 
-const FLAG_PANEL_PADDING = 7;
-
 function FlagLabel({ flag, theme }: {
   flag: NonNullable<ResolvedCellLabelLayout["flag"]>;
   theme: Theme;
 }) {
-  const direction = flag.direction;
-  const horizontal = direction === "left" || direction === "right";
-  const stemStyle: CSSProperties = horizontal
-    ? {
-        width: `calc(${flag.distanceWorld}px * var(--bs))`,
-        height: "1px",
-        left: direction === "right" ? "var(--cell-r)" : `calc(-1 * var(--cell-r) - ${flag.distanceWorld}px * var(--bs))`,
-        top: 0,
-      }
-    : {
-        height: `calc(${flag.distanceWorld}px * var(--bs))`,
-        width: "1px",
-        top: direction === "below" ? "var(--cell-r)" : `calc(-1 * var(--cell-r) - ${flag.distanceWorld}px * var(--bs))`,
-        left: 0,
-      };
-  const tickStyle: CSSProperties = {
-    left: direction === "right" ? "var(--cell-r)" : direction === "left" ? "calc(-1 * var(--cell-r))" : 0,
-    top: direction === "below" ? "var(--cell-r)" : direction === "above" ? "calc(-1 * var(--cell-r))" : 0,
-  };
-  const offset = `calc(var(--cell-r) + ${flag.distanceWorld}px * var(--bs))`;
-  const cross = flag.align === "start" ? "0px" : flag.align === "end" ? "-100%" : "-50%";
-  const panelStyle: CSSProperties = {
-    width: `calc(${flag.widthWorld}px * var(--bs))`,
-    padding: `calc(${FLAG_PANEL_PADDING}px * var(--bs))`,
-    ...(direction === "right" && { left: offset, top: 0, transform: `translateY(${cross})` }),
-    ...(direction === "left" && { right: offset, top: 0, transform: `translateY(${cross})` }),
-    ...(direction === "above" && { bottom: offset, left: 0, transform: `translateX(${cross})` }),
-    ...(direction === "below" && { top: offset, left: 0, transform: `translateX(${cross})` }),
-  };
   return (
     <div
       className="organism-flag-label"
-      data-direction={direction}
-      style={{ "--bs": `calc(${scaleVar(flag.scaleMode)} * var(--layout-fit, 1))` } as CSSProperties}
+      data-direction={flag.direction}
+      data-leader={flag.options.leader}
+      data-endpoint={flag.options.endpoint}
+      data-background={flag.options.background}
+      style={{ "--flag-scale": "1" } as CSSProperties}
     >
-      <span className="organism-flag-tick" style={tickStyle} aria-hidden="true" />
-      <span className="organism-flag-stem" style={stemStyle} aria-hidden="true" />
-      <div className="organism-flag-panel" style={panelStyle}>
+      <svg className="organism-flag-leader" aria-hidden="true">
+        <path className="organism-flag-leader-path" />
+        <path className="organism-flag-endpoint" />
+      </svg>
+      <div className="organism-flag-panel" data-flag-panel="true">
         {flag.blocks.map((block) => (
-          <LabelBlock key={block.id} block={{ ...block, maxWidthRatio: 0 }} theme={theme} />
+          <LabelBlock key={block.id} block={{ ...block, maxWidthRatio: 0 }} theme={theme} panel />
         ))}
       </div>
     </div>
@@ -275,7 +254,7 @@ function OrganismCellLabelContent({
       }),
     [space, defaults, globalScaleMode, textSize, showName, showArea, showMetadata, hasSymbol, flagAutoDirection]
   );
-  const hasFallback = resolved.fallbackBlocks.length > 0 || resolved.ring !== null;
+  const hasFallback = resolved.fallbackBlocks.length > 0;
   return (
     <div
       className="organism-cell-layout"
@@ -295,7 +274,7 @@ function OrganismCellLabelContent({
           aria-hidden="true"
         />
       )}
-      {resolved.ring && <RingLabel ring={resolved.ring} theme={theme} />}
+      {resolved.ring?.arcs.map((ring) => <RingLabel key={ring.id} ring={ring} theme={theme} />)}
       {resolved.flag && <FlagLabel flag={resolved.flag} theme={theme} />}
       {hasFallback && resolved.layout !== "flag" && (
         <BlockGroups blocks={resolved.fallbackBlocks} theme={theme} tier="fallback" />

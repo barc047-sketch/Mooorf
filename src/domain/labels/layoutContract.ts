@@ -14,6 +14,9 @@ export const CELL_LABEL_LAYOUT_IDS = [
   "ring",
   "minimal-number",
   "flag",
+  "dual-ring",
+  "ring-core",
+  "technical-orbit",
 ] as const;
 
 export type CellLabelLayoutId = typeof CELL_LABEL_LAYOUT_IDS[number];
@@ -104,28 +107,155 @@ export interface BodyLabelOptions {
   autoHide: boolean;
 }
 
+/** Shared authored project-default fit policy. This lives alongside the
+ * canonical label composition rather than in a renderer-local zoom cache. */
+export const LABEL_OVERFLOW_POLICIES = ["fit", "simplify", "hide"] as const;
+export type LabelOverflowPolicy = typeof LABEL_OVERFLOW_POLICIES[number];
+
+export interface LabelFitOptions {
+  fitInsideCell: boolean;
+  /** Portion of the visible Cell diameter labels may occupy (0.5–0.95). */
+  maximumCellOccupancy: number;
+  /** Screen-pixel guardrails for adaptive/readable label modes. */
+  minimumReadableScreenSize: number;
+  maximumScreenTextSize: number;
+  /** Camera zoom gates. Zero means never hide by that global gate. */
+  lowZoomBodyThreshold: number;
+  lowZoomMetadataThreshold: number;
+  hideAllLabelsBelow: number;
+  overflowPolicy: LabelOverflowPolicy;
+}
+
+export const DEFAULT_LABEL_FIT_OPTIONS: LabelFitOptions = {
+  fitInsideCell: true,
+  maximumCellOccupancy: 0.82,
+  minimumReadableScreenSize: 7,
+  maximumScreenTextSize: 30,
+  lowZoomBodyThreshold: 0.45,
+  lowZoomMetadataThreshold: 0.6,
+  hideAllLabelsBelow: 0,
+  overflowPolicy: "fit",
+};
+
+export const LABEL_FIT_BOUNDS = {
+  maximumCellOccupancy: [0.5, 0.95],
+  minimumReadableScreenSize: [4, 20],
+  maximumScreenTextSize: [10, 72],
+  lowZoomThreshold: [0, 4],
+} as const;
+
+export const RING_ARC_SOURCES = ["off", "name", "body", "space-no", "space-no-name", "area", "metadata"] as const;
+export type RingArcSource = typeof RING_ARC_SOURCES[number];
+
+export const RING_ARC_DIRECTIONS = ["clockwise", "counter-clockwise"] as const;
+export type RingArcDirection = typeof RING_ARC_DIRECTIONS[number];
+
+export const RING_ARC_ORIENTATIONS = ["inside", "outside"] as const;
+export type RingArcOrientation = typeof RING_ARC_ORIENTATIONS[number];
+
+export const RING_LOW_ZOOM_BEHAVIOURS = ["preserve", "simplify", "hide"] as const;
+export type RingLowZoomBehaviour = typeof RING_LOW_ZOOM_BEHAVIOURS[number];
+
+/** Each Ring may compose two independently authored arcs. Source content is
+ * always read from the existing Cell fields; no curved-text strings persist. */
+export interface RingArcOptions {
+  source: RingArcSource;
+  radiusRatio: number;
+  startAngleDeg: number;
+  arcSpanDeg: number;
+  direction: RingArcDirection;
+  orientation: RingArcOrientation;
+  /** Selects one of the existing role styles for this arc. */
+  fontRole: LabelRoleId;
+  trackingEm: number;
+  opacity: number;
+  maxChars: number;
+  ellipsis: boolean;
+  lowZoomPriority: number;
+  readableFlip: boolean;
+  offsetX: number;
+  offsetY: number;
+}
+
 export interface RingLabelOptions {
+  /** Legacy aliases retain old project files and normalize into primaryArc. */
   /** Text-path radius as a ratio of the Cell radius. */
   radiusRatio: number;
   /** Centre angle of the text arc; 0 = top, positive = clockwise. */
   startAngleDeg: number;
   /** Additional tracking along the arc, in em. */
   spacingEm: number;
+  lowZoomBehavior: RingLowZoomBehaviour;
+  /** Camera zoom below which Hide below threshold suppresses the whole Ring. */
+  hideBelowZoom: number;
+  primaryArc: Partial<RingArcOptions>;
+  secondaryArc: Partial<RingArcOptions>;
 }
 
-export const FLAG_DIRECTIONS = ["auto", "above", "below", "left", "right"] as const;
+export const FLAG_DIRECTIONS = ["auto", "above", "below", "left", "right", "custom"] as const;
 export type FlagDirection = typeof FLAG_DIRECTIONS[number];
 
 export const FLAG_ALIGNMENTS = ["start", "centre", "end"] as const;
 export type FlagAlignment = typeof FLAG_ALIGNMENTS[number];
 
+export const FLAG_LEADER_KINDS = ["straight", "elbow", "curved"] as const;
+export type FlagLeaderKind = typeof FLAG_LEADER_KINDS[number];
+
+export const FLAG_LINE_STYLES = ["solid", "dashed", "dotted"] as const;
+export type FlagLineStyle = typeof FLAG_LINE_STYLES[number];
+
+export const FLAG_ENDPOINTS = ["none", "dot", "bar", "arrow"] as const;
+export type FlagEndpoint = typeof FLAG_ENDPOINTS[number];
+
+export const FLAG_PANEL_BACKGROUNDS = ["none", "glass", "solid"] as const;
+export type FlagPanelBackground = typeof FLAG_PANEL_BACKGROUNDS[number];
+
+export const FLAG_ZOOM_MODES = ["world", "adaptive", "screen"] as const;
+export type FlagZoomMode = typeof FLAG_ZOOM_MODES[number];
+
 export interface FlagLabelOptions {
   direction: FlagDirection;
+  anchorAngleDeg: number;
   /** Leader length from the Cell edge to the panel, world units. */
   distance: number;
+  radialOffset: number;
+  offsetX: number;
+  offsetY: number;
+  clampToFrame: boolean;
+  avoidSourceCell: boolean;
+  leader: FlagLeaderKind;
+  lineThickness: number;
+  lineOpacity: number;
+  lineStyle: FlagLineStyle;
+  elbowLength: number;
+  curvature: number;
+  endpoint: FlagEndpoint;
+  autoWidth: boolean;
   /** Panel width, world units. */
   width: number;
+  minimumWidth: number;
+  maximumWidth: number;
+  paddingX: number;
+  paddingY: number;
+  contentGap: number;
+  cornerRadius: number;
+  background: FlagPanelBackground;
+  backgroundOpacity: number;
+  border: boolean;
+  borderThickness: number;
+  borderOpacity: number;
   align: FlagAlignment;
+  /** Includes the existing Cell Symbol as a compact marker when one is placed. */
+  symbol: boolean;
+  content: Partial<Record<LabelRoleId, boolean>>;
+  contentOrder: LabelRoleId[];
+  bodyLineClamp: number;
+  compact: boolean;
+  zoomMode: FlagZoomMode;
+  minimumPanelScale: number;
+  maximumPanelScale: number;
+  hideBelowZoom: number;
+  keepReadable: boolean;
 }
 
 export type MinimalNumberSource = "area" | "no";
@@ -138,6 +268,7 @@ export interface CellLabelConfig {
   roles?: Partial<Record<LabelRoleId, LabelRolePatch>>;
   area?: Partial<AreaLabelOptions>;
   body?: Partial<BodyLabelOptions>;
+  fit?: Partial<LabelFitOptions>;
   ring?: Partial<RingLabelOptions>;
   flag?: Partial<FlagLabelOptions>;
   minimalSource?: MinimalNumberSource;
@@ -161,13 +292,84 @@ export const DEFAULT_RING_LABEL_OPTIONS: RingLabelOptions = {
   radiusRatio: 0.78,
   startAngleDeg: 0,
   spacingEm: 0.14,
+  lowZoomBehavior: "preserve",
+  hideBelowZoom: 0,
+  primaryArc: {
+    source: "name",
+    radiusRatio: 0.78,
+    startAngleDeg: 0,
+    arcSpanDeg: 162,
+    direction: "clockwise",
+    orientation: "outside",
+    fontRole: "name",
+    trackingEm: 0.14,
+    opacity: 1,
+    maxChars: 72,
+    ellipsis: true,
+    lowZoomPriority: 1,
+    readableFlip: true,
+    offsetX: 0,
+    offsetY: 0,
+  },
+  secondaryArc: {
+    source: "off",
+    radiusRatio: 0.58,
+    startAngleDeg: 180,
+    arcSpanDeg: 148,
+    direction: "counter-clockwise",
+    orientation: "inside",
+    fontRole: "body",
+    trackingEm: 0.02,
+    opacity: 0.78,
+    maxChars: 84,
+    ellipsis: true,
+    lowZoomPriority: 2,
+    readableFlip: true,
+    offsetX: 0,
+    offsetY: 0,
+  },
 };
 
 export const DEFAULT_FLAG_LABEL_OPTIONS: FlagLabelOptions = {
   direction: "auto",
+  anchorAngleDeg: 0,
   distance: 46,
+  radialOffset: 0,
+  offsetX: 0,
+  offsetY: 0,
+  clampToFrame: true,
+  avoidSourceCell: true,
+  leader: "straight",
+  lineThickness: 1,
+  lineOpacity: 0.62,
+  lineStyle: "solid",
+  elbowLength: 22,
+  curvature: 0.35,
+  endpoint: "dot",
+  autoWidth: true,
   width: 120,
+  minimumWidth: 72,
+  maximumWidth: 280,
+  paddingX: 7,
+  paddingY: 7,
+  contentGap: 1.2,
+  cornerRadius: 7,
+  background: "glass",
+  backgroundOpacity: 0.86,
+  border: true,
+  borderThickness: 1,
+  borderOpacity: 0.48,
   align: "start",
+  symbol: true,
+  content: { no: true, name: true, areaNumber: true, areaUnit: true, body: false, metadata: true },
+  contentOrder: ["no", "name", "areaNumber", "areaUnit", "body", "metadata"],
+  bodyLineClamp: 2,
+  compact: false,
+  zoomMode: "world",
+  minimumPanelScale: 0.55,
+  maximumPanelScale: 1.35,
+  hideBelowZoom: 0,
+  keepReadable: true,
 };
 
 export const DEFAULT_MINIMAL_NUMBER_SOURCE: MinimalNumberSource = "area";
@@ -206,9 +408,30 @@ export const RING_LABEL_BOUNDS = {
   spacingEm: [0, 0.6],
 } as const;
 
+export const RING_ARC_BOUNDS = {
+  radiusRatio: [0.32, 1.3],
+  startAngleDeg: [-180, 180],
+  arcSpanDeg: [36, 320],
+  trackingEm: [-0.08, 0.6],
+  opacity: [0, 1],
+  maxChars: [4, 220],
+  lowZoomPriority: [1, 9],
+  offset: [-120, 120],
+} as const;
+
 export const FLAG_LABEL_BOUNDS = {
   distance: [12, 200],
   width: [40, 280],
+  offset: [-240, 240],
+  lineThickness: [0.5, 6],
+  opacity: [0, 1],
+  elbowLength: [0, 180],
+  curvature: [0, 1],
+  padding: [0, 40],
+  contentGap: [0, 24],
+  cornerRadius: [0, 40],
+  panelScale: [0.35, 2.5],
+  hideBelowZoom: [0, 4],
 } as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -266,6 +489,116 @@ const normalizeRolePatch = (value: unknown, role: LabelRoleId): LabelRolePatch |
   });
 };
 
+const integer = (value: unknown, bounds: readonly [number, number]): number | undefined => {
+  const normalized = boundedNumber(value, bounds);
+  return normalized === undefined ? undefined : Math.round(normalized);
+};
+
+const normalizeFitPatch = (value: unknown): Partial<LabelFitOptions> | undefined => {
+  if (!isRecord(value)) return undefined;
+  return compact({
+    fitInsideCell: boolean(value.fitInsideCell),
+    maximumCellOccupancy: boundedNumber(value.maximumCellOccupancy, LABEL_FIT_BOUNDS.maximumCellOccupancy),
+    minimumReadableScreenSize: boundedNumber(value.minimumReadableScreenSize, LABEL_FIT_BOUNDS.minimumReadableScreenSize),
+    maximumScreenTextSize: boundedNumber(value.maximumScreenTextSize, LABEL_FIT_BOUNDS.maximumScreenTextSize),
+    lowZoomBodyThreshold: boundedNumber(value.lowZoomBodyThreshold, LABEL_FIT_BOUNDS.lowZoomThreshold),
+    lowZoomMetadataThreshold: boundedNumber(value.lowZoomMetadataThreshold, LABEL_FIT_BOUNDS.lowZoomThreshold),
+    hideAllLabelsBelow: boundedNumber(value.hideAllLabelsBelow, LABEL_FIT_BOUNDS.lowZoomThreshold),
+    overflowPolicy: oneOf(value.overflowPolicy, LABEL_OVERFLOW_POLICIES),
+  });
+};
+
+const normalizeRingArcPatch = (value: unknown): Partial<RingArcOptions> | undefined => {
+  if (!isRecord(value)) return undefined;
+  return compact({
+    source: oneOf(value.source, RING_ARC_SOURCES),
+    radiusRatio: boundedNumber(value.radiusRatio, RING_ARC_BOUNDS.radiusRatio),
+    startAngleDeg: boundedNumber(value.startAngleDeg, RING_ARC_BOUNDS.startAngleDeg),
+    arcSpanDeg: boundedNumber(value.arcSpanDeg, RING_ARC_BOUNDS.arcSpanDeg),
+    direction: oneOf(value.direction, RING_ARC_DIRECTIONS),
+    orientation: oneOf(value.orientation, RING_ARC_ORIENTATIONS),
+    fontRole: oneOf(value.fontRole, LABEL_ROLE_IDS),
+    trackingEm: boundedNumber(value.trackingEm, RING_ARC_BOUNDS.trackingEm),
+    opacity: boundedNumber(value.opacity, RING_ARC_BOUNDS.opacity),
+    maxChars: integer(value.maxChars, RING_ARC_BOUNDS.maxChars),
+    ellipsis: boolean(value.ellipsis),
+    lowZoomPriority: integer(value.lowZoomPriority, RING_ARC_BOUNDS.lowZoomPriority),
+    readableFlip: boolean(value.readableFlip),
+    offsetX: boundedNumber(value.offsetX, RING_ARC_BOUNDS.offset),
+    offsetY: boundedNumber(value.offsetY, RING_ARC_BOUNDS.offset),
+  });
+};
+
+const normalizeFlagContent = (value: unknown): Partial<Record<LabelRoleId, boolean>> | undefined => {
+  if (!isRecord(value)) return undefined;
+  return compact(Object.fromEntries(
+    LABEL_ROLE_IDS.map((role) => [role, boolean(value[role])])
+  ) as Partial<Record<LabelRoleId, boolean>>);
+};
+
+const normalizeContentOrder = (value: unknown): LabelRoleId[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  const seen = new Set<LabelRoleId>();
+  const order = value.flatMap((candidate) => {
+    const role = oneOf(candidate, LABEL_ROLE_IDS);
+    if (!role || seen.has(role)) return [];
+    seen.add(role);
+    return [role];
+  });
+  return order.length ? order : undefined;
+};
+
+const normalizeFlagPatch = (value: unknown): Partial<FlagLabelOptions> | undefined => {
+  if (!isRecord(value)) return undefined;
+  const minimumPanelScale = boundedNumber(value.minimumPanelScale, FLAG_LABEL_BOUNDS.panelScale);
+  const maximumPanelScale = boundedNumber(value.maximumPanelScale, FLAG_LABEL_BOUNDS.panelScale);
+  return compact({
+    direction: oneOf(value.direction, FLAG_DIRECTIONS),
+    anchorAngleDeg: boundedNumber(value.anchorAngleDeg, RING_LABEL_BOUNDS.startAngleDeg),
+    distance: boundedNumber(value.distance, FLAG_LABEL_BOUNDS.distance),
+    radialOffset: boundedNumber(value.radialOffset, FLAG_LABEL_BOUNDS.offset),
+    offsetX: boundedNumber(value.offsetX, FLAG_LABEL_BOUNDS.offset),
+    offsetY: boundedNumber(value.offsetY, FLAG_LABEL_BOUNDS.offset),
+    clampToFrame: boolean(value.clampToFrame),
+    avoidSourceCell: boolean(value.avoidSourceCell),
+    leader: oneOf(value.leader, FLAG_LEADER_KINDS),
+    lineThickness: boundedNumber(value.lineThickness, FLAG_LABEL_BOUNDS.lineThickness),
+    lineOpacity: boundedNumber(value.lineOpacity, FLAG_LABEL_BOUNDS.opacity),
+    lineStyle: oneOf(value.lineStyle, FLAG_LINE_STYLES),
+    elbowLength: boundedNumber(value.elbowLength, FLAG_LABEL_BOUNDS.elbowLength),
+    curvature: boundedNumber(value.curvature, FLAG_LABEL_BOUNDS.curvature),
+    endpoint: oneOf(value.endpoint, FLAG_ENDPOINTS),
+    autoWidth: boolean(value.autoWidth),
+    width: boundedNumber(value.width, FLAG_LABEL_BOUNDS.width),
+    minimumWidth: boundedNumber(value.minimumWidth, FLAG_LABEL_BOUNDS.width),
+    maximumWidth: boundedNumber(value.maximumWidth, FLAG_LABEL_BOUNDS.width),
+    paddingX: boundedNumber(value.paddingX, FLAG_LABEL_BOUNDS.padding),
+    paddingY: boundedNumber(value.paddingY, FLAG_LABEL_BOUNDS.padding),
+    contentGap: boundedNumber(value.contentGap, FLAG_LABEL_BOUNDS.contentGap),
+    cornerRadius: boundedNumber(value.cornerRadius, FLAG_LABEL_BOUNDS.cornerRadius),
+    background: oneOf(value.background, FLAG_PANEL_BACKGROUNDS),
+    backgroundOpacity: boundedNumber(value.backgroundOpacity, FLAG_LABEL_BOUNDS.opacity),
+    border: boolean(value.border),
+    borderThickness: boundedNumber(value.borderThickness, FLAG_LABEL_BOUNDS.lineThickness),
+    borderOpacity: boundedNumber(value.borderOpacity, FLAG_LABEL_BOUNDS.opacity),
+    align: oneOf(value.align, FLAG_ALIGNMENTS),
+    symbol: boolean(value.symbol),
+    content: normalizeFlagContent(value.content),
+    contentOrder: normalizeContentOrder(value.contentOrder),
+    bodyLineClamp: integer(value.bodyLineClamp, LABEL_ROLE_BOUNDS.maxLines),
+    compact: boolean(value.compact),
+    zoomMode: oneOf(value.zoomMode, FLAG_ZOOM_MODES),
+    minimumPanelScale: minimumPanelScale !== undefined && maximumPanelScale !== undefined
+      ? Math.min(minimumPanelScale, maximumPanelScale)
+      : minimumPanelScale,
+    maximumPanelScale: minimumPanelScale !== undefined && maximumPanelScale !== undefined
+      ? Math.max(minimumPanelScale, maximumPanelScale)
+      : maximumPanelScale,
+    hideBelowZoom: boundedNumber(value.hideBelowZoom, FLAG_LABEL_BOUNDS.hideBelowZoom),
+    keepReadable: boolean(value.keepReadable),
+  });
+};
+
 /** Bounded sparse normalization shared by project defaults, Cell overrides,
  * persistence and import. Unknown fields and layouts are discarded. */
 export const normalizeCellLabelConfig = (value: unknown): CellLabelConfig | undefined => {
@@ -294,26 +627,25 @@ export const normalizeCellLabelConfig = (value: unknown): CellLabelConfig | unde
         autoHide: boolean(value.body.autoHide),
       })
     : undefined;
+  const fit = normalizeFitPatch(value.fit);
   const ring = isRecord(value.ring)
     ? compact({
         radiusRatio: boundedNumber(value.ring.radiusRatio, RING_LABEL_BOUNDS.radiusRatio),
         startAngleDeg: boundedNumber(value.ring.startAngleDeg, RING_LABEL_BOUNDS.startAngleDeg),
         spacingEm: boundedNumber(value.ring.spacingEm, RING_LABEL_BOUNDS.spacingEm),
+        lowZoomBehavior: oneOf(value.ring.lowZoomBehavior, RING_LOW_ZOOM_BEHAVIOURS),
+        hideBelowZoom: boundedNumber(value.ring.hideBelowZoom, LABEL_FIT_BOUNDS.lowZoomThreshold),
+        primaryArc: normalizeRingArcPatch(value.ring.primaryArc),
+        secondaryArc: normalizeRingArcPatch(value.ring.secondaryArc),
       })
     : undefined;
-  const flag = isRecord(value.flag)
-    ? compact({
-        direction: oneOf(value.flag.direction, FLAG_DIRECTIONS),
-        distance: boundedNumber(value.flag.distance, FLAG_LABEL_BOUNDS.distance),
-        width: boundedNumber(value.flag.width, FLAG_LABEL_BOUNDS.width),
-        align: oneOf(value.flag.align, FLAG_ALIGNMENTS),
-      })
-    : undefined;
+  const flag = normalizeFlagPatch(value.flag);
   return compact({
     layout: oneOf(value.layout, CELL_LABEL_LAYOUT_IDS),
     roles,
     area,
     body,
+    fit,
     ring,
     flag,
     minimalSource: oneOf(value.minimalSource, ["area", "no"] as const),
@@ -346,8 +678,18 @@ export const mergeCellLabelConfig = (
     roles: mergeRolePatches(base?.roles, patch?.roles),
     area: compact({ ...(base?.area ?? {}), ...(patch?.area ?? {}) } as Record<string, unknown>) as CellLabelConfig["area"],
     body: compact({ ...(base?.body ?? {}), ...(patch?.body ?? {}) } as Record<string, unknown>) as CellLabelConfig["body"],
-    ring: compact({ ...(base?.ring ?? {}), ...(patch?.ring ?? {}) } as Record<string, unknown>) as CellLabelConfig["ring"],
-    flag: compact({ ...(base?.flag ?? {}), ...(patch?.flag ?? {}) } as Record<string, unknown>) as CellLabelConfig["flag"],
+    fit: compact({ ...(base?.fit ?? {}), ...(patch?.fit ?? {}) } as Record<string, unknown>) as CellLabelConfig["fit"],
+    ring: compact({
+      ...(base?.ring ?? {}),
+      ...(patch?.ring ?? {}),
+      primaryArc: compact({ ...(base?.ring?.primaryArc ?? {}), ...(patch?.ring?.primaryArc ?? {}) }),
+      secondaryArc: compact({ ...(base?.ring?.secondaryArc ?? {}), ...(patch?.ring?.secondaryArc ?? {}) }),
+    } as Record<string, unknown>) as CellLabelConfig["ring"],
+    flag: compact({
+      ...(base?.flag ?? {}),
+      ...(patch?.flag ?? {}),
+      content: compact({ ...(base?.flag?.content ?? {}), ...(patch?.flag?.content ?? {}) }),
+    } as Record<string, unknown>) as CellLabelConfig["flag"],
     minimalSource: patch?.minimalSource ?? base?.minimalSource,
   };
   return compact(merged as Record<string, unknown>) as CellLabelConfig | undefined;

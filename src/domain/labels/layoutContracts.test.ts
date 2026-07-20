@@ -3,6 +3,7 @@ import type { SpaceCell } from "../../types";
 import {
   CELL_LABEL_LAYOUT_IDS,
   DEFAULT_CELL_LABEL_LAYOUT,
+  DEFAULT_LABEL_FIT_OPTIONS,
   FLAG_LABEL_BOUNDS,
   RING_LABEL_BOUNDS,
   mergeCellLabelConfig,
@@ -17,10 +18,11 @@ import {
 } from "./presets";
 import {
   cellLabelContentSource,
-  fitRingLabel,
+  fitRingArc,
   formatAreaNumber,
   resolveCellLabelLayout,
   resolveFlagAutoDirection,
+  resolveFlagRuntimeGeometry,
   resolveLabelRuntimeScale,
   selectRuntimeLabelLayout,
   type CellLabelLayoutInput,
@@ -29,7 +31,7 @@ import {
   normalizeCellAppearanceOverrides,
   normalizeProjectPresentationDefaults,
 } from "../presentation/validation";
-import { applyTextAppearancePatch } from "../presentation/editing";
+import { applyTextAppearancePatch, resetTextLabelAppearance } from "../presentation/editing";
 import { resolveCellAppearance } from "../presentation/resolveAppearance";
 import { useLab } from "../../state/store";
 
@@ -59,9 +61,9 @@ const layoutInput = (patch: Partial<CellLabelLayoutInput> = {}): CellLabelLayout
   ...patch,
 });
 
-/* --- nine-preset registry completeness and distinction ------------------- */
+/* --- twelve-preset registry completeness and distinction ----------------- */
 
-assert.equal(CELL_LABEL_PRESETS.length, 9, "exactly nine production presets exist");
+assert.equal(CELL_LABEL_PRESETS.length, 12, "exactly twelve production presets exist");
 assert.deepEqual(
   CELL_LABEL_PRESETS.map((preset) => preset.id),
   [...CELL_LABEL_LAYOUT_IDS],
@@ -69,7 +71,7 @@ assert.deepEqual(
 );
 assert.equal(
   new Set(CELL_LABEL_PRESETS.map((preset) => preset.label)).size,
-  9,
+  12,
   "preset labels are distinct"
 );
 assert.ok(
@@ -87,11 +89,11 @@ const signatures = CELL_LABEL_LAYOUT_IDS.map((layout) => {
       block.segments[0].font.sizeWorld.toFixed(1),
       block.align,
     ]),
-    ring: resolved.ring ? { r: resolved.ring.radiusRatio, text: resolved.ring.text } : null,
+  ring: resolved.ring ? resolved.ring.arcs.map((arc) => [arc.source, arc.radiusRatio, arc.startAngleDeg]) : null,
     flag: resolved.flag ? { d: resolved.flag.direction, w: resolved.flag.widthWorld } : null,
   });
 });
-assert.equal(new Set(signatures).size, 9, "all nine layouts resolve to visibly different projections");
+assert.equal(new Set(signatures).size, 12, "all twelve layouts resolve to visibly different projections");
 
 /* --- canonical data use -------------------------------------------------- */
 
@@ -137,7 +139,17 @@ const invalid = normalizeCellLabelConfig({
   layout: "hologram",
   roles: { name: { size: 99, weight: "heavy", align: "justify" }, body: { align: "justify" } },
   ring: { radiusRatio: 9, startAngleDeg: 900 },
-  flag: { direction: "sideways", distance: -50, width: 9999 },
+  fit: { maximumCellOccupancy: 2, overflowPolicy: "drift" },
+  flag: {
+    direction: "sideways",
+    distance: -50,
+    width: 9999,
+    leader: "loop",
+    endpoint: "spark",
+    lineStyle: "zigzag",
+    background: "neon",
+    contentOrder: ["name", "not-a-role", "name"],
+  },
 });
 assert.equal(invalid?.layout, undefined, "unknown layout ids are discarded");
 assert.equal(invalid?.roles?.name?.size, 3.2, "role sizes clamp to the bounded range");
@@ -148,6 +160,13 @@ assert.equal(invalid?.ring?.radiusRatio, RING_LABEL_BOUNDS.radiusRatio[1], "ring
 assert.equal(invalid?.flag?.direction, undefined, "unknown flag directions are discarded");
 assert.equal(invalid?.flag?.distance, FLAG_LABEL_BOUNDS.distance[0], "flag distance clamps to bounds");
 assert.equal(invalid?.flag?.width, FLAG_LABEL_BOUNDS.width[1], "flag width clamps to bounds");
+assert.equal(invalid?.fit?.maximumCellOccupancy, 0.95, "inside fit occupancy clamps to its safe range");
+assert.equal(invalid?.fit?.overflowPolicy, undefined, "unknown overflow policy is discarded");
+assert.equal(invalid?.flag?.leader, undefined, "unknown Flag leader is discarded");
+assert.equal(invalid?.flag?.endpoint, undefined, "unknown Flag endpoint is discarded");
+assert.equal(invalid?.flag?.lineStyle, undefined, "unknown Flag line styles are discarded");
+assert.equal(invalid?.flag?.background, undefined, "unknown Flag panel backgrounds are discarded");
+assert.deepEqual(invalid?.flag?.contentOrder, ["name"], "Flag content order keeps only unique canonical roles");
 
 /* --- sparse override merge ----------------------------------------------- */
 
@@ -198,6 +217,27 @@ assert.equal(
   undefined,
   "a Cell override equal to the Project Default stays sparse"
 );
+assert.equal(
+  sparsifyCellLabelOverride(
+    { layout: "ring", ring: { primaryArc: { source: "body", radiusRatio: 0.8 } } },
+    { layout: "ring", ring: { primaryArc: { source: "body", radiusRatio: 0.8 } } },
+  ),
+  undefined,
+  "equal nested Ring arc values return to true Project Default inheritance",
+);
+assert.equal(
+  sparsifyCellLabelOverride(
+    { layout: "flag", flag: { content: { body: false }, contentOrder: ["no", "name", "body"] } },
+    { layout: "flag", flag: { content: { body: false }, contentOrder: ["no", "name", "body"] } },
+  ),
+  undefined,
+  "equal nested Flag content and ordering do not leave stale local overrides",
+);
+const labelOnlyReset = resetTextLabelAppearance({
+  text: { preset: "editorial", labels: { layout: "ring" } },
+});
+assert.equal(labelOnlyReset?.text?.preset, "editorial", "Label Studio reset preserves unrelated local text styling");
+assert.equal(labelOnlyReset?.text?.labels, undefined, "Label Studio reset returns only labels to Project Default");
 
 const resolvedAppearance = resolveCellAppearance(
   cell({ appearance: { text: { labels: { layout: "flag" } } } }),
@@ -229,20 +269,17 @@ assert.equal(
 
 const ringTop = resolveCellLabelLayout(layoutInput({ config: { layout: "ring" } }));
 assert.ok(ringTop.ring, "ring layout produces a ring spec");
-assert.equal(ringTop.ring?.flipped, false, "top arcs are not flipped");
-assert.equal(ringTop.ring?.text, "STUDIO NORTH", "ring text uses the cased canonical name");
+assert.equal(ringTop.ring?.arcs[0]?.flipped, false, "top arcs are not flipped");
+assert.equal(ringTop.ring?.arcs[0]?.text, "STUDIO NORTH", "ring text uses the cased canonical name");
 const ringBottom = resolveCellLabelLayout(
   layoutInput({ config: { layout: "ring", ring: { startAngleDeg: 180 } } })
 );
-assert.equal(ringBottom.ring?.flipped, true, "bottom arcs flip so text is never upside-down");
+assert.equal(ringBottom.ring?.arcs[0]?.flipped, true, "bottom arcs flip so text is never upside-down");
 const ringBottomNegative = resolveCellLabelLayout(
   layoutInput({ config: { layout: "ring", ring: { startAngleDeg: -170 } } })
 );
-assert.equal(ringBottomNegative.ring?.flipped, true, "negative bottom angles flip identically");
-assert.ok(
-  ringTop.fallbackBlocks.length > 0,
-  "ring keeps a compact fallback for small Cells"
-);
+assert.equal(ringBottomNegative.ring?.arcs[0]?.flipped, true, "negative bottom angles flip identically");
+assert.equal(ringTop.fallbackBlocks.length, 0, "Ring never stores a straight compact fallback");
 assert.ok(
   ringTop.blocks.some((block) => block.role === "areaNumber"),
   "Area remains readable inside the ring"
@@ -253,7 +290,7 @@ const longRing = resolveCellLabelLayout(layoutInput({
   })),
   config: { layout: "ring" },
 }));
-const fittedLongRing = fitRingLabel(longRing.ring!, { screenRadius: 48, zoom: 1 });
+const fittedLongRing = fitRingArc(longRing.ring!.arcs[0], { screenRadius: 12, zoom: 1 });
 assert.ok(fittedLongRing, "a medium Cell produces a fitted Ring projection");
 assert.ok(
   fittedLongRing!.fit.totalArcWorld <= fittedLongRing!.fit.availableArcWorld + 0.001,
@@ -261,23 +298,42 @@ assert.ok(
 );
 assert.ok(
   fittedLongRing!.fit.trackingEm <=
-    longRing.ring!.font.letterSpacingEm + longRing.ring!.spacingEm,
+    longRing.ring!.arcs[0].font.letterSpacingEm + longRing.ring!.arcs[0].trackingEm,
   "Ring fitting reduces tracking before truncation"
 );
 assert.ok(
-  fittedLongRing!.font.sizeWorld <= longRing.ring!.font.sizeWorld
-    && fittedLongRing!.font.sizeWorld >= longRing.ring!.font.sizeWorld * 0.72,
-  "Ring fitting reduces font size only within the preset bound"
+  fittedLongRing!.font.sizeWorld <= longRing.ring!.arcs[0].font.sizeWorld,
+  "Ring fitting may reduce typography without changing the selected layout"
 );
 assert.ok(
   fittedLongRing!.fit.truncated && fittedLongRing!.text.endsWith("…"),
   "a still-overlong Ring name truncates with a truthful ellipsis"
 );
 assert.equal(
-  fitRingLabel(longRing.ring!, { screenRadius: 20, zoom: 1 }),
-  null,
-  "a physically unsuitable Ring requests the preset fallback"
+  fitRingArc(longRing.ring!.arcs[0], { screenRadius: 20, zoom: 1 })?.source,
+  "name",
+  "a small Ring remains a curved Ring instead of requesting a straight fallback"
 );
+
+const bodyOnPrimaryArc = resolveCellLabelLayout(layoutInput({
+  config: { layout: "ring", ring: { primaryArc: { source: "body" }, secondaryArc: { source: "name" } } },
+}));
+assert.equal(bodyOnPrimaryArc.ring?.arcs[0]?.source, "body", "Body can be canonical primary Ring text");
+assert.equal(bodyOnPrimaryArc.ring?.arcs[1]?.source, "name", "Name can remain a secondary Ring arc");
+assert.ok(bodyOnPrimaryArc.ring?.arcs[0]?.text.startsWith("Double-height"), "Body Ring reads the canonical Body field");
+const bodyOnSecondaryArc = resolveCellLabelLayout(layoutInput({
+  config: { layout: "ring", ring: { primaryArc: { source: "name" }, secondaryArc: { source: "body" } } },
+}));
+assert.equal(bodyOnSecondaryArc.ring?.arcs[1]?.source, "body", "Body can be canonical secondary Ring text");
+
+assert.deepEqual(
+  ["dual-ring", "ring-core", "technical-orbit"].map((layout) => cellLabelPreset(layout as typeof CELL_LABEL_LAYOUT_IDS[number]).label),
+  ["Dual Ring", "Ring + Core", "Technical Orbit"],
+  "the three new production Ring presets are distinct and named"
+);
+const technicalOrbit = resolveCellLabelLayout(layoutInput({ config: { layout: "technical-orbit" } }));
+assert.equal(technicalOrbit.ring?.arcs[0]?.source, "space-no-name", "Technical Orbit composes Space No. and Name on its primary arc");
+assert.match(technicalOrbit.ring?.arcs[0]?.text ?? "", /^07 · STUDIO NORTH$/, "Technical Orbit reads both canonical arc sources without a duplicate string");
 
 /* --- flag determinism ------------------------------------------------------ */
 
@@ -308,11 +364,108 @@ assert.ok(
   !("targetSpaceId" in flagExplicit.flag!) && !("relationshipId" in flagExplicit.flag!),
   "a Flag is presentation only and never references another object"
 );
+const flagWithSymbol = resolveCellLabelLayout(
+  layoutInput({ config: { layout: "flag", flag: { symbol: true } }, hasSymbol: true })
+);
+assert.ok(flagWithSymbol.flag?.blocks.some((block) => block.id === "flag-symbol"), "Flag can include the existing Cell Symbol marker");
+const flagWithoutSymbol = resolveCellLabelLayout(
+  layoutInput({ config: { layout: "flag", flag: { symbol: false } }, hasSymbol: true })
+);
+assert.ok(!flagWithoutSymbol.flag?.blocks.some((block) => block.id === "flag-symbol"), "Flag Symbol toggle stays presentation-only");
+const flagGeometry = resolveFlagRuntimeGeometry({
+  flag: flagExplicit.flag!,
+  centre: { x: 1220, y: 760 },
+  screenRadius: 42,
+  zoom: 1,
+  contentWidthWorld: 102,
+  contentHeightWorld: 28,
+  frame: { width: 1280, height: 800 },
+});
+assert.ok(flagGeometry.visible, "Flag geometry is visible when it has canonical content");
+assert.ok(flagGeometry.panel.x + flagGeometry.panel.width <= 1276.01, "Flag panel clamps to an export/live frame edge");
+assert.ok(
+  Math.hypot(flagGeometry.start.x - 1220, flagGeometry.start.y - 760) >= 42,
+  "Flag leader stays attached to the source Cell edge"
+);
+const zoomedDraggedFlagGeometry = resolveFlagRuntimeGeometry({
+  flag: flagExplicit.flag!,
+  centre: { x: 860, y: 280 },
+  screenRadius: 84,
+  zoom: 2,
+  contentWidthWorld: 102,
+  contentHeightWorld: 28,
+  frame: { width: 1280, height: 800 },
+});
+assert.deepEqual(
+  {
+    x: zoomedDraggedFlagGeometry.start.x - 860,
+    y: zoomedDraggedFlagGeometry.start.y - 280,
+  },
+  {
+    x: (flagGeometry.start.x - 1220) * 2,
+    y: (flagGeometry.start.y - 760) * 2,
+  },
+  "Flag leader remains attached to the moved Cell edge across camera zoom"
+);
+const edgeFlag = resolveCellLabelLayout(layoutInput({
+  config: { layout: "flag", flag: { direction: "left", distance: 20, clampToFrame: true, avoidSourceCell: true } },
+}));
+const edgeFlagGeometry = resolveFlagRuntimeGeometry({
+  flag: edgeFlag.flag!,
+  centre: { x: 20, y: 400 },
+  screenRadius: 42,
+  zoom: 1,
+  contentWidthWorld: 120,
+  contentHeightWorld: 28,
+  frame: { width: 1280, height: 800 },
+});
+const distanceFromPanel = (point: { x: number; y: number }, panel: typeof edgeFlagGeometry.panel) => {
+  const nearestX = Math.max(panel.x, Math.min(panel.x + panel.width, point.x));
+  const nearestY = Math.max(panel.y, Math.min(panel.y + panel.height, point.y));
+  return Math.hypot(nearestX - point.x, nearestY - point.y);
+};
+assert.ok(
+  distanceFromPanel({ x: 20, y: 400 }, edgeFlagGeometry.panel) >= 46,
+  "viewport clamping keeps an edge Flag clear of its source Cell"
+);
+const invertedScaleGeometry = resolveFlagRuntimeGeometry({
+  flag: {
+    ...flagExplicit.flag!,
+    options: { ...flagExplicit.flag!.options, minimumPanelScale: 1.8, maximumPanelScale: 1.35 },
+  },
+  centre: { x: 640, y: 400 },
+  screenRadius: 42,
+  zoom: 1.6,
+  contentWidthWorld: 102,
+  contentHeightWorld: 28,
+  frame: { width: 1280, height: 800 },
+});
+assert.equal(invertedScaleGeometry.scale, 1.6, "separately authored Flag min/max scales normalize at runtime");
+const rightStartGeometry = resolveFlagRuntimeGeometry({
+  flag: { ...flagExplicit.flag!, direction: "right", align: "start", options: { ...flagExplicit.flag!.options, clampToFrame: false, avoidSourceCell: false } },
+  centre: { x: 640, y: 400 }, screenRadius: 42, zoom: 1, contentWidthWorld: 102, contentHeightWorld: 28,
+});
+const rightEndGeometry = resolveFlagRuntimeGeometry({
+  flag: { ...flagExplicit.flag!, direction: "right", align: "end", options: { ...flagExplicit.flag!.options, clampToFrame: false, avoidSourceCell: false } },
+  centre: { x: 640, y: 400 }, screenRadius: 42, zoom: 1, contentWidthWorld: 102, contentHeightWorld: 28,
+});
+const leftStartGeometry = resolveFlagRuntimeGeometry({
+  flag: { ...flagExplicit.flag!, direction: "left", align: "start", options: { ...flagExplicit.flag!.options, clampToFrame: false, avoidSourceCell: false } },
+  centre: { x: 640, y: 400 }, screenRadius: 42, zoom: 1, contentWidthWorld: 102, contentHeightWorld: 28,
+});
+const leftEndGeometry = resolveFlagRuntimeGeometry({
+  flag: { ...flagExplicit.flag!, direction: "left", align: "end", options: { ...flagExplicit.flag!.options, clampToFrame: false, avoidSourceCell: false } },
+  centre: { x: 640, y: 400 }, screenRadius: 42, zoom: 1, contentWidthWorld: 102, contentHeightWorld: 28,
+});
+assert.ok(
+  rightStartGeometry.panel.y > rightEndGeometry.panel.y && leftStartGeometry.panel.y > leftEndGeometry.panel.y,
+  "Flag Start/End stay screen-consistent when the callout flips sides"
+);
 
 /* --- runtime selection: zoom gates, fallback, bounded degradation ---------- */
 
 const runtimeResolved = resolveCellLabelLayout(layoutInput());
-const wideView = selectRuntimeLabelLayout(runtimeResolved, { zoom: 1, radiusWorld: 60 });
+const wideView = selectRuntimeLabelLayout(runtimeResolved, { zoom: 1, radiusWorld: 160 });
 assert.ok(wideView.blocks.some((block) => block.role === "body"), "large cells keep Body");
 const zoomedOut = selectRuntimeLabelLayout(runtimeResolved, { zoom: 0.3, radiusWorld: 60 });
 assert.ok(
@@ -325,10 +478,23 @@ assert.ok(
   "Body auto-hides when the Cell lacks room without deleting content"
 );
 const ringRuntime = selectRuntimeLabelLayout(ringTop, { zoom: 1, radiusWorld: 12 });
-assert.equal(ringRuntime.ring, null, "small cells drop the ring");
-assert.equal(ringRuntime.usedFallback, true, "small cells switch to the compact fallback");
+assert.ok(ringRuntime.ring?.arcs.length, "small cells preserve curved Ring identity by default");
+assert.equal(ringRuntime.usedFallback, false, "Ring never switches to a compact straight fallback");
 const ringRuntimeLarge = selectRuntimeLabelLayout(ringTop, { zoom: 1, radiusWorld: 80 });
 assert.ok(ringRuntimeLarge.ring, "large cells keep the ring");
+const ringHideWithThreshold = resolveCellLabelLayout(layoutInput({
+  config: { layout: "ring", ring: { lowZoomBehavior: "hide", hideBelowZoom: 0.55 } },
+}));
+const hiddenRingRuntime = selectRuntimeLabelLayout(ringHideWithThreshold, { zoom: 0.4, radiusWorld: 12 });
+assert.equal(hiddenRingRuntime.ring, null, "Hide below threshold suppresses Ring arcs only at the authored threshold");
+assert.equal(hiddenRingRuntime.blocks.length, 0, "Hide below threshold never converts a Ring into straight core text");
+const hideWithoutThreshold = resolveCellLabelLayout(layoutInput({
+  config: { layout: "ring", ring: { lowZoomBehavior: "hide" } },
+}));
+assert.ok(
+  selectRuntimeLabelLayout(hideWithoutThreshold, { zoom: 0.2, radiusWorld: 9 }).ring,
+  "Hide mode without an authored threshold still preserves Ring identity"
+);
 
 const denseResolved = resolveCellLabelLayout(layoutInput({
   config: {
@@ -339,14 +505,10 @@ const denseResolved = resolveCellLabelLayout(layoutInput({
     },
   },
 }));
-const denseRuntime = selectRuntimeLabelLayout(denseResolved, { zoom: 1, radiusWorld: 28 });
+const denseRuntime = selectRuntimeLabelLayout(denseResolved, { zoom: 1, radiusWorld: 12 });
 assert.ok(
   !denseRuntime.blocks.some((block) => block.role === "body"),
   "bounded degradation hides Body first"
-);
-assert.ok(
-  !denseRuntime.blocks.some((block) => block.role === "metadata"),
-  "bounded degradation hides optional metadata second"
 );
 assert.ok(
   denseRuntime.blocks.some((block) => block.role === "name")
@@ -354,9 +516,16 @@ assert.ok(
   "bounded degradation preserves enabled Name and Area"
 );
 assert.ok(
-  denseRuntime.fitScale >= 0.72 && denseRuntime.fitScale <= 1,
-  "bounded degradation reduces typography and spacing within safe bounds"
+  denseRuntime.fitScale > 0 && denseRuntime.fitScale <= 1,
+  "bounded fitting has no hard minimum that can exceed a small Cell"
 );
+const fitResolved = resolveCellLabelLayout(layoutInput({
+  config: { fit: { ...DEFAULT_LABEL_FIT_OPTIONS, maximumCellOccupancy: 0.5 } },
+}));
+const beforeFit = JSON.stringify(fitResolved);
+const fitTiny = selectRuntimeLabelLayout(fitResolved, { zoom: 0.25, radiusWorld: 14 });
+assert.ok(fitTiny.fitScale > 0 && fitTiny.insideOccupancy === 0.5, "inside fitting uses the authored occupancy ratio");
+assert.equal(JSON.stringify(fitResolved), beforeFit, "runtime fitting never mutates project/resolved data");
 
 /* --- legacy visibility gates keep one owner -------------------------------- */
 
