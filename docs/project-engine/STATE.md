@@ -15,7 +15,7 @@
 | ACTIVE FINALIZATION BRANCH | `work/next-feature`, based on `2c81c00fb4ef19acbb911acdd9ac402814ecb1da`. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
-| CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67` |
+| CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
 | STATUS | FINALIZED / WAITING OWNER QA — no merge authorized. |
 | NEXT AUTHORITY | Owner QA on the finalized Organism-only Cell Label work; no automatic next stage. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
