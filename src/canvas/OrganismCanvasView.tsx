@@ -1294,7 +1294,7 @@ export default function OrganismCanvasView({
 
       if (derivedDirty) refreshDerived();
       if (resolved.motionActive) advanceMotion(motionState, dt, resolved.adapter.timeScale);
-      const shakeActive = advanceCameraShake(cameraShake, cameraShakeSettings(), dt);
+      const shakeActive = advanceCameraShake(cameraShake, cameraShakeSettings(), dt, { selected: selectedIdSet.size > 0 });
       applyCameraShakeOffset();
       const nuclei = currentNuclei();
       lastNuclei = nuclei;

@@ -1,4 +1,6 @@
 import { useLab } from "../../state/store";
+import { strict as assert } from "node:assert";
+import { readFileSync } from "node:fs";
 import * as lifecycle from "./widgetLifecycle";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
@@ -8,7 +10,7 @@ const equal = (actual: unknown, expected: unknown, message: string) => {
 type LifecycleStore = ReturnType<typeof useLab.getState> & {
   minimizedWidgets?: string[];
   widgetLaunchRevisions?: Partial<Record<string, number>>;
-  setWidgetMinimized?: (id: "palette" | "export" | "inspector", minimized: boolean) => void;
+  setWidgetMinimized?: (id: "palette" | "export" | "inspector" | "label-studio" | "membrane-settings", minimized: boolean) => void;
 };
 
 useLab.setState({
@@ -32,6 +34,14 @@ equal(
   useLab.getState().openWidgets.filter((id) => id === "label-studio").length,
   1,
   "reopening Label Studio focuses its existing frame without duplication"
+);
+useLab.getState().openWidget("membrane-settings");
+equal(useLab.getState().openWidgets.includes("membrane-settings"), true, "Membrane Detail uses the canonical widget lifecycle");
+useLab.getState().openWidget("membrane-settings");
+equal(
+  useLab.getState().openWidgets.filter((id) => id === "membrane-settings").length,
+  1,
+  "reopening Membrane Detail focuses its existing frame without duplication"
 );
 
 const lifecycleStore = useLab.getState() as LifecycleStore;
@@ -88,5 +98,12 @@ const recovered = clampWidgetOffset?.({
 });
 equal(recovered?.x, 908, "unreachable horizontal offset returns inside the viewport");
 equal(recovered?.y, 268, "unreachable vertical offset returns inside the viewport");
+
+const dock = readFileSync(new URL("../Dock.tsx", import.meta.url), "utf8");
+assert.match(dock, /onClick=\{\(\) => openWidget\("label-studio"\)\}/, "Dock directly launches Label Studio");
+assert.match(dock, /onClick=\{\(\) => openWidget\("membrane-settings"\)\}/, "Dock directly launches Membrane Detail");
+assert.match(dock, /active=\{isExpanded\("label-studio"\)\}/, "Label Studio launcher reflects canonical expanded state");
+assert.match(dock, /active=\{isExpanded\("membrane-settings"\)\}/, "Membrane launcher reflects canonical expanded state");
+assert.match(dock, /detail\.detailWidgetId !== "membrane-settings"/, "Membrane family does not render a duplicate generic Detail launcher");
 
 console.info("widget lifecycle contracts passed");

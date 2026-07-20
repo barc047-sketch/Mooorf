@@ -24,7 +24,7 @@ const off = resolveCameraShake({ ...base, cameraShakeMode: "off" }, {
 const idle = createCameraShakeState();
 pulseCameraShake(idle, off);
 assert.equal(idle.active, false, "Camera shake is exactly zero when Off");
-assert.equal(advanceCameraShake(idle, off, 1 / 60), false, "Off does not schedule feedback frames");
+assert.equal(advanceCameraShake(idle, off, 1 / 60, { selected: true }), false, "Off does not schedule feedback frames");
 
 const reduced = resolveCameraShake(base, { reducedMotion: true, fastPerformance: false });
 assert.equal(reduced.enabled, false, "prefers-reduced-motion disables camera shake");
@@ -35,9 +35,19 @@ pulseCameraShake(shake, settings, { x: 5, y: -3 });
 nudgeCameraShakeForDrag(shake, settings, { x: 22, y: -18 });
 let sawOffset = false;
 for (let frame = 0; frame < 90; frame += 1) {
-  sawOffset = advanceCameraShake(shake, settings, 1 / 60) || sawOffset;
+  sawOffset = advanceCameraShake(shake, settings, 1 / 60, { selected: true }) || sawOffset;
 }
 assert.equal(sawOffset, true, "selection/drag feedback produces a bounded visual response");
+assert.equal(shake.active, true, "selected-state feedback remains active beyond the old fixed settle duration");
+assert.ok(
+  Math.abs(shake.x) <= settings.intensity * 4 && Math.abs(shake.y) <= settings.intensity * 4,
+  "drag feedback remains bounded while a Cell is selected",
+);
+let deselectStartedSettling = false;
+for (let frame = 0; frame < 90; frame += 1) {
+  deselectStartedSettling = advanceCameraShake(shake, settings, 1 / 60, { selected: false }) || deselectStartedSettling;
+}
+assert.equal(deselectStartedSettling, true, "deselect begins a damped settle instead of an immediate jump");
 assert.deepEqual(
   { x: shake.x, y: shake.y, vx: shake.vx, vy: shake.vy, active: shake.active },
   { x: 0, y: 0, vx: 0, vy: 0, active: false },
@@ -49,6 +59,7 @@ assert.ok(fast.intensity < settings.intensity, "Fast performance mode strongly r
 
 const organismView = readFileSync(new URL("./OrganismCanvasView.tsx", import.meta.url), "utf8");
 assert.match(organismView, /if \(!runtimeActive\) \{[\s\S]*?resetCameraShake\(cameraShake\)/, "Table/inactive lifecycle clears temporary shake");
+assert.match(organismView, /advanceCameraShake\(cameraShake, cameraShakeSettings\(\), dt, \{ selected: selectedIdSet\.size > 0 \}\)/, "runtime derives persistent feedback from canonical selection only");
 assert.match(organismView, /canvas\.style\.transform = transform/, "feedback uses a visual presentation transform");
 assert.doesNotMatch(organismView, /setCamera\(\{[^}]*cameraShake/, "feedback never writes a second canonical camera");
 

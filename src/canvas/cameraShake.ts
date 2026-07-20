@@ -30,6 +30,7 @@ export interface CameraShakeState {
   vx: number;
   vy: number;
   elapsed: number;
+  settleElapsed: number;
   active: boolean;
 }
 
@@ -77,6 +78,7 @@ export const createCameraShakeState = (): CameraShakeState => ({
   vx: 0,
   vy: 0,
   elapsed: 0,
+  settleElapsed: 0,
   active: false,
 });
 
@@ -86,6 +88,7 @@ export const resetCameraShake = (state: CameraShakeState): void => {
   state.vx = 0;
   state.vy = 0;
   state.elapsed = 0;
+  state.settleElapsed = 0;
   state.active = false;
 };
 
@@ -104,7 +107,7 @@ export const pulseCameraShake = (
   const impulse = settings.intensity * 22;
   state.vx += (direction.x / length) * impulse;
   state.vy += (direction.y / length) * impulse;
-  state.elapsed = 0;
+  state.settleElapsed = 0;
   state.active = true;
 };
 
@@ -120,28 +123,45 @@ export const nudgeCameraShakeForDrag = (
   state.vy = clamp(state.vy + clamp(delta.y, -18, 18) * scale, -90, 90);
 };
 
-/** Advances the bounded spring and returns true while a visual offset remains.
- * A duration cap guarantees exact zero instead of a never-ending tail. */
+/** Advances a deterministic selected-state oscillator over a bounded spring.
+ * Selection holds the subtle signal indefinitely; deselection alone starts
+ * the authored short return-to-zero window. */
 export const advanceCameraShake = (
   state: CameraShakeState,
   settings: ResolvedCameraShake,
   dt: number,
+  context: { selected: boolean },
 ): boolean => {
-  if (!settings.enabled || !state.active) {
+  if (!settings.enabled) {
     resetCameraShake(state);
     return false;
   }
   const step = clamp(finite(dt, 0), 0, 0.05);
-  state.elapsed += step;
-  const spring = settings.frequency * settings.frequency;
+  if (context.selected) {
+    state.active = true;
+    state.elapsed += step;
+    state.settleElapsed = 0;
+  } else if (!state.active) {
+    resetCameraShake(state);
+    return false;
+  } else {
+    state.settleElapsed += step;
+  }
+  const holdAmplitude = context.selected ? settings.intensity * 0.28 : 0;
+  const phase = state.elapsed * settings.frequency;
+  const targetX = Math.sin(phase) * holdAmplitude;
+  const targetY = Math.cos(phase * 0.73) * holdAmplitude * 0.72;
+  const spring = settings.frequency * settings.frequency * 0.42;
   const drag = Math.exp(-settings.damping * step);
-  state.vx = (state.vx - state.x * spring * step) * drag;
-  state.vy = (state.vy - state.y * spring * step) * drag;
+  state.vx = (state.vx + (targetX - state.x) * spring * step) * drag;
+  state.vy = (state.vy + (targetY - state.y) * spring * step) * drag;
   state.x = clamp(state.x + state.vx * step, -settings.intensity * 4, settings.intensity * 4);
   state.y = clamp(state.y + state.vy * step, -settings.intensity * 4, settings.intensity * 4);
   if (
-    state.elapsed >= settings.settleDuration
+    !context.selected && (
+      state.settleElapsed >= settings.settleDuration
     || (Math.abs(state.x) < 0.012 && Math.abs(state.y) < 0.012 && Math.abs(state.vx) < 0.08 && Math.abs(state.vy) < 0.08)
+    )
   ) {
     resetCameraShake(state);
     return false;

@@ -172,7 +172,7 @@ export default function DisplayWidget() {
               onChange={(cameraShakeDragInfluence) => setOrganism({ cameraShakeDragInfluence })}
             />
             <SliderRow
-              label="Settle duration"
+              label="Deselect settle duration"
               value={organism.cameraShakeSettleDuration}
               min={0.08}
               max={1.2}

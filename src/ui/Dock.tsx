@@ -9,6 +9,7 @@ import {
   Plus,
   Shuffle,
   SlidersHorizontal,
+  Type,
   Upload,
 } from "lucide-react";
 import { appearanceFamilyDefinition, appearanceFamilyForTarget } from "../domain/presentation/editing";
@@ -57,6 +58,20 @@ function DockButton({ active, className = "", children, ...props }: DockButtonPr
   );
 }
 
+function MembraneDetailIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M3.1 7.7c0-2.1 1.5-3.8 3.6-3.8.9-1.2 2.6-1.5 3.8-.6 1.5-.1 2.7 1.1 2.7 2.6 1.1 1.2.8 3.1-.5 3.9-.3 1.6-1.9 2.7-3.5 2.4-1.2.8-2.9.5-3.7-.6-1.8.1-3.4-1.4-3.4-3.4Z"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        strokeLinejoin="round"
+      />
+      <circle cx="7.1" cy="7.7" r="1" fill="currentColor" opacity=".72" />
+    </svg>
+  );
+}
+
 export default function Dock() {
   const addSpace = useLab((s) => s.addSpace);
   const addVoid = useLab((s) => s.addVoid);
@@ -84,15 +99,37 @@ export default function Dock() {
       <DockGroup side="left">
         <InspectorLauncherButton surface="dock" />
         <DockButton
-          active={isExpanded(detail.detailWidgetId)}
-          title={`Open ${detail.label} Detail`}
-          aria-label={`Open ${detail.label} Detail`}
+          active={isExpanded("label-studio")}
+          title="Label Studio"
+          aria-label="Open Label Studio"
           aria-haspopup="dialog"
-          aria-expanded={isExpanded(detail.detailWidgetId)}
-          onClick={() => openWidget(detail.detailWidgetId)}
+          aria-expanded={isExpanded("label-studio")}
+          onClick={() => openWidget("label-studio")}
         >
-          <SlidersHorizontal size={16} strokeWidth={1.5} />
+          <Type size={16} strokeWidth={1.5} />
         </DockButton>
+        <DockButton
+          active={isExpanded("membrane-settings")}
+          title="Membrane Detail"
+          aria-label="Open Membrane Detail"
+          aria-haspopup="dialog"
+          aria-expanded={isExpanded("membrane-settings")}
+          onClick={() => openWidget("membrane-settings")}
+        >
+          <MembraneDetailIcon />
+        </DockButton>
+        {detail.detailWidgetId !== "membrane-settings" && (
+          <DockButton
+            active={isExpanded(detail.detailWidgetId)}
+            title={`Open ${detail.label} Detail`}
+            aria-label={`Open ${detail.label} Detail`}
+            aria-haspopup="dialog"
+            aria-expanded={isExpanded(detail.detailWidgetId)}
+            onClick={() => openWidget(detail.detailWidgetId)}
+          >
+            <SlidersHorizontal size={16} strokeWidth={1.5} />
+          </DockButton>
+        )}
       </DockGroup>
 
       <DockGroup side="center">
