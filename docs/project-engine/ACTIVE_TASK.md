@@ -1,20 +1,22 @@
 # Active Task
 
-## HOLD — Connections P1 waiting Owner review
+## HOLD — Connections P2 waiting Owner review
 
-Status: PUSHED / WAITING OWNER REVIEW
+Status: PUSHED / CODEX BROWSER QA PASSED / WAITING OWNER REVIEW
 
 - source SHA: `3f62032c54d76a014a781504cc5cd8e4b5ee63d9`;
 - branch: `work/next-feature`;
-- product commit: `01a6c916b426b63628b1a8d0d94c8fb530bfc6c8`;
-- one canonical Connection collection, semantic registry, modifier/visual ID contracts, indexed selectors, central-store commands and one-transaction history are implemented;
-- Cell deletion and Undo/Redo atomically remove/restore dependent Connections;
-- project JSON, `.mooorf`, Saved Views, recovery and applicable transfer paths preserve Connections; old projects migrate to `[]` and unknown semantic IDs survive;
-- focused/affected contracts: 58/58 passed; TypeScript and tracked/untracked diff checks passed;
-- no UI, renderer, Morph Bridge, Behaviour, Matrix, Material, animated line, Classic or production-build work occurred;
+- P1 product commit: `01a6c916b426b63628b1a8d0d94c8fb530bfc6c8`;
+- P2 product commit: `be1b9748298c35a3c89736afaf0ede5e533806ee`;
+- one Connections Dock launcher, one compact registry-owned widget, pure authoring reducer, explicit ephemeral Connection selection and the existing Inspector Connection context are implemented;
+- authoring commits once, selects the new or exact-duplicate Connection, preserves distinct semantics for the same pair, and restores prior normal selection on cancellation;
+- Organism owns one temporary non-persistent SVG preview line with local/ref pointer updates and existing camera/hit-test ownership; Table activation and widget close cancel it;
+- focused/affected contracts: 46/46 passed; TypeScript and tracked/untracked diff checks passed;
+- Codex browser QA passed at 1440×900 and 1280×800 with zero console errors; Owner interaction/visual review remains required;
+- no production build, stored-line renderer, visual grammar, export rendering, Morph Bridge, Behaviour, Matrix, Material, animation or Classic work occurred;
 - `main` is untouched.
 
 Next safe action:
 
-Owner review of Connections P1.
-No Prompt 2 implementation, correction, finalization, merge, or branch cleanup without separate explicit authority.
+Owner review of Connections P2.
+No Prompt 3 implementation, correction, finalization, merge, or branch cleanup without separate explicit authority.
