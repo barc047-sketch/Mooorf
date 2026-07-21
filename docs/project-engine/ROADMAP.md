@@ -20,7 +20,7 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 | 14 | Organism Target Rail | PLANNED | Requires stable Text/appearance sequencing and separate Owner GO. |
 | 15 | Quick Materials | PLANNED | Reuses the one Material Registry and requires separate Owner GO. |
 | 16 | Material Browser | PLANNED | Follows target-safe Quick Materials. |
-| 17 | Relationship foundation | PLANNED | Semantic Master Graph ownership before visible connections. |
+| 17 | Relationship foundation | HOLD | Connections P1 is pushed on `work/next-feature` and awaiting Owner review; no visible Connections or merge is authorized. |
 | 18 | Visual Connections | PLANNED | Follows stable Relationship ownership. |
 | 19 | Morph Bridge and Cell Behaviour | BLOCKED | Requires stable Relationship semantics and bounded performance architecture. |
 | 20 | Annotation Card / broader Markup | PLANNED | Later reviewed Markup stage; no active implementation. |

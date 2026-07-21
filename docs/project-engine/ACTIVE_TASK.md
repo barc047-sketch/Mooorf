@@ -1,17 +1,20 @@
 # Active Task
 
-## HOLD — No active implementation
+## HOLD — Connections P1 waiting Owner review
 
-Status: COMPLETE / MERGED / OWNER QA PASSED
+Status: PUSHED / WAITING OWNER REVIEW
 
-- Organism Cell Labels & Callouts is merged into `main`;
-- integrated product commit: `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e`;
-- twelve Cell Label layouts, Ring, Body arcs, Flag, Label Studio, text fitting, direct Label/Membrane launchers, Membrane zoom stability and persistent selected-state feedback are included;
-- Label Studio uses the approved `MessageSquareText` callout icon;
-- Connections is the next planned phase;
-- Connections has not started.
+- source SHA: `3f62032c54d76a014a781504cc5cd8e4b5ee63d9`;
+- branch: `work/next-feature`;
+- product commit: `01a6c916b426b63628b1a8d0d94c8fb530bfc6c8`;
+- one canonical Connection collection, semantic registry, modifier/visual ID contracts, indexed selectors, central-store commands and one-transaction history are implemented;
+- Cell deletion and Undo/Redo atomically remove/restore dependent Connections;
+- project JSON, `.mooorf`, Saved Views, recovery and applicable transfer paths preserve Connections; old projects migrate to `[]` and unknown semantic IDs survive;
+- focused/affected contracts: 58/58 passed; TypeScript and tracked/untracked diff checks passed;
+- no UI, renderer, Morph Bridge, Behaviour, Matrix, Material, animated line, Classic or production-build work occurred;
+- `main` is untouched.
 
 Next safe action:
 
-Connections planning in a separate chat from the updated main lineage.
-No automatic implementation.
+Owner review of Connections P1.
+No Prompt 2 implementation, correction, finalization, merge, or branch cleanup without separate explicit authority.
