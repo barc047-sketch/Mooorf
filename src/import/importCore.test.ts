@@ -17,6 +17,11 @@ import type { SavedCanvasSnapshot, SpaceCell } from "../types";
 import { DEFAULT_RESOURCE_SETTINGS } from "../resources/resourcePersistence";
 import { DEFAULT_CELL_SHADOW } from "../canvas/cellShadow";
 import { createProjectPresentationDefaults } from "../domain/presentation/defaults";
+import {
+  createDefaultConnectionViewSettings,
+  createDefaultProjectConnectionStyles,
+  updateProjectConnectionStyle,
+} from "../domain/connections/styles";
 
 const equal = (actual: unknown, expected: unknown, message: string) => {
   if (!Object.is(actual, expected)) throw new Error(`${message}: ${String(actual)} !== ${String(expected)}`);
@@ -59,7 +64,18 @@ const settings = {
   performanceQuality: "automatic" as const,
 };
 const presentationDefaults = createProjectPresentationDefaults(settings);
-const settingsWithPresentation = { ...settings, presentationDefaults };
+const connectionStyles = updateProjectConnectionStyle(
+  createDefaultProjectConnectionStyles(),
+  "direct-access",
+  { appearance: { width: 4.5 } },
+);
+const connectionView = { ...createDefaultConnectionViewSettings(), focusMode: "selected-cell" as const };
+const settingsWithPresentation = {
+  ...settings,
+  presentationDefaults,
+  connectionStyles,
+  connectionView,
+};
 const spaces: SpaceCell[] = [
   {
     id: "a",
@@ -92,6 +108,8 @@ equal(project.schemaVersion, PROJECT_FILE_VERSION, "project schema version");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].color, "#123456", "complete project preserves explicit colors");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].appearance?.boundary?.width, 3, "project preserves sparse Cell appearance");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.presentationDefaults.schemaVersion, 6, "project preserves presentation defaults");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.connectionStyles["direct-access"].appearance.width, 4.5, "project preserves Connection type styles");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.connectionView.focusMode, "selected-cell", "project preserves Connection view state");
 const solidPresentationDefaults = {
   ...presentationDefaults,
   membrane: {
@@ -113,6 +131,8 @@ const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", create
 const parsedSavedView = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [savedView]))).savedViews[0];
 equal(parsedSavedView.presentationDefaults?.schemaVersion, 6, "saved-view presentation defaults round-trip");
 equal(parsedSavedView.spaces[0].appearance?.boundary?.visible, true, "saved-view sparse appearance round-trips");
+equal(parsedSavedView.connectionStyles?.custom.geometryId, "straight", "legacy saved view receives Connection style defaults");
+equal(parsedSavedView.connectionView?.visible, true, "legacy saved view receives Connection view defaults");
 const labelPresentationDefaults = {
   ...presentationDefaults,
   text: {
@@ -275,12 +295,16 @@ equal(parseProjectEnvelope(JSON.stringify(snapshot)).snapshot.project.title, "Te
 const legacySnapshot = {
   ...snapshot,
   spaces: snapshot.spaces.map(({ appearance: _appearance, ...space }) => space),
-  settings: Object.fromEntries(Object.entries(snapshot.settings).filter(([key]) => key !== "presentationDefaults")),
+  settings: Object.fromEntries(Object.entries(snapshot.settings).filter(
+    ([key]) => !["presentationDefaults", "connectionStyles", "connectionView"].includes(key),
+  )),
 };
 const migratedLegacy = parseProjectEnvelope(JSON.stringify(legacySnapshot));
 equal(migratedLegacy.snapshot.settings.presentationDefaults.membrane.visible, settings.blobOn, "legacy Morph state migrates to Membrane defaults");
 equal(migratedLegacy.snapshot.settings.presentationDefaults.core.visible, true, "legacy Core visibility migrates safely");
 equal(migratedLegacy.snapshot.spaces[0].appearance, undefined, "legacy Cells remain sparse after migration");
+equal(migratedLegacy.snapshot.settings.connectionStyles.custom.geometryId, "straight", "legacy projects receive default Connection styles");
+equal(migratedLegacy.snapshot.settings.connectionView.focusMode, "all", "legacy projects receive default Connection view state");
 throws(() => parseProjectEnvelope('{"kind":"wrong","schemaVersion":1}'), "kind", "invalid project kind rejected");
 throws(() => parseProjectEnvelope('{"kind":"mooorf-project"}'), "schema", "missing schema rejected");
 throws(() => parseProjectEnvelope(JSON.stringify({ ...project, schemaVersion: 99 })), "future", "future project rejected");
@@ -298,11 +322,17 @@ throws(() => parseProjectEnvelope(JSON.stringify({
 const config = buildConfigEnvelope(snapshot, new Date("2026-07-11T00:00:00.000Z"));
 equal(parseConfigEnvelope(JSON.stringify(config)).kind, "mooorf-config", "settings-only config validates");
 equal(parseConfigEnvelope(JSON.stringify(config)).settings.presentationDefaults.schemaVersion, 6, "config presentation defaults round-trip");
+equal(parseConfigEnvelope(JSON.stringify(config)).settings.connectionStyles["direct-access"].appearance.width, 4.5, "config Connection styles round-trip");
+equal(parseConfigEnvelope(JSON.stringify(config)).settings.connectionView.focusMode, "selected-cell", "config Connection view state round-trips");
 const legacyConfig = {
   ...config,
-  settings: Object.fromEntries(Object.entries(config.settings).filter(([key]) => key !== "presentationDefaults")),
+  settings: Object.fromEntries(Object.entries(config.settings).filter(
+    ([key]) => !["presentationDefaults", "connectionStyles", "connectionView"].includes(key),
+  )),
 };
 equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.presentationDefaults.membrane.visible, settings.blobOn, "legacy config gains presentation defaults");
+equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.connectionStyles.custom.geometryId, "straight", "legacy config gains Connection styles");
+equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.connectionView.focusMode, "all", "legacy config gains Connection view state");
 const configPreview = previewConfigChanges(config, [...spaces, { ...spaces[0], id: "b", name: "Other" }]);
 equal(configPreview.matchingLayoutIds, 1, "matching layout ids counted");
 equal(configPreview.unmatchedLayoutIds, 0, "unmatched ids absent");
@@ -310,6 +340,7 @@ equal(previewConfigChanges({ ...config, workspace: { ...config.workspace, spaceL
 const badScale = parseConfigEnvelope(JSON.stringify({ ...config, settings: { ...config.settings, uiScale: 8, widgetScale: -2 } }));
 ok(badScale.settings.uiScale <= 1.18 && badScale.settings.widgetScale >= 0.82, "invalid scales normalize safely");
 ok(!("spaces" in badScale), "config never contains semantic space replacement");
+ok(!("connections" in badScale), "config never contains semantic Connection records");
 
 const csv = 'Space Name,Area sqm,Body,Category,Access,Colour,Pos X,Pos Y\n"Studio,\nNorth",80.5,"North light",Work,shared,#abcdef,10,20\n\n';
 const csvPreview = parseCsvTable(csv);

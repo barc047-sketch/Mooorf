@@ -1,6 +1,10 @@
 import type {
   Connection,
   ConnectionDirection,
+  ConnectionLabelContent,
+  ConnectionLabelOffset,
+  ConnectionLabelOrientation,
+  ConnectionLabelPosition,
   ConnectionPriority,
   ConnectionRequirement,
   ConnectionSemantic,
@@ -8,6 +12,7 @@ import type {
   ConnectionStrength,
   ConnectionVisual,
 } from "../graph/types";
+import type { ProjectConnectionStyles, ResolvedConnectionStyle } from "./styles";
 import {
   CONNECTION_DIRECTIONS,
   CONNECTION_PRIORITIES,
@@ -15,6 +20,10 @@ import {
   CONNECTION_STRENGTHS,
   resolveConnectionSemanticType,
 } from "./registry";
+import {
+  connectionTypeStyle,
+  createDefaultProjectConnectionStyles,
+} from "./styles";
 
 export const MAX_PROJECT_CONNECTIONS = 100_000;
 
@@ -56,15 +65,19 @@ const finiteInRange = (
   return Math.min(max, Math.max(min, value));
 };
 
+const cloneConnectionVisual = (visual: ConnectionVisual): ConnectionVisual => {
+  const { label, appearance, ...rest } = visual;
+  return {
+    ...rest,
+    ...(label ? { label: { ...label } } : {}),
+    ...(appearance ? { appearance: { ...appearance } } : {}),
+  };
+};
+
 export const cloneConnection = (connection: Connection): Connection => ({
   ...connection,
   semantic: { ...connection.semantic },
-  visual: connection.visual
-    ? {
-        ...connection.visual,
-        appearance: connection.visual.appearance ? { ...connection.visual.appearance } : undefined,
-      }
-    : undefined,
+  visual: connection.visual ? cloneConnectionVisual(connection.visual) : undefined,
 });
 
 export const cloneConnections = (connections: readonly Connection[]): Connection[] =>
@@ -86,33 +99,100 @@ export const createConnectionSemantic = (
   };
 };
 
-export const normalizeConnectionVisual = (value: unknown): ConnectionVisual | undefined => {
+const optionalRegistryId = <T extends string>(value: unknown): T | undefined =>
+  typeof value === "string" && value.trim() ? value.trim().slice(0, 160) as T : undefined;
+
+const optionalOneOf = <T extends string>(value: unknown, allowed: readonly T[]): T | undefined =>
+  typeof value === "string" && allowed.includes(value as T) ? value as T : undefined;
+
+const compactDefined = <T extends object>(value: T): Partial<T> => Object.fromEntries(
+  Object.entries(value).filter(([, entry]) => entry !== undefined),
+) as Partial<T>;
+
+const omitInheritedVisualValues = (
+  visual: ConnectionVisual,
+  inherited: ResolvedConnectionStyle | undefined,
+): ConnectionVisual | undefined => {
+  if (!inherited) return Object.values(visual).some((entry) => entry !== undefined) ? visual : undefined;
+  const next: ConnectionVisual = { ...visual };
+  for (const key of [
+    "visible",
+    "geometryId",
+    "strokePatternId",
+    "startMarkerId",
+    "endMarkerId",
+    "startAnchorId",
+    "endAnchorId",
+  ] as const) {
+    if (next[key] === inherited[key]) delete next[key];
+  }
+  if (next.label) {
+    const label = { ...next.label };
+    for (const key of Object.keys(label) as Array<keyof typeof label>) {
+      if (label[key] === inherited.label[key]) delete label[key];
+    }
+    next.label = Object.keys(label).length ? label : undefined;
+  }
+  if (next.appearance) {
+    const appearance = { ...next.appearance };
+    for (const key of Object.keys(appearance) as Array<keyof typeof appearance>) {
+      if (appearance[key] === inherited.appearance[key]) delete appearance[key];
+    }
+    next.appearance = Object.keys(appearance).length ? appearance : undefined;
+  }
+  return Object.values(next).some((entry) => entry !== undefined) ? next : undefined;
+};
+
+export const normalizeConnectionVisual = (
+  value: unknown,
+  inherited?: ResolvedConnectionStyle,
+): ConnectionVisual | undefined => {
   if (value === undefined || value === null) return undefined;
   if (!isRecord(value)) throw new Error("Connection visual configuration is invalid.");
-  const appearance = isRecord(value.appearance)
-    ? {
-        color: typeof value.appearance.color === "string" ? value.appearance.color.trim().slice(0, 64) : undefined,
-        width: finiteInRange(value.appearance.width, undefined, 0.25, 32),
-        opacity: finiteInRange(value.appearance.opacity, undefined, 0, 1),
-      }
-    : undefined;
+  const appearance = isRecord(value.appearance) ? {
+    color: typeof value.appearance.color === "string" && value.appearance.color.trim()
+      ? value.appearance.color.trim().slice(0, 64)
+      : undefined,
+    width: finiteInRange(value.appearance.width, undefined, 0.25, 32),
+    opacity: finiteInRange(value.appearance.opacity, undefined, 0, 1),
+    curve: finiteInRange(value.appearance.curve, undefined, -2, 2),
+    markerSize: finiteInRange(value.appearance.markerSize, undefined, 2, 64),
+    markerOffset: finiteInRange(value.appearance.markerOffset, undefined, -64, 64),
+    dashScale: finiteInRange(value.appearance.dashScale, undefined, 0.25, 8),
+  } : undefined;
   const compactAppearance = appearance && Object.values(appearance).some((entry) => entry !== undefined)
-    ? appearance
+    ? compactDefined(appearance)
     : undefined;
-  return {
-    visible: value.visible !== false,
-    geometryId: typeof value.geometryId === "string" && value.geometryId.trim() ? value.geometryId.trim().slice(0, 160) : "straight",
-    strokePatternId: typeof value.strokePatternId === "string" && value.strokePatternId.trim() ? value.strokePatternId.trim().slice(0, 160) : "solid",
-    startMarkerId: typeof value.startMarkerId === "string" && value.startMarkerId.trim() ? value.startMarkerId.trim().slice(0, 160) : "none",
-    endMarkerId: typeof value.endMarkerId === "string" && value.endMarkerId.trim() ? value.endMarkerId.trim().slice(0, 160) : "none",
+  const label = isRecord(value.label) ? {
+    content: optionalOneOf<ConnectionLabelContent>(value.label.content, ["hidden", "semantic", "custom", "direction", "strength", "priority"]),
+    text: typeof value.label.text === "string" ? value.label.text.replace(/\r\n?/g, "\n").slice(0, 160) : undefined,
+    position: optionalOneOf<ConnectionLabelPosition>(value.label.position, ["start", "quarter", "middle", "three-quarter", "end"]),
+    orientation: optionalOneOf<ConnectionLabelOrientation>(value.label.orientation, ["horizontal", "follow-path"]),
+    offset: optionalOneOf<ConnectionLabelOffset>(value.label.offset, ["above", "below"]),
+    offsetPx: finiteInRange(value.label.offsetPx, undefined, 0, 64),
+    hideBelowZoom: finiteInRange(value.label.hideBelowZoom, undefined, 0, 8),
+  } : undefined;
+  const compactLabel = label && Object.values(label).some((entry) => entry !== undefined)
+    ? compactDefined(label)
+    : undefined;
+  return omitInheritedVisualValues(compactDefined({
+    visible: typeof value.visible === "boolean" ? value.visible : undefined,
+    geometryId: optionalRegistryId(value.geometryId),
+    strokePatternId: optionalRegistryId(value.strokePatternId),
+    startMarkerId: optionalRegistryId(value.startMarkerId),
+    endMarkerId: optionalRegistryId(value.endMarkerId),
+    startAnchorId: optionalRegistryId(value.startAnchorId),
+    endAnchorId: optionalRegistryId(value.endAnchorId),
+    label: compactLabel,
     appearance: compactAppearance,
-  };
+  }) as ConnectionVisual, inherited);
 };
 
 export const normalizeConnection = (
   value: unknown,
   validCellIds: ReadonlySet<string>,
   index = 0,
+  styles: ProjectConnectionStyles = createDefaultProjectConnectionStyles(),
 ): Connection => {
   if (!isRecord(value)) throw new Error(`Connection row ${index + 1} is invalid.`);
   const id = cleanText(value.id, `Connection row ${index + 1} ID`, 160);
@@ -124,31 +204,33 @@ export const normalizeConnection = (
   }
   if (!isRecord(value.semantic)) throw new Error(`Connection row ${index + 1} semantic data is invalid.`);
   const typeId = cleanText(value.semantic.typeId, `Connection row ${index + 1} semantic type ID`, 160);
+  const semantic = createConnectionSemantic(typeId, {
+    requirement: requireOneOf(value.semantic.requirement, CONNECTION_REQUIREMENTS, `Connection row ${index + 1} requirement`),
+    direction: requireOneOf(value.semantic.direction, CONNECTION_DIRECTIONS, `Connection row ${index + 1} direction`),
+    strength: requireOneOf(value.semantic.strength, CONNECTION_STRENGTHS, `Connection row ${index + 1} strength`),
+    priority: requireOneOf(value.semantic.priority, CONNECTION_PRIORITIES, `Connection row ${index + 1} priority`),
+    notes: typeof value.semantic.notes === "string" ? value.semantic.notes : "",
+  });
   return {
     id,
     fromSpaceId,
     toSpaceId,
     enabled: value.enabled !== false,
-    semantic: createConnectionSemantic(typeId, {
-      requirement: requireOneOf(value.semantic.requirement, CONNECTION_REQUIREMENTS, `Connection row ${index + 1} requirement`),
-      direction: requireOneOf(value.semantic.direction, CONNECTION_DIRECTIONS, `Connection row ${index + 1} direction`),
-      strength: requireOneOf(value.semantic.strength, CONNECTION_STRENGTHS, `Connection row ${index + 1} strength`),
-      priority: requireOneOf(value.semantic.priority, CONNECTION_PRIORITIES, `Connection row ${index + 1} priority`),
-      notes: typeof value.semantic.notes === "string" ? value.semantic.notes : "",
-    }),
-    visual: normalizeConnectionVisual(value.visual),
+    semantic,
+    visual: normalizeConnectionVisual(value.visual, connectionTypeStyle(semantic.typeId, styles)),
   };
 };
 
 export const normalizeConnectionCollection = (
   value: unknown,
   validCellIds: ReadonlySet<string>,
+  styles: ProjectConnectionStyles = createDefaultProjectConnectionStyles(),
 ): Connection[] => {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value) || value.length > MAX_PROJECT_CONNECTIONS) {
     throw new Error(`Project Connections must be an array with at most ${MAX_PROJECT_CONNECTIONS} rows.`);
   }
-  const connections = value.map((connection, index) => normalizeConnection(connection, validCellIds, index));
+  const connections = value.map((connection, index) => normalizeConnection(connection, validCellIds, index, styles));
   const seen = new Set<string>();
   for (const connection of connections) {
     if (seen.has(connection.id)) throw new Error(`Duplicate Connection ID "${connection.id}".`);
@@ -201,7 +283,7 @@ export type ConnectionAuthoringAction =
 
 export const createConnectionAuthoringState = (): ConnectionAuthoringState => ({
   phase: "idle",
-  typeId: "adjacency",
+  typeId: "custom",
   sourceId: null,
   targetId: null,
   existingConnectionId: null,

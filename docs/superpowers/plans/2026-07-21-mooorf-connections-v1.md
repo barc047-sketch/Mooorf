@@ -317,6 +317,7 @@ Stage only the two tracked docs, commit `docs(connections): freeze v1 interactio
 - Modify: `src/state/store.ts`
 - Modify: `src/types.ts`
 - Modify: `src/export/projectSnapshot.ts`
+- Modify: `src/export/exportService.ts` (required explicit live-settings serializer discovered during Task 1 audit)
 - Modify: `src/import/projectFiles.ts`
 - Modify: `src/import/projectTransfer.ts`
 - Modify: `src/import/importCore.test.ts`

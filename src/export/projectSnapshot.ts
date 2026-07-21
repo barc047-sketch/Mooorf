@@ -27,6 +27,12 @@ import {
 } from "../domain/presentation/validation";
 import type { Connection } from "../domain/graph/types";
 import { cloneConnections } from "../domain/connections/model";
+import {
+  normalizeConnectionViewSettings,
+  normalizeProjectConnectionStyles,
+  type ConnectionViewSettings,
+  type ProjectConnectionStyles,
+} from "../domain/connections/styles";
 
 /* Mirrors the existing SavedCanvasSnapshot field set (src/types.ts) so the
    JSON project export reuses one canonical project-state shape instead of
@@ -56,6 +62,15 @@ export interface ProjectExportSettings {
   cellShadow: CellShadowSettings;
   performanceQuality: PerformanceQuality;
   presentationDefaults: ProjectPresentationDefaults;
+  /** Optional only at the serialized compatibility boundary; current snapshots always emit it. */
+  connectionStyles?: ProjectConnectionStyles;
+  /** Optional only at the serialized compatibility boundary; current snapshots always emit it. */
+  connectionView?: ConnectionViewSettings;
+}
+
+export interface NormalizedProjectExportSettings extends ProjectExportSettings {
+  connectionStyles: ProjectConnectionStyles;
+  connectionView: ConnectionViewSettings;
 }
 
 export interface ProjectExportSummary {
@@ -72,7 +87,7 @@ export interface ProjectExportSnapshot {
   connections: Connection[];
   camera: Camera;
   theme: Theme;
-  settings: ProjectExportSettings;
+  settings: NormalizedProjectExportSettings;
   summary: ProjectExportSummary;
 }
 
@@ -115,6 +130,8 @@ export const buildProjectSnapshot = (
       cellShadow: { ...input.settings.cellShadow },
       resources: cloneResourceSettings(input.settings.resources),
       presentationDefaults: cloneProjectPresentationDefaults(input.settings.presentationDefaults),
+      connectionStyles: normalizeProjectConnectionStyles(input.settings.connectionStyles),
+      connectionView: normalizeConnectionViewSettings(input.settings.connectionView),
     },
     summary: {
       spaceCount: input.spaces.length,

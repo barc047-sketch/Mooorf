@@ -129,6 +129,7 @@ export type ConnectionStrength = "weak" | "medium" | "strong";
 export type ConnectionPriority = "low" | "normal" | "high" | "critical";
 
 export type KnownConnectionSemanticTypeId =
+  | "custom"
   | "adjacency"
   | "direct-access"
   | "visual-access"
@@ -171,6 +172,34 @@ export type KnownConnectionMarkerId =
 
 export type ConnectionMarkerId = KnownConnectionMarkerId | (string & {});
 
+export type KnownConnectionAnchorId = "auto" | "top" | "right" | "bottom" | "left";
+
+export type ConnectionAnchorId = KnownConnectionAnchorId | (string & {});
+
+export type ConnectionLabelContent =
+  | "hidden"
+  | "semantic"
+  | "custom"
+  | "direction"
+  | "strength"
+  | "priority";
+
+export type ConnectionLabelPosition = "start" | "quarter" | "middle" | "three-quarter" | "end";
+
+export type ConnectionLabelOrientation = "horizontal" | "follow-path";
+
+export type ConnectionLabelOffset = "above" | "below";
+
+export interface ConnectionLabelStyle {
+  content: ConnectionLabelContent;
+  text: string;
+  position: ConnectionLabelPosition;
+  orientation: ConnectionLabelOrientation;
+  offset: ConnectionLabelOffset;
+  offsetPx: number;
+  hideBelowZoom: number;
+}
+
 export interface ConnectionSemantic {
   typeId: ConnectionSemanticTypeId;
   requirement: ConnectionRequirement;
@@ -185,14 +214,21 @@ export interface ConnectionVisualAppearance {
   color?: string;
   width?: number;
   opacity?: number;
+  curve?: number;
+  markerSize?: number;
+  markerOffset?: number;
+  dashScale?: number;
 }
 
 export interface ConnectionVisual {
-  visible: boolean;
-  geometryId: ConnectionGeometryId;
-  strokePatternId: ConnectionStrokePatternId;
-  startMarkerId: ConnectionMarkerId;
-  endMarkerId: ConnectionMarkerId;
+  visible?: boolean;
+  geometryId?: ConnectionGeometryId;
+  strokePatternId?: ConnectionStrokePatternId;
+  startMarkerId?: ConnectionMarkerId;
+  endMarkerId?: ConnectionMarkerId;
+  startAnchorId?: ConnectionAnchorId;
+  endAnchorId?: ConnectionAnchorId;
+  label?: Partial<ConnectionLabelStyle>;
   appearance?: ConnectionVisualAppearance;
 }
 

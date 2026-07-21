@@ -17,8 +17,17 @@ import {
   cloneCellAppearanceOverrides,
   cloneProjectPresentationDefaults,
 } from "../domain/presentation/validation";
-import { cloneConnections, connectionCellIds } from "../domain/connections/model";
+import {
+  cloneConnections,
+  connectionCellIds,
+  createConnectionAuthoringState,
+} from "../domain/connections/model";
 import { retainConnectionsForSpaces } from "../domain/connections/selectors";
+import {
+  cloneProjectConnectionStyles,
+  normalizeConnectionViewSettings,
+  normalizeProjectConnectionStyles,
+} from "../domain/connections/styles";
 
 const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 
@@ -51,7 +60,24 @@ const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) =
   presentationDefaults: view.presentationDefaults
     ? cloneProjectPresentationDefaults(view.presentationDefaults)
     : undefined,
+  connectionStyles: view.connectionStyles
+    ? cloneProjectConnectionStyles(view.connectionStyles)
+    : undefined,
+  connectionView: view.connectionView
+    ? normalizeConnectionViewSettings(view.connectionView)
+    : undefined,
 }));
+
+const cloneSettings = (settings: LabSettings): LabSettings => ({
+  ...settings,
+  organism: normalizeOrganismSettings(settings.organism),
+  annotationDetail: { ...settings.annotationDetail },
+  cellShadow: { ...settings.cellShadow },
+  resources: cloneResourceSettings(settings.resources),
+  presentationDefaults: cloneProjectPresentationDefaults(settings.presentationDefaults),
+  connectionStyles: cloneProjectConnectionStyles(settings.connectionStyles),
+  connectionView: normalizeConnectionViewSettings(settings.connectionView),
+});
 
 export const captureRecoverySnapshot = (): RecoverySnapshot => {
   const state = useLab.getState();
@@ -61,7 +87,7 @@ export const captureRecoverySnapshot = (): RecoverySnapshot => {
     spaces: cloneSpaces(state.spaces),
     connections: cloneConnections(state.connections),
     camera: { ...state.camera },
-    settings: { ...state.settings, organism: normalizeOrganismSettings(state.settings.organism), annotationDetail: { ...state.settings.annotationDetail }, cellShadow: { ...state.settings.cellShadow }, resources: cloneResourceSettings(state.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults) },
+    settings: cloneSettings(state.settings),
     selectedId: state.selectedId,
     primarySelectedId: state.primarySelectedId,
     selectedIds: [...state.selectedIds],
@@ -85,7 +111,7 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     spaces: cloneSpaces(snapshot.spaces),
     connections: cloneConnections(snapshot.connections),
     camera: { ...snapshot.camera },
-    settings: { ...snapshot.settings, organism: normalizeOrganismSettings(snapshot.settings.organism), annotationDetail: { ...snapshot.settings.annotationDetail }, cellShadow: { ...snapshot.settings.cellShadow }, resources: cloneResourceSettings(snapshot.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults) },
+    settings: cloneSettings(snapshot.settings),
     ...normalizeSelectionState({
       selectedId: snapshot.selectedId,
       primarySelectedId: snapshot.primarySelectedId,
@@ -94,12 +120,45 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     contextSurface: null,
     contextPoint: null,
     contextTargetId: null,
+    selectedConnectionIds: [],
+    primarySelectedConnectionId: null,
+    connectionAuthoring: createConnectionAuthoringState(),
+    transformUndoStack: [],
+    transformRedoStack: [],
     savedViews: cloneViews(snapshot.savedViews),
   });
 };
 
+const captureRejectedApplyState = () => {
+  const state = useLab.getState();
+  return {
+    selectedConnectionIds: [...state.selectedConnectionIds],
+    primarySelectedConnectionId: state.primarySelectedConnectionId,
+    connectionAuthoring: {
+      ...state.connectionAuthoring,
+      priorSelection: state.connectionAuthoring.priorSelection
+        ? {
+            selectedIds: [...state.connectionAuthoring.priorSelection.selectedIds],
+            primarySelectedId: state.connectionAuthoring.priorSelection.primarySelectedId,
+          }
+        : null,
+    },
+    transformUndoStack: [...state.transformUndoStack],
+    transformRedoStack: [...state.transformRedoStack],
+  };
+};
+
+const restoreRejectedApply = (
+  recovery: RecoverySnapshot,
+  rejectedState: ReturnType<typeof captureRejectedApplyState>,
+): void => {
+  restoreRecoverySnapshot(recovery);
+  useLab.setState(rejectedState);
+};
+
 export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapshot => {
   const recovery = captureRecoverySnapshot();
+  const rejectedState = captureRejectedApplyState();
   try {
     const snapshot = project.snapshot;
     const current = useLab.getState();
@@ -126,17 +185,25 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
         cellShadow: { ...snapshot.settings.cellShadow },
         resources: cloneResourceSettings(snapshot.settings.resources),
         presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
+        connectionStyles: cloneProjectConnectionStyles(snapshot.settings.connectionStyles),
+        connectionView: normalizeConnectionViewSettings(snapshot.settings.connectionView),
       },
+      selectedConnectionIds: [],
+      primarySelectedConnectionId: null,
+      connectionAuthoring: createConnectionAuthoringState(),
+      transformUndoStack: [],
+      transformRedoStack: [],
     });
     return recovery;
   } catch (error) {
-    restoreRecoverySnapshot(recovery);
+    restoreRejectedApply(recovery, rejectedState);
     throw error;
   }
 };
 
 export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot => {
   const recovery = captureRecoverySnapshot();
+  const rejectedState = captureRejectedApplyState();
   try {
     const current = useLab.getState();
     const layout = config.workspace.spaceLayoutById;
@@ -155,6 +222,8 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
         cellShadow: { ...config.settings.cellShadow },
         resources: cloneResourceSettings(config.settings.resources),
         presentationDefaults: cloneProjectPresentationDefaults(config.settings.presentationDefaults),
+        connectionStyles: normalizeProjectConnectionStyles(config.settings.connectionStyles),
+        connectionView: normalizeConnectionViewSettings(config.settings.connectionView),
       },
       ...replaceSelectionState(null),
       contextSurface: null,
@@ -163,13 +232,14 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
     });
     return recovery;
   } catch (error) {
-    restoreRecoverySnapshot(recovery);
+    restoreRejectedApply(recovery, rejectedState);
     throw error;
   }
 };
 
 export const applySpaceSchedule = (spaces: readonly SpaceCell[]): RecoverySnapshot => {
   const recovery = captureRecoverySnapshot();
+  const rejectedState = captureRejectedApplyState();
   try {
     useLab.getState().cancelArrangementPreview();
     const nextSpaces = ensureSpaceCodes(cloneSpaces(spaces));
@@ -189,10 +259,15 @@ export const applySpaceSchedule = (spaces: readonly SpaceCell[]): RecoverySnapsh
       resourcesPreview: null,
       arrangementPreview: null,
       arrangementPreviewPatternId: null,
+      selectedConnectionIds: [],
+      primarySelectedConnectionId: null,
+      connectionAuthoring: createConnectionAuthoringState(),
+      transformUndoStack: [],
+      transformRedoStack: [],
     });
     return recovery;
   } catch (error) {
-    restoreRecoverySnapshot(recovery);
+    restoreRejectedApply(recovery, rejectedState);
     throw error;
   }
 };

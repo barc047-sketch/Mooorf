@@ -85,6 +85,7 @@ test("Connections launch registries expose unique stable IDs", async () => {
   assert.deepEqual(
     registry.CONNECTION_SEMANTIC_TYPE_IDS,
     [
+      "custom",
       "adjacency",
       "direct-access",
       "visual-access",
@@ -93,7 +94,7 @@ test("Connections launch registries expose unique stable IDs", async () => {
       "separation",
     ],
   );
-  assert.equal(new Set(registry.CONNECTION_SEMANTIC_TYPE_IDS).size, 6);
+  assert.equal(new Set(registry.CONNECTION_SEMANTIC_TYPE_IDS).size, 7);
   assert.deepEqual(registry.CONNECTION_REQUIREMENTS, ["required", "preferred", "optional", "avoid"]);
   assert.deepEqual(registry.CONNECTION_DIRECTIONS, ["none", "two-way", "a-to-b", "b-to-a"]);
   assert.deepEqual(registry.CONNECTION_STRENGTHS, ["weak", "medium", "strong"]);
@@ -113,6 +114,7 @@ test("Connections launch registries expose unique stable IDs", async () => {
     registry.CONNECTION_GEOMETRY_IDS,
     registry.CONNECTION_STROKE_PATTERN_IDS,
     registry.CONNECTION_MARKER_IDS,
+    registry.CONNECTION_ANCHOR_IDS,
   ]) {
     assert.equal(new Set(ids).size, ids.length);
   }

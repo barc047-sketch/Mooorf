@@ -114,6 +114,21 @@ import {
   getConnectionsBetweenSpaces as selectConnectionsBetweenSpaces,
   getConnectionsForSpace as selectConnectionsForSpace,
 } from "../domain/connections/selectors";
+import {
+  applyConnectionStylePack as createConnectionStylePack,
+  cloneProjectConnectionStyles,
+  connectionTypeStyle,
+  createDefaultConnectionViewSettings,
+  createDefaultProjectConnectionStyles,
+  normalizeConnectionViewSettings,
+  normalizeProjectConnectionStyles,
+  updateProjectConnectionStyle,
+  type ConnectionStylePackId,
+  type ConnectionStylePatch,
+  type ConnectionViewSettings,
+  type ProjectConnectionStyles,
+  type ResolvedConnectionStyle,
+} from "../domain/connections/styles";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
@@ -158,6 +173,23 @@ interface StyleClipboard {
   symbolStyle: SymbolPlacementStyle | null;
 }
 
+interface IndexedConnectionSnapshot {
+  index: number;
+  connection: Connection;
+}
+
+interface ConnectionRecordPatch {
+  id: string;
+  before: IndexedConnectionSnapshot | null;
+  after: IndexedConnectionSnapshot | null;
+}
+
+interface ConnectionStyleRecordPatch {
+  typeId: keyof ProjectConnectionStyles;
+  before: ResolvedConnectionStyle;
+  after: ResolvedConnectionStyle;
+}
+
 type SpaceHistoryEntry =
   | { kind: "transform"; before: SpacePosition[]; after: SpacePosition[] }
   | { kind: "batch-add"; added: SpaceCell[]; beforeSelection: SelectionSnapshot; afterSelection: SelectionSnapshot }
@@ -167,7 +199,8 @@ type SpaceHistoryEntry =
   | { kind: "visual-settings"; before: VisualSettingsSnapshot; after: VisualSettingsSnapshot }
   | { kind: "resources"; before: ResourceSettings; after: ResourceSettings }
   | { kind: "style"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[]; beforeResources: ResourceSettings; afterResources: ResourceSettings }
-  | { kind: "connections"; before: Connection[]; after: Connection[] }
+  | { kind: "connections"; patches: ConnectionRecordPatch[] }
+  | { kind: "connection-styles"; patches: ConnectionStyleRecordPatch[] }
   | {
       kind: "space-delete";
       space: SpaceCell;
@@ -205,6 +238,8 @@ export interface LabSettings {
   organism: OrganismSettings;
   resources: ResourceSettings;
   presentationDefaults: ProjectPresentationDefaults;
+  connectionStyles: ProjectConnectionStyles;
+  connectionView: ConnectionViewSettings;
 }
 
 export const DEFAULT_ANNOTATION_DETAIL: AnnotationDetail = {
@@ -361,6 +396,11 @@ interface LabState {
   updateConnectionVisual: (id: string, visual: ConnectionVisual | null) => boolean;
   setConnectionEnabled: (id: string, enabled: boolean) => boolean;
   deleteConnection: (id: string) => boolean;
+  updateConnectionTypeStyle: (
+    typeId: keyof ProjectConnectionStyles,
+    patch: ConnectionStylePatch,
+  ) => boolean;
+  applyConnectionStylePack: (packId: ConnectionStylePackId) => boolean;
   getConnectionById: (id: string) => Connection | null;
   getConnectionsForSpace: (spaceId: string) => readonly Connection[];
   getConnectionsBetweenSpaces: (firstSpaceId: string, secondSpaceId: string) => readonly Connection[];
@@ -549,7 +589,8 @@ const applyHistoryEntry = (
     entry.kind === "membrane-runtime" ||
     entry.kind === "visual-settings" ||
     entry.kind === "resources" ||
-    entry.kind === "connections"
+    entry.kind === "connections" ||
+    entry.kind === "connection-styles"
   ) return [...spaces];
   const values = new Map(entry[direction].map((value) => [value.id, value]));
   return spaces.map((space) => {
@@ -570,7 +611,18 @@ const applyConnectionHistoryEntry = (
   entry: SpaceHistoryEntry,
   direction: "before" | "after",
 ): Connection[] => {
-  if (entry.kind === "connections") return cloneConnections(entry[direction]);
+  if (entry.kind === "connections") {
+    const changedIds = new Set(entry.patches.map((patch) => patch.id));
+    const next = connections.filter((connection) => !changedIds.has(connection.id));
+    const snapshots = entry.patches
+      .map((patch) => patch[direction])
+      .filter((snapshot): snapshot is IndexedConnectionSnapshot => snapshot !== null)
+      .sort((left, right) => left.index - right.index);
+    for (const snapshot of snapshots) {
+      next.splice(Math.min(snapshot.index, next.length), 0, cloneConnection(snapshot.connection));
+    }
+    return next;
+  }
   if (entry.kind !== "space-delete") return [...connections];
   const dependentIds = new Set(entry.dependentConnections.map(({ connection }) => connection.id));
   if (direction === "after") return connections.filter((connection) => !dependentIds.has(connection.id));
@@ -580,6 +632,46 @@ const applyConnectionHistoryEntry = (
   }
   return restored;
 };
+
+const applyConnectionStyleHistoryEntry = (
+  styles: ProjectConnectionStyles,
+  entry: SpaceHistoryEntry,
+  direction: "before" | "after",
+): ProjectConnectionStyles => {
+  if (entry.kind !== "connection-styles") return styles;
+  const next = cloneProjectConnectionStyles(styles);
+  for (const patch of entry.patches) {
+    next[patch.typeId] = {
+      ...patch[direction],
+      label: { ...patch[direction].label },
+      appearance: { ...patch[direction].appearance },
+    };
+  }
+  return next;
+};
+
+const connectionRecordPatch = (
+  id: string,
+  before: IndexedConnectionSnapshot | null,
+  after: IndexedConnectionSnapshot | null,
+): ConnectionRecordPatch => ({
+  id,
+  before: before ? { index: before.index, connection: cloneConnection(before.connection) } : null,
+  after: after ? { index: after.index, connection: cloneConnection(after.connection) } : null,
+});
+
+const changedConnectionStylePatches = (
+  before: ProjectConnectionStyles,
+  after: ProjectConnectionStyles,
+): ConnectionStyleRecordPatch[] => Object.keys(before).flatMap((typeId) => {
+  const id = typeId as keyof ProjectConnectionStyles;
+  if (JSON.stringify(before[id]) === JSON.stringify(after[id])) return [];
+  return [{
+    typeId: id,
+    before: { ...before[id], label: { ...before[id].label }, appearance: { ...before[id].appearance } },
+    after: { ...after[id], label: { ...after[id].label }, appearance: { ...after[id].appearance } },
+  }];
+});
 
 const applyDeletedSpaceResources = (
   resources: ResourceSettings,
@@ -652,17 +744,20 @@ const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => {
     ...cloneSpace(space),
     appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
   }));
+  const connectionStyles = normalizeProjectConnectionStyles(snapshot.connectionStyles);
   return {
     ...snapshot,
     colorSource: snapshot.colorSource === "privacy" ? "privacy" : "category",
     uiScale: normalizeUiScale(snapshot.uiScale),
     widgetScale: normalizeWidgetScale(snapshot.widgetScale),
     spaces,
-    connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces)),
+    connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces), connectionStyles),
     camera: cloneCamera(snapshot.camera),
     organism: cloneOrganism(snapshot.organism),
     resources,
     presentationDefaults,
+    connectionStyles,
+    connectionView: normalizeConnectionViewSettings(snapshot.connectionView),
     labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
     labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
     labelCustomColour: normalizeLabelCustomColour(snapshot.labelCustomColour),
@@ -770,6 +865,8 @@ const makeSnapshot = (
   organismPaletteId: state.settings.organismPaletteId,
   resources: cloneResourceSettings(state.settings.resources),
   presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults),
+  connectionStyles: cloneProjectConnectionStyles(state.settings.connectionStyles),
+  connectionView: normalizeConnectionViewSettings(state.settings.connectionView),
   labelScaleMode: state.settings.labelScaleMode,
   labelColourMode: state.settings.labelColourMode,
   labelCustomColour: state.settings.labelCustomColour,
@@ -832,6 +929,8 @@ export const useLab = create<LabState>((set, get) => ({
       organism: DEFAULT_ORGANISM_SETTINGS,
       resources: DEFAULT_RESOURCE_SETTINGS,
     }),
+    connectionStyles: createDefaultProjectConnectionStyles(),
+    connectionView: createDefaultConnectionViewSettings(),
   },
   activeTool: "select",
   temporaryTool: null,
@@ -915,6 +1014,12 @@ export const useLab = create<LabState>((set, get) => ({
           organism,
           resources,
           presentationDefaults,
+          connectionStyles: patch.connectionStyles
+            ? normalizeProjectConnectionStyles(patch.connectionStyles)
+            : s.settings.connectionStyles,
+          connectionView: patch.connectionView
+            ? normalizeConnectionViewSettings(patch.connectionView)
+            : s.settings.connectionView,
         },
       };
     }),
@@ -1748,7 +1853,9 @@ export const useLab = create<LabState>((set, get) => ({
                   ? { ...s.settings, resources: cloneResourceSettings(entry.before) }
                   : entry.kind === "style"
                     ? { ...s.settings, resources: cloneResourceSettings(entry.beforeResources) }
-                    : s.settings,
+                    : entry.kind === "connection-styles"
+                      ? { ...s.settings, connectionStyles: applyConnectionStyleHistoryEntry(s.settings.connectionStyles, entry, "before") }
+                      : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
         membraneRuntimePreview: null,
@@ -1790,7 +1897,9 @@ export const useLab = create<LabState>((set, get) => ({
                   ? { ...s.settings, resources: cloneResourceSettings(entry.after) }
                   : entry.kind === "style"
                     ? { ...s.settings, resources: cloneResourceSettings(entry.afterResources) }
-                    : s.settings,
+                    : entry.kind === "connection-styles"
+                      ? { ...s.settings, connectionStyles: applyConnectionStyleHistoryEntry(s.settings.connectionStyles, entry, "after") }
+                      : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
         membraneRuntimePreview: null,
@@ -1884,12 +1993,17 @@ export const useLab = create<LabState>((set, get) => ({
           toSpaceId: input.toSpaceId,
           enabled: input.enabled !== false,
           semantic: createConnectionSemantic(input.typeId, input.semantic),
-          visual: normalizeConnectionVisual(input.visual),
+          visual: normalizeConnectionVisual(
+            input.visual,
+            connectionTypeStyle(input.typeId, s.settings.connectionStyles),
+          ),
         };
         if (findExactConnectionDuplicate(index, candidate)) return {};
-        const before = cloneConnections(s.connections);
-        const after = [...before, cloneConnection(candidate)];
-        const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+        const after = [...s.connections, cloneConnection(candidate)];
+        const entry: SpaceHistoryEntry = {
+          kind: "connections",
+          patches: [connectionRecordPatch(id, null, { index: s.connections.length, connection: candidate })],
+        };
         createdId = id;
         return {
           connections: after,
@@ -1920,9 +2034,16 @@ export const useLab = create<LabState>((set, get) => ({
         const candidate: Connection = { ...cloneConnection(current), semantic };
         if (findExactConnectionDuplicate(index, candidate, id)) return {};
         if (JSON.stringify(current.semantic) === JSON.stringify(semantic)) return {};
-        const before = cloneConnections(s.connections);
-        const after = before.map((connection) => connection.id === id ? candidate : connection);
-        const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+        const currentIndex = s.connections.findIndex((connection) => connection.id === id);
+        const after = s.connections.map((connection) => connection.id === id ? candidate : connection);
+        const entry: SpaceHistoryEntry = {
+          kind: "connections",
+          patches: [connectionRecordPatch(
+            id,
+            { index: currentIndex, connection: current },
+            { index: currentIndex, connection: candidate },
+          )],
+        };
         changed = true;
         return {
           connections: after,
@@ -1942,14 +2063,25 @@ export const useLab = create<LabState>((set, get) => ({
       const current = selectConnectionById(getConnectionIndex(s.connections), id);
       if (!current) return {};
       try {
-        const normalized = normalizeConnectionVisual(visual);
+        const normalized = normalizeConnectionVisual(
+          visual,
+          connectionTypeStyle(current.semantic.typeId, s.settings.connectionStyles),
+        );
         if (JSON.stringify(current.visual) === JSON.stringify(normalized)) return {};
-        const before = cloneConnections(s.connections);
-        const after = before.map((connection) => connection.id === id
+        const currentIndex = s.connections.findIndex((connection) => connection.id === id);
+        const candidate: Connection = { ...current, visual: normalized };
+        const after = s.connections.map((connection) => connection.id === id
           ? { ...connection, visual: normalized }
           : connection
         );
-        const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+        const entry: SpaceHistoryEntry = {
+          kind: "connections",
+          patches: [connectionRecordPatch(
+            id,
+            { index: currentIndex, connection: current },
+            { index: currentIndex, connection: candidate },
+          )],
+        };
         changed = true;
         return {
           connections: after,
@@ -1968,9 +2100,17 @@ export const useLab = create<LabState>((set, get) => ({
     set((s) => {
       const current = selectConnectionById(getConnectionIndex(s.connections), id);
       if (!current || current.enabled === enabled) return {};
-      const before = cloneConnections(s.connections);
-      const after = before.map((connection) => connection.id === id ? { ...connection, enabled } : connection);
-      const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+      const currentIndex = s.connections.findIndex((connection) => connection.id === id);
+      const candidate: Connection = { ...current, enabled };
+      const after = s.connections.map((connection) => connection.id === id ? candidate : connection);
+      const entry: SpaceHistoryEntry = {
+        kind: "connections",
+        patches: [connectionRecordPatch(
+          id,
+          { index: currentIndex, connection: current },
+          { index: currentIndex, connection: candidate },
+        )],
+      };
       changed = true;
       return {
         connections: after,
@@ -1984,10 +2124,14 @@ export const useLab = create<LabState>((set, get) => ({
   deleteConnection: (id) => {
     let changed = false;
     set((s) => {
-      if (!selectConnectionById(getConnectionIndex(s.connections), id)) return {};
-      const before = cloneConnections(s.connections);
-      const after = before.filter((connection) => connection.id !== id);
-      const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+      const current = selectConnectionById(getConnectionIndex(s.connections), id);
+      if (!current) return {};
+      const currentIndex = s.connections.findIndex((connection) => connection.id === id);
+      const after = s.connections.filter((connection) => connection.id !== id);
+      const entry: SpaceHistoryEntry = {
+        kind: "connections",
+        patches: [connectionRecordPatch(id, { index: currentIndex, connection: current }, null)],
+      };
       changed = true;
       return {
         connections: after,
@@ -1997,6 +2141,40 @@ export const useLab = create<LabState>((set, get) => ({
           after,
         ),
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  updateConnectionTypeStyle: (typeId, patch) => {
+    let changed = false;
+    set((s) => {
+      const before = cloneProjectConnectionStyles(s.settings.connectionStyles);
+      const after = updateProjectConnectionStyle(before, typeId, patch);
+      const patches = changedConnectionStylePatches(before, after);
+      if (!patches.length) return {};
+      changed = true;
+      return {
+        settings: { ...s.settings, connectionStyles: after },
+        transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connection-styles", patches }),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  applyConnectionStylePack: (packId) => {
+    let changed = false;
+    set((s) => {
+      const before = cloneProjectConnectionStyles(s.settings.connectionStyles);
+      const after = createConnectionStylePack(before, packId);
+      const patches = changedConnectionStylePatches(before, after);
+      if (!patches.length) return {};
+      changed = true;
+      return {
+        settings: { ...s.settings, connectionStyles: after },
+        transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connection-styles", patches }),
         transformRedoStack: [],
       };
     });
@@ -2156,10 +2334,11 @@ export const useLab = create<LabState>((set, get) => ({
         appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
         born: now + index * 24,
       }));
+      const connectionStyles = normalizeProjectConnectionStyles(snapshot.connectionStyles);
       return {
         theme: snapshot.theme,
         spaces,
-        connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces)),
+        connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces), connectionStyles),
         camera: cloneCamera(snapshot.camera),
         ...replaceSelectionState(null),
         ...clearedConnectionSelection(),
@@ -2188,12 +2367,16 @@ export const useLab = create<LabState>((set, get) => ({
           organism,
           resources,
           presentationDefaults,
+          connectionStyles,
+          connectionView: normalizeConnectionViewSettings(snapshot.connectionView),
           labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
           labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
           labelCustomColour: normalizeLabelCustomColour(snapshot.labelCustomColour),
           cellShadow: normalizeLegacyCellShadow(snapshot.cellShadow, snapshot.rendererMode),
           performanceQuality: normalizePerformanceQuality(snapshot.performanceQuality),
         },
+        transformUndoStack: [],
+        transformRedoStack: [],
       };
     }),
 

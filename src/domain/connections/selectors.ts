@@ -1,4 +1,5 @@
 import type { Connection } from "../graph/types";
+import { resolveConnectionSemanticType } from "./registry";
 
 export interface ConnectionIndex {
   byId: ReadonlyMap<string, Connection>;
@@ -7,7 +8,7 @@ export interface ConnectionIndex {
   byExactSemantic: ReadonlyMap<string, readonly Connection[]>;
 }
 
-const pairKey = (firstId: string, secondId: string): string =>
+export const connectionPairKey = (firstId: string, secondId: string): string =>
   JSON.stringify(firstId <= secondId ? [firstId, secondId] : [secondId, firstId]);
 
 const canonicalDirection = (connection: Connection): Connection["semantic"]["direction"] => {
@@ -18,7 +19,7 @@ const canonicalDirection = (connection: Connection): Connection["semantic"]["dir
 };
 
 export const exactConnectionSemanticKey = (connection: Connection): string => JSON.stringify([
-  pairKey(connection.fromSpaceId, connection.toSpaceId),
+  connectionPairKey(connection.fromSpaceId, connection.toSpaceId),
   connection.semantic.typeId,
   connection.semantic.requirement,
   canonicalDirection(connection),
@@ -42,7 +43,7 @@ export const buildConnectionIndex = (connections: readonly Connection[]): Connec
     byId.set(connection.id, connection);
     append(byEndpoint, connection.fromSpaceId, connection);
     append(byEndpoint, connection.toSpaceId, connection);
-    append(byPair, pairKey(connection.fromSpaceId, connection.toSpaceId), connection);
+    append(byPair, connectionPairKey(connection.fromSpaceId, connection.toSpaceId), connection);
     append(byExactSemantic, exactConnectionSemanticKey(connection), connection);
   }
   return { byId, byEndpoint, byPair, byExactSemantic };
@@ -78,7 +79,55 @@ export const getConnectionsBetweenSpaces = (
   index: ConnectionIndex,
   firstSpaceId: string,
   secondSpaceId: string,
-): readonly Connection[] => index.byPair.get(pairKey(firstSpaceId, secondSpaceId)) ?? [];
+): readonly Connection[] => index.byPair.get(connectionPairKey(firstSpaceId, secondSpaceId)) ?? [];
+
+export interface ConnectionPairProjection {
+  pairKey: string;
+  firstSpaceId: string;
+  secondSpaceId: string;
+  connectionIds: string[];
+  semanticTypeIds: Connection["semantic"]["typeId"][];
+  tableCodes: string[];
+  matrixCodes: string[];
+  directions: Connection["semantic"]["direction"][];
+}
+
+export const projectConnectionPairs = (
+  connections: readonly Connection[],
+): ConnectionPairProjection[] => {
+  const rows = new Map<string, ConnectionPairProjection>();
+  for (const connection of connections) {
+    const firstSpaceId = connection.fromSpaceId <= connection.toSpaceId
+      ? connection.fromSpaceId
+      : connection.toSpaceId;
+    const secondSpaceId = firstSpaceId === connection.fromSpaceId
+      ? connection.toSpaceId
+      : connection.fromSpaceId;
+    const key = connectionPairKey(firstSpaceId, secondSpaceId);
+    const definition = resolveConnectionSemanticType(connection.semantic.typeId);
+    const row = rows.get(key) ?? {
+      pairKey: key,
+      firstSpaceId,
+      secondSpaceId,
+      connectionIds: [],
+      semanticTypeIds: [],
+      tableCodes: [],
+      matrixCodes: [],
+      directions: [],
+    };
+    row.connectionIds.push(connection.id);
+    row.semanticTypeIds.push(connection.semantic.typeId);
+    row.tableCodes.push(definition.tableCode);
+    row.matrixCodes.push(definition.matrixCode);
+    row.directions.push(canonicalDirection(connection));
+    rows.set(key, row);
+  }
+  return [...rows.values()];
+};
+
+export const selectConnectionIdsForPair = (
+  pair: ConnectionPairProjection | undefined,
+): string[] => pair ? [...pair.connectionIds] : [];
 
 export const findExactConnectionDuplicate = (
   index: ConnectionIndex,

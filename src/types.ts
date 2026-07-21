@@ -1,6 +1,10 @@
 import type { ResourceSettings } from "./resources/types";
 import type { CellAppearanceOverrides, ProjectPresentationDefaults } from "./domain/presentation/types";
 import type { Connection } from "./domain/graph/types";
+import type {
+  ConnectionViewSettings,
+  ProjectConnectionStyles,
+} from "./domain/connections/styles";
 
 export type Theme = "day" | "night";
 
@@ -289,4 +293,8 @@ export interface SavedCanvasSnapshot {
   performanceQuality?: PerformanceQuality;
   /** C0.4.1 — optional so pre-layer saved views migrate from legacy settings. */
   presentationDefaults?: ProjectPresentationDefaults;
+  /** Connections V1 — optional so P1 and older Saved Views inherit launch defaults. */
+  connectionStyles?: ProjectConnectionStyles;
+  /** Connections V1 — optional live view state; semantic records remain separate. */
+  connectionView?: ConnectionViewSettings;
 }

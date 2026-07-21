@@ -1,4 +1,8 @@
-import type { ProjectExportSettings, ProjectExportSnapshot } from "../export/projectSnapshot";
+import type {
+  NormalizedProjectExportSettings,
+  ProjectExportSettings,
+  ProjectExportSnapshot,
+} from "../export/projectSnapshot";
 import { PROJECT_SNAPSHOT_SCHEMA_VERSION } from "../export/types";
 import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme } from "../types";
@@ -25,6 +29,11 @@ import {
   normalizeConnectionCollection,
 } from "../domain/connections/model";
 import { buildConnectionIndex, findExactConnectionDuplicate } from "../domain/connections/selectors";
+import {
+  normalizeConnectionViewSettings,
+  normalizeProjectConnectionStyles,
+  type ProjectConnectionStyles,
+} from "../domain/connections/styles";
 
 export const PROJECT_FILE_VERSION = 1;
 export const CONFIG_FILE_VERSION = 1;
@@ -45,7 +54,7 @@ export interface MooorfConfigEnvelope {
   kind: "mooorf-config";
   schemaVersion: 1;
   savedAt: string;
-  settings: ProjectExportSettings & { theme: Theme };
+  settings: NormalizedProjectExportSettings & { theme: Theme };
   workspace: {
     camera: Camera;
     spaceLayoutById: Record<string, { x: number; y: number }>;
@@ -127,7 +136,7 @@ const validateSpace = (
   };
 };
 
-const validateSettings = (value: unknown): ProjectExportSettings => {
+const validateSettings = (value: unknown): NormalizedProjectExportSettings => {
   if (!isRecord(value)) throw new Error("Project settings are missing or invalid.");
   if (!isRecord(value.annotationDetail) || !isRecord(value.organism)) {
     throw new Error("Project settings are incomplete.");
@@ -170,6 +179,8 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
     labelColourMode: value.labelColourMode as ProjectExportSettings["labelColourMode"],
     labelCustomColour: value.labelCustomColour as string,
   });
+  const connectionStyles = normalizeProjectConnectionStyles(value.connectionStyles);
+  const connectionView = normalizeConnectionViewSettings(value.connectionView);
   return {
     ...(value as unknown as ProjectExportSettings),
     rendererMode,
@@ -196,11 +207,17 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
       : normalizeLegacyCellShadow(undefined, rendererMode),
     performanceQuality: normalizePerformanceQuality(value.performanceQuality),
     presentationDefaults,
+    connectionStyles,
+    connectionView,
   };
 };
 
-const validateConnections = (value: unknown, spaces: readonly SpaceCell[]) => {
-  const connections = normalizeConnectionCollection(value, connectionCellIds(spaces));
+const validateConnections = (
+  value: unknown,
+  spaces: readonly SpaceCell[],
+  connectionStyles: ProjectConnectionStyles,
+) => {
+  const connections = normalizeConnectionCollection(value, connectionCellIds(spaces), connectionStyles);
   const index = buildConnectionIndex(connections);
   for (const connection of connections) {
     if (findExactConnectionDuplicate(index, connection, connection.id)) {
@@ -223,7 +240,7 @@ const validateSnapshot = (value: unknown): ProjectExportSnapshot => {
   if (theme !== "day" && theme !== "night") throw new Error("Project theme is invalid.");
   const settings = validateSettings(value.settings);
   const spaces = ensureSpaceCodes(value.spaces.map((space, index) => validateSpace(space, index, settings.presentationDefaults)));
-  const connections = validateConnections(value.connections, spaces);
+  const connections = validateConnections(value.connections, spaces, settings.connectionStyles);
   return {
     schemaVersion: PROJECT_SNAPSHOT_SCHEMA_VERSION,
     exportedAt: clean(value.exportedAt, "Exported date", 80),
@@ -271,13 +288,15 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     labelCustomColour: value.labelCustomColour as string,
   });
   const spaces = ensureSpaceCodes(value.spaces.map((space, spaceIndex) => validateSpace(space, spaceIndex, presentationDefaults)));
+  const connectionStyles = normalizeProjectConnectionStyles(value.connectionStyles);
+  const connectionView = normalizeConnectionViewSettings(value.connectionView);
   return {
     ...(value as unknown as SavedCanvasSnapshot),
     id: clean(value.id, `Saved view ${index + 1} id`, 160),
     name: clean(value.name, `Saved view ${index + 1} name`),
     createdAt: finite(value.createdAt, `Saved view ${index + 1} createdAt`),
     spaces,
-    connections: validateConnections(value.connections, spaces),
+    connections: validateConnections(value.connections, spaces, connectionStyles),
     camera: validateCamera(value.camera),
     theme,
     rendererMode,
@@ -294,6 +313,8 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     performanceQuality: normalizePerformanceQuality(value.performanceQuality),
     resources,
     presentationDefaults,
+    connectionStyles,
+    connectionView,
   };
 };
 
@@ -332,6 +353,8 @@ export const buildProjectEnvelope = (
       organism: normalizeOrganismSettings(snapshot.settings.organism),
       resources: cloneResourceSettings(snapshot.settings.resources),
       presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
+      connectionStyles: normalizeProjectConnectionStyles(snapshot.settings.connectionStyles),
+      connectionView: normalizeConnectionViewSettings(snapshot.settings.connectionView),
     },
   },
   savedViews: savedViews.map((view) => {
@@ -360,6 +383,8 @@ export const buildProjectEnvelope = (
       organism,
       resources,
       presentationDefaults,
+      connectionStyles: normalizeProjectConnectionStyles(view.connectionStyles ?? snapshot.settings.connectionStyles),
+      connectionView: normalizeConnectionViewSettings(view.connectionView ?? snapshot.settings.connectionView),
     };
   }),
 });
@@ -405,6 +430,8 @@ export const buildConfigEnvelope = (
     organism: normalizeOrganismSettings(snapshot.settings.organism),
     resources: cloneResourceSettings(snapshot.settings.resources),
     presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
+    connectionStyles: normalizeProjectConnectionStyles(snapshot.settings.connectionStyles),
+    connectionView: normalizeConnectionViewSettings(snapshot.settings.connectionView),
   },
   workspace: {
     camera: { ...snapshot.camera },

@@ -18,6 +18,10 @@ import { cloneResourceSettings } from "../resources/resourcePersistence";
 import { cloneProjectPresentationDefaults } from "../domain/presentation/validation";
 import { normalizeOrganismSettings } from "../canvas/organismProductionSettings";
 import { createDownloadFeedback, type DownloadFeedback } from "../runtime/downloadActivity";
+import {
+  cloneProjectConnectionStyles,
+  normalizeConnectionViewSettings,
+} from "../domain/connections/styles";
 
 export type PackProgressStage =
   | "RENDERING"
@@ -59,6 +63,8 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
     cellShadow: { ...s.cellShadow },
     performanceQuality: s.performanceQuality,
     presentationDefaults: cloneProjectPresentationDefaults(s.presentationDefaults),
+    connectionStyles: cloneProjectConnectionStyles(s.connectionStyles),
+    connectionView: normalizeConnectionViewSettings(s.connectionView),
   };
 };
 

@@ -5,6 +5,7 @@ import type {
   ConnectionSemantic,
   ConnectionSemanticTypeId,
   ConnectionStrength,
+  KnownConnectionAnchorId,
   KnownConnectionGeometryId,
   KnownConnectionMarkerId,
   KnownConnectionSemanticTypeId,
@@ -35,7 +36,10 @@ export const CONNECTION_MARKER_IDS = [
   "chevron",
 ] as const satisfies readonly KnownConnectionMarkerId[];
 
+export const CONNECTION_ANCHOR_IDS = ["auto", "top", "right", "bottom", "left"] as const satisfies readonly KnownConnectionAnchorId[];
+
 export const CONNECTION_SEMANTIC_TYPE_IDS = [
+  "custom",
   "adjacency",
   "direct-access",
   "visual-access",
@@ -67,6 +71,16 @@ const define = (
 
 export const CONNECTION_SEMANTIC_TYPES: readonly ConnectionSemanticTypeDefinition[] = [
   define({
+    id: "custom",
+    name: "Custom",
+    description: "A general relationship whose meaning is defined by the authored modifiers and notes.",
+    category: "unknown",
+    defaults: { requirement: "optional", direction: "none", strength: "medium", priority: "normal" },
+    futureValidation: { allowSelfConnection: false },
+    tableCode: "CUS",
+    matrixCode: "CUS",
+  }),
+  define({
     id: "adjacency",
     name: "Adjacency",
     description: "Cells should be directly beside or immediately near one another.",
@@ -88,7 +102,7 @@ export const CONNECTION_SEMANTIC_TYPES: readonly ConnectionSemanticTypeDefinitio
   }),
   define({
     id: "visual-access",
-    name: "Visual Access",
+    name: "Visual Link",
     description: "Cells should retain a deliberate line of sight.",
     category: "access",
     defaults: { requirement: "preferred", direction: "two-way", strength: "medium", priority: "normal" },
