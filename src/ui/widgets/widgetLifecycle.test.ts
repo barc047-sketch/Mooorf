@@ -103,6 +103,8 @@ const dock = readFileSync(new URL("../Dock.tsx", import.meta.url), "utf8");
 assert.match(dock, /onClick=\{\(\) => openWidget\("label-studio"\)\}/, "Dock directly launches Label Studio");
 assert.match(dock, /onClick=\{\(\) => openWidget\("membrane-settings"\)\}/, "Dock directly launches Membrane Detail");
 assert.match(dock, /active=\{isExpanded\("label-studio"\)\}/, "Label Studio launcher reflects canonical expanded state");
+assert.match(dock, /<MessageSquareText size=\{16\} strokeWidth=\{1\.5\} \/>/, "Label Studio launcher uses the callout-with-text-lines icon");
+assert.doesNotMatch(dock, /<Type\b/, "Label Studio launcher does not use a text-like glyph");
 assert.match(dock, /active=\{isExpanded\("membrane-settings"\)\}/, "Membrane launcher reflects canonical expanded state");
 assert.match(dock, /detail\.detailWidgetId !== "membrane-settings"/, "Membrane family does not render a duplicate generic Detail launcher");
 

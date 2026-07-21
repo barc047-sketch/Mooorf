@@ -5,11 +5,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  MessageSquareText,
   Minus,
   Plus,
   Shuffle,
   SlidersHorizontal,
-  Type,
   Upload,
 } from "lucide-react";
 import { appearanceFamilyDefinition, appearanceFamilyForTarget } from "../domain/presentation/editing";
@@ -106,7 +106,7 @@ export default function Dock() {
           aria-expanded={isExpanded("label-studio")}
           onClick={() => openWidget("label-studio")}
         >
-          <Type size={16} strokeWidth={1.5} />
+          <MessageSquareText size={16} strokeWidth={1.5} />
         </DockButton>
         <DockButton
           active={isExpanded("membrane-settings")}
