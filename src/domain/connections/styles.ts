@@ -13,6 +13,7 @@ import type {
   KnownConnectionSemanticTypeId,
 } from "../graph/types";
 import { CONNECTION_SEMANTIC_TYPE_IDS } from "./registry";
+import type { ProjectRelationshipType } from "./relationshipTypes";
 
 export interface ResolvedConnectionAppearance {
   color: string;
@@ -225,7 +226,12 @@ const isKnownType = (value: string): value is KnownConnectionSemanticTypeId =>
 export const connectionTypeStyle = (
   typeId: string,
   styles: ProjectConnectionStyles,
-): ResolvedConnectionStyle => cloneResolvedConnectionStyle(isKnownType(typeId) ? styles[typeId] : styles.custom);
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
+): ResolvedConnectionStyle => {
+  if (isKnownType(typeId)) return cloneResolvedConnectionStyle(styles[typeId]);
+  const projectType = projectRelationshipTypes.find((type) => type.id === typeId);
+  return cloneResolvedConnectionStyle(projectType?.visualDefaults ?? styles.custom);
+};
 
 const mergeLocalVisual = (base: ResolvedConnectionStyle, visual: ConnectionVisual | undefined): ResolvedConnectionStyle => {
   if (!visual) return cloneResolvedConnectionStyle(base);
@@ -245,7 +251,11 @@ const mergeLocalVisual = (base: ResolvedConnectionStyle, visual: ConnectionVisua
 export const resolveConnectionStyle = (
   connection: Connection,
   styles: ProjectConnectionStyles,
-): ResolvedConnectionStyle => mergeLocalVisual(connectionTypeStyle(connection.semantic.typeId, styles), connection.visual);
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
+): ResolvedConnectionStyle => mergeLocalVisual(
+  connectionTypeStyle(connection.semantic.typeId, styles, projectRelationshipTypes),
+  connection.visual,
+);
 
 const semanticColors: Record<KnownConnectionSemanticTypeId, string> = {
   custom: "#55585f",

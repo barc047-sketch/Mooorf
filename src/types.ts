@@ -5,6 +5,7 @@ import type {
   ConnectionViewSettings,
   ProjectConnectionStyles,
 } from "./domain/connections/styles";
+import type { ProjectRelationshipType } from "./domain/connections/relationshipTypes";
 
 export type Theme = "day" | "night";
 
@@ -296,6 +297,8 @@ export interface SavedCanvasSnapshot {
   presentationDefaults?: ProjectPresentationDefaults;
   /** Connections V1 — optional so P1 and older Saved Views inherit launch defaults. */
   connectionStyles?: ProjectConnectionStyles;
+  /** Project-created Relationship Types only; factory definitions remain in the registry. */
+  projectRelationshipTypes?: ProjectRelationshipType[];
   /** Connections V1 — optional live view state; semantic records remain separate. */
   connectionView?: ConnectionViewSettings;
 }

@@ -116,6 +116,11 @@ import {
 } from "../domain/connections/selectors";
 import { resolveConnectionSemanticType } from "../domain/connections/registry";
 import {
+  cloneProjectRelationshipTypes,
+  normalizeProjectRelationshipTypes,
+  type ProjectRelationshipType,
+} from "../domain/connections/relationshipTypes";
+import {
   applyConnectionStylePack as createConnectionStylePack,
   cloneProjectConnectionStyles,
   connectionTypeStyle,
@@ -240,6 +245,8 @@ export interface LabSettings {
   resources: ResourceSettings;
   presentationDefaults: ProjectPresentationDefaults;
   connectionStyles: ProjectConnectionStyles;
+  /** Project-defined Relationship Type records; factory definitions remain registry-owned. */
+  projectRelationshipTypes: ProjectRelationshipType[];
   connectionView: ConnectionViewSettings;
 }
 
@@ -771,18 +778,20 @@ const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => {
     appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
   }));
   const connectionStyles = normalizeProjectConnectionStyles(snapshot.connectionStyles);
+  const projectRelationshipTypes = normalizeProjectRelationshipTypes(snapshot.projectRelationshipTypes, connectionStyles);
   return {
     ...snapshot,
     colorSource: snapshot.colorSource === "privacy" ? "privacy" : "category",
     uiScale: normalizeUiScale(snapshot.uiScale),
     widgetScale: normalizeWidgetScale(snapshot.widgetScale),
     spaces,
-    connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces), connectionStyles),
+    connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces), connectionStyles, projectRelationshipTypes),
     camera: cloneCamera(snapshot.camera),
     organism: cloneOrganism(snapshot.organism),
     resources,
     presentationDefaults,
     connectionStyles,
+    projectRelationshipTypes,
     connectionView: normalizeConnectionViewSettings(snapshot.connectionView),
     labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
     labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),
@@ -892,6 +901,7 @@ const makeSnapshot = (
   resources: cloneResourceSettings(state.settings.resources),
   presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults),
   connectionStyles: cloneProjectConnectionStyles(state.settings.connectionStyles),
+  projectRelationshipTypes: cloneProjectRelationshipTypes(state.settings.projectRelationshipTypes),
   connectionView: normalizeConnectionViewSettings(state.settings.connectionView),
   labelScaleMode: state.settings.labelScaleMode,
   labelColourMode: state.settings.labelColourMode,
@@ -956,6 +966,7 @@ export const useLab = create<LabState>((set, get) => ({
       resources: DEFAULT_RESOURCE_SETTINGS,
     }),
     connectionStyles: createDefaultProjectConnectionStyles(),
+    projectRelationshipTypes: [],
     connectionView: createDefaultConnectionViewSettings(),
   },
   activeTool: "select",
@@ -1049,6 +1060,14 @@ export const useLab = create<LabState>((set, get) => ({
           connectionStyles: patch.connectionStyles
             ? normalizeProjectConnectionStyles(patch.connectionStyles)
             : s.settings.connectionStyles,
+          projectRelationshipTypes: patch.projectRelationshipTypes
+            ? normalizeProjectRelationshipTypes(
+              patch.projectRelationshipTypes,
+              patch.connectionStyles
+                ? normalizeProjectConnectionStyles(patch.connectionStyles)
+                : s.settings.connectionStyles,
+            )
+            : s.settings.projectRelationshipTypes,
           connectionView: patch.connectionView
             ? normalizeConnectionViewSettings(patch.connectionView)
             : s.settings.connectionView,
@@ -1284,7 +1303,12 @@ export const useLab = create<LabState>((set, get) => ({
       });
       return { status: "invalid", connectionId: null };
     }
-    const semantic = createConnectionSemantic(authoring.typeId);
+    const semantic = createConnectionSemantic(
+      authoring.typeId,
+      {},
+      get().settings.projectRelationshipTypes,
+      get().settings.connectionStyles,
+    );
     const candidate: Connection = {
       id: "__connection-authoring-candidate__",
       fromSpaceId: sourceId,
@@ -2101,10 +2125,15 @@ export const useLab = create<LabState>((set, get) => ({
           fromSpaceId: input.fromSpaceId,
           toSpaceId: input.toSpaceId,
           enabled: input.enabled !== false,
-          semantic: createConnectionSemantic(input.typeId, input.semantic),
+          semantic: createConnectionSemantic(
+            input.typeId,
+            input.semantic,
+            s.settings.projectRelationshipTypes,
+            s.settings.connectionStyles,
+          ),
           visual: normalizeConnectionVisual(
             input.visual,
-            connectionTypeStyle(input.typeId, s.settings.connectionStyles),
+            connectionTypeStyle(input.typeId, s.settings.connectionStyles, s.settings.projectRelationshipTypes),
           ),
         };
         if (findExactConnectionDuplicate(index, candidate)) return {};
@@ -2139,7 +2168,7 @@ export const useLab = create<LabState>((set, get) => ({
           strength: patch.strength ?? current.semantic.strength,
           priority: patch.priority ?? current.semantic.priority,
           notes: patch.notes ?? current.semantic.notes,
-        });
+        }, s.settings.projectRelationshipTypes, s.settings.connectionStyles);
         const candidate: Connection = { ...cloneConnection(current), semantic };
         if (findExactConnectionDuplicate(index, candidate, id)) return {};
         if (JSON.stringify(current.semantic) === JSON.stringify(semantic)) return {};
@@ -2174,7 +2203,7 @@ export const useLab = create<LabState>((set, get) => ({
       try {
         const normalized = normalizeConnectionVisual(
           visual,
-          connectionTypeStyle(current.semantic.typeId, s.settings.connectionStyles),
+          connectionTypeStyle(current.semantic.typeId, s.settings.connectionStyles, s.settings.projectRelationshipTypes),
         );
         if (JSON.stringify(current.visual) === JSON.stringify(normalized)) return {};
         const currentIndex = s.connections.findIndex((connection) => connection.id === id);
@@ -2444,10 +2473,16 @@ export const useLab = create<LabState>((set, get) => ({
         born: now + index * 24,
       }));
       const connectionStyles = normalizeProjectConnectionStyles(snapshot.connectionStyles);
+      const projectRelationshipTypes = normalizeProjectRelationshipTypes(snapshot.projectRelationshipTypes, connectionStyles);
       return {
         theme: snapshot.theme,
         spaces,
-        connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces), connectionStyles),
+        connections: normalizeConnectionCollection(
+          snapshot.connections,
+          connectionCellIds(spaces),
+          connectionStyles,
+          projectRelationshipTypes,
+        ),
         camera: cloneCamera(snapshot.camera),
         ...replaceSelectionState(null),
         ...clearedConnectionSelection(),
@@ -2479,6 +2514,7 @@ export const useLab = create<LabState>((set, get) => ({
           resources,
           presentationDefaults,
           connectionStyles,
+          projectRelationshipTypes,
           connectionView: normalizeConnectionViewSettings(snapshot.connectionView),
           labelScaleMode: normalizeLabelScaleMode(snapshot.labelScaleMode, snapshot.rendererMode),
           labelColourMode: normalizeLabelColourMode(snapshot.labelColourMode),

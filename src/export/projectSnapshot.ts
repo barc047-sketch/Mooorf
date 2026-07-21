@@ -33,6 +33,11 @@ import {
   type ConnectionViewSettings,
   type ProjectConnectionStyles,
 } from "../domain/connections/styles";
+import {
+  cloneProjectRelationshipTypes,
+  normalizeProjectRelationshipTypes,
+  type ProjectRelationshipType,
+} from "../domain/connections/relationshipTypes";
 
 /* Mirrors the existing SavedCanvasSnapshot field set (src/types.ts) so the
    JSON project export reuses one canonical project-state shape instead of
@@ -64,12 +69,16 @@ export interface ProjectExportSettings {
   presentationDefaults: ProjectPresentationDefaults;
   /** Optional only at the serialized compatibility boundary; current snapshots always emit it. */
   connectionStyles?: ProjectConnectionStyles;
+  /** Optional at the compatibility boundary; missing legacy projects normalize to []. */
+  projectRelationshipTypes?: ProjectRelationshipType[];
   /** Optional only at the serialized compatibility boundary; current snapshots always emit it. */
   connectionView?: ConnectionViewSettings;
 }
 
 export interface NormalizedProjectExportSettings extends ProjectExportSettings {
   connectionStyles: ProjectConnectionStyles;
+  /** Existing fixtures and older persisted snapshots may omit this; all readers normalize it to []. */
+  projectRelationshipTypes?: ProjectRelationshipType[];
   connectionView: ConnectionViewSettings;
 }
 
@@ -131,6 +140,12 @@ export const buildProjectSnapshot = (
       resources: cloneResourceSettings(input.settings.resources),
       presentationDefaults: cloneProjectPresentationDefaults(input.settings.presentationDefaults),
       connectionStyles: normalizeProjectConnectionStyles(input.settings.connectionStyles),
+      projectRelationshipTypes: cloneProjectRelationshipTypes(
+        normalizeProjectRelationshipTypes(
+          input.settings.projectRelationshipTypes,
+          normalizeProjectConnectionStyles(input.settings.connectionStyles),
+        ),
+      ),
       connectionView: normalizeConnectionViewSettings(input.settings.connectionView),
     },
     summary: {

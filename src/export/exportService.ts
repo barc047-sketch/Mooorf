@@ -22,6 +22,7 @@ import {
   cloneProjectConnectionStyles,
   normalizeConnectionViewSettings,
 } from "../domain/connections/styles";
+import { cloneProjectRelationshipTypes } from "../domain/connections/relationshipTypes";
 
 export type PackProgressStage =
   | "RENDERING"
@@ -64,6 +65,7 @@ export const currentSettingsForSnapshot = (): ProjectExportSettings => {
     performanceQuality: s.performanceQuality,
     presentationDefaults: cloneProjectPresentationDefaults(s.presentationDefaults),
     connectionStyles: cloneProjectConnectionStyles(s.connectionStyles),
+    projectRelationshipTypes: cloneProjectRelationshipTypes(s.projectRelationshipTypes),
     connectionView: normalizeConnectionViewSettings(s.connectionView),
   };
 };

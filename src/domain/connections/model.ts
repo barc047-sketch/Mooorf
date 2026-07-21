@@ -13,6 +13,7 @@ import type {
   ConnectionVisual,
 } from "../graph/types";
 import type { ProjectConnectionStyles, ResolvedConnectionStyle } from "./styles";
+import { resolveRelationshipType, type ProjectRelationshipType } from "./relationshipTypes";
 import {
   CONNECTION_DIRECTIONS,
   CONNECTION_PRIORITIES,
@@ -86,9 +87,13 @@ export const cloneConnections = (connections: readonly Connection[]): Connection
 export const createConnectionSemantic = (
   typeId: ConnectionSemanticTypeId,
   patch: Partial<Omit<ConnectionSemantic, "typeId">> = {},
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
+  styles: ProjectConnectionStyles = createDefaultProjectConnectionStyles(),
 ): ConnectionSemantic => {
   const cleanedTypeId = cleanText(typeId, "Connection semantic type ID", 160);
-  const defaults = resolveConnectionSemanticType(cleanedTypeId).defaults;
+  const defaults = projectRelationshipTypes.length
+    ? resolveRelationshipType(cleanedTypeId, projectRelationshipTypes, styles).semanticDefaults
+    : resolveConnectionSemanticType(cleanedTypeId).defaults;
   return {
     typeId: cleanedTypeId,
     requirement: oneOf<ConnectionRequirement>(patch.requirement, CONNECTION_REQUIREMENTS, defaults.requirement),
@@ -193,6 +198,7 @@ export const normalizeConnection = (
   validCellIds: ReadonlySet<string>,
   index = 0,
   styles: ProjectConnectionStyles = createDefaultProjectConnectionStyles(),
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
 ): Connection => {
   if (!isRecord(value)) throw new Error(`Connection row ${index + 1} is invalid.`);
   const id = cleanText(value.id, `Connection row ${index + 1} ID`, 160);
@@ -210,14 +216,14 @@ export const normalizeConnection = (
     strength: requireOneOf(value.semantic.strength, CONNECTION_STRENGTHS, `Connection row ${index + 1} strength`),
     priority: requireOneOf(value.semantic.priority, CONNECTION_PRIORITIES, `Connection row ${index + 1} priority`),
     notes: typeof value.semantic.notes === "string" ? value.semantic.notes : "",
-  });
+  }, projectRelationshipTypes, styles);
   return {
     id,
     fromSpaceId,
     toSpaceId,
     enabled: value.enabled !== false,
     semantic,
-    visual: normalizeConnectionVisual(value.visual, connectionTypeStyle(semantic.typeId, styles)),
+    visual: normalizeConnectionVisual(value.visual, connectionTypeStyle(semantic.typeId, styles, projectRelationshipTypes)),
   };
 };
 
@@ -225,12 +231,19 @@ export const normalizeConnectionCollection = (
   value: unknown,
   validCellIds: ReadonlySet<string>,
   styles: ProjectConnectionStyles = createDefaultProjectConnectionStyles(),
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
 ): Connection[] => {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value) || value.length > MAX_PROJECT_CONNECTIONS) {
     throw new Error(`Project Connections must be an array with at most ${MAX_PROJECT_CONNECTIONS} rows.`);
   }
-  const connections = value.map((connection, index) => normalizeConnection(connection, validCellIds, index, styles));
+  const connections = value.map((connection, index) => normalizeConnection(
+    connection,
+    validCellIds,
+    index,
+    styles,
+    projectRelationshipTypes,
+  ));
   const seen = new Set<string>();
   for (const connection of connections) {
     if (seen.has(connection.id)) throw new Error(`Duplicate Connection ID "${connection.id}".`);

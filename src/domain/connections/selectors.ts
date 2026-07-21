@@ -6,6 +6,7 @@ export interface ConnectionIndex {
   byEndpoint: ReadonlyMap<string, readonly Connection[]>;
   byPair: ReadonlyMap<string, readonly Connection[]>;
   byExactSemantic: ReadonlyMap<string, readonly Connection[]>;
+  byType: ReadonlyMap<string, readonly Connection[]>;
 }
 
 export const connectionPairKey = (firstId: string, secondId: string): string =>
@@ -39,14 +40,16 @@ export const buildConnectionIndex = (connections: readonly Connection[]): Connec
   const byEndpoint = new Map<string, Connection[]>();
   const byPair = new Map<string, Connection[]>();
   const byExactSemantic = new Map<string, Connection[]>();
+  const byType = new Map<string, Connection[]>();
   for (const connection of connections) {
     byId.set(connection.id, connection);
     append(byEndpoint, connection.fromSpaceId, connection);
     append(byEndpoint, connection.toSpaceId, connection);
     append(byPair, connectionPairKey(connection.fromSpaceId, connection.toSpaceId), connection);
     append(byExactSemantic, exactConnectionSemanticKey(connection), connection);
+    append(byType, connection.semantic.typeId, connection);
   }
-  return { byId, byEndpoint, byPair, byExactSemantic };
+  return { byId, byEndpoint, byPair, byExactSemantic, byType };
 };
 
 const connectionIndexCache = new WeakMap<readonly Connection[], ConnectionIndex>();

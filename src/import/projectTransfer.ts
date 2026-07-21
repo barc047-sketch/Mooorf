@@ -28,6 +28,10 @@ import {
   normalizeConnectionViewSettings,
   normalizeProjectConnectionStyles,
 } from "../domain/connections/styles";
+import {
+  cloneProjectRelationshipTypes,
+  normalizeProjectRelationshipTypes,
+} from "../domain/connections/relationshipTypes";
 
 const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 
@@ -63,6 +67,9 @@ const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) =
   connectionStyles: view.connectionStyles
     ? cloneProjectConnectionStyles(view.connectionStyles)
     : undefined,
+  projectRelationshipTypes: view.projectRelationshipTypes
+    ? cloneProjectRelationshipTypes(view.projectRelationshipTypes)
+    : undefined,
   connectionView: view.connectionView
     ? normalizeConnectionViewSettings(view.connectionView)
     : undefined,
@@ -76,6 +83,7 @@ const cloneSettings = (settings: LabSettings): LabSettings => ({
   resources: cloneResourceSettings(settings.resources),
   presentationDefaults: cloneProjectPresentationDefaults(settings.presentationDefaults),
   connectionStyles: cloneProjectConnectionStyles(settings.connectionStyles),
+  projectRelationshipTypes: cloneProjectRelationshipTypes(settings.projectRelationshipTypes),
   connectionView: normalizeConnectionViewSettings(settings.connectionView),
 });
 
@@ -194,6 +202,7 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
         resources: cloneResourceSettings(snapshot.settings.resources),
         presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
         connectionStyles: cloneProjectConnectionStyles(snapshot.settings.connectionStyles),
+        projectRelationshipTypes: cloneProjectRelationshipTypes(snapshot.settings.projectRelationshipTypes ?? []),
         connectionView: normalizeConnectionViewSettings(snapshot.settings.connectionView),
       },
       ...createClosedConnectionUiState(),
@@ -229,6 +238,10 @@ export const applyConfigFile = (config: MooorfConfigEnvelope): RecoverySnapshot 
         resources: cloneResourceSettings(config.settings.resources),
         presentationDefaults: cloneProjectPresentationDefaults(config.settings.presentationDefaults),
         connectionStyles: normalizeProjectConnectionStyles(config.settings.connectionStyles),
+        projectRelationshipTypes: normalizeProjectRelationshipTypes(
+          config.settings.projectRelationshipTypes,
+          normalizeProjectConnectionStyles(config.settings.connectionStyles),
+        ),
         connectionView: normalizeConnectionViewSettings(config.settings.connectionView),
       },
       ...replaceSelectionState(null),

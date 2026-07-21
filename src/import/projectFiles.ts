@@ -34,6 +34,11 @@ import {
   normalizeProjectConnectionStyles,
   type ProjectConnectionStyles,
 } from "../domain/connections/styles";
+import {
+  cloneProjectRelationshipTypes,
+  normalizeProjectRelationshipTypes,
+  type ProjectRelationshipType,
+} from "../domain/connections/relationshipTypes";
 
 export const PROJECT_FILE_VERSION = 1;
 export const CONFIG_FILE_VERSION = 1;
@@ -180,6 +185,7 @@ const validateSettings = (value: unknown): NormalizedProjectExportSettings => {
     labelCustomColour: value.labelCustomColour as string,
   });
   const connectionStyles = normalizeProjectConnectionStyles(value.connectionStyles);
+  const projectRelationshipTypes = normalizeProjectRelationshipTypes(value.projectRelationshipTypes, connectionStyles);
   const connectionView = normalizeConnectionViewSettings(value.connectionView);
   return {
     ...(value as unknown as ProjectExportSettings),
@@ -208,6 +214,7 @@ const validateSettings = (value: unknown): NormalizedProjectExportSettings => {
     performanceQuality: normalizePerformanceQuality(value.performanceQuality),
     presentationDefaults,
     connectionStyles,
+    projectRelationshipTypes,
     connectionView,
   };
 };
@@ -216,8 +223,9 @@ const validateConnections = (
   value: unknown,
   spaces: readonly SpaceCell[],
   connectionStyles: ProjectConnectionStyles,
+  projectRelationshipTypes: readonly ProjectRelationshipType[],
 ) => {
-  const connections = normalizeConnectionCollection(value, connectionCellIds(spaces), connectionStyles);
+  const connections = normalizeConnectionCollection(value, connectionCellIds(spaces), connectionStyles, projectRelationshipTypes);
   const index = buildConnectionIndex(connections);
   for (const connection of connections) {
     if (findExactConnectionDuplicate(index, connection, connection.id)) {
@@ -240,7 +248,12 @@ const validateSnapshot = (value: unknown): ProjectExportSnapshot => {
   if (theme !== "day" && theme !== "night") throw new Error("Project theme is invalid.");
   const settings = validateSettings(value.settings);
   const spaces = ensureSpaceCodes(value.spaces.map((space, index) => validateSpace(space, index, settings.presentationDefaults)));
-  const connections = validateConnections(value.connections, spaces, settings.connectionStyles);
+  const connections = validateConnections(
+    value.connections,
+    spaces,
+    settings.connectionStyles,
+    settings.projectRelationshipTypes ?? [],
+  );
   return {
     schemaVersion: PROJECT_SNAPSHOT_SCHEMA_VERSION,
     exportedAt: clean(value.exportedAt, "Exported date", 80),
@@ -289,6 +302,7 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
   });
   const spaces = ensureSpaceCodes(value.spaces.map((space, spaceIndex) => validateSpace(space, spaceIndex, presentationDefaults)));
   const connectionStyles = normalizeProjectConnectionStyles(value.connectionStyles);
+  const projectRelationshipTypes = normalizeProjectRelationshipTypes(value.projectRelationshipTypes, connectionStyles);
   const connectionView = normalizeConnectionViewSettings(value.connectionView);
   return {
     ...(value as unknown as SavedCanvasSnapshot),
@@ -296,7 +310,7 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     name: clean(value.name, `Saved view ${index + 1} name`),
     createdAt: finite(value.createdAt, `Saved view ${index + 1} createdAt`),
     spaces,
-    connections: validateConnections(value.connections, spaces, connectionStyles),
+    connections: validateConnections(value.connections, spaces, connectionStyles, projectRelationshipTypes),
     camera: validateCamera(value.camera),
     theme,
     rendererMode,
@@ -314,6 +328,7 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     resources,
     presentationDefaults,
     connectionStyles,
+    projectRelationshipTypes,
     connectionView,
   };
 };
@@ -354,6 +369,7 @@ export const buildProjectEnvelope = (
       resources: cloneResourceSettings(snapshot.settings.resources),
       presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
       connectionStyles: normalizeProjectConnectionStyles(snapshot.settings.connectionStyles),
+      projectRelationshipTypes: cloneProjectRelationshipTypes(snapshot.settings.projectRelationshipTypes ?? []),
       connectionView: normalizeConnectionViewSettings(snapshot.settings.connectionView),
     },
   },
@@ -384,6 +400,9 @@ export const buildProjectEnvelope = (
       resources,
       presentationDefaults,
       connectionStyles: normalizeProjectConnectionStyles(view.connectionStyles ?? snapshot.settings.connectionStyles),
+      projectRelationshipTypes: cloneProjectRelationshipTypes(
+        view.projectRelationshipTypes ?? snapshot.settings.projectRelationshipTypes ?? [],
+      ),
       connectionView: normalizeConnectionViewSettings(view.connectionView ?? snapshot.settings.connectionView),
     };
   }),
@@ -431,6 +450,7 @@ export const buildConfigEnvelope = (
     resources: cloneResourceSettings(snapshot.settings.resources),
     presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults),
     connectionStyles: normalizeProjectConnectionStyles(snapshot.settings.connectionStyles),
+    projectRelationshipTypes: cloneProjectRelationshipTypes(snapshot.settings.projectRelationshipTypes ?? []),
     connectionView: normalizeConnectionViewSettings(snapshot.settings.connectionView),
   },
   workspace: {
