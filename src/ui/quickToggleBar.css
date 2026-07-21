@@ -17,9 +17,31 @@
 }
 
 .live-toggle-disclosure,
-.live-toggle {
+.live-toggle,
+.connection-visibility-toggle {
   font-family: var(--font-ui);
   font-weight: 400;
+}
+
+.connection-visibility-toggle {
+  height: 26px;
+  margin: 0 3px 0 6px;
+  padding: 0 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: .055em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.connection-visibility-toggle[data-active="true"] {
+  border-color: color-mix(in srgb, var(--chrome-accent) 26%, var(--hairline));
+  background: color-mix(in srgb, var(--chrome-accent) 7%, var(--glass-bg));
+  color: var(--text-primary);
 }
 
 .live-toggle-disclosure {
@@ -117,7 +139,8 @@
 }
 
 .live-toggle-disclosure:focus-visible,
-.live-toggle:focus-visible {
+.live-toggle:focus-visible,
+.connection-visibility-toggle:focus-visible {
   outline: 1px solid color-mix(in srgb, var(--chrome-accent) 64%, transparent);
   outline-offset: -2px;
 }

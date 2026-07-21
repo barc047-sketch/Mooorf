@@ -325,7 +325,7 @@ interface LabState {
   removeFromSelection: (id: string) => void;
   clearSelection: () => void;
   selectAllVisible: () => void;
-  selectConnection: (id: string | null) => void;
+  selectConnection: (id: string | null, additive?: boolean) => void;
   clearConnectionSelection: () => void;
   beginConnectionAuthoring: (typeId: Connection["semantic"]["typeId"]) => void;
   enterConnectionMode: (typeId?: Connection["semantic"]["typeId"]) => void;
@@ -1157,14 +1157,21 @@ export const useLab = create<LabState>((set, get) => ({
       };
     }),
 
-  selectConnection: (id) =>
+  selectConnection: (id, additive = false) =>
     set((s) => {
       if (!id) return clearedConnectionSelection();
       if (!selectConnectionById(getConnectionIndex(s.connections), id)) return {};
+      const selectedConnectionIds = additive
+        ? s.selectedConnectionIds.includes(id)
+          ? s.selectedConnectionIds.filter((selectedId) => selectedId !== id)
+          : [...s.selectedConnectionIds, id]
+        : [id];
       return {
         ...replaceSelectionState(null),
-        selectedConnectionIds: [id],
-        primarySelectedConnectionId: id,
+        selectedConnectionIds,
+        primarySelectedConnectionId: selectedConnectionIds.includes(id)
+          ? id
+          : selectedConnectionIds[selectedConnectionIds.length - 1] ?? null,
         ...closedContext,
       };
     }),
@@ -1193,7 +1200,9 @@ export const useLab = create<LabState>((set, get) => ({
 
   toggleConnectionMode: () => {
     const state = get();
-    if (state.connectionModeActive) state.exitConnectionMode();
+    if (!state.settings.connectionView.visible) {
+      state.enterConnectionMode(state.connectionModeActive ? state.connectionModeTypeId : undefined);
+    } else if (state.connectionModeActive) state.exitConnectionMode();
     else state.enterConnectionMode();
   },
 

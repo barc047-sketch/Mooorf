@@ -158,10 +158,17 @@ test("the one production Inspector switches to semantic Connection editing", () 
   assert.doesNotMatch(inspector, /geometryId|strokePatternId|startMarkerId|endMarkerId|Morph Bridge/);
 });
 
-test("Organism owns one batched Canvas-local ports/preview overlay and no stored-line renderer", () => {
+test("Organism owns one batched base renderer and one shared interaction overlay", () => {
   const organism = source("../../canvas/OrganismCanvasView.tsx");
+  assert.match(organism, /connectionCanvasRef/);
+  assert.match(organism, /data-testid="connection-base-layer"/);
   assert.match(organism, /connectionEditingCanvasRef/);
   assert.match(organism, /data-testid="connection-editing-overlay"/);
+  assert.match(organism, /projectConnections/);
+  assert.match(organism, /drawConnectionBatch/);
+  assert.match(organism, /hitTestConnections/);
+  assert.match(organism, /getConnectionIndex/);
+  assert.match(organism, /selectConnection\(connectionHit, e\.shiftKey\)/);
   assert.match(organism, /deriveConnectionPorts/);
   assert.match(organism, /hitConnectionPort/);
   assert.match(organism, /resolveConnectionAutoPan/);
@@ -183,16 +190,89 @@ test("Organism owns one batched Canvas-local ports/preview overlay and no stored
   assert.match(organism, /pointerEvents: "none"/);
   assert.doesNotMatch(organism, /<line\b/, "ports/preview must be drawn in one batch");
   assert.doesNotMatch(organism, /ports\.map\s*\(/, "ports must not create one React node each");
-  assert.doesNotMatch(
-    organism,
-    /useLab\(\(s\) => s\.connections\)/,
-    "P2 must not subscribe the Organism renderer to stored Connections",
-  );
-  assert.doesNotMatch(organism, /connections\.map\s*\(/, "P2 must not render stored Connections");
+  assert.doesNotMatch(organism, /useLab\(\(s\) => s\.connections\)/, "stored rows stay out of React subscriptions");
+  assert.doesNotMatch(organism, /connections\.map\s*\([^)]*=>\s*</, "stored rows must not create JSX");
+  assert.doesNotMatch(organism, /<svg|<line\b/, "stored lines and ports remain batched Canvas2D work");
 });
 
 test("WidgetHost defers Connection Escape from every guarded editing target", () => {
   const host = source("../../ui/widgets/WidgetHost.tsx");
   assert.match(host, /isConnectionShortcutEditingTarget/);
   assert.match(host, /isConnectionShortcutEditingTarget\(e\.target\)/);
+});
+
+test("QuickToggleBar keeps the semantic Connections visibility switch outside collapsed controls", () => {
+  const quickToggle = source("../../ui/QuickToggleBar.tsx");
+  assert.match(quickToggle, /Connections \{connectionsVisible \? "ON" : "OFF"\}/);
+  assert.match(quickToggle, /settings\.connectionView\.visible/);
+  assert.match(quickToggle, /setSettings\(\{ connectionView:/);
+  assert.ok(
+    quickToggle.indexOf("connection-visibility-toggle") < quickToggle.indexOf('id="live-toggle-controls"'),
+    "Connections visibility must remain reachable while the optional controls are collapsed",
+  );
+  assert.doesNotMatch(quickToggle, /setConnectionEnabled|updateConnectionVisual|filterConnections/);
+});
+
+test("Organism gives primary port drag and transient line interaction deterministic ownership", () => {
+  const organism = source("../../canvas/OrganismCanvasView.tsx");
+  const directInteraction = organism.slice(
+    organism.indexOf("if (isInlineEditorCommitPointer(e))"),
+    organism.indexOf("const processMove"),
+  );
+  const idleHover = organism.slice(
+    organism.indexOf('if (gesture.mode === "none")'),
+    organism.indexOf("const transition = advanceCanvasGesture"),
+  );
+  assert.match(
+    organism,
+    /const connectionPressIntent = e\.button === 0 && connectionPort\s*\? "connection"\s*: resolveConnectionPressIntent/,
+    "a primary press on a visible Connection port must win before temporary pan, Cell drag, or Canvas pan",
+  );
+  assert.match(organism, /const CONNECTION_PORT_VISIBLE_RADIUS_PX = 7\.25/);
+  assert.match(organism, /const CONNECTION_PORT_HIT_RADIUS_PX = 14/);
+  assert.match(
+    organism,
+    /hitConnectionPort\(connectionPorts, \{ x: sx, y: sy \}, CONNECTION_PORT_HIT_RADIUS_PX\)/,
+    "source, move, and release must share the practical port hit target",
+  );
+  assert.doesNotMatch(organism, /hitConnectionPort\(connectionPorts, \{ x: sx, y: sy \}\)/);
+  assert.match(organism, /arc\(port\.x, port\.y, CONNECTION_PORT_VISIBLE_RADIUS_PX/);
+  assert.match(organism, /let hoveredConnectionId: string \| null = null/);
+  assert.match(organism, /const hoveredCommand = hoveredConnectionId[\s\S]{0,120}connectionProjection\.commands\.find/);
+  assert.match(organism, /hoveredEndpointIds/);
+  assert.match(organism, /const effectiveConnectionFocusMode = selectedConnectionIdSet\.size/);
+  assert.match(organism, /pointerleave/);
+  assert.match(organism, /const shouldSettleConnectionOff =/);
+  assert.ok(
+    directInteraction.indexOf("hitTestConnections") < directInteraction.indexOf("hitTestNuclei"),
+    "a visible Connection corridor must win over an overlapping Cell on pointerdown",
+  );
+  assert.ok(
+    idleHover.indexOf("hitTestConnections") < idleHover.indexOf("hitTestNuclei"),
+    "line hover must resolve before Cell hover when their screen-space targets overlap",
+  );
+  assert.doesNotMatch(
+    organism,
+    /setState\([^)]*hoveredConnection|set\([^)]*hoveredConnection/,
+    "line hover must remain renderer-local transient state",
+  );
+});
+
+test("Connection integration preserves hard-OFF, camera-shake, and production presentation owners", () => {
+  const organism = source("../../canvas/OrganismCanvasView.tsx");
+  assert.match(organism, /let connectionEditingSurfaceCleared = false/);
+  assert.match(organism, /if \(connectionEditingSurfaceCleared\) return/);
+  assert.match(organism, /connectionCanvas\.style\.transform = transform/);
+  assert.match(organism, /connectionEditingCanvas\.style\.setProperty\("transform", transform\)/);
+  assert.match(organism, /const local = \(e:[\s\S]{0,180}canvas\.getBoundingClientRect\(\)/);
+  assert.match(organism, /data-testid="connection-base-layer"/);
+  assert.match(organism, /OrganismCellLabel/);
+  assert.match(organism, /\.organism-ring-label/);
+  assert.match(organism, /\.organism-flag-label/);
+  assert.match(organism, /projectMembraneField/);
+  assert.match(organism, /pulseCameraShake/);
+  assert.match(organism, /applyCameraShakeOffset/);
+  assert.match(organism, /recordPortProjection/);
+  assert.match(organism, /selectionOverlayDraws/);
+  assert.match(organism, /anchorResolutions/);
 });

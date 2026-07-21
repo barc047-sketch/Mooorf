@@ -113,6 +113,8 @@ import {
   isConnectionAuthoringActive,
   isValidConnectionEndpoint,
 } from "../domain/connections/model";
+import { createDefaultConnectionFilterSpec } from "../domain/connections/filters";
+import { getConnectionIndex } from "../domain/connections/selectors";
 import {
   deriveConnectionPorts,
   hitConnectionPort,
@@ -123,9 +125,20 @@ import {
   type ConnectionPort,
   type ScreenVector,
 } from "./connections/editing";
+import {
+  CONNECTION_HIT_TOLERANCE_PX,
+  createConnectionPathCache,
+  drawConnectionBatch,
+  hitTestConnections,
+  projectConnections,
+  type ConnectionProjectionResult,
+} from "./connections/renderer";
+import { createConnectionInstrumentation } from "./connections/instrumentation";
 import "./organismCanvas.css";
 
 const THEME_TRANSITION_MS = 200;
+const CONNECTION_PORT_VISIBLE_RADIUS_PX = 7.25;
+const CONNECTION_PORT_HIT_RADIUS_PX = 14;
 
 const authoredCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
   const runtime = state.membraneRuntimePreview ? { ...state.settings, ...state.membraneRuntimePreview } : state.settings;
@@ -139,6 +152,12 @@ const authoredCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
     ? { ...resources, presentationDefaults: state.presentationDefaultsPreview }
     : resources;
 };
+const sameCanvasSettingsExceptConnections = (
+  left: ReturnType<typeof authoredCanvasSettings>,
+  right: ReturnType<typeof authoredCanvasSettings>,
+): boolean => (Object.keys(left) as Array<keyof typeof left>).every(
+  (key) => key === "connectionStyles" || key === "connectionView" || left[key] === right[key],
+);
 const Z_MIN = 0.25;
 const Z_MAX = 4;
 
@@ -169,6 +188,7 @@ type OrganismInvalidation =
   | "CELL_PRESENTATION"
   | "LABEL_PRESENTATION"
   | "GRID"
+  | "CONNECTIONS"
   | "CAMERA"
   | "FULL";
 
@@ -183,6 +203,7 @@ export default function OrganismCanvasView({
 }: OrganismCanvasActivityProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const connectionCanvasRef = useRef<HTMLCanvasElement>(null);
   const presentationCanvasRef = useRef<HTMLCanvasElement>(null);
   const presentationBackCanvasRef = useRef<HTMLCanvasElement>(null);
   const connectionEditingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -281,20 +302,27 @@ export default function OrganismCanvasView({
   useEffect(() => {
     const host = hostRef.current;
     const canvas = canvasRef.current;
+    const connectionCanvas = connectionCanvasRef.current;
     const presentationCanvas = presentationCanvasRef.current;
     const presentationBackCanvas = presentationBackCanvasRef.current;
     const connectionEditingCanvas = connectionEditingCanvasRef.current;
+    const connectionContext = connectionCanvas?.getContext("2d") ?? null;
     const connectionEditingContext = connectionEditingCanvas?.getContext("2d") ?? null;
-    if (!host || !canvas || !presentationCanvas || !presentationBackCanvas || !connectionEditingCanvas || !connectionEditingContext) return;
+    if (!host || !canvas || !connectionCanvas || !connectionContext || !presentationCanvas || !presentationBackCanvas || !connectionEditingCanvas || !connectionEditingContext) return;
     let activePresentationCanvas = presentationCanvas;
     let activePresentationCtx = presentationCanvas.getContext("2d");
     let stagingPresentationCanvas = presentationBackCanvas;
     let stagingPresentationCtx = presentationBackCanvas.getContext("2d");
     presentationBackCanvas.style.visibility = "hidden";
+    let connectionEditingSurfaceCleared = false;
+    const connectionInstrumentation = createConnectionInstrumentation();
     const hideConnectionPreview = () => {
+      if (connectionEditingSurfaceCleared) return;
       connectionEditingContext.setTransform(1, 0, 0, 1, 0, 0);
       connectionEditingContext.clearRect(0, 0, connectionEditingCanvas.width, connectionEditingCanvas.height);
       connectionEditingCanvas.style.visibility = "hidden";
+      connectionEditingSurfaceCleared = true;
+      connectionInstrumentation.recordOverlayClear();
     };
 
     const announceReadiness = (stage: "canvas-mounted" | "renderer-ready" | "render-requested" | "ready") => {
@@ -350,8 +378,33 @@ export default function OrganismCanvasView({
     let pendingTheme: LabTheme | null = null;
     let themeTransitionUntil = 0;
     const gesture = createCanvasGestureState<DragPosition, GroupTranslation, SpacePosition>();
+    let connections = initialState.connections;
+    let connectionStyles = initialState.settings.connectionStyles;
+    let connectionFocusMode = initialState.settings.connectionView.focusMode;
+    let selectedConnectionIdSet = new Set(initialState.selectedConnectionIds);
+    let hoveredConnectionId: string | null = null;
     let connectionModeActive = initialState.connectionModeActive;
     let connectionLayerVisible = initialState.settings.connectionView.visible;
+    const connectionPathCache = createConnectionPathCache();
+    let connectionProjection: ConnectionProjectionResult = {
+      commands: [],
+      hitIndex: { entries: [] },
+      metrics: {
+        authoredCount: connections.length,
+        eligibleCount: 0,
+        visibleCount: 0,
+        anchorResolutions: 0,
+        pathResolutions: 0,
+        cacheHits: 0,
+        cacheMisses: 0,
+        endpointInvalidations: 0,
+        hitIndexEntries: 0,
+        labelLayouts: 0,
+      },
+    };
+    let pendingChangedConnectionEndpointIds = new Set<string>();
+    let connectionNeedsRender = true;
+    let connectionSurfaceCleared = false;
     let connectionDragPointerId: number | null = null;
     let connectionDragStart: { sx: number; sy: number } | null = null;
     let connectionDragMoved = false;
@@ -370,6 +423,9 @@ export default function OrganismCanvasView({
     const invalidate = (scope: OrganismInvalidation = "FULL") => {
       dirty = true;
       lastInvalidationScope = scope;
+      if (scope === "FULL" || scope === "MEMBRANE_FIELD" || scope === "CELL_PRESENTATION" || scope === "CAMERA" || scope === "CONNECTIONS") {
+        connectionNeedsRender = true;
+      }
       if (scope === "FULL" || scope === "MEMBRANE_FIELD" || scope === "CAMERA") {
         membraneNeedsRender = true;
       }
@@ -572,8 +628,34 @@ export default function OrganismCanvasView({
         : spaces;
       const spacesChanged = nextSpaces !== spaces;
       spaces = nextSpaces;
-      if (spacesChanged) connectionEndpointById = new Map(spaces.map((space) => [space.id, space]));
+      if (spacesChanged) {
+        const nextEndpointById = new Map(spaces.map((space) => [space.id, space]));
+        const endpointIds = new Set([...connectionEndpointById.keys(), ...nextEndpointById.keys()]);
+        for (const endpointId of endpointIds) {
+          const previous = connectionEndpointById.get(endpointId);
+          const next = nextEndpointById.get(endpointId);
+          if (
+            !previous
+            || !next
+            || previous.x !== next.x
+            || previous.y !== next.y
+            || previous.area !== next.area
+            || previous.kind !== next.kind
+          ) pendingChangedConnectionEndpointIds.add(endpointId);
+        }
+        connectionEndpointById = nextEndpointById;
+        connectionNeedsRender = true;
+      }
       const selectionChanged = s.selectedIds !== lastSelectedIds || s.selectedId !== lastSelectedId;
+      const connectionRecordsChanged = s.connections !== connections;
+      const connectionStylesChanged = s.settings.connectionStyles !== connectionStyles;
+      const connectionFocusChanged = s.settings.connectionView.focusMode !== connectionFocusMode;
+      const connectionSelectionChanged = s.selectedConnectionIds.length !== selectedConnectionIdSet.size
+        || s.selectedConnectionIds.some((id) => !selectedConnectionIdSet.has(id));
+      connections = s.connections;
+      connectionStyles = s.settings.connectionStyles;
+      connectionFocusMode = s.settings.connectionView.focusMode;
+      selectedConnectionIdSet = new Set(s.selectedConnectionIds);
       const connectionModeChanged = s.connectionModeActive !== connectionModeActive
         || s.settings.connectionView.visible !== connectionLayerVisible;
       connectionModeActive = s.connectionModeActive;
@@ -589,34 +671,49 @@ export default function OrganismCanvasView({
       }
       if (!connectionModeActive || !connectionLayerVisible) {
         connectionCameraCommitted = finalizeConnectionPointer(!externalCameraChanged) || connectionCameraCommitted;
+        if (!connectionLayerVisible) hoveredConnectionId = null;
         hideConnectionPreview();
       }
       selectedId = s.selectedId;
       selectedIdSet = new Set(s.selectedIds);
       let invalidation: OrganismInvalidation | null = selectionChanged ? "LABEL_PRESENTATION" : null;
-      if ((connectionAuthoringChanged || connectionModeChanged) && !invalidation) invalidation = "CELL_PRESENTATION";
+      if (
+        selectionChanged
+        || connectionRecordsChanged
+        || connectionStylesChanged
+        || connectionFocusChanged
+        || connectionSelectionChanged
+        || connectionAuthoringChanged
+        || connectionModeChanged
+      ) {
+        connectionNeedsRender = true;
+        if (!invalidation) invalidation = "CONNECTIONS";
+      }
       const nextAuthoredSettings = authoredCanvasSettings(s);
       if (nextAuthoredSettings !== authoredSettings) {
+        const connectionOnlySettingsChange = sameCanvasSettingsExceptConnections(nextAuthoredSettings, authoredSettings);
         authoredSettings = nextAuthoredSettings;
-        const nextSettings = resolveLivePerformanceSettings(
-          authoredSettings,
-          performanceSnapshot,
-          "organism",
-        );
-        const membraneTurnedOff = settings.blobOn && !nextSettings.blobOn;
-        const qualityChanged = nextSettings.performanceQuality !== settings.performanceQuality;
-        const previousDetail = resolved.membraneDetail;
-        settings = nextSettings;
-        const nextResolved = resolveOrganism(settings, reducedMotion);
-        const detailChanged = JSON.stringify(nextResolved.membraneDetail) !== JSON.stringify(previousDetail);
-        updateResolvedOrganism(nextResolved);
-        derivedDirty = true;
-        invalidation = "FULL";
-        if (membraneTurnedOff) {
-          surfaceNeedsClear = true;
-          smooth = null;
+        if (!connectionOnlySettingsChange) {
+          const nextSettings = resolveLivePerformanceSettings(
+            authoredSettings,
+            performanceSnapshot,
+            "organism",
+          );
+          const membraneTurnedOff = settings.blobOn && !nextSettings.blobOn;
+          const qualityChanged = nextSettings.performanceQuality !== settings.performanceQuality;
+          const previousDetail = resolved.membraneDetail;
+          settings = nextSettings;
+          const nextResolved = resolveOrganism(settings, reducedMotion);
+          const detailChanged = JSON.stringify(nextResolved.membraneDetail) !== JSON.stringify(previousDetail);
+          updateResolvedOrganism(nextResolved);
+          derivedDirty = true;
+          invalidation = "FULL";
+          if (membraneTurnedOff) {
+            surfaceNeedsClear = true;
+            smooth = null;
+          }
+          if ((qualityChanged || detailChanged) && !forceFull) resize();
         }
-        if ((qualityChanged || detailChanged) && !forceFull) resize();
       }
       if (arrangementChanged) {
         lastArrangementPreview = s.arrangementPreview;
@@ -741,6 +838,8 @@ export default function OrganismCanvasView({
         if (surface.width !== presentationWidth) surface.width = presentationWidth;
         if (surface.height !== presentationHeight) surface.height = presentationHeight;
       }
+      if (connectionCanvas.width !== presentationWidth) connectionCanvas.width = presentationWidth;
+      if (connectionCanvas.height !== presentationHeight) connectionCanvas.height = presentationHeight;
       if (connectionEditingCanvas.width !== presentationWidth) connectionEditingCanvas.width = presentationWidth;
       if (connectionEditingCanvas.height !== presentationHeight) connectionEditingCanvas.height = presentationHeight;
       canvas.dataset.visibleResizeCount = String(Number(canvas.dataset.visibleResizeCount ?? "0") + 1);
@@ -790,6 +889,7 @@ export default function OrganismCanvasView({
       /* This is a presentation transform over the existing camera path. It
        * never touches `cam`, persistence, undo history, or export capture. */
       canvas.style.transform = transform;
+      connectionCanvas.style.transform = transform;
       presentationCanvas.style.transform = transform;
       presentationBackCanvas.style.transform = transform;
       gridRef.current?.style.setProperty("transform", transform);
@@ -825,8 +925,148 @@ export default function OrganismCanvasView({
     };
     let lastNuclei: ProductionNucleus[] = [];
 
-    const projectConnectionPorts = () => deriveConnectionPorts(
-      lastNuclei.map((nucleus) => {
+    const publishConnectionMetrics = () => {
+      const snapshot = connectionInstrumentation.snapshot();
+      connectionCanvas.dataset.authoredCount = String(snapshot.authoredCount);
+      connectionCanvas.dataset.eligibleCount = String(snapshot.eligibleCount);
+      connectionCanvas.dataset.visibleCount = String(snapshot.visibleCount);
+      connectionCanvas.dataset.anchorResolutions = String(snapshot.anchorResolutions);
+      connectionCanvas.dataset.pathResolutions = String(snapshot.pathResolutions);
+      connectionCanvas.dataset.cacheHits = String(snapshot.cacheHits);
+      connectionCanvas.dataset.cacheMisses = String(snapshot.cacheMisses);
+      connectionCanvas.dataset.endpointInvalidations = String(snapshot.endpointInvalidations);
+      connectionCanvas.dataset.hitIndexEntries = String(snapshot.hitIndexEntries);
+      connectionCanvas.dataset.labelLayouts = String(snapshot.labelLayouts);
+      connectionCanvas.dataset.batchPasses = String(snapshot.batchPasses);
+      connectionCanvas.dataset.drawCalls = String(snapshot.drawCalls);
+      connectionCanvas.dataset.drawnCommands = String(snapshot.drawnCommands);
+      connectionCanvas.dataset.baseDrawCalls = String(snapshot.baseDrawCalls);
+      connectionCanvas.dataset.overlayDrawCalls = String(snapshot.overlayDrawCalls);
+      connectionCanvas.dataset.overlayDrawnCommands = String(snapshot.overlayDrawnCommands);
+      connectionCanvas.dataset.overlayClears = String(snapshot.overlayClears);
+      connectionCanvas.dataset.hitTests = String(snapshot.hitTests);
+      connectionCanvas.dataset.portProjections = String(snapshot.portProjections);
+      connectionCanvas.dataset.selectionOverlayDraws = String(snapshot.selectionOverlayDraws);
+      connectionCanvas.dataset.sleeping = String(snapshot.sleeping);
+    };
+
+    const recordConnectionHitTest = () => {
+      connectionInstrumentation.recordHitTest();
+      connectionCanvas.dataset.hitTests = String(connectionInstrumentation.snapshot().hitTests);
+    };
+
+    const clearConnectionBase = () => {
+      connectionContext.setTransform(1, 0, 0, 1, 0, 0);
+      connectionContext.clearRect(0, 0, connectionCanvas.width, connectionCanvas.height);
+    };
+
+    const drawConnectionBase = (nuclei: readonly ProductionNucleus[]) => {
+      if (!runtimeActive || !connectionLayerVisible) {
+        const shouldSettleConnectionOff = !connectionSurfaceCleared
+          || connectionNeedsRender
+          || connectionInstrumentation.snapshot().authoredCount !== connections.length;
+        if (!connectionSurfaceCleared) {
+          clearConnectionBase();
+          connectionCanvas.style.visibility = "hidden";
+          connectionSurfaceCleared = true;
+        }
+        if (shouldSettleConnectionOff) {
+          connectionProjection = {
+            commands: [],
+            hitIndex: { entries: [] },
+            metrics: {
+              authoredCount: connections.length,
+              eligibleCount: 0,
+              visibleCount: 0,
+              anchorResolutions: 0,
+              pathResolutions: 0,
+              cacheHits: 0,
+              cacheMisses: 0,
+              endpointInvalidations: 0,
+              hitIndexEntries: 0,
+              labelLayouts: 0,
+            },
+          };
+          connectionInstrumentation.settleOff(connections.length);
+          connectionNeedsRender = false;
+          pendingChangedConnectionEndpointIds.clear();
+          publishConnectionMetrics();
+        }
+        return;
+      }
+      if (!connectionNeedsRender && !resolved.motionActive && !motionState.settling) return;
+
+      const endpoints = new Map(nuclei.map((nucleus) => [nucleus.id, {
+        id: nucleus.id,
+        x: nucleus.sx,
+        y: nucleus.sy,
+        radius: Math.max(0, nucleus.screenR),
+      }]));
+      const index = getConnectionIndex(connections);
+      const visibleConnectionIds = new Set<string>();
+      for (const endpointId of endpoints.keys()) {
+        for (const connection of index.byEndpoint.get(endpointId) ?? []) {
+          if (endpoints.has(connection.fromSpaceId) && endpoints.has(connection.toSpaceId)) {
+            visibleConnectionIds.add(connection.id);
+          }
+        }
+      }
+      const candidates = [...visibleConnectionIds]
+        .map((id) => index.byId.get(id))
+        .filter((connection): connection is NonNullable<typeof connection> => Boolean(connection));
+      const cellsById = new Map(nuclei.map((nucleus) => {
+        const space = connectionEndpointById.get(nucleus.id);
+        return [nucleus.id, {
+          id: nucleus.id,
+          name: space?.name ?? nucleus.id,
+          floorId: space && "floorId" in space && typeof space.floorId === "string" ? space.floorId : undefined,
+        }];
+      }));
+      const lod = endpoints.size >= MAX_NUCLEI ? "critical" : endpoints.size >= 40 ? "dense" : "full";
+      const effectiveConnectionFocusMode = selectedConnectionIdSet.size
+        ? "selected-connections"
+        : selectedIdSet.size
+          ? "selected-cell"
+          : connectionFocusMode;
+      connectionInstrumentation.beginFrame(connections.length);
+      connectionProjection = projectConnections({
+        connections: candidates,
+        authoredCount: connections.length,
+        endpoints,
+        styles: connectionStyles,
+        filter: {
+          ...createDefaultConnectionFilterSpec(),
+          selectedCellIds: effectiveConnectionFocusMode === "selected-cell" ? [...selectedIdSet] : [],
+        },
+        cellsById,
+        viewport: { x: 0, y: 0, width: w, height: h },
+        selectedIds: selectedConnectionIdSet,
+        changedEndpointIds: pendingChangedConnectionEndpointIds,
+        lod,
+        focusMode: effectiveConnectionFocusMode,
+      }, connectionPathCache);
+      connectionInstrumentation.recordProjection(connectionProjection.metrics);
+      clearConnectionBase();
+      connectionContext.setTransform(presentationPixelRatio, 0, 0, presentationPixelRatio, 0, 0);
+      const drawWork = drawConnectionBatch(connectionContext, connectionProjection.commands, {
+        theme,
+        scale: 1,
+        fadeUnrelated: lod !== "critical" || selectedConnectionIdSet.size > 0 || selectedIdSet.size > 0,
+        drawLabels: false,
+        markerDetail: lod === "critical" ? "hidden" : lod === "dense" ? "simple" : "full",
+        patternFallback: lod === "critical",
+      });
+      connectionInstrumentation.recordDrawBatch(drawWork, "base");
+      connectionCanvas.style.visibility = "visible";
+      connectionCanvas.dataset.lod = lod;
+      connectionSurfaceCleared = false;
+      connectionNeedsRender = false;
+      pendingChangedConnectionEndpointIds.clear();
+      publishConnectionMetrics();
+    };
+
+    const projectConnectionPorts = () => {
+      const projected = deriveConnectionPorts(lastNuclei.map((nucleus) => {
         const endpoint = connectionEndpointById.get(nucleus.id);
         const presentation = cachedPresentation.byId.get(nucleus.id);
         return {
@@ -842,18 +1082,115 @@ export default function OrganismCanvasView({
       }),
       connectionAuthoring.sourceId,
       connectionAuthoring.sourceId ? connectionHoverId : null,
-      connectionHoverValid,
-    );
+      connectionHoverValid);
+      connectionInstrumentation.recordPortProjection(projected.length);
+      publishConnectionMetrics();
+      return projected;
+    };
 
     const drawConnectionEditingOverlay = () => {
-      connectionEditingContext.setTransform(1, 0, 0, 1, 0, 0);
-      connectionEditingContext.clearRect(0, 0, connectionEditingCanvas.width, connectionEditingCanvas.height);
-      if (!runtimeActive || !connectionModeActive || !connectionLayerVisible) {
+      if (!connectionEditingSurfaceCleared) {
+        connectionEditingContext.setTransform(1, 0, 0, 1, 0, 0);
+        connectionEditingContext.clearRect(0, 0, connectionEditingCanvas.width, connectionEditingCanvas.height);
+        connectionEditingSurfaceCleared = true;
+        connectionInstrumentation.recordOverlayClear();
+      }
+      if (!runtimeActive || !connectionLayerVisible) {
         connectionEditingCanvas.style.visibility = "hidden";
+        publishConnectionMetrics();
+        return;
+      }
+      const selectedCommands = connectionProjection.commands.filter((command) => command.selected);
+      const hoveredCommand = hoveredConnectionId
+        ? connectionProjection.commands.find((command) => command.id === hoveredConnectionId) ?? null
+        : null;
+      if (!connectionModeActive && selectedCommands.length === 0 && !hoveredCommand) {
+        connectionEditingCanvas.style.visibility = "hidden";
+        publishConnectionMetrics();
         return;
       }
       connectionEditingCanvas.style.visibility = "visible";
+      connectionEditingSurfaceCleared = false;
       connectionEditingContext.setTransform(presentationPixelRatio, 0, 0, presentationPixelRatio, 0, 0);
+      const computedStyle = getComputedStyle(host);
+      const neutral = computedStyle.getPropertyValue("--ink-soft").trim() || "rgba(60, 60, 64, .72)";
+      const accent = computedStyle.getPropertyValue("--chrome-accent").trim() || "#8d2330";
+      const surface = computedStyle.getPropertyValue("--bg").trim() || "#f7f5f0";
+      let overlayPrimitiveDraws = 0;
+      let selectionOverlayDraws = 0;
+      if (selectedCommands.length) {
+        const selectedWork = drawConnectionBatch(connectionEditingContext, selectedCommands.map((command) => ({
+          ...command,
+          style: {
+            ...command.style,
+            appearance: {
+              ...command.style.appearance,
+              color: accent,
+              opacity: 1,
+              width: command.style.appearance.width + 2,
+            },
+          },
+          emphasis: "focused" as const,
+        })), {
+          theme,
+          scale: 1,
+          fadeUnrelated: false,
+          drawLabels: false,
+          markerDetail: "full",
+          patternFallback: false,
+        });
+        connectionInstrumentation.recordDrawBatch(selectedWork, "overlay");
+        selectionOverlayDraws += selectedCommands.length;
+      }
+      if (hoveredCommand && !hoveredCommand.selected) {
+        const hoveredWork = drawConnectionBatch(connectionEditingContext, [{
+          ...hoveredCommand,
+          style: {
+            ...hoveredCommand.style,
+            appearance: {
+              ...hoveredCommand.style.appearance,
+              opacity: 1,
+              width: hoveredCommand.style.appearance.width + 1,
+            },
+          },
+          emphasis: "focused" as const,
+        }], {
+          theme,
+          scale: 1,
+          fadeUnrelated: false,
+          drawLabels: false,
+          markerDetail: "full",
+          patternFallback: false,
+        });
+        connectionInstrumentation.recordDrawBatch(hoveredWork, "overlay");
+        selectionOverlayDraws += 1;
+      }
+      const selectedEndpointIds = new Set(selectedCommands.flatMap((command) => [command.fromSpaceId, command.toSpaceId]));
+      const hoveredEndpointIds = new Set(hoveredCommand
+        ? [hoveredCommand.fromSpaceId, hoveredCommand.toSpaceId]
+        : []);
+      if (selectedEndpointIds.size || hoveredEndpointIds.size) {
+        for (const nucleus of lastNuclei) {
+          const selectedEndpoint = selectedEndpointIds.has(nucleus.id);
+          const hoveredEndpoint = hoveredEndpointIds.has(nucleus.id);
+          if (!selectedEndpoint && !hoveredEndpoint) continue;
+          connectionEditingContext.save();
+          connectionEditingContext.beginPath();
+          connectionEditingContext.arc(nucleus.sx, nucleus.sy, nucleus.screenR + 4, 0, Math.PI * 2);
+          connectionEditingContext.strokeStyle = selectedEndpoint ? accent : neutral;
+          connectionEditingContext.globalAlpha = selectedEndpoint ? .78 : .48;
+          connectionEditingContext.lineWidth = selectedEndpoint ? 1.5 : 1;
+          connectionEditingContext.stroke();
+          connectionEditingContext.restore();
+          overlayPrimitiveDraws += 1;
+          selectionOverlayDraws += 1;
+        }
+      }
+      if (!connectionModeActive) {
+        connectionInstrumentation.recordOverlayPrimitives(overlayPrimitiveDraws, selectionOverlayDraws);
+        publishConnectionMetrics();
+        return;
+      }
       connectionPorts = projectConnectionPorts();
       const source = connectionAuthoring.sourceId
         ? connectionPorts.find((port) => port.spaceId === connectionAuthoring.sourceId) ?? null
@@ -862,10 +1199,6 @@ export default function OrganismCanvasView({
         ? connectionPorts.find((port) => port.spaceId === connectionHoverId) ?? null
         : null;
       const validTarget = target?.state === "valid-target" ? target : null;
-      const style = getComputedStyle(host);
-      const neutral = style.getPropertyValue("--ink-soft").trim() || "rgba(60, 60, 64, .72)";
-      const accent = style.getPropertyValue("--chrome-accent").trim() || "#8d2330";
-      const surface = style.getPropertyValue("--bg").trim() || "#f7f5f0";
       const targetNucleus = validTarget
         ? lastNuclei.find((nucleus) => nucleus.id === validTarget.spaceId) ?? null
         : null;
@@ -879,6 +1212,7 @@ export default function OrganismCanvasView({
         connectionEditingContext.lineWidth = 1.25;
         connectionEditingContext.stroke();
         connectionEditingContext.restore();
+        overlayPrimitiveDraws += 1;
       }
 
       if (source && connectionPreviewPointer) {
@@ -892,6 +1226,7 @@ export default function OrganismCanvasView({
         connectionEditingContext.setLineDash(connectionHoverValid ? [] : [3, 3]);
         connectionEditingContext.stroke();
         connectionEditingContext.restore();
+        overlayPrimitiveDraws += 1;
       }
 
       for (const port of connectionPorts) {
@@ -900,18 +1235,20 @@ export default function OrganismCanvasView({
         const validTarget = port.state === "valid-target";
         connectionEditingContext.save();
         connectionEditingContext.beginPath();
-        connectionEditingContext.arc(port.x, port.y, 3, 0, Math.PI * 2);
+        connectionEditingContext.arc(port.x, port.y, CONNECTION_PORT_VISIBLE_RADIUS_PX, 0, Math.PI * 2);
         connectionEditingContext.fillStyle = surface;
         connectionEditingContext.fill();
         connectionEditingContext.strokeStyle = sourcePort || validTarget ? accent : neutral;
         connectionEditingContext.globalAlpha = hovered || sourcePort || validTarget ? 1 : .58;
         connectionEditingContext.lineWidth = sourcePort || validTarget ? 1.5 : 1.25;
         connectionEditingContext.stroke();
+        overlayPrimitiveDraws += 2;
         if (sourcePort) {
           connectionEditingContext.beginPath();
           connectionEditingContext.arc(port.x, port.y, 1.35, 0, Math.PI * 2);
           connectionEditingContext.fillStyle = accent;
           connectionEditingContext.fill();
+          overlayPrimitiveDraws += 1;
         }
         connectionEditingContext.restore();
       }
@@ -929,6 +1266,7 @@ export default function OrganismCanvasView({
         connectionEditingContext.lineTo(connectionInvalidPoint.x - 2.5, connectionInvalidPoint.y + 2.5);
         connectionEditingContext.stroke();
         connectionEditingContext.restore();
+        overlayPrimitiveDraws += 1;
       }
 
       if (connectionInvalidMessage && connectionPreviewPointer) {
@@ -945,7 +1283,16 @@ export default function OrganismCanvasView({
         connectionEditingContext.fillStyle = neutral;
         connectionEditingContext.fillText(connectionInvalidMessage, x, y);
         connectionEditingContext.restore();
+        overlayPrimitiveDraws += 2;
       }
+      connectionInstrumentation.recordOverlayPrimitives(overlayPrimitiveDraws, selectionOverlayDraws);
+      publishConnectionMetrics();
+    };
+
+    const clearHoveredConnection = () => {
+      if (hoveredConnectionId === null) return;
+      hoveredConnectionId = null;
+      drawConnectionEditingOverlay();
     };
 
     const updateConnectionPreview = (sx: number, sy: number) => {
@@ -955,7 +1302,7 @@ export default function OrganismCanvasView({
         return;
       }
       connectionPorts = projectConnectionPorts();
-      const hit = hitConnectionPort(connectionPorts, { x: sx, y: sy });
+      const hit = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
       const nucleusHit = hitTestNuclei(lastNuclei, sx, sy);
       const targetSpace = nucleusHit ? connectionEndpointById.get(nucleusHit.id) : null;
       const sourceId = connectionAuthoring.sourceId;
@@ -1288,13 +1635,16 @@ export default function OrganismCanvasView({
       const stateAtPress = useLab.getState();
       const activeAuthoring = stateAtPress.connectionAuthoring;
       const { sx, sy } = local(e);
+      clearHoveredConnection();
       const temporaryPan = middleButtonPan || stateAtPress.temporaryTool === "pan";
       let connectionPort: ConnectionPort | null = null;
       if (stateAtPress.connectionModeActive && stateAtPress.settings.connectionView.visible) {
         connectionPorts = projectConnectionPorts();
-        connectionPort = hitConnectionPort(connectionPorts, { x: sx, y: sy });
+        connectionPort = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
       }
-      const connectionPressIntent = resolveConnectionPressIntent({
+      const connectionPressIntent = e.button === 0 && connectionPort
+        ? "connection"
+        : resolveConnectionPressIntent({
         modeActive: stateAtPress.connectionModeActive,
         layerVisible: stateAtPress.settings.connectionView.visible,
         hasPort: Boolean(connectionPort),
@@ -1362,6 +1712,20 @@ export default function OrganismCanvasView({
         return;
       }
       camTarget = null;
+      let connectionHit: string | null = null;
+      if (stateAtPress.settings.connectionView.visible) {
+        recordConnectionHitTest();
+        connectionHit = hitTestConnections(connectionProjection.hitIndex, { x: sx, y: sy }, CONNECTION_HIT_TOLERANCE_PX);
+      }
+      if (connectionHit) {
+        e.preventDefault();
+        resetCellActivation(activation);
+        cancelCanvasGesture(gesture);
+        stateAtPress.selectConnection(connectionHit, e.shiftKey);
+        canvas.style.cursor = "pointer";
+        invalidate("CONNECTIONS");
+        return;
+      }
       const hit = hitTestNuclei(lastNuclei, sx, sy);
       try {
         canvas.setPointerCapture(e.pointerId);
@@ -1415,19 +1779,34 @@ export default function OrganismCanvasView({
       let hoveredPort: ConnectionPort | null = null;
       if (connectionModeActive && connectionLayerVisible && gesture.mode === "none") {
         updateConnectionPreview(sx, sy);
-        hoveredPort = hitConnectionPort(connectionPorts, { x: sx, y: sy });
+        hoveredPort = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
         if (connectionAuthoring.sourceId && gesture.mode === "none") {
           canvas.style.cursor = "crosshair";
           return;
         }
       }
       if (gesture.mode === "none") {
-        const nextHoveredId = hitTestNuclei(lastNuclei, sx, sy)?.id ?? null;
+        let nextHoveredConnectionId: string | null = null;
+        if (connectionLayerVisible) {
+          recordConnectionHitTest();
+          nextHoveredConnectionId = hitTestConnections(
+            connectionProjection.hitIndex,
+            { x: sx, y: sy },
+            CONNECTION_HIT_TOLERANCE_PX,
+          );
+        }
+        const nextHoveredId = nextHoveredConnectionId
+          ? null
+          : hitTestNuclei(lastNuclei, sx, sy)?.id ?? null;
         if (nextHoveredId !== hoveredId) {
           hoveredId = nextHoveredId;
           invalidate("CELL_PRESENTATION");
         }
-        canvas.style.cursor = hoveredPort ? "crosshair" : nextHoveredId ? "grab" : "default";
+        if (nextHoveredConnectionId !== hoveredConnectionId) {
+          hoveredConnectionId = nextHoveredConnectionId;
+          drawConnectionEditingOverlay();
+        }
+        canvas.style.cursor = hoveredPort ? "crosshair" : nextHoveredId ? "grab" : hoveredConnectionId ? "pointer" : "default";
         return;
       }
       const transition = advanceCanvasGesture(gesture, { sx, sy }, CELL_DRAG_THRESHOLD_PX);
@@ -1481,6 +1860,15 @@ export default function OrganismCanvasView({
       moveScheduler.push(latestCoalescedPointerEvent(e));
     };
 
+    const onLeave = () => {
+      if (connectionDragPointerId !== null || gesture.mode !== "none") return;
+      const hadCellHover = hoveredId !== null;
+      hoveredId = null;
+      clearHoveredConnection();
+      if (hadCellHover) invalidate("CELL_PRESENTATION");
+      canvas.style.cursor = connectionModeActive ? "crosshair" : "default";
+    };
+
     const onUp = (e: PointerEvent) => {
       if (!runtimeActive) return;
       if (connectionDragPointerId === e.pointerId) {
@@ -1490,7 +1878,7 @@ export default function OrganismCanvasView({
         const state = useLab.getState();
         const sourceId = state.connectionAuthoring.sourceId;
         connectionPorts = projectConnectionPorts();
-        const port = hitConnectionPort(connectionPorts, { x: sx, y: sy });
+        const port = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
         const nucleusHit = hitTestNuclei(lastNuclei, sx, sy);
         const moved = connectionDragMoved;
         const autoPanMoved = connectionAutoPanMoved;
@@ -1632,6 +2020,7 @@ export default function OrganismCanvasView({
       e.preventDefault();
       if (connectionDragPointerId !== null) return;
       performanceGovernor.beginInteraction();
+      clearHoveredConnection();
       const { sx, sy } = local(e);
       wheelScheduler.push({ deltaY: e.deltaY, sx, sy });
       performanceGovernor.endInteraction();
@@ -1639,6 +2028,7 @@ export default function OrganismCanvasView({
 
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerleave", onLeave);
     canvas.addEventListener("pointerup", onUp);
     canvas.addEventListener("pointercancel", onCancel);
     canvas.addEventListener("lostpointercapture", onLostConnectionPointerCapture);
@@ -1670,6 +2060,7 @@ export default function OrganismCanvasView({
           camTarget = null;
         }
         dirty = true;
+        connectionNeedsRender = true;
       }
 
       if (connectionAutoPan.dx !== 0 || connectionAutoPan.dy !== 0) {
@@ -1679,6 +2070,7 @@ export default function OrganismCanvasView({
         connectionAutoPanMoved = true;
         dirty = true;
         membraneNeedsRender = true;
+        connectionNeedsRender = true;
       }
 
       /* Camera zoom can cross a bounded low-detail sampling bucket without
@@ -1694,9 +2086,10 @@ export default function OrganismCanvasView({
       applyCameraShakeOffset();
       const nuclei = currentNuclei();
       lastNuclei = nuclei;
+      drawConnectionBase(nuclei);
       if (connectionModeActive && connectionLayerVisible && connectionPreviewPointer) {
         updateConnectionPreview(connectionPreviewPointer.sx, connectionPreviewPointer.sy);
-      } else if (connectionModeActive && connectionLayerVisible) drawConnectionEditingOverlay();
+      } else if (connectionLayerVisible && (connectionModeActive || selectedConnectionIdSet.size > 0 || hoveredConnectionId !== null)) drawConnectionEditingOverlay();
       else hideConnectionPreview();
       const sc = cachedStyle;
       const palette = cachedPalette;
@@ -1937,7 +2330,7 @@ export default function OrganismCanvasView({
       if (gates.membrane && (settling || !!camTarget || resolved.motionActive || motionState.settling)) {
         membraneNeedsRender = true;
       }
-      return !rendererFailed && (
+      const needsAnotherFrame = !rendererFailed && (
         dirty ||
         settling ||
         !!camTarget ||
@@ -1947,6 +2340,9 @@ export default function OrganismCanvasView({
         motionState.settling ||
         shakeActive
       );
+      connectionInstrumentation.setSleeping(connectionLayerVisible ? !needsAnotherFrame && !connectionNeedsRender : true);
+      publishConnectionMetrics();
+      return !rendererFailed && needsAnotherFrame;
       },
     });
     const setRuntimeActive = (nextActive: boolean) => {
@@ -1955,6 +2351,7 @@ export default function OrganismCanvasView({
       if (!runtimeActive) {
         finalizeConnectionPointer();
         hideConnectionPreview();
+        connectionCanvas.style.visibility = "hidden";
         resumePreparationPending = false;
         renderLoop?.setPaused(true);
         moveScheduler.cancel();
@@ -1963,6 +2360,8 @@ export default function OrganismCanvasView({
         resetCameraShake(cameraShake);
         applyCameraShakeOffset();
         performanceGovernor.endInteraction();
+        connectionInstrumentation.setSleeping(true);
+        publishConnectionMetrics();
         return;
       }
 
@@ -1989,6 +2388,7 @@ export default function OrganismCanvasView({
       derivedDirty = true;
       dirty = true;
       membraneNeedsRender = true;
+      connectionNeedsRender = true;
       last = performance.now();
       resumePreparationPending = true;
       renderLoop?.invalidate();
@@ -2017,6 +2417,7 @@ export default function OrganismCanvasView({
       applyCameraShakeOffset();
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerleave", onLeave);
       canvas.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointercancel", onCancel);
       canvas.removeEventListener("lostpointercapture", onLostConnectionPointerCapture);
@@ -2033,6 +2434,13 @@ export default function OrganismCanvasView({
   return (
     <div ref={hostRef} className="organism-canvas-host">
       <canvas ref={canvasRef} className="organism-canvas" data-preview-filter="smooth" data-testid="organism-canvas" />
+      <div ref={gridRef} className="organism-grid" data-visible={showGrid ? "true" : "false"} aria-hidden="true" />
+      <canvas
+        ref={connectionCanvasRef}
+        className="organism-connection-canvas"
+        data-testid="connection-base-layer"
+        aria-hidden="true"
+      />
       <canvas
         ref={presentationCanvasRef}
         className="organism-presentation-canvas"
@@ -2058,7 +2466,6 @@ export default function OrganismCanvasView({
           visibility: "hidden",
         }}
       />
-      {showGrid && <div ref={gridRef} className="organism-grid" aria-hidden="true" />}
       {showLabels && annotationMode !== "hidden" && <div
         ref={labelLayerRef}
         className="organism-label-layer"

@@ -43,6 +43,7 @@ export default function QuickToggleBar() {
   const blobOn = useLab((state) => state.settings.blobOn);
   const motionEnabled = useLab((state) => state.settings.organism.motionEnabled);
   const showGrid = useLab((state) => state.settings.showGrid);
+  const connectionsVisible = useLab((state) => state.settings.connectionView.visible);
   const authoredShadowOn = useLab(
     (state) => state.settings.cellShadow.enabled && state.settings.cellShadow.mode !== "off",
   );
@@ -72,6 +73,19 @@ export default function QuickToggleBar() {
       data-expanded={expanded}
       aria-label="Canvas quick controls"
     >
+      <button
+        type="button"
+        className="connection-visibility-toggle"
+        aria-label={`Connections ${connectionsVisible ? "ON" : "OFF"}`}
+        aria-pressed={connectionsVisible}
+        data-active={connectionsVisible}
+        onClick={() => {
+          const connectionView = useLab.getState().settings.connectionView;
+          setSettings({ connectionView: { ...connectionView, visible: !connectionView.visible } });
+        }}
+      >
+        Connections {connectionsVisible ? "ON" : "OFF"}
+      </button>
       <button
         type="button"
         className="live-toggle-disclosure live-toggle-tooltip"

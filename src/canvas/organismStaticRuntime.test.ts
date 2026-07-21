@@ -5,6 +5,11 @@ import type { SpaceCell } from "../types";
 import { useLab } from "../state/store";
 import { areaToRadius } from "../lib/geometry";
 import * as organismAdapter from "./organismAdapter";
+import { resolveConnectionLanes } from "./connections/geometry";
+
+test.afterEach(() => {
+  useLab.setState(useLab.getInitialState(), true);
+});
 
 type RuntimeStateSelector = (
   active: boolean,
@@ -133,6 +138,101 @@ test("Motion transitions discard stale geometry and reactivate from canonical co
     { x: 300, y: 180, r: areaToRadius(moved.area) },
     "reactivation owns only a fresh canonical smooth entry",
   );
+});
+
+test("Connection click replacement and Shift toggle share ephemeral central selection without history", () => {
+  const initial = useLab.getInitialState();
+  const spaces = [cell("a", 0, 0), cell("b", 100, 0), cell("c", 200, 0)];
+  const semantic = {
+    typeId: "custom" as const,
+    requirement: "optional" as const,
+    direction: "none" as const,
+    strength: "medium" as const,
+    priority: "normal" as const,
+    notes: "",
+  };
+  useLab.setState({
+    spaces,
+    connections: [
+      { id: "ab", fromSpaceId: "a", toSpaceId: "b", enabled: true, semantic },
+      { id: "bc", fromSpaceId: "b", toSpaceId: "c", enabled: true, semantic },
+    ],
+    selectedIds: ["a"],
+    primarySelectedId: "a",
+    selectedId: "a",
+    selectedConnectionIds: [],
+    primarySelectedConnectionId: null,
+    transformUndoStack: initial.transformUndoStack,
+    transformRedoStack: initial.transformRedoStack,
+  });
+  const historyBefore = useLab.getState().transformUndoStack;
+  useLab.getState().selectConnection("ab");
+  assert.deepEqual(useLab.getState().selectedConnectionIds, ["ab"]);
+  assert.deepEqual(useLab.getState().selectedIds, []);
+  useLab.getState().selectConnection("bc", true);
+  assert.deepEqual(useLab.getState().selectedConnectionIds, ["ab", "bc"]);
+  useLab.getState().selectConnection("ab", true);
+  assert.deepEqual(useLab.getState().selectedConnectionIds, ["bc"]);
+  assert.equal(useLab.getState().primarySelectedConnectionId, "bc");
+  assert.equal(useLab.getState().transformUndoStack, historyBefore);
+});
+
+test("C while the visual layer is OFF enters editing instead of exiting an active mode", () => {
+  const state = useLab.getState();
+  state.enterConnectionMode("adjacency");
+  useLab.setState((current) => ({
+    settings: {
+      ...current.settings,
+      connectionView: { ...current.settings.connectionView, visible: false },
+    },
+  }));
+
+  useLab.getState().toggleConnectionMode();
+  assert.equal(useLab.getState().connectionModeActive, true);
+  assert.equal(useLab.getState().settings.connectionView.visible, true);
+  assert.equal(useLab.getState().connectionModeTypeId, "adjacency");
+  assert.equal(useLab.getState().connectionAuthoring.phase, "mode-ready");
+});
+
+test("Connection create, Undo/Redo, and endpoint delete/Undo preserve canonical record and lane", () => {
+  const spaces = [cell("a", 0, 0), cell("b", 100, 0), cell("c", 200, 0)];
+  useLab.setState({
+    spaces,
+    connections: [],
+    selectedIds: [],
+    primarySelectedId: null,
+    selectedId: null,
+    selectedConnectionIds: [],
+    primarySelectedConnectionId: null,
+    transformUndoStack: [],
+    transformRedoStack: [],
+  });
+
+  const createdId = useLab.getState().createConnection({
+    fromSpaceId: "a",
+    toSpaceId: "b",
+    typeId: "direct-access",
+  });
+  assert.ok(createdId);
+  const created = structuredClone(useLab.getState().connections[0]!);
+  const createdLane = resolveConnectionLanes([created]).get(created.id)?.laneOffset;
+  assert.equal(createdLane, 0);
+  assert.equal(useLab.getState().transformUndoStack.length, 1);
+
+  useLab.getState().undoSpaceTransform();
+  assert.equal(useLab.getState().connections.length, 0);
+  useLab.getState().redoSpaceTransform();
+  assert.deepEqual(useLab.getState().connections[0], created);
+  assert.equal(resolveConnectionLanes(useLab.getState().connections).get(created.id)?.laneOffset, createdLane);
+
+  const historyBeforeDelete = useLab.getState().transformUndoStack.length;
+  useLab.getState().removeSpace("b");
+  assert.equal(useLab.getState().connections.length, 0);
+  assert.equal(useLab.getState().transformUndoStack.length, historyBeforeDelete + 1);
+  useLab.getState().undoSpaceTransform();
+  assert.equal(useLab.getState().spaces.some((space) => space.id === "b"), true);
+  assert.deepEqual(useLab.getState().connections[0], created);
+  assert.equal(resolveConnectionLanes(useLab.getState().connections).get(created.id)?.laneOffset, createdLane);
 });
 
 test("Undo and Redo arrangements project immediately through the static path", () => {

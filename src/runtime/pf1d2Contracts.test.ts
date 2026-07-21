@@ -77,9 +77,19 @@ test("resume prepares current state and theme before successful readiness", () =
   );
   occursBefore(organismSource, "theme = pendingTheme ?? readTheme()", "applyDimensions(latestDimensions)");
   occursBefore(organismSource, "smooth = null", "renderLoop?.setPaused(false)");
+  occursBefore(organismSource, "drawConnectionBase(nuclei)", "drawPresentationOverlay(nuclei, presentationPixelRatio)");
+  occursBefore(organismSource, "drawConnectionBase(nuclei)", "onResumeReadyRef.current?.()");
   occursBefore(organismSource, "drawPresentationOverlay(nuclei, presentationPixelRatio)", "onResumeReadyRef.current?.()");
   occursBefore(organismSource, "onResumeReadyRef.current?.()", "return !rendererFailed");
   assert.match(organismSource, /if \(resumePreparationPending\) \{[\s\S]*?onResumeReadyRef\.current\?\.\(\)/);
+});
+
+test("Table pause clears Connection interaction work and resumes on the same demand loop", () => {
+  assert.match(organismSource, /renderLoop\?\.setPaused\(true\)/);
+  assert.match(organismSource, /hideConnectionPreview\(\)/);
+  assert.match(organismSource, /drawConnectionBase\(nuclei\)/);
+  assert.equal(organismSource.match(/createDemandFrameLoop\s*\(/g)?.length, 1);
+  assert.doesNotMatch(organismSource, /connections[\s\S]{0,120}requestAnimationFrame/);
 });
 
 test("PF1D.2 activity props execute only on Organism, not Classic", () => {

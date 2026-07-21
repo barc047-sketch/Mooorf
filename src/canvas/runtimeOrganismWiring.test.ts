@@ -19,6 +19,18 @@ ok(view.includes('boundaryFallbackCount = "0"'), "Organism reports truthful tech
 ok(view.includes("projectOrganismDebugPresentation"), "Organism debug projection keeps geometry markers separate from Core");
 ok(view.includes("projectSelectionOverlay"), "Organism selection uses the explicit temporary projection");
 ok(view.includes("presentationCanvasRef"), "Organism owns a lightweight presentation overlay");
+ok(view.includes("connectionCanvasRef"), "Organism owns one batched base Connection surface");
+ok(view.includes("connectionEditingCanvasRef"), "Organism reuses one interaction Connection surface");
+ok(view.includes('"CONNECTIONS"'), "Connections invalidate the existing demand loop with a dedicated scope");
+ok(view.includes("createConnectionPathCache"), "Organism owns one bounded runtime-only Connection cache");
+ok(view.includes("getConnectionIndex"), "Organism consumes the shared canonical Connection endpoint index");
+ok(view.match(/createDemandFrameLoop\s*\(/g)?.length === 1, "Organism retains exactly one demand scheduler");
+ok(!view.includes("useLab((s) => s.connections)"), "Connection rows stay outside React render subscriptions");
+ok(
+  view.indexOf('data-testid="connection-base-layer"') < view.indexOf('data-testid="organism-presentation-canvas"')
+    && view.indexOf('data-testid="organism-presentation-canvas"') < view.indexOf('data-testid="connection-editing-overlay"'),
+  "base lines, Cell presentation, and interaction overlay retain the frozen layer order",
+);
 ok(view.includes("renderDetachedOrganismExport(snapshot, options, w, h)"), "Organism delegates capture to detached authored export");
 ok(detachedExport.includes("drawOrganismCircleOverlay"), "Detached Organism export builds authored circle presentation overlays");
 ok(detachedExport.includes("drawSymbolPlacement"), "Detached Organism export builds authored Symbol presentation overlays");
