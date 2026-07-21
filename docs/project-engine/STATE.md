@@ -8,18 +8,18 @@
 
 | Classification | Current truth |
 |---|---|
-| OFFICIAL PRODUCT LINEAGE | `main` contains the complete approved C0-M2 and PF1A–PF1D.3 lineage. |
-| PRODUCT INTEGRATION COMMIT | `342022a64638aa143245ae763a88edee6eeec1fc` |
+| OFFICIAL PRODUCT LINEAGE | `main` contains the complete approved C0-M2, PF1A–PF1D.3, and Organism Cell Labels & Callouts lineage. |
+| PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature`, based on `2c81c00fb4ef19acbb911acdd9ac402814ecb1da`. |
+| ACTIVE FINALIZATION BRANCH | None; Organism Cell Labels & Callouts is merged into `main`. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
 | CORRECTION 3 PRODUCT COMMIT | `48611c285dac6c11583ba8df251da01237e561b0` |
 | FINAL ICON PRODUCT COMMIT | `378301fe80b478f2ae5b9411a328efc2cbe52f97` |
-| STATUS | ORGANISM CELL LABELS & CALLOUTS: COMPLETE / OWNER QA PASSED — READY FOR EXPLICIT MERGE. |
-| NEXT AUTHORITY | Explicit Owner-authorized merge to `main`; Connections is planned next in a separate chat after merge. |
+| STATUS | ORGANISM CELL LABELS & CALLOUTS: COMPLETE / MERGED / OWNER QA PASSED. |
+| NEXT AUTHORITY | Owner-led Connections planning in a separate chat from the updated main lineage. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -48,7 +48,7 @@
 - XLSX template with `SPACES` and `README`;
 - synchronized Canvas/Table/store data.
 
-### Organism Cell Labels & Callouts — COMPLETE / OWNER QA PASSED
+### Organism Cell Labels & Callouts — COMPLETE / MERGED / OWNER QA PASSED
 
 - Organism remains the sole production renderer; Classic remains compile-only legacy code.
 - twelve production Cell Label layouts share one contract, preset registry and pure resolved projection: the original nine plus Dual Ring, Ring + Core and Technical Orbit.
@@ -73,4 +73,4 @@ Classic visual output and SVG were not audited or developed. Codex did not compl
 
 ## Current gate
 
-READY FOR EXPLICIT MERGE. No merge has occurred; Connections is NOT STARTED and must begin in a separate chat after merge.
+HOLD — no active implementation. Connections is PLANNED / NOT STARTED and requires Owner-led planning in a separate chat.

@@ -1,22 +1,17 @@
 # Active Task
 
-## COMPLETE — Organism Cell Labels & Callouts
+## HOLD — No active implementation
 
-Status: OWNER QA PASSED / READY TO MERGE / NOT MERGED
+Status: COMPLETE / MERGED / OWNER QA PASSED
 
-Branch: `work/next-feature`
-
-Final product commit: `378301fe80b478f2ae5b9411a328efc2cbe52f97`
-
-Completed scope:
-
-- Cell Label layouts, Ring, Flag, Label Studio, Membrane zoom and selection feedback passed Owner QA;
-- Label Studio now uses the approved Lucide `MessageSquareText` callout icon;
-- direct Label Studio and Membrane launchers preserve canonical widget ownership;
-- no Connections implementation has started.
+- Organism Cell Labels & Callouts is merged into `main`;
+- integrated product commit: `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e`;
+- twelve Cell Label layouts, Ring, Body arcs, Flag, Label Studio, text fitting, direct Label/Membrane launchers, Membrane zoom stability and persistent selected-state feedback are included;
+- Label Studio uses the approved `MessageSquareText` callout icon;
+- Connections is the next planned phase;
+- Connections has not started.
 
 Next safe action:
 
-Explicit Owner-authorized merge of `work/next-feature` into `main`.
-
-After that merge, Connections planning and implementation begins in a separate chat from the updated main lineage.
+Connections planning in a separate chat from the updated main lineage.
+No automatic implementation.
