@@ -89,10 +89,12 @@ import {
 } from "../domain/presentation/editing";
 import type {
   Connection,
+  ConnectionAnnotationOverride,
   ConnectionSemantic,
   ConnectionVisual,
   CreateConnectionInput,
 } from "../domain/graph/types";
+import { normalizeConnectionAnnotationOverride } from "../domain/connections/annotations";
 import {
   cloneConnection,
   cloneConnections,
@@ -124,11 +126,14 @@ import {
   applyConnectionStylePack as createConnectionStylePack,
   cloneProjectConnectionStyles,
   connectionTypeStyle,
+  copyResolvedConnectionStyle,
   createDefaultConnectionViewSettings,
   createDefaultProjectConnectionStyles,
   normalizeConnectionViewSettings,
   normalizeProjectConnectionStyles,
+  pasteConnectionStyleVisual,
   updateProjectConnectionStyle,
+  type ConnectionStyleClipboard,
   type ConnectionStylePackId,
   type ConnectionStylePatch,
   type ConnectionViewSettings,
@@ -310,6 +315,8 @@ interface LabState {
   arrangementPreview: SpacePosition[] | null;
   arrangementPreviewPatternId: ArrangementPatternId | null;
   styleClipboard: StyleClipboard | null;
+  /** Ephemeral Connection appearance clipboard. Never persisted or exported. */
+  connectionStyleClipboard: ConnectionStyleClipboard | null;
 
   toggleTheme: () => void;
   setView: (view: ViewMode) => void;
@@ -409,9 +416,14 @@ interface LabState {
   removeSpace: (id: string) => void;
   createConnection: (input: CreateConnectionInput) => string | null;
   updateConnectionSemantic: (id: string, patch: Partial<ConnectionSemantic>) => boolean;
+  updateConnectionAnnotation: (id: string, annotation: ConnectionAnnotationOverride | null) => boolean;
   updateConnectionVisual: (id: string, visual: ConnectionVisual | null) => boolean;
+  reverseConnection: (id: string) => boolean;
   setConnectionEnabled: (id: string, enabled: boolean) => boolean;
   deleteConnection: (id: string) => boolean;
+  deleteSelectedConnections: () => number;
+  copySelectedConnectionStyle: () => boolean;
+  pasteConnectionStyleToSelection: () => number;
   updateConnectionTypeStyle: (
     typeId: keyof ProjectConnectionStyles,
     patch: ConnectionStylePatch,
@@ -1000,6 +1012,7 @@ export const useLab = create<LabState>((set, get) => ({
   arrangementPreview: null,
   arrangementPreviewPatternId: null,
   styleClipboard: null,
+  connectionStyleClipboard: null,
 
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "day" ? "night" : "day" })),
@@ -2195,6 +2208,33 @@ export const useLab = create<LabState>((set, get) => ({
     return changed;
   },
 
+  updateConnectionAnnotation: (id, annotation) => {
+    let changed = false;
+    set((s) => {
+      const current = selectConnectionById(getConnectionIndex(s.connections), id);
+      if (!current) return {};
+      const normalized = normalizeConnectionAnnotationOverride(annotation);
+      if (JSON.stringify(current.annotation) === JSON.stringify(normalized)) return {};
+      const currentIndex = s.connections.findIndex((connection) => connection.id === id);
+      const candidate: Connection = { ...cloneConnection(current), annotation: normalized };
+      const entry: SpaceHistoryEntry = {
+        kind: "connections",
+        patches: [connectionRecordPatch(
+          id,
+          { index: currentIndex, connection: current },
+          { index: currentIndex, connection: candidate },
+        )],
+      };
+      changed = true;
+      return {
+        connections: s.connections.map((connection) => connection.id === id ? candidate : connection),
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
   updateConnectionVisual: (id, visual) => {
     let changed = false;
     set((s) => {
@@ -2229,6 +2269,37 @@ export const useLab = create<LabState>((set, get) => ({
       } catch {
         return {};
       }
+    });
+    return changed;
+  },
+
+  reverseConnection: (id) => {
+    let changed = false;
+    set((s) => {
+      const index = getConnectionIndex(s.connections);
+      const current = selectConnectionById(index, id);
+      if (!current) return {};
+      const candidate: Connection = {
+        ...cloneConnection(current),
+        fromSpaceId: current.toSpaceId,
+        toSpaceId: current.fromSpaceId,
+      };
+      if (findExactConnectionDuplicate(index, candidate, id)) return {};
+      const currentIndex = s.connections.findIndex((connection) => connection.id === id);
+      const entry: SpaceHistoryEntry = {
+        kind: "connections",
+        patches: [connectionRecordPatch(
+          id,
+          { index: currentIndex, connection: current },
+          { index: currentIndex, connection: candidate },
+        )],
+      };
+      changed = true;
+      return {
+        connections: s.connections.map((connection) => connection.id === id ? candidate : connection),
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
     });
     return changed;
   },
@@ -2279,6 +2350,95 @@ export const useLab = create<LabState>((set, get) => ({
           after,
         ),
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  deleteSelectedConnections: () => {
+    let deleted = 0;
+    set((s) => {
+      const selectedIds = new Set(s.selectedConnectionIds);
+      const patches: ConnectionRecordPatch[] = [];
+      for (let index = 0; index < s.connections.length; index += 1) {
+        const connection = s.connections[index];
+        if (!selectedIds.has(connection.id)) continue;
+        patches.push(connectionRecordPatch(
+          connection.id,
+          { index, connection },
+          null,
+        ));
+      }
+      if (!patches.length) return {};
+      deleted = patches.length;
+      const deletedIds = new Set(patches.map((patch) => patch.id));
+      const connections = s.connections.filter((connection) => !deletedIds.has(connection.id));
+      return {
+        connections,
+        ...normalizeConnectionSelection(
+          s.selectedConnectionIds,
+          s.primarySelectedConnectionId,
+          connections,
+        ),
+        transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connections", patches }),
+        transformRedoStack: [],
+      };
+    });
+    return deleted;
+  },
+
+  copySelectedConnectionStyle: () => {
+    let copied = false;
+    set((s) => {
+      if (s.selectedConnectionIds.length !== 1) return {};
+      const connection = selectConnectionById(
+        getConnectionIndex(s.connections),
+        s.selectedConnectionIds[0],
+      );
+      if (!connection) return {};
+      copied = true;
+      return {
+        connectionStyleClipboard: copyResolvedConnectionStyle(
+          connection,
+          s.settings.connectionStyles,
+          s.settings.projectRelationshipTypes,
+        ),
+      };
+    });
+    return copied;
+  },
+
+  pasteConnectionStyleToSelection: () => {
+    let changed = 0;
+    set((s) => {
+      if (!s.connectionStyleClipboard || !s.selectedConnectionIds.length) return {};
+      const selectedIds = new Set(s.selectedConnectionIds);
+      const patches: ConnectionRecordPatch[] = [];
+      const connections = s.connections.map((current, index) => {
+        if (!selectedIds.has(current.id)) return current;
+        const visual = pasteConnectionStyleVisual(
+          s.connectionStyleClipboard!,
+          current,
+          s.settings.connectionStyles,
+          s.settings.projectRelationshipTypes,
+        );
+        if (JSON.stringify(current.visual) === JSON.stringify(visual)) return current;
+        const candidate = cloneConnection(current);
+        if (visual) candidate.visual = visual;
+        else delete candidate.visual;
+        patches.push(connectionRecordPatch(
+          current.id,
+          { index, connection: current },
+          { index, connection: candidate },
+        ));
+        return candidate;
+      });
+      if (!patches.length) return {};
+      changed = patches.length;
+      return {
+        connections,
+        transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connections", patches }),
         transformRedoStack: [],
       };
     });

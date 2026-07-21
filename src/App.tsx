@@ -16,7 +16,11 @@ import ContextSurfaceHost from "./ui/context/ContextSurfaceHost";
 import RuntimeStatus from "./ui/RuntimeStatus";
 import QuickToggleBar from "./ui/QuickToggleBar";
 import { activateInspector, shouldHandleInspectorShortcut } from "./interaction/inspectorShortcut";
-import { shouldHandleConnectionEscape, shouldHandleConnectionShortcut } from "./interaction/connectionShortcut";
+import {
+  resolveConnectionSelectionShortcut,
+  shouldHandleConnectionEscape,
+  shouldHandleConnectionShortcut,
+} from "./interaction/connectionShortcut";
 import { isConnectionGestureActive } from "./domain/connections/model";
 import "./App.css";
 
@@ -142,6 +146,19 @@ function MainApp() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const state = useLab.getState();
+      const selectionShortcut = resolveConnectionSelectionShortcut(
+        event,
+        state.view,
+        state.selectedConnectionIds.length,
+      );
+      if (selectionShortcut) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (selectionShortcut === "copy-style") state.copySelectedConnectionStyle();
+        else if (selectionShortcut === "paste-style") state.pasteConnectionStyleToSelection();
+        else state.deleteSelectedConnections();
+        return;
+      }
       if (shouldHandleConnectionShortcut(event, state.view)) {
         event.preventDefault();
         event.stopPropagation();

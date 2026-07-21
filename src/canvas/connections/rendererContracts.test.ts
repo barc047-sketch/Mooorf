@@ -248,7 +248,7 @@ test("projection resolves inherited styles, clips boundaries, culls, and draws s
   }), createConnectionPathCache());
   assert.deepEqual(result.commands.map((command) => command.id), ["lane-b", "lane-a"]);
   assert.equal(result.commands[result.commands.length - 1]?.selected, true);
-  assert.equal(result.commands[0]?.emphasis, "faded");
+  assert.equal(result.commands[0]?.emphasis, "related");
   assert.equal(result.commands[1]?.emphasis, "focused");
   assert.equal(result.metrics.authoredCount, 5);
   assert.equal(result.metrics.eligibleCount, 2);
@@ -260,6 +260,42 @@ test("projection resolves inherited styles, clips boundaries, culls, and draws s
     const end = command.path.points[command.path.points.length - 1]!;
     assert.ok(start.x > 100 && end.x < 300, "line endpoints are clipped outside Cell content");
   }
+});
+
+test("Connection focus keeps selected, endpoint-related, and contextual lines visibly ordered", () => {
+  const rows = [
+    connection("ab", "a", "b"),
+    connection("bc", "b", "c"),
+    connection("de", "d", "e"),
+  ];
+  const endpoints = new Map([
+    ["a", endpoint("a", 60, 80)],
+    ["b", endpoint("b", 160, 80)],
+    ["c", endpoint("c", 260, 80)],
+    ["d", endpoint("d", 160, 180)],
+    ["e", endpoint("e", 260, 180)],
+  ]);
+  const result = projectConnections(projectionInput(rows, endpoints, {
+    selectedIds: new Set(["ab"]),
+  }), createConnectionPathCache());
+  const commandById = new Map(result.commands.map((command) => [command.id, command]));
+  assert.equal(commandById.get("ab")?.emphasis, "focused");
+  assert.equal(commandById.get("bc")?.emphasis, "related");
+  assert.equal(commandById.get("de")?.emphasis, "faded");
+
+  const context = new RecordingContext();
+  drawConnectionBatch(context as unknown as CanvasRenderingContext2D, result.commands, {
+    theme: "day",
+    scale: 1,
+    fadeUnrelated: true,
+    drawLabels: false,
+    markerDetail: "hidden",
+    patternFallback: false,
+  });
+  const alphaById = new Map(result.commands.map((command, index) => [command.id, context.strokes[index]?.alpha]));
+  assert.equal(alphaById.get("ab"), 1);
+  assert.equal(alphaById.get("bc"), 0.76);
+  assert.equal(alphaById.get("de"), 0.44);
 });
 
 test("selected-Cell focus fades unrelated commands without deleting semantic rows", () => {

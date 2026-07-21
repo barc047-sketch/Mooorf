@@ -44,6 +44,36 @@ export function shouldHandleConnectionShortcut(event: KeyboardEvent, view: ViewM
     && !isConnectionShortcutEditingTarget(event.target);
 }
 
+export type ConnectionSelectionShortcut = "copy-style" | "paste-style" | "delete";
+
+export function resolveConnectionSelectionShortcut(
+  event: KeyboardEvent,
+  view: ViewMode,
+  selectedConnectionCount: number,
+): ConnectionSelectionShortcut | null {
+  if (
+    view !== "canvas"
+    || selectedConnectionCount < 1
+    || event.repeat
+    || isConnectionShortcutEditingTarget(event.target)
+  ) return null;
+
+  const key = event.key.toLowerCase();
+  const modifier = event.metaKey || event.ctrlKey;
+  if (modifier && !event.altKey && !event.shiftKey) {
+    if (key === "c") return "copy-style";
+    if (key === "v") return "paste-style";
+  }
+  if (
+    !event.metaKey
+    && !event.ctrlKey
+    && !event.altKey
+    && !event.shiftKey
+    && (event.key === "Delete" || event.key === "Backspace")
+  ) return "delete";
+  return null;
+}
+
 export function shouldHandleConnectionEscape(event: KeyboardEvent, modeActive: boolean): boolean {
   return modeActive
     && event.key === "Escape"

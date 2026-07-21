@@ -141,7 +141,7 @@ interface P2StoreContract {
   view: "canvas" | "table";
   replaceSelection(id: string | null): void;
   addToSelection(id: string): void;
-  selectConnection(id: string | null): void;
+  selectConnection(id: string | null, additive?: boolean): void;
   clearConnectionSelection(): void;
   addSpace(partial?: Partial<SpaceCell>): void;
   beginConnectionAuthoring(typeId: ConnectionSemanticTypeId): void;
@@ -206,6 +206,26 @@ test("Connection selection and Cell selection are mutually exclusive", async () 
   assert.deepEqual(state().selectedConnectionIds, []);
   assert.equal(state().primarySelectedConnectionId, null);
   assert.equal(state().selectedIds.length, 1);
+});
+
+test("Connection click and Shift-click reuse one toggleable history-free selection owner", async () => {
+  const { state } = await connectionStore();
+  const first = state().createConnection({ fromSpaceId: "cell-a", toSpaceId: "cell-b", typeId: "adjacency" });
+  const second = state().createConnection({ fromSpaceId: "cell-b", toSpaceId: "cell-c", typeId: "direct-access" });
+  const third = state().createConnection({ fromSpaceId: "cell-a", toSpaceId: "cell-c", typeId: "visual-access" });
+  assert.ok(first && second && third);
+  const historyAfterCreate = state().transformUndoStack.length;
+
+  state().selectConnection(first);
+  assert.deepEqual(state().selectedConnectionIds, [first]);
+  state().selectConnection(second, true);
+  assert.deepEqual(state().selectedConnectionIds, [first, second]);
+  state().selectConnection(third, true);
+  assert.deepEqual(state().selectedConnectionIds, [first, second, third]);
+  state().selectConnection(second, true);
+  assert.deepEqual(state().selectedConnectionIds, [first, third]);
+  assert.equal(state().primarySelectedConnectionId, third);
+  assert.equal(state().transformUndoStack.length, historyAfterCreate);
 });
 
 test("Connect Selected creates one transaction, selects the result and permits a different semantic type", async () => {

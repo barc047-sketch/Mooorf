@@ -54,7 +54,9 @@ interface ConnectionStoreContract {
   transformRedoStack: unknown[];
   createConnection(input: CreateConnectionInput): string | null;
   updateConnectionSemantic(id: string, patch: Partial<ConnectionSemantic>): boolean;
+  updateConnectionAnnotation(id: string, annotation: Connection["annotation"] | null): boolean;
   updateConnectionVisual(id: string, visual: ConnectionVisual | null): boolean;
+  reverseConnection(id: string): boolean;
   setConnectionEnabled(id: string, enabled: boolean): boolean;
   deleteConnection(id: string): boolean;
   getConnectionById(id: string): Connection | null;
@@ -233,7 +235,7 @@ test("canonical store retrieves Connections by ID, Cell, and unordered pair", as
   assert.deepEqual(state().getConnectionsBetweenSpaces("cell-b", "cell-a").map((item) => item.id), [firstId]);
 });
 
-test("Connection update, visual configuration, enablement, and delete each create one Undo transaction", async () => {
+test("Connection update, annotation, visual configuration, reversal, enablement, and delete each create one Undo transaction", async () => {
   const { state } = await connectionStore();
   const id = state().createConnection({ fromSpaceId: "cell-a", toSpaceId: "cell-b", typeId: "adjacency" });
   assert.ok(id);
@@ -247,6 +249,19 @@ test("Connection update, visual configuration, enablement, and delete each creat
   state().redoSpaceTransform();
   assert.equal(state().getConnectionById(id)?.semantic.priority, "critical");
 
+  const annotation: NonNullable<Connection["annotation"]> = {
+    title: { source: "custom", text: "Emergency route" },
+    body: { source: "custom", text: "Keep this path clear during evacuation." },
+  };
+  const beforeAnnotation = state().transformUndoStack.length;
+  assert.equal(state().updateConnectionAnnotation(id, annotation), true);
+  assert.equal(state().transformUndoStack.length, beforeAnnotation + 1);
+  assert.deepEqual(state().getConnectionById(id)?.annotation, annotation);
+  state().undoSpaceTransform();
+  assert.equal(state().getConnectionById(id)?.annotation, undefined);
+  state().redoSpaceTransform();
+  assert.deepEqual(state().getConnectionById(id)?.annotation, annotation);
+
   const visual: ConnectionVisual = {
     visible: true,
     geometryId: "curved",
@@ -259,6 +274,18 @@ test("Connection update, visual configuration, enablement, and delete each creat
   assert.equal(state().updateConnectionVisual(id, visual), true);
   assert.equal(state().transformUndoStack.length, beforeVisual + 1);
   assert.equal(state().getConnectionById(id)?.visual?.geometryId, "curved");
+
+  const beforeReverse = state().transformUndoStack.length;
+  assert.equal(state().reverseConnection(id), true);
+  assert.equal(state().transformUndoStack.length, beforeReverse + 1);
+  assert.equal(state().getConnectionById(id)?.fromSpaceId, "cell-b");
+  assert.equal(state().getConnectionById(id)?.toSpaceId, "cell-a");
+  assert.deepEqual(state().getConnectionById(id)?.annotation, annotation);
+  assert.equal(state().getConnectionById(id)?.visual?.geometryId, "curved");
+  state().undoSpaceTransform();
+  assert.equal(state().getConnectionById(id)?.fromSpaceId, "cell-a");
+  state().redoSpaceTransform();
+  assert.equal(state().getConnectionById(id)?.fromSpaceId, "cell-b");
 
   const beforeDisable = state().transformUndoStack.length;
   assert.equal(state().setConnectionEnabled(id, false), true);

@@ -1,6 +1,6 @@
 # Current Project State
 
-**Last updated:** 2026-07-21
+**Last updated:** 2026-07-22
 
 **Repository:** `barc047-sketch/Mooorf`
 
@@ -12,7 +12,7 @@
 | PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains Connections P1 and P2 authoring/selection; no merge is authorized. |
+| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains Connections P1/P2 plus the pushed R2B.1B foundation and local-uncommitted R2B.2 Inspector/final-visual-correction work; no merge is authorized. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
@@ -24,7 +24,9 @@
 | CONNECTIONS P1 STATUS | PUSHED / WAITING OWNER REVIEW. |
 | CONNECTIONS P2 PRODUCT COMMIT | `be1b9748298c35a3c89736afaf0ede5e533806ee` on `work/next-feature`. |
 | CONNECTIONS P2 STATUS | PUSHED / CODEX BROWSER QA PASSED / WAITING OWNER REVIEW. |
-| NEXT AUTHORITY | Owner review of Connections P2. Prompt 3, correction, finalization, and merge each require separate explicit authority. |
+| CONNECTIONS R2B.1B FOUNDATION | `6c41d25381ad7943f6b2fa3938520864bfdbbea8` is pushed to `origin/work/next-feature` by normal fast-forward. |
+| CONNECTIONS R2B.2 STATUS | LOCAL UNCOMMITTED / FINAL VISUAL CORRECTIONS APPLIED / PREVIEW AVAILABLE / WAITING OWNER QA. |
+| NEXT AUTHORITY | Owner visual QA for R2B.2 only. R3, finalization, merge and branch cleanup each require separate explicit authority. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -90,6 +92,21 @@
 - completed create, semantic edit, enable/disable, notes and delete operations reuse the existing one-transaction history owner; preview, selection and cancellation remain history-free;
 - no stored-line renderer, visual grammar, geometry/stroke/marker/label controls, export rendering, Matrix, Material, Morph Bridge, Behaviour, animation or Classic work was added.
 
+### Connections R2B.2 — LOCAL UNCOMMITTED / WAITING OWNER QA
+
+- the selected-Connection Inspector now uses the shared dynamic factory/project Relationship Type library with Custom fallback instead of a fixed semantic list;
+- the default surface is compact: actual endpoint names, Type, progressive Title/Body controls, a resolved style preview, Reverse and Delete;
+- the repository-loaded active project currently has no project-created Relationship Types; focused fixtures prove active types appear, archived types do not, and Custom remains safe;
+- click and Shift-click retain the existing history-free Connection selection owner, while the Inspector renders a distinct compact multi-Connection state instead of presenting one record;
+- Inspector Delete removes the canonical selected Connection; guarded Delete/Backspace removes one or many selected Connections in one history transaction and never intercepts an editable text surface;
+- a transient style clipboard copies one selected Connection's resolved geometry, pattern, markers and appearance scalars, then rebases that appearance into minimal sparse local overrides for one or many selected targets in one history transaction;
+- the existing batched Connection renderer now gives selected lines `1.00`, endpoint-related lines `0.76`, and unrelated contextual lines `0.44` alpha during selected-Connection focus; selected-Cell focus retains the same contextual floor;
+- `RelationshipTypePicker` reuses one accessible custom glass listbox for both surfaces: the approved Quick Rail opens upward and the Inspector opens downward while retaining the dynamic selectable Relationship Type library;
+- Title and Body reuse sparse canonical annotation overrides; text commits through the existing blur/finalization content-edit convention rather than per keystroke;
+- annotation changes and Reverse each use the central one-record Connection history path, preserving sparse visual and annotation overrides across reclassification/reversal;
+- advanced requirement, strength, priority, direction, geometry, marker and anchor controls remain in canonical data but are removed from the normal Inspector surface;
+- no Relationship Manager, style panel, renderer, Canvas annotation, port, export, Matrix, Table, Classic or production-build work occurred.
+
 ## Verification disposition
 
 Correction 2 passed its focused correction contracts, `npx tsc -b --pretty false`, the final diff check, and exactly one production build. Codex browser checks were recorded at 1440×900 and 1280×800; Owner visual/interaction QA remains the active gate. The baseline Owner-QA failures were recorded before repair: Flag lost stable callout behaviour, Ring changed identity at low zoom, inside text overflowed, Membrane distorted across zoom, and the compact Inspector/Display lacked the requested controls.
@@ -102,6 +119,10 @@ Connections P1 passed 58/58 focused and affected contracts with zero failures, i
 
 Connections P2 passed 46/46 focused and affected contracts with zero failures, `npx tsc -b --pretty false`, tracked and untracked diff checks, and final scope review. Codex development-mode browser QA at 1440×900 and 1280×800 verified one launcher/widget, the six canonical types, source/target preview and commit, duplicate selection, existing-list selection, Connection semantic edits with Undo/Redo, the unchanged Cell Inspector path, Escape/Table/widget-close cleanup, stable mounted Organism/labels, bounded widget geometry and zero console errors. No production build ran. Human smoothness/visual judgement remains Owner review.
 
+Connections R2B.2 final visual correction passed 40/40 focused Connection presentation and Inspector contracts, `npx tsc -b --pretty false`, and final `git diff --check`. The local Vite preview returned HTTP 200 at `http://127.0.0.1:5173/`. Per task boundary, no browser automation or production build ran; visual and interaction judgement remains Owner QA.
+
 ## Current gate
 
-HOLD — Connections P2 is pushed on `work/next-feature` and awaiting Owner review. Prompt 3 is not started or authorized; `main` remains untouched.
+R2B.2 FINAL VISUAL CORRECTIONS APPLIED — WAITING OWNER QA
+
+`main` remains untouched. R3, finalization, merge and branch cleanup are not authorized.

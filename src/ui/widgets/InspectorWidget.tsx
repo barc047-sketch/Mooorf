@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Copy, LocateFixed, RotateCcw, SlidersHorizontal, Sparkles, Trash2, X } from "lucide-react";
+import { Copy, RotateCcw, SlidersHorizontal, Sparkles, Trash2 } from "lucide-react";
 import {
   type TextAppearanceOverride,
   type TextStylePresetId,
@@ -28,16 +28,12 @@ import {
 import SymbolInspectorPane from "./SymbolInspectorPane";
 import LabelLayoutPane from "./LabelLayoutPane";
 import { mergeCellLabelConfig } from "../../domain/labels/layoutContract";
-import {
-  CONNECTION_DIRECTIONS,
-  CONNECTION_PRIORITIES,
-  CONNECTION_REQUIREMENTS,
-  CONNECTION_SEMANTIC_TYPES,
-  CONNECTION_STRENGTHS,
-  resolveConnectionSemanticType,
-} from "../../domain/connections/registry";
+import { resolveConnectionAnnotation } from "../../domain/connections/annotations";
+import { getSelectableRelationshipTypes, resolveRelationshipType } from "../../domain/connections/relationshipTypes";
 import { getPrimarySelectedConnection } from "../../domain/connections/selectors";
-import type { Connection } from "../../domain/graph/types";
+import { resolveConnectionStyle } from "../../domain/connections/styles";
+import type { ConnectionAnnotationOverride } from "../../domain/graph/types";
+import { RelationshipTypePicker } from "../RelationshipTypePicker";
 
 type TabId = "content" | "appearance" | "symbol";
 
@@ -111,48 +107,116 @@ function ContentField({ label, field, spaces }: {
   );
 }
 
-function ConnectionNotesField({ connection }: { connection: Connection }) {
-  const updateConnectionSemantic = useLab((state) => state.updateConnectionSemantic);
-  const canonical = connection.semantic.notes;
-  const [draft, setDraft] = useState(canonical);
-  const session = useRef(beginContentEdit(canonical));
+function ConnectionAnnotationTextField({
+  label,
+  value,
+  multiline,
+  placeholder,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  multiline: boolean;
+  placeholder: string;
+  onCommit: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  const session = useRef(beginContentEdit(value));
   useEffect(() => {
-    session.current = beginContentEdit(canonical);
-    setDraft(canonical);
-  }, [canonical, connection.id]);
+    session.current = beginContentEdit(value);
+    setDraft(value);
+  }, [value]);
 
   const apply = (result: ContentEditResolution) => {
     session.current = result.session;
     if (result.action.kind === "cancel") setDraft(result.action.value);
-    if (result.action.kind === "commit") updateConnectionSemantic(connection.id, { notes: result.action.value });
+    if (result.action.kind === "commit") onCommit(result.action.value);
   };
 
   return (
     <label className="m1-field">
-      <span>Connection notes</span>
-      <textarea
-        rows={4}
-        value={draft}
-        aria-label="Connection notes"
-        placeholder="Add relationship intent, constraints or coordination notes."
-        onChange={(event) => {
-          session.current = changeContentEdit(session.current, event.target.value);
-          setDraft(session.current.draft);
-        }}
-        onBlur={() => apply(resolveContentEditBlur(session.current))}
-        onKeyDown={(event) => {
-          const result = resolveContentEditKey(session.current, {
-            key: event.key,
-            shiftKey: event.shiftKey,
-            multiline: true,
-          });
-          if (result.action.kind !== "none") event.preventDefault();
-          apply(result);
-          if (result.blur) event.currentTarget.blur();
-        }}
-      />
+      <span>{label}</span>
+      {multiline
+        ? <textarea
+            rows={3}
+            value={draft}
+            aria-label={label}
+            placeholder={placeholder}
+            onChange={(event) => {
+              session.current = changeContentEdit(session.current, event.target.value);
+              setDraft(session.current.draft);
+            }}
+            onBlur={() => apply(resolveContentEditBlur(session.current))}
+            onKeyDown={(event) => {
+              const result = resolveContentEditKey(session.current, {
+                key: event.key,
+                shiftKey: event.shiftKey,
+                multiline: true,
+              });
+              if (result.action.kind !== "none") event.preventDefault();
+              apply(result);
+              if (result.blur) event.currentTarget.blur();
+            }}
+          />
+        : <input
+            type="text"
+            value={draft}
+            aria-label={label}
+            placeholder={placeholder}
+            onChange={(event) => {
+              session.current = changeContentEdit(session.current, event.target.value);
+              setDraft(session.current.draft);
+            }}
+            onBlur={() => apply(resolveContentEditBlur(session.current))}
+            onKeyDown={(event) => {
+              const result = resolveContentEditKey(session.current, {
+                key: event.key,
+                shiftKey: event.shiftKey,
+                multiline: false,
+              });
+              if (result.action.kind !== "none") event.preventDefault();
+              apply(result);
+              if (result.blur) event.currentTarget.blur();
+            }}
+          />}
     </label>
   );
+}
+
+function ConnectionBodyControls({
+  source,
+  value,
+  onCommit,
+}: {
+  source: "hidden" | "custom";
+  value: string;
+  onCommit: (patch: ConnectionAnnotationOverride) => void;
+}) {
+  const [opened, setOpened] = useState(source !== "hidden");
+  useEffect(() => setOpened(source !== "hidden"), [source]);
+  const visible = opened || source !== "hidden";
+
+  return <>
+    <SwitchRow
+      label="Body"
+      on={visible}
+      onToggle={() => {
+        if (visible) {
+          setOpened(false);
+          onCommit({ body: { source: "hidden" } });
+        } else {
+          setOpened(true);
+        }
+      }}
+    />
+    {visible && <ConnectionAnnotationTextField
+      label="Body text"
+      value={value}
+      multiline
+      placeholder="Add relationship details"
+      onCommit={(text) => onCommit({ body: { source: "custom", text } })}
+    />}
+  </>;
 }
 
 function ConnectionInspector({ connectionId }: { connectionId: string }) {
@@ -160,25 +224,31 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
   const source = useLab((state) => state.spaces.find((space) => space.id === connection?.fromSpaceId));
   const target = useLab((state) => state.spaces.find((space) => space.id === connection?.toSpaceId));
   const updateConnectionSemantic = useLab((state) => state.updateConnectionSemantic);
-  const setConnectionEnabled = useLab((state) => state.setConnectionEnabled);
+  const updateConnectionAnnotation = useLab((state) => state.updateConnectionAnnotation);
+  const reverseConnection = useLab((state) => state.reverseConnection);
   const deleteConnection = useLab((state) => state.deleteConnection);
-  const clearConnectionSelection = useLab((state) => state.clearConnectionSelection);
-  const replaceSelection = useLab((state) => state.replaceSelection);
-  const addToSelection = useLab((state) => state.addToSelection);
-  const fitSelection = useLab((state) => state.fitSelection);
+  const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
+  const connectionStyles = useLab((state) => state.settings.connectionStyles);
   if (!connection) return <CellInspector />;
 
-  const semantic = resolveConnectionSemanticType(connection.semantic.typeId);
-  const typeOptions = semantic.known
-    ? CONNECTION_SEMANTIC_TYPES
-    : [semantic, ...CONNECTION_SEMANTIC_TYPES];
-  const update = <K extends keyof Connection["semantic"]>(key: K, value: Connection["semantic"][K]) => {
-    updateConnectionSemantic(connection.id, { [key]: value });
+  const typeOptions = getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles);
+  const relationshipType = resolveRelationshipType(connection.semantic.typeId, projectRelationshipTypes, connectionStyles);
+  const selectedTypeId = typeOptions.some((type) => type.id === connection.semantic.typeId)
+    ? connection.semantic.typeId
+    : "custom";
+  const annotation = resolveConnectionAnnotation(connection, relationshipType);
+  const style = resolveConnectionStyle(connection, connectionStyles, projectRelationshipTypes);
+  const titleOn = annotation.title.source !== "hidden";
+  const styleLine = {
+    borderTopColor: style.appearance.color,
+    borderTopWidth: `${Math.max(1, Math.min(4, style.appearance.width))}px`,
+    borderTopStyle: (style.strokePatternId === "dashed"
+      ? "dashed"
+      : style.strokePatternId === "dotted" || style.strokePatternId === "dash-dot" ? "dotted" : "solid") as "dashed" | "dotted" | "solid",
+    opacity: style.appearance.opacity,
   };
-  const locateEndpoints = () => {
-    replaceSelection(connection.fromSpaceId);
-    addToSelection(connection.toSpaceId);
-    fitSelection();
+  const commitAnnotation = (patch: ConnectionAnnotationOverride) => {
+    updateConnectionAnnotation(connection.id, { ...connection.annotation, ...patch });
   };
 
   return (
@@ -189,67 +259,107 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
           <small>CONNECTION</small>
           <strong>{source?.name ?? "Missing Cell"} → {target?.name ?? "Missing Cell"}</strong>
         </div>
-        <span className="m1-state-badge" data-state="local-override">{semantic.name}</span>
       </div>
 
       <div className="m1-pane">
         <section className="m1-section">
-          <h3>Quick</h3>
+          <h3>TYPE</h3>
           <label className="m1-field">
-            <span>Relationship type</span>
-            <select
-              aria-label="Relationship type"
-              value={connection.semantic.typeId}
-              onChange={(event) => update("typeId", event.target.value)}
-            >
-              {typeOptions.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
-            </select>
+            <span>Relationship Type</span>
+            <RelationshipTypePicker
+              direction="down"
+              label="Relationship Type"
+              options={typeOptions}
+              value={selectedTypeId}
+              onChange={(typeId) => updateConnectionSemantic(connection.id, { typeId })}
+            />
           </label>
+        </section>
+
+        <section className="m1-section">
+          <h3>TEXT</h3>
           <SwitchRow
-            label="Enabled"
-            on={connection.enabled}
-            onToggle={() => setConnectionEnabled(connection.id, !connection.enabled)}
+            label="Title"
+            on={titleOn}
+            onToggle={() => commitAnnotation({
+              title: titleOn
+                ? { source: "hidden" }
+                : { source: "relationship-type" },
+            })}
           />
-          <label className="m1-field">
-            <span>Direction</span>
-            <select aria-label="Connection direction" value={connection.semantic.direction} onChange={(event) => update("direction", event.target.value as Connection["semantic"]["direction"])}>
-              {CONNECTION_DIRECTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
-            </select>
-          </label>
-          <label className="m1-field">
-            <span>Requirement</span>
-            <select aria-label="Connection requirement" value={connection.semantic.requirement} onChange={(event) => update("requirement", event.target.value as Connection["semantic"]["requirement"])}>
-              {CONNECTION_REQUIREMENTS.map((value) => <option key={value} value={value}>{value}</option>)}
-            </select>
-          </label>
-          <label className="m1-field">
-            <span>Strength</span>
-            <select aria-label="Connection strength" value={connection.semantic.strength} onChange={(event) => update("strength", event.target.value as Connection["semantic"]["strength"])}>
-              {CONNECTION_STRENGTHS.map((value) => <option key={value} value={value}>{value}</option>)}
-            </select>
-          </label>
-          <label className="m1-field">
-            <span>Priority</span>
-            <select aria-label="Connection priority" value={connection.semantic.priority} onChange={(event) => update("priority", event.target.value as Connection["semantic"]["priority"])}>
-              {CONNECTION_PRIORITIES.map((value) => <option key={value} value={value}>{value}</option>)}
-            </select>
-          </label>
+          {titleOn && <>
+            <label className="m1-field">
+              <span>Source</span>
+              <select
+                aria-label="Title source"
+                value={annotation.title.source === "custom" ? "custom" : "relationship-type"}
+                onChange={(event) => commitAnnotation({
+                  title: event.target.value === "custom"
+                    ? { source: "custom", text: annotation.title.text || relationshipType.name }
+                    : { source: "relationship-type" },
+                })}
+              >
+                <option value="relationship-type">Relationship Type</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+            {annotation.title.source === "custom" && <ConnectionAnnotationTextField
+              label="Custom title"
+              value={annotation.title.text}
+              multiline={false}
+              placeholder="Add a custom title"
+              onCommit={(text) => commitAnnotation({ title: { source: "custom", text } })}
+            />}
+          </>}
+          <ConnectionBodyControls
+            source={annotation.body.source}
+            value={annotation.body.text}
+            onCommit={commitAnnotation}
+          />
         </section>
 
         <section className="m1-section">
-          <h3>Notes</h3>
-          <ConnectionNotesField connection={connection} />
+          <h3>STYLE</h3>
+          <div className="connection-style-preview" aria-label="Resolved Connection style preview">
+            <span className="connection-style-preview-line" style={styleLine} />
+            <span className="connection-style-preview-marker">›</span>
+          </div>
+          <p className="connection-style-origin">{connection.visual ? "Custom appearance" : "Relationship Type"}</p>
         </section>
 
         <section className="m1-section">
-          <h3>Actions</h3>
           <div className="m1-action-grid">
-            <button type="button" className="m1-btn" onClick={locateEndpoints}><LocateFixed size={11} /> Select endpoints</button>
-            <button type="button" className="m1-btn" onClick={clearConnectionSelection}><X size={11} /> Clear selection</button>
-            <button type="button" className="m1-btn connection-delete" onClick={() => deleteConnection(connection.id)}><Trash2 size={11} /> Delete Connection</button>
+            <button type="button" className="m1-btn" onClick={() => reverseConnection(connection.id)}><RotateCcw size={11} /> Reverse</button>
+            <button type="button" className="m1-btn connection-delete" onClick={() => deleteConnection(connection.id)}><Trash2 size={11} /> Delete</button>
           </div>
         </section>
-        <p className="m1-empty-note">Connection selection is editing UI only and never changes Cell appearance or exports.</p>
+      </div>
+    </div>
+  );
+}
+
+function ConnectionMultiInspector({ count }: { count: number }) {
+  const deleteSelectedConnections = useLab((state) => state.deleteSelectedConnections);
+  return (
+    <div className="m1-inspector connection-inspector">
+      <div className="m1-context">
+        <span className="m1-signal" data-selected="true" />
+        <div>
+          <small>CONNECTIONS</small>
+          <strong>{count} Connections selected</strong>
+        </div>
+      </div>
+      <div className="m1-pane">
+        <section className="m1-section">
+          <p className="m1-empty-note">Style Paste and Delete apply to the complete selection.</p>
+          <button
+            type="button"
+            className="m1-btn connection-delete"
+            onClick={deleteSelectedConnections}
+          >
+            <Trash2 size={11} /> Delete selected
+          </button>
+        </section>
       </div>
     </div>
   );
@@ -416,8 +526,13 @@ function CellInspector() {
 }
 
 export default function InspectorWidget() {
+  const selectedConnectionIds = useLab((state) => state.selectedConnectionIds);
   const primarySelectedConnectionId = useLab((state) => state.primarySelectedConnectionId);
-  return primarySelectedConnectionId
-    ? <ConnectionInspector connectionId={primarySelectedConnectionId} />
+  if (selectedConnectionIds.length > 1) {
+    return <ConnectionMultiInspector count={selectedConnectionIds.length} />;
+  }
+  const connectionId = primarySelectedConnectionId ?? selectedConnectionIds[0] ?? null;
+  return connectionId
+    ? <ConnectionInspector connectionId={connectionId} />
     : <CellInspector />;
 }

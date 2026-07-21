@@ -2224,3 +2224,22 @@ Until the Owner explicitly approves an amendment:
 - No alternative architecture may be substituted merely because it is easier to implement.
 
 **END OF LOCKED MASTER SPECIFICATION**
+
+---
+
+## Amendment 1 — 2026-07-22
+
+**Amendment — Connection Style Clipboard**
+
+- **Owner-approved change:** A user may copy the resolved visual appearance of exactly one selected Connection with `Cmd+C` on macOS or `Ctrl+C` on Windows/Linux, then paste that appearance onto one or multiple selected Connections with `Cmd+V` / `Ctrl+V`.
+- **Reason:** Connection style reuse must support fast single-target and multi-target editing without duplicating Connections or weakening sparse Relationship Type inheritance.
+- **Sections superseded:** None. This amendment extends the Connection Inspector/style workflow and is binding for the later common Connection Style Panel.
+- **Data migration impact:** None. The style clipboard is transient application/session UI state and is excluded from project JSON, `.mooorf`, Saved Views, and authored history.
+- **UI impact:** Copy requires exactly one selected source Connection. Paste targets the current Connection selection and survives intervening selection changes. Multiple-source Copy is a no-op. Native copy/paste inside input, textarea, contenteditable, and other editable surfaces is never intercepted.
+- **Renderer impact:** None.
+- **Export impact:** None.
+- **Tests required:** active/project Relationship Type selection; Connection click/Shift-click selection; single and atomic multi-delete; editable-target keyboard guards; resolved-style Copy with zero history; sparse single/multi Paste with one transaction; Undo/Redo; and proof that endpoints, IDs, Relationship Type, semantics, enabled state, annotations, visibility, anchors, selection, and runtime geometry are excluded.
+
+Style copy/paste operates on visual appearance only: geometry, stroke pattern, start/end markers, and the existing canonical appearance scalars (`color`, `width`, `opacity`, `curve`, `markerSize`, `markerOffset`, `dashScale`). It excludes Connection identity, endpoints, Relationship Type and semantic metadata, enabled state, visual visibility, endpoint anchors, label/annotation content, selection, runtime lanes, and cached path data.
+
+The clipboard stores the source Connection's resolved appearance. Paste derives the minimum sparse local visual override against each target Relationship Type default. Copy creates no history entry. One paste gesture across any number of targets creates one history transaction; Undo and Redo treat the target set atomically.

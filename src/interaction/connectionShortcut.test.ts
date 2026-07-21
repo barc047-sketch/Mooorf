@@ -54,3 +54,53 @@ test("Connection shortcut source declares every protected editing surface", asyn
     assert.ok(source.includes(token), `editing guard should include ${token}`);
   }
 });
+
+test("Connection selection shortcuts resolve platform Copy, Paste, and Delete only with a selected Connection", async () => {
+  const shortcuts = await import("./connectionShortcut") as Record<string, unknown>;
+  assert.equal(typeof shortcuts.resolveConnectionSelectionShortcut, "function");
+  const resolve = shortcuts.resolveConnectionSelectionShortcut as (
+    event: KeyboardEvent,
+    view: "canvas" | "table",
+    selectedConnectionCount: number,
+  ) => "copy-style" | "paste-style" | "delete" | null;
+
+  assert.equal(resolve(event({ key: "c", metaKey: true }), "canvas", 1), "copy-style");
+  assert.equal(resolve(event({ key: "C", ctrlKey: true }), "canvas", 1), "copy-style");
+  assert.equal(resolve(event({ key: "v", metaKey: true }), "canvas", 3), "paste-style");
+  assert.equal(resolve(event({ key: "V", ctrlKey: true }), "canvas", 2), "paste-style");
+  assert.equal(resolve(event({ key: "Delete" }), "canvas", 1), "delete");
+  assert.equal(resolve(event({ key: "Backspace" }), "canvas", 3), "delete");
+  assert.equal(resolve(event({ key: "Delete" }), "canvas", 0), null);
+  assert.equal(resolve(event({ key: "c", metaKey: true }), "table", 1), null);
+  assert.equal(resolve(event({ key: "c", metaKey: true, shiftKey: true }), "canvas", 1), null);
+});
+
+test("Connection selection shortcuts preserve native editing-surface Copy, Paste, and Delete", async () => {
+  const shortcuts = await import("./connectionShortcut") as Record<string, unknown>;
+  assert.equal(typeof shortcuts.resolveConnectionSelectionShortcut, "function");
+  const resolve = shortcuts.resolveConnectionSelectionShortcut as (
+    event: KeyboardEvent,
+    view: "canvas" | "table",
+    selectedConnectionCount: number,
+  ) => "copy-style" | "paste-style" | "delete" | null;
+
+  class EditableElement {
+    parentElement: EditableElement | null = null;
+    isContentEditable = false;
+    closest() { return this; }
+  }
+  const previousElement = globalThis.Element;
+  const previousHtmlElement = globalThis.HTMLElement;
+  Object.defineProperty(globalThis, "Element", { configurable: true, value: EditableElement });
+  Object.defineProperty(globalThis, "HTMLElement", { configurable: true, value: EditableElement });
+  try {
+    const target = new EditableElement() as unknown as EventTarget;
+    assert.equal(resolve(event({ key: "c", metaKey: true, target }), "canvas", 1), null);
+    assert.equal(resolve(event({ key: "v", ctrlKey: true, target }), "canvas", 1), null);
+    assert.equal(resolve(event({ key: "Delete", target }), "canvas", 1), null);
+    assert.equal(resolve(event({ key: "Backspace", target }), "canvas", 1), null);
+  } finally {
+    Object.defineProperty(globalThis, "Element", { configurable: true, value: previousElement });
+    Object.defineProperty(globalThis, "HTMLElement", { configurable: true, value: previousHtmlElement });
+  }
+});

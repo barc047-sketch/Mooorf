@@ -28,7 +28,15 @@ import {
 import type { ConnectionDrawWork, ConnectionProjectionMetrics } from "./instrumentation";
 
 export type ConnectionLod = "full" | "dense" | "critical";
-export type ConnectionEmphasis = "normal" | "focused" | "faded";
+export type ConnectionEmphasis = "normal" | "focused" | "related" | "faded";
+
+/** Presentation-only focus hierarchy. Contextual lines stay readable rather
+ * than inheriting a compounding fade from their authored appearance opacity. */
+export const CONNECTION_FOCUS_OPACITY = {
+  focused: 1,
+  related: 0.76,
+  contextual: 0.44,
+} as const;
 
 /** Half-width of the practical 12 px screen-space line hit corridor. */
 export const CONNECTION_HIT_TOLERANCE_PX = 6;
@@ -226,8 +234,14 @@ const projectionFilter = (
 const emphasisFor = (
   connection: Connection,
   input: ConnectionProjectionInput,
+  selectedEndpointIds: ReadonlySet<string>,
 ): ConnectionEmphasis => {
-  if (input.selectedIds.size) return input.selectedIds.has(connection.id) ? "focused" : "faded";
+  if (input.selectedIds.size) {
+    if (input.selectedIds.has(connection.id)) return "focused";
+    return selectedEndpointIds.has(connection.fromSpaceId) || selectedEndpointIds.has(connection.toSpaceId)
+      ? "related"
+      : "faded";
+  }
   if (input.focusMode === "selected-cell" && input.filter.selectedCellIds.length) {
     const selectedCells = new Set(input.filter.selectedCellIds);
     return selectedCells.has(connection.fromSpaceId) || selectedCells.has(connection.toSpaceId)
@@ -260,6 +274,11 @@ export const projectConnections = (
     spec: projectionFilter(input),
   });
   const selectedCells = new Set(input.filter.selectedCellIds);
+  const selectedEndpointIds = new Set(
+    input.connections
+      .filter((connection) => input.selectedIds.has(connection.id))
+      .flatMap((connection) => [connection.fromSpaceId, connection.toSpaceId]),
+  );
   const drawable: Array<{
     connection: Connection;
     source: ConnectionEndpointGeometry;
@@ -344,7 +363,7 @@ export const projectConnections = (
       style: cached.style,
       lane: cached.lane,
       selected,
-      emphasis: emphasisFor(connection, input),
+      emphasis: emphasisFor(connection, input, selectedEndpointIds),
       labelText: null,
     });
   }
@@ -515,7 +534,13 @@ export const drawConnectionBatch = (
   for (const command of commands) {
     const style = command.style;
     context.save();
-    context.globalAlpha = style.appearance.opacity * (command.emphasis === "faded" && options.fadeUnrelated ? 0.2 : 1);
+    context.globalAlpha = !options.fadeUnrelated || command.emphasis === "normal"
+      ? style.appearance.opacity
+      : command.emphasis === "focused"
+        ? CONNECTION_FOCUS_OPACITY.focused
+        : command.emphasis === "related"
+          ? CONNECTION_FOCUS_OPACITY.related
+          : CONNECTION_FOCUS_OPACITY.contextual;
     context.strokeStyle = style.appearance.color;
     context.lineWidth = style.appearance.width / screenScale;
     context.lineCap = "round";

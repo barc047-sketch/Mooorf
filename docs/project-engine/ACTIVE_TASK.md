@@ -1,22 +1,22 @@
 # Active Task
 
-## HOLD — Connections P2 waiting Owner review
+## R2B.2 FINAL VISUAL CORRECTIONS APPLIED — WAITING OWNER QA
 
-Status: PUSHED / CODEX BROWSER QA PASSED / WAITING OWNER REVIEW
+Status: LOCAL UNCOMMITTED / FINAL VISUAL CORRECTIONS APPLIED / PREVIEW AVAILABLE / WAITING OWNER QA
 
-- source SHA: `3f62032c54d76a014a781504cc5cd8e4b5ee63d9`;
 - branch: `work/next-feature`;
-- P1 product commit: `01a6c916b426b63628b1a8d0d94c8fb530bfc6c8`;
-- P2 product commit: `be1b9748298c35a3c89736afaf0ede5e533806ee`;
-- one Connections Dock launcher, one compact registry-owned widget, pure authoring reducer, explicit ephemeral Connection selection and the existing Inspector Connection context are implemented;
-- authoring commits once, selects the new or exact-duplicate Connection, preserves distinct semantics for the same pair, and restores prior normal selection on cancellation;
-- Organism owns one temporary non-persistent SVG preview line with local/ref pointer updates and existing camera/hit-test ownership; Table activation and widget close cancel it;
-- focused/affected contracts: 46/46 passed; TypeScript and tracked/untracked diff checks passed;
-- Codex browser QA passed at 1440×900 and 1280×800 with zero console errors; Owner interaction/visual review remains required;
-- no production build, stored-line renderer, visual grammar, export rendering, Morph Bridge, Behaviour, Matrix, Material, animation or Classic work occurred;
+- pushed accepted R2B.1B foundation and remote head: `6c41d25381ad7943f6b2fa3938520864bfdbbea8`;
+- current R2B.2 work keeps the simplified selected-Connection Inspector and corrects dynamic Relationship Type proof, multi-Connection Inspector state, canonical single/multi Delete, and transient Connection style Copy/Paste;
+- the repository-loaded active project contains no project-created Relationship Types, so built-ins-only is correct there; focused fixtures prove active project types appear, archived types do not, and Custom remains safe;
+- click/Shift-click still uses the shared history-free Connection selection owner; single and bulk Delete use the canonical Connection history path;
+- style Copy captures exactly one resolved appearance with no history; one or many selected targets receive per-type sparse local overrides in one atomic Paste transaction while semantics, annotations, endpoints, visibility, anchors and enabled state remain untouched;
+- final Owner-QA visual correction uses presentation-only focus opacity constants: selected `1.00`, endpoint-related `0.76`, contextual/unrelated `0.44`; selected-Cell focus retains the same contextual floor;
+- the Relationship Type control now reuses one custom glass listbox: Quick Rail opens upward and Inspector opens downward with the same dynamic type library and stable IDs;
+- focused presentation/Inspector contracts: 40/40 passed; `npx tsc -b --pretty false` and `git diff --check` passed;
+- preview: `http://127.0.0.1:5173/` returned HTTP 200;
+- no browser automation, production build, Relationship Manager, Style Panel, renderer, Canvas annotation, advanced port, export, Matrix, Table or Classic work occurred;
 - `main` is untouched.
 
 Next safe action:
 
-Owner review of Connections P2.
-No Prompt 3 implementation, correction, finalization, merge, or branch cleanup without separate explicit authority.
+Owner visual and interaction QA of R2B.2. No R3, finalization, merge or branch cleanup without separate explicit authority.

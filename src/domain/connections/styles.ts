@@ -37,6 +37,16 @@ export interface ResolvedConnectionStyle {
   appearance: ResolvedConnectionAppearance;
 }
 
+/** Transient style-only clipboard payload. Identity, meaning, labels, anchors,
+ * visibility, selection, and runtime geometry are deliberately excluded. */
+export interface ConnectionStyleClipboard {
+  geometryId: ConnectionGeometryId;
+  strokePatternId: ConnectionStrokePatternId;
+  startMarkerId: ConnectionMarkerId;
+  endMarkerId: ConnectionMarkerId;
+  appearance: ResolvedConnectionAppearance;
+}
+
 export type ConnectionStylePatch = Partial<Omit<ResolvedConnectionStyle, "label" | "appearance">> & {
   label?: Partial<ConnectionLabelStyle>;
   appearance?: Partial<ResolvedConnectionAppearance>;
@@ -256,6 +266,54 @@ export const resolveConnectionStyle = (
   connectionTypeStyle(connection.semantic.typeId, styles, projectRelationshipTypes),
   connection.visual,
 );
+
+export const copyResolvedConnectionStyle = (
+  connection: Connection,
+  styles: ProjectConnectionStyles,
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
+): ConnectionStyleClipboard => {
+  const resolved = resolveConnectionStyle(connection, styles, projectRelationshipTypes);
+  return {
+    geometryId: resolved.geometryId,
+    strokePatternId: resolved.strokePatternId,
+    startMarkerId: resolved.startMarkerId,
+    endMarkerId: resolved.endMarkerId,
+    appearance: cloneAppearance(resolved.appearance),
+  };
+};
+
+/** Rebase a copied resolved appearance onto the target Relationship Type.
+ * Only differing appearance values become local overrides; excluded target
+ * visual fields are retained byte-for-byte. */
+export const pasteConnectionStyleVisual = (
+  clipboard: ConnectionStyleClipboard,
+  target: Connection,
+  styles: ProjectConnectionStyles,
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
+): ConnectionVisual | undefined => {
+  const base = connectionTypeStyle(target.semantic.typeId, styles, projectRelationshipTypes);
+  const appearance: NonNullable<ConnectionVisual["appearance"]> = {
+    ...(clipboard.appearance.color === base.appearance.color ? {} : { color: clipboard.appearance.color }),
+    ...(clipboard.appearance.width === base.appearance.width ? {} : { width: clipboard.appearance.width }),
+    ...(clipboard.appearance.opacity === base.appearance.opacity ? {} : { opacity: clipboard.appearance.opacity }),
+    ...(clipboard.appearance.curve === base.appearance.curve ? {} : { curve: clipboard.appearance.curve }),
+    ...(clipboard.appearance.markerSize === base.appearance.markerSize ? {} : { markerSize: clipboard.appearance.markerSize }),
+    ...(clipboard.appearance.markerOffset === base.appearance.markerOffset ? {} : { markerOffset: clipboard.appearance.markerOffset }),
+    ...(clipboard.appearance.dashScale === base.appearance.dashScale ? {} : { dashScale: clipboard.appearance.dashScale }),
+  };
+  const visual: ConnectionVisual = {
+    ...(target.visual?.visible === undefined ? {} : { visible: target.visual.visible }),
+    ...(clipboard.geometryId === base.geometryId ? {} : { geometryId: clipboard.geometryId }),
+    ...(clipboard.strokePatternId === base.strokePatternId ? {} : { strokePatternId: clipboard.strokePatternId }),
+    ...(clipboard.startMarkerId === base.startMarkerId ? {} : { startMarkerId: clipboard.startMarkerId }),
+    ...(clipboard.endMarkerId === base.endMarkerId ? {} : { endMarkerId: clipboard.endMarkerId }),
+    ...(target.visual?.startAnchorId === undefined ? {} : { startAnchorId: target.visual.startAnchorId }),
+    ...(target.visual?.endAnchorId === undefined ? {} : { endAnchorId: target.visual.endAnchorId }),
+    ...(target.visual?.label === undefined ? {} : { label: { ...target.visual.label } }),
+    ...(Object.keys(appearance).length ? { appearance } : {}),
+  };
+  return Object.keys(visual).length ? visual : undefined;
+};
 
 const semanticColors: Record<KnownConnectionSemanticTypeId, string> = {
   custom: "#55585f",

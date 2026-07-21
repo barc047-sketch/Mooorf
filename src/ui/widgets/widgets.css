@@ -311,7 +311,11 @@
 .connection-studio-scope span { color: var(--fog); font-size: 7px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
 .connection-inspector .m1-state-badge { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .connection-inspector .m1-action-grid { grid-template-columns: 1fr 1fr; }
-.connection-inspector .connection-delete { grid-column: 1 / -1; color: var(--ink); }
+.connection-inspector .connection-delete { color: var(--ink); }
+.connection-style-preview { display: flex; align-items: center; gap: 4px; min-height: 20px; padding: 0 4px; color: var(--fog); }
+.connection-style-preview-line { flex: 1; min-width: 0; border-top: 1px solid var(--fog); }
+.connection-style-preview-marker { font-size: 17px; line-height: 1; }
+.connection-style-origin { margin: -2px 0 0; color: var(--fog); font-size: 8px; }
 
 @media (min-width: 1360px) {
   .wframe[data-widget="inspector"] { right: 18px; }

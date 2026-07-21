@@ -91,16 +91,20 @@ test("Quick Rail owns one dynamic type dropdown, Manager, and Close", async () =
   const railPath = new URL("../../ui/ConnectionQuickRail.tsx", import.meta.url);
   assert.equal(existsSync(railPath), true, "ConnectionQuickRail should exist");
   const rail = readFileSync(railPath, "utf8");
+  const typePicker = source("../../ui/RelationshipTypePicker.tsx");
   const app = source("../../App.tsx");
   const shell = source("../../ui/shell.css");
   assert.match(app, /import ConnectionQuickRail from "\.\/ui\/ConnectionQuickRail"/);
   assert.match(app, /<ConnectionQuickRail \/>/);
   assert.match(rail, /aria-label="Connections mode active"/);
-  assert.match(rail, /aria-label="Current Relationship Type"/);
-  assert.match(rail, /aria-haspopup="listbox"/);
-  assert.match(rail, /role="listbox"/);
-  assert.match(rail, /role="option"/);
-  assert.match(rail, /CONNECTION_SEMANTIC_TYPES\.map/);
+  assert.match(rail, /RelationshipTypePicker/);
+  assert.match(rail, /direction="up"/);
+  assert.match(rail, /options=\{CONNECTION_SEMANTIC_TYPES\}/);
+  assert.match(typePicker, /aria-haspopup="listbox"/);
+  assert.match(typePicker, /role="listbox"/);
+  assert.match(typePicker, /role="option"/);
+  assert.match(typePicker, /createPortal/);
+  assert.match(typePicker, /className="connection-quick-type-menu glass"/);
   assert.match(rail, /openWidget\("connections"\)/);
   assert.match(rail, /exitConnectionMode/);
   assert.match(rail, /role="toolbar"/);
@@ -109,8 +113,6 @@ test("Quick Rail owns one dynamic type dropdown, Manager, and Close", async () =
   assert.match(rail, /SlidersHorizontal/);
   assert.match(rail, /querySelector<HTMLElement>\("\.dock-group-center"\)/);
   assert.match(rail, /dockCenterRect\.left/);
-  assert.match(rail, /createPortal/);
-  assert.match(rail, /className="connection-quick-type-menu glass"/);
   assert.doesNotMatch(rail, /CONNECTION_SEMANTIC_TYPES\.slice/);
   assert.doesNotMatch(rail, /function TypeButton|className="connection-quick-type"|connection-quick-wing/);
   assert.doesNotMatch(rail, /openWidget\("connection-studio"\)/);
@@ -146,23 +148,80 @@ test("Connection Studio is registered once and remains a read-only Task 2 shell"
   assert.doesNotMatch(studio, /geometryId|markerId|strokePatternId|resetConnection|updateConnectionVisual/);
 });
 
-test("the one production Inspector switches to semantic Connection editing", () => {
+test("the one production Inspector keeps Connection editing compact, dynamic, and annotation-led", () => {
   const inspector = source("../../ui/widgets/InspectorWidget.tsx");
   assert.match(inspector, /function ConnectionInspector/);
   assert.match(inspector, /primarySelectedConnectionId/);
   assert.match(inspector, /getPrimarySelectedConnection/);
-  assert.match(inspector, /CONNECTION_DIRECTIONS/);
-  assert.match(inspector, /CONNECTION_REQUIREMENTS/);
-  assert.match(inspector, /CONNECTION_STRENGTHS/);
-  assert.match(inspector, /CONNECTION_PRIORITIES/);
+  assert.match(inspector, /getSelectableRelationshipTypes/);
+  assert.match(inspector, /resolveRelationshipType/);
+  assert.match(inspector, /resolveConnectionAnnotation/);
+  assert.match(inspector, /resolveConnectionStyle/);
   assert.match(inspector, /updateConnectionSemantic/);
-  assert.match(inspector, /setConnectionEnabled/);
+  assert.match(inspector, /updateConnectionAnnotation/);
+  assert.match(inspector, /reverseConnection/);
   assert.match(inspector, /deleteConnection/);
-  assert.match(inspector, /clearConnectionSelection/);
-  assert.match(inspector, /Connection notes/);
+  assert.match(inspector, /Title/);
+  assert.match(inspector, /Body/);
+  assert.match(inspector, /connection-style-preview/);
+  assert.match(inspector, /Relationship Type/);
+  assert.match(inspector, /Custom appearance/);
   assert.match(inspector, /function CellInspector/);
   assert.match(inspector, /<ContentField label="Space Name"/);
-  assert.doesNotMatch(inspector, /geometryId|strokePatternId|startMarkerId|endMarkerId|Morph Bridge/);
+  assert.doesNotMatch(inspector, /CONNECTION_SEMANTIC_TYPES/);
+  assert.doesNotMatch(inspector, /CONNECTION_DIRECTIONS|CONNECTION_REQUIREMENTS|CONNECTION_STRENGTHS|CONNECTION_PRIORITIES/);
+  assert.doesNotMatch(inspector, /Connection notes|Select endpoints|Clear selection|Morph Bridge/);
+});
+
+test("Inspector consumes the shared selectable Relationship Type library including active project types", async () => {
+  const inspector = source("../../ui/widgets/InspectorWidget.tsx");
+  const types = await import("./relationshipTypes");
+  const styles = await import("./styles");
+  const connectionStyles = styles.createDefaultProjectConnectionStyles();
+  const patientFlow = types.createProjectRelationshipType({
+    id: "rt_patient_flow",
+    name: "Patient Flow",
+    shortCode: "PF",
+  }, [], connectionStyles, 1);
+  const archived = {
+    ...types.createProjectRelationshipType({
+      id: "rt_archived_flow",
+      name: "Archived Flow",
+      shortCode: "AF",
+    }, [patientFlow], connectionStyles, 2),
+    archived: true,
+  };
+  const selectable = types.getSelectableRelationshipTypes([patientFlow, archived], connectionStyles);
+
+  assert.match(inspector, /getSelectableRelationshipTypes\(projectRelationshipTypes, connectionStyles\)/);
+  assert.equal(selectable[0]?.id, "custom");
+  assert.equal(selectable.some((type) => type.id === patientFlow.id && type.name === "Patient Flow"), true);
+  assert.equal(selectable.some((type) => type.id === archived.id), false);
+  assert.equal(types.resolveRelationshipType("missing", [patientFlow], connectionStyles).id, "custom");
+});
+
+test("Inspector reuses the Quick Rail-style Relationship Type listbox and opens it downward", () => {
+  const inspector = source("../../ui/widgets/InspectorWidget.tsx");
+  assert.match(inspector, /RelationshipTypePicker/);
+  assert.match(inspector, /direction="down"/);
+  assert.doesNotMatch(inspector, /<select[\s\S]*?aria-label="Relationship Type"/);
+});
+
+test("Inspector exposes a distinct multi-Connection state without collapsing selection", () => {
+  const inspector = source("../../ui/widgets/InspectorWidget.tsx");
+  assert.match(inspector, /function ConnectionMultiInspector/);
+  assert.match(inspector, /selectedConnectionIds\.length > 1/);
+  assert.match(inspector, /Connections selected/);
+  assert.match(inspector, /deleteSelectedConnections/);
+  assert.doesNotMatch(inspector, /ConnectionMultiInspector[\s\S]{0,500}selectConnection\(/);
+});
+
+test("MainApp owns guarded Connection style clipboard and Delete shortcuts", () => {
+  const app = source("../../App.tsx");
+  assert.match(app, /resolveConnectionSelectionShortcut/);
+  assert.match(app, /copySelectedConnectionStyle/);
+  assert.match(app, /pasteConnectionStyleToSelection/);
+  assert.match(app, /deleteSelectedConnections/);
 });
 
 test("Organism owns one batched base renderer and one shared interaction overlay", () => {
