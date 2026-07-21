@@ -17,8 +17,9 @@
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
 | CORRECTION 3 PRODUCT COMMIT | `48611c285dac6c11583ba8df251da01237e561b0` |
-| STATUS | FINALIZED / WAITING OWNER QA — no merge authorized. |
-| NEXT AUTHORITY | Owner QA on the finalized Organism-only Cell Label work; no automatic next stage. |
+| FINAL ICON PRODUCT COMMIT | `378301fe80b478f2ae5b9411a328efc2cbe52f97` |
+| STATUS | ORGANISM CELL LABELS & CALLOUTS: COMPLETE / OWNER QA PASSED — READY FOR EXPLICIT MERGE. |
+| NEXT AUTHORITY | Explicit Owner-authorized merge to `main`; Connections is planned next in a separate chat after merge. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -47,7 +48,7 @@
 - XLSX template with `SPACES` and `README`;
 - synchronized Canvas/Table/store data.
 
-### Organism Cell Label Run 2 — Owner-QA Correction 2
+### Organism Cell Labels & Callouts — COMPLETE / OWNER QA PASSED
 
 - Organism remains the sole production renderer; Classic remains compile-only legacy code.
 - twelve production Cell Label layouts share one contract, preset registry and pure resolved projection: the original nine plus Dual Ring, Ring + Core and Technical Orbit.
@@ -60,6 +61,7 @@
 - selected-state camera shake now remains a bounded deterministic presentation signal while a Cell is selected, and its authored settle duration applies only after deselection.
 - Membrane zoom preferences change sampling/detail only: camera zoom preserves authored geometry, fusion, reach and Cell-to-Membrane proportions.
 - project files, Saved Views where applicable, migration and authored-history paths retain the correction settings; PNG, PDF and presentation ZIP use the shared detached Organism label projection.
+- final Label Studio launcher correction uses the approved Lucide `MessageSquareText` callout icon at the existing Dock sizing/stroke; no dependency or asset-registry changes.
 
 ## Verification disposition
 
@@ -71,4 +73,4 @@ Classic visual output and SVG were not audited or developed. Codex did not compl
 
 ## Current gate
 
-STOP FOR OWNER QA. No merge, main update, later feature phase or additional implementation is authorized.
+READY FOR EXPLICIT MERGE. No merge has occurred; Connections is NOT STARTED and must begin in a separate chat after merge.

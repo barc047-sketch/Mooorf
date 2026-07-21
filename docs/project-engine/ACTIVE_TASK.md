@@ -1,30 +1,22 @@
 # Active Task
 
-## WAITING OWNER QA — Organism Cell Label Correction 3
+## COMPLETE — Organism Cell Labels & Callouts
 
-**Status:** FINALIZED / NOT MERGED / WAITING OWNER QA
+Status: OWNER QA PASSED / READY TO MERGE / NOT MERGED
 
-**Branch:** `work/next-feature`
+Branch: `work/next-feature`
 
-**Correction source:** `411e4fb01d9ae41fab85ebd0613c984e23e0b35e`
-
-**Correction product commit:** `48611c285dac6c11583ba8df251da01237e561b0`
+Final product commit: `378301fe80b478f2ae5b9411a328efc2cbe52f97`
 
 Completed scope:
 
-- direct left-Dock Label Studio and Membrane Detail launchers reuse `openWidget`, reveal/minimize/focus behavior and active state;
-- the dedicated Membrane Detail launcher suppresses the generic duplicate when Membrane is the active appearance family;
-- selected-state camera feedback remains deterministic, bounded and active for the full selection lifetime, then settles only after deselection;
-- Off, reduced-motion, Table/suspended runtime, exports, canonical camera coordinates and Undo/Redo remain unaffected.
+- Cell Label layouts, Ring, Flag, Label Studio, Membrane zoom and selection feedback passed Owner QA;
+- Label Studio now uses the approved Lucide `MessageSquareText` callout icon;
+- direct Label Studio and Membrane launchers preserve canonical widget ownership;
+- no Connections implementation has started.
 
-Verification recorded:
+Next safe action:
 
-- focused Dock/widget and camera-shake contracts;
-- TypeScript, final diff check and one production build;
-- Codex browser checks at 1440×900 and 1280×800 with no console errors.
+Explicit Owner-authorized merge of `work/next-feature` into `main`.
 
-## Next safe action
-
-Owner QA of Correction 3 on `work/next-feature`.
-
-Do not merge, modify `main`, begin a later product phase, or modify Classic without a separate explicit Owner command.
+After that merge, Connections planning and implementation begins in a separate chat from the updated main lineage.
