@@ -32,16 +32,79 @@ export type WidgetGeometryVariant =
   | "vertical"
   | "rail-horizontal"
   | "rail-vertical"
-  | "large";
+  | "large"
+  | "workspace";
 
-export interface WidgetGeometry {
-  variant: WidgetGeometryVariant;
+interface WidgetGeometryBase {
   width: number;
   minWidth: number;
   minHeight?: number;
   maxHeight?: number;
   aspectIntent?: "balanced" | "wide" | "tall" | "flagship";
 }
+
+export interface FixedWidgetGeometry extends WidgetGeometryBase {
+  variant: Exclude<WidgetGeometryVariant, "workspace">;
+  workspace?: never;
+}
+
+export interface WorkspaceWidgetGeometry extends WidgetGeometryBase {
+  variant: "workspace";
+  minHeight: number;
+  workspace: {
+    width: `${number}vw`;
+    maxWidth: `${number}vw`;
+    height: `${number}vh`;
+    maxHeight: `${number}vh`;
+    viewportMargin?: number;
+  };
+}
+
+export type WidgetGeometry = FixedWidgetGeometry | WorkspaceWidgetGeometry;
+
+export interface ResolvedWidgetGeometryStyle {
+  width: number | string;
+  minWidth: number | string;
+  height?: string;
+  minHeight?: number | string;
+  authoredMaxHeight?: string;
+  workspaceMinHeight?: string;
+  workspaceMaxWidth?: string;
+  workspaceMaxHeight?: string;
+}
+
+const scaledPixels = (value: number, scale: number) => Math.round(value * scale);
+
+export const resolveWidgetGeometryStyle = (
+  geometry: WidgetGeometry,
+  scale: number,
+): ResolvedWidgetGeometryStyle => {
+  const width = scaledPixels(geometry.width, scale);
+  const minWidth = scaledPixels(geometry.minWidth, scale);
+  const minHeight = geometry.minHeight ? scaledPixels(geometry.minHeight, scale) : undefined;
+  const authoredMaxHeight = geometry.maxHeight
+    ? `${scaledPixels(geometry.maxHeight, scale)}px`
+    : undefined;
+
+  if (geometry.variant !== "workspace") {
+    return { width, minWidth, minHeight, authoredMaxHeight };
+  }
+
+  const margin = Math.max(0, Math.round(geometry.workspace.viewportMargin ?? 24));
+  const safeWidth = `calc(100dvw - ${margin * 2}px)`;
+  const safeHeight = `calc(100dvh - ${margin * 2}px)`;
+  const scaledMinWidth = `${minWidth}px`;
+  const scaledMinHeight = `${scaledPixels(geometry.minHeight, scale)}px`;
+
+  return {
+    width: `min(clamp(${scaledMinWidth}, ${geometry.workspace.width}, ${geometry.workspace.maxWidth}), ${safeWidth})`,
+    minWidth: `min(${scaledMinWidth}, ${safeWidth})`,
+    height: `min(clamp(${scaledMinHeight}, ${geometry.workspace.height}, ${geometry.workspace.maxHeight}), ${safeHeight})`,
+    workspaceMinHeight: scaledMinHeight,
+    workspaceMaxWidth: `min(${geometry.workspace.maxWidth}, ${safeWidth})`,
+    workspaceMaxHeight: `min(${geometry.workspace.maxHeight}, ${safeHeight})`,
+  };
+};
 
 export interface WidgetPanelDefinition {
   id: WidgetId | "selected-space";

@@ -31,6 +31,19 @@
     border-color 60ms linear;
 }
 
+.wframe[data-geometry="workspace"] {
+  box-sizing: border-box;
+  min-height: min(
+    var(--wframe-workspace-min-height, 0px),
+    calc(100dvh - var(--wframe-stack-top, 72px) - 24px)
+  );
+  max-width: var(--wframe-workspace-max-width, calc(100dvw - 48px));
+  max-height: min(
+    var(--wframe-workspace-max-height, calc(100dvh - 48px)),
+    calc(100dvh - var(--wframe-stack-top, 72px) - 24px)
+  );
+}
+
 .wframe[data-depth="back"] {
   --wframe-surface: var(--glass-panel-soft);
   border-color: color-mix(in srgb, var(--glass-border) 56%, transparent);

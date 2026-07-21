@@ -1,4 +1,10 @@
-import { WIDGET_DEFINITIONS, getWidgetDefinition } from "./widgetRegistry";
+import {
+  WIDGET_DEFINITIONS,
+  getWidgetDefinition,
+  resolveWidgetGeometryStyle,
+  type WidgetGeometry,
+} from "./widgetRegistry";
+import { readFileSync } from "node:fs";
 
 const ok = (value: unknown, message: string) => {
   if (!value) throw new Error(message);
@@ -33,6 +39,81 @@ ok(
   (WIDGET_DEFINITIONS["area-leaders"].geometry.minHeight ?? 0) >
     WIDGET_DEFINITIONS["area-leaders"].geometry.width,
   "Area Leaders is taller than wide"
+);
+
+const inspectorGeometry = resolveWidgetGeometryStyle(WIDGET_DEFINITIONS.inspector.geometry, 1);
+equal(inspectorGeometry.width, 332, "existing widget width remains unchanged without workspace sizing");
+equal(inspectorGeometry.minWidth, 320, "existing widget minimum width remains unchanged");
+equal(inspectorGeometry.minHeight, 360, "existing tall widget minimum height remains unchanged");
+equal(inspectorGeometry.authoredMaxHeight, "748px", "existing tall widget maximum height remains unchanged");
+equal(inspectorGeometry.height, undefined, "existing widgets do not gain a forced height");
+
+const compactGeometry: WidgetGeometry = { variant: "compact", width: 264, minWidth: 244, maxHeight: 500 };
+const standardGeometry: WidgetGeometry = { variant: "standard", width: 304, minWidth: 276, maxHeight: 600 };
+equal(resolveWidgetGeometryStyle(compactGeometry, 1).width, 264, "compact sizing resolves authored pixels");
+equal(resolveWidgetGeometryStyle(standardGeometry, 1).width, 304, "standard sizing resolves authored pixels");
+equal(
+  resolveWidgetGeometryStyle(WIDGET_DEFINITIONS["privacy-balance"].geometry, 1).width,
+  420,
+  "wide horizontal sizing remains registry-driven",
+);
+equal(
+  resolveWidgetGeometryStyle(WIDGET_DEFINITIONS["area-leaders"].geometry, 1).minHeight,
+  352,
+  "tall vertical sizing remains registry-driven",
+);
+
+const workspaceGeometry: WidgetGeometry = {
+  variant: "workspace",
+  width: 640,
+  minWidth: 520,
+  minHeight: 500,
+  aspectIntent: "wide",
+  workspace: {
+    width: "40vw",
+    maxWidth: "44vw",
+    height: "80vh",
+    maxHeight: "85vh",
+    viewportMargin: 24,
+  },
+};
+const workspaceStyle = resolveWidgetGeometryStyle(workspaceGeometry, 1);
+equal(
+  workspaceStyle.width,
+  "min(clamp(520px, 40vw, 44vw), calc(100dvw - 48px))",
+  "workspace width supports the future 36-44vw panel and clamps to viewport margins",
+);
+equal(
+  workspaceStyle.minWidth,
+  "min(520px, calc(100dvw - 48px))",
+  "workspace minimum width yields before constrained viewport overflow",
+);
+equal(
+  workspaceStyle.height,
+  "min(clamp(500px, 80vh, 85vh), calc(100dvh - 48px))",
+  "workspace height supports the future 70-85vh panel and clamps to viewport margins",
+);
+equal(
+  workspaceStyle.workspaceMinHeight,
+  "500px",
+  "workspace minimum height remains authored for the stack-aware CSS clamp",
+);
+equal(workspaceStyle.minHeight, undefined, "workspace minimum height does not outrank its viewport maximum");
+equal(workspaceStyle.workspaceMaxWidth, "min(44vw, calc(100dvw - 48px))", "workspace max width stays bounded");
+equal(workspaceStyle.workspaceMaxHeight, "min(85vh, calc(100dvh - 48px))", "workspace max height stays bounded");
+
+equal(WIDGET_DEFINITIONS.connections.geometry.variant, "vertical", "Connections keeps its current sizing variant");
+equal(WIDGET_DEFINITIONS.connections.geometry.width, 344, "Connections keeps its current width");
+equal(WIDGET_DEFINITIONS.connections.geometry.maxHeight, 748, "Connections keeps its current maximum height");
+
+const frameSource = readFileSync(new URL("../widgets/WidgetFrame.tsx", import.meta.url), "utf8");
+const widgetCss = readFileSync(new URL("../widgets/widgets.css", import.meta.url), "utf8");
+ok(frameSource.includes("resolveWidgetGeometryStyle(geometry, scale)"), "WidgetFrame consumes registry sizing metadata");
+ok(frameSource.includes('"--wframe-stack-top"'), "WidgetFrame exposes its stack position to viewport sizing");
+ok(widgetCss.includes('.wframe[data-geometry="workspace"]'), "workspace sizing remains inside the existing frame CSS");
+ok(
+  widgetCss.includes("calc(100dvh - var(--wframe-stack-top, 72px) - 24px)"),
+  "workspace height bounds account for the frame stack position",
 );
 
 console.info("widget registry geometry contracts passed");

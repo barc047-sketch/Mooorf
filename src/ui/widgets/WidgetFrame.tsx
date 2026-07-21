@@ -10,7 +10,7 @@ import { motion } from "motion/react";
 import { Minus, X, type LucideIcon } from "lucide-react";
 import { useLab } from "../../state/store";
 import type { WidgetId } from "../../types";
-import type { WidgetGeometry } from "../panels/widgetRegistry";
+import { resolveWidgetGeometryStyle, type WidgetGeometry } from "../panels/widgetRegistry";
 import { clampWidgetOffset } from "./widgetLifecycle";
 import "./widgets.css";
 
@@ -69,6 +69,8 @@ export default function WidgetFrame({
   const drag = useRef({ on: false, sx: 0, sy: 0, bx: 0, by: 0 });
   const offset = useRef(offsetMemory.get(id) ?? { dx: 0, dy: 0 });
   const mountedScale = useRef(scale);
+  const geometryStyle = resolveWidgetGeometryStyle(geometry, scale);
+  const frameTop = 72 + index * 42;
 
   const applyOffset = (dx: number, dy: number, animate = false) => {
     const el = frameRef.current;
@@ -172,13 +174,16 @@ export default function WidgetFrame({
       data-glass-ready="true"
       data-min={minimized ? "true" : undefined}
       style={{
-        width: Math.round(geometry.width * scale),
-        minWidth: Math.round(geometry.minWidth * scale),
-        minHeight: geometry.minHeight ? Math.round(geometry.minHeight * scale) : undefined,
-        "--wframe-authored-max-height": geometry.maxHeight
-          ? `${Math.round(geometry.maxHeight * scale)}px`
-          : undefined,
-        top: 72 + index * 42,
+        width: geometryStyle.width,
+        minWidth: geometryStyle.minWidth,
+        height: geometryStyle.height,
+        minHeight: geometryStyle.minHeight,
+        "--wframe-authored-max-height": geometryStyle.authoredMaxHeight,
+        "--wframe-workspace-min-height": geometryStyle.workspaceMinHeight,
+        "--wframe-workspace-max-width": geometryStyle.workspaceMaxWidth,
+        "--wframe-workspace-max-height": geometryStyle.workspaceMaxHeight,
+        "--wframe-stack-top": `${frameTop}px`,
+        top: frameTop,
         zIndex: `calc(var(--z-widget) + ${Math.min(z, 19)})`,
         translate: `${offset.current.dx}px ${offset.current.dy}px`,
       } as CSSProperties}
