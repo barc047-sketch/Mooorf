@@ -116,11 +116,18 @@ import {
   getConnectionsBetweenSpaces as selectConnectionsBetweenSpaces,
   getConnectionsForSpace as selectConnectionsForSpace,
 } from "../domain/connections/selectors";
-import { resolveConnectionSemanticType } from "../domain/connections/registry";
 import {
   cloneProjectRelationshipTypes,
+  createProjectRelationshipType as buildProjectRelationshipType,
+  getRelationshipTypeMutationGuard,
+  getRelationshipTypeUsageCount,
+  getSelectableRelationshipTypes,
   normalizeProjectRelationshipTypes,
+  resolveRelationshipType,
+  updateProjectRelationshipTypeMetadata as buildUpdatedProjectRelationshipTypes,
+  type CreateProjectRelationshipTypeInput,
   type ProjectRelationshipType,
+  type RelationshipTypeMetadataInput,
 } from "../domain/connections/relationshipTypes";
 import {
   applyConnectionStylePack as createConnectionStylePack,
@@ -212,6 +219,12 @@ type SpaceHistoryEntry =
   | { kind: "style"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[]; beforeResources: ResourceSettings; afterResources: ResourceSettings }
   | { kind: "connections"; patches: ConnectionRecordPatch[] }
   | { kind: "connection-styles"; patches: ConnectionStyleRecordPatch[] }
+  | {
+      kind: "relationship-types";
+      before: ProjectRelationshipType[];
+      after: ProjectRelationshipType[];
+      patches: ConnectionRecordPatch[];
+    }
   | {
       kind: "space-delete";
       space: SpaceCell;
@@ -416,12 +429,18 @@ interface LabState {
   removeSpace: (id: string) => void;
   createConnection: (input: CreateConnectionInput) => string | null;
   updateConnectionSemantic: (id: string, patch: Partial<ConnectionSemantic>) => boolean;
+  updateSelectedConnectionTypes: (typeId: ConnectionSemantic["typeId"]) => number;
   updateConnectionAnnotation: (id: string, annotation: ConnectionAnnotationOverride | null) => boolean;
   updateConnectionVisual: (id: string, visual: ConnectionVisual | null) => boolean;
   reverseConnection: (id: string) => boolean;
   setConnectionEnabled: (id: string, enabled: boolean) => boolean;
   deleteConnection: (id: string) => boolean;
   deleteSelectedConnections: () => number;
+  createProjectRelationshipType: (input: CreateProjectRelationshipTypeInput) => string | null;
+  updateProjectRelationshipTypeMetadata: (id: string, input: RelationshipTypeMetadataInput) => boolean;
+  setProjectRelationshipTypeArchived: (id: string, archived: boolean, reassignToTypeId?: string) => boolean;
+  deleteProjectRelationshipType: (id: string, reassignToTypeId?: string) => boolean;
+  resetFactoryRelationshipTypeDefaults: () => boolean;
   copySelectedConnectionStyle: () => boolean;
   pasteConnectionStyleToSelection: () => number;
   updateConnectionTypeStyle: (
@@ -635,7 +654,8 @@ const applyHistoryEntry = (
     entry.kind === "visual-settings" ||
     entry.kind === "resources" ||
     entry.kind === "connections" ||
-    entry.kind === "connection-styles"
+    entry.kind === "connection-styles" ||
+    entry.kind === "relationship-types"
   ) return [...spaces];
   const values = new Map(entry[direction].map((value) => [value.id, value]));
   return spaces.map((space) => {
@@ -656,7 +676,7 @@ const applyConnectionHistoryEntry = (
   entry: SpaceHistoryEntry,
   direction: "before" | "after",
 ): Connection[] => {
-  if (entry.kind === "connections") {
+  if (entry.kind === "connections" || entry.kind === "relationship-types") {
     const changedIds = new Set(entry.patches.map((patch) => patch.id));
     const next = connections.filter((connection) => !changedIds.has(connection.id));
     const snapshots = entry.patches
@@ -717,6 +737,73 @@ const changedConnectionStylePatches = (
     after: { ...after[id], label: { ...after[id].label }, appearance: { ...after[id].appearance } },
   }];
 });
+
+const planProjectRelationshipTypeRetirement = ({
+  connections,
+  operation,
+  projectTypes,
+  reassignToTypeId,
+  styles,
+  typeId,
+}: {
+  connections: readonly Connection[];
+  operation: "archive" | "delete";
+  projectTypes: readonly ProjectRelationshipType[];
+  reassignToTypeId?: string;
+  styles: ProjectConnectionStyles;
+  typeId: string;
+}): {
+  connections: Connection[];
+  projectTypes: ProjectRelationshipType[];
+  patches: ConnectionRecordPatch[];
+  replacementTypeId: string;
+} | null => {
+  const projectType = projectTypes.find((type) => type.id === typeId);
+  if (!projectType || (operation === "archive" && projectType.archived)) return null;
+  const index = getConnectionIndex(connections);
+  const usageCount = getRelationshipTypeUsageCount(index, projectType.id);
+  const guard = getRelationshipTypeMutationGuard(projectType, usageCount, operation);
+  if (!guard.allowed && guard.reason !== "type-in-use") return null;
+
+  let replacementTypeId = "custom";
+  if (usageCount > 0) {
+    const target = getSelectableRelationshipTypes(projectTypes, styles)
+      .find((type) => type.id === reassignToTypeId && type.id !== projectType.id);
+    if (!target) return null;
+    replacementTypeId = target.id;
+  }
+
+  const patches: ConnectionRecordPatch[] = [];
+  const nextConnections = connections.map((connection, connectionIndex) => {
+    if (connection.semantic.typeId !== projectType.id) return connection;
+    const candidate = cloneConnection({
+      ...connection,
+      semantic: { ...connection.semantic, typeId: replacementTypeId },
+    });
+    patches.push(connectionRecordPatch(
+      connection.id,
+      { index: connectionIndex, connection },
+      { index: connectionIndex, connection: candidate },
+    ));
+    return candidate;
+  });
+  if (patches.length) {
+    const nextIndex = getConnectionIndex(nextConnections);
+    if (patches.some((patch) => {
+      const candidate = patch.after?.connection;
+      return candidate ? Boolean(findExactConnectionDuplicate(nextIndex, candidate, candidate.id)) : false;
+    })) return null;
+  }
+
+  return {
+    connections: nextConnections,
+    projectTypes: operation === "archive"
+      ? projectTypes.map((type) => type.id === projectType.id ? { ...type, archived: true } : type)
+      : projectTypes.filter((type) => type.id !== projectType.id),
+    patches,
+    replacementTypeId,
+  };
+};
 
 const applyDeletedSpaceResources = (
   resources: ResourceSettings,
@@ -1245,7 +1332,7 @@ export const useLab = create<LabState>((set, get) => ({
         ? reduceConnectionAuthoring(s.connectionAuthoring, {
             type: "ready",
             typeId,
-            message: `Ready to create ${resolveConnectionSemanticType(typeId).name} Connections.`,
+            message: `Ready to create ${resolveRelationshipType(typeId, s.settings.projectRelationshipTypes, s.settings.connectionStyles).name} Connections.`,
             retainPriorSelection: true,
           })
         : s.connectionAuthoring,
@@ -1984,6 +2071,15 @@ export const useLab = create<LabState>((set, get) => ({
         ? entry.beforeSelection
         : null;
       const connections = applyConnectionHistoryEntry(s.connections, entry, "before");
+      const projectRelationshipTypes = entry.kind === "relationship-types"
+        ? cloneProjectRelationshipTypes(entry.before)
+        : s.settings.projectRelationshipTypes;
+      const connectionModeTypeId = entry.kind === "relationship-types" && !getSelectableRelationshipTypes(
+        projectRelationshipTypes,
+        s.settings.connectionStyles,
+      ).some((type) => type.id === s.connectionModeTypeId)
+        ? "custom"
+        : s.connectionModeTypeId;
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "before"),
         connections,
@@ -2001,6 +2097,8 @@ export const useLab = create<LabState>((set, get) => ({
                     ? { ...s.settings, resources: cloneResourceSettings(entry.beforeResources) }
                     : entry.kind === "connection-styles"
                       ? { ...s.settings, connectionStyles: applyConnectionStyleHistoryEntry(s.settings.connectionStyles, entry, "before") }
+                      : entry.kind === "relationship-types"
+                        ? { ...s.settings, projectRelationshipTypes }
                       : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
@@ -2015,6 +2113,15 @@ export const useLab = create<LabState>((set, get) => ({
               s.primarySelectedConnectionId,
               connections,
             )),
+        connectionModeTypeId,
+        connectionAuthoring: s.connectionModeActive && connectionModeTypeId !== s.connectionModeTypeId
+          ? reduceConnectionAuthoring(s.connectionAuthoring, {
+              type: "ready",
+              typeId: connectionModeTypeId,
+              message: `Ready to create ${resolveRelationshipType(connectionModeTypeId, projectRelationshipTypes, s.settings.connectionStyles).name} Connections.`,
+              retainPriorSelection: true,
+            })
+          : s.connectionAuthoring,
         transformUndoStack: s.transformUndoStack.slice(0, -1),
         transformRedoStack: [...s.transformRedoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
       };
@@ -2028,6 +2135,15 @@ export const useLab = create<LabState>((set, get) => ({
         ? entry.afterSelection
         : null;
       const connections = applyConnectionHistoryEntry(s.connections, entry, "after");
+      const projectRelationshipTypes = entry.kind === "relationship-types"
+        ? cloneProjectRelationshipTypes(entry.after)
+        : s.settings.projectRelationshipTypes;
+      const connectionModeTypeId = entry.kind === "relationship-types" && !getSelectableRelationshipTypes(
+        projectRelationshipTypes,
+        s.settings.connectionStyles,
+      ).some((type) => type.id === s.connectionModeTypeId)
+        ? "custom"
+        : s.connectionModeTypeId;
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "after"),
         connections,
@@ -2045,6 +2161,8 @@ export const useLab = create<LabState>((set, get) => ({
                     ? { ...s.settings, resources: cloneResourceSettings(entry.afterResources) }
                     : entry.kind === "connection-styles"
                       ? { ...s.settings, connectionStyles: applyConnectionStyleHistoryEntry(s.settings.connectionStyles, entry, "after") }
+                      : entry.kind === "relationship-types"
+                        ? { ...s.settings, projectRelationshipTypes }
                       : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
@@ -2059,6 +2177,15 @@ export const useLab = create<LabState>((set, get) => ({
               s.primarySelectedConnectionId,
               connections,
             )),
+        connectionModeTypeId,
+        connectionAuthoring: s.connectionModeActive && connectionModeTypeId !== s.connectionModeTypeId
+          ? reduceConnectionAuthoring(s.connectionAuthoring, {
+              type: "ready",
+              typeId: connectionModeTypeId,
+              message: `Ready to create ${resolveRelationshipType(connectionModeTypeId, projectRelationshipTypes, s.settings.connectionStyles).name} Connections.`,
+              retainPriorSelection: true,
+            })
+          : s.connectionAuthoring,
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: s.transformRedoStack.slice(0, -1),
       };
@@ -2199,6 +2326,53 @@ export const useLab = create<LabState>((set, get) => ({
         return {
           connections: after,
           transformUndoStack: pushHistory(s.transformUndoStack, entry),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return changed;
+  },
+
+  updateSelectedConnectionTypes: (typeId) => {
+    let changed = 0;
+    set((s) => {
+      if (!getSelectableRelationshipTypes(
+        s.settings.projectRelationshipTypes,
+        s.settings.connectionStyles,
+      ).some((type) => type.id === typeId)) return {};
+      const selectedIds = new Set(s.selectedConnectionIds);
+      if (!selectedIds.size) return {};
+      try {
+        const patches: ConnectionRecordPatch[] = [];
+        const connections = s.connections.map((current, index) => {
+          if (!selectedIds.has(current.id) || current.semantic.typeId === typeId) return current;
+          const semantic = createConnectionSemantic(typeId, {
+            requirement: current.semantic.requirement,
+            direction: current.semantic.direction,
+            strength: current.semantic.strength,
+            priority: current.semantic.priority,
+            notes: current.semantic.notes,
+          }, s.settings.projectRelationshipTypes, s.settings.connectionStyles);
+          const candidate: Connection = { ...cloneConnection(current), semantic };
+          patches.push(connectionRecordPatch(
+            current.id,
+            { index, connection: current },
+            { index, connection: candidate },
+          ));
+          return candidate;
+        });
+        if (!patches.length) return {};
+        const nextIndex = getConnectionIndex(connections);
+        if (patches.some((patch) => {
+          const candidate = patch.after?.connection;
+          return candidate ? Boolean(findExactConnectionDuplicate(nextIndex, candidate, candidate.id)) : false;
+        })) return {};
+        changed = patches.length;
+        return {
+          connections,
+          transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connections", patches }),
           transformRedoStack: [],
         };
       } catch {
@@ -2386,6 +2560,171 @@ export const useLab = create<LabState>((set, get) => ({
       };
     });
     return deleted;
+  },
+
+  createProjectRelationshipType: (input) => {
+    let createdId: string | null = null;
+    set((s) => {
+      try {
+        const before = cloneProjectRelationshipTypes(s.settings.projectRelationshipTypes);
+        const created = buildProjectRelationshipType(
+          input,
+          before,
+          s.settings.connectionStyles,
+        );
+        const after = [...before, created];
+        createdId = created.id;
+        return {
+          settings: { ...s.settings, projectRelationshipTypes: after },
+          transformUndoStack: pushHistory(s.transformUndoStack, {
+            kind: "relationship-types",
+            before,
+            after: cloneProjectRelationshipTypes(after),
+            patches: [],
+          }),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return createdId;
+  },
+
+  updateProjectRelationshipTypeMetadata: (id, input) => {
+    let changed = false;
+    set((s) => {
+      try {
+        const before = cloneProjectRelationshipTypes(s.settings.projectRelationshipTypes);
+        const after = buildUpdatedProjectRelationshipTypes(id, input, before);
+        if (JSON.stringify(before) === JSON.stringify(after)) return {};
+        changed = true;
+        return {
+          settings: { ...s.settings, projectRelationshipTypes: after },
+          transformUndoStack: pushHistory(s.transformUndoStack, {
+            kind: "relationship-types",
+            before,
+            after: cloneProjectRelationshipTypes(after),
+            patches: [],
+          }),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return changed;
+  },
+
+  setProjectRelationshipTypeArchived: (id, archived, reassignToTypeId) => {
+    let changed = false;
+    set((s) => {
+      const before = cloneProjectRelationshipTypes(s.settings.projectRelationshipTypes);
+      if (!archived) {
+        const current = before.find((type) => type.id === id);
+        if (!current?.archived) return {};
+        const after = before.map((type) => type.id === id ? { ...type, archived: false } : type);
+        changed = true;
+        return {
+          settings: { ...s.settings, projectRelationshipTypes: after },
+          transformUndoStack: pushHistory(s.transformUndoStack, {
+            kind: "relationship-types",
+            before,
+            after: cloneProjectRelationshipTypes(after),
+            patches: [],
+          }),
+          transformRedoStack: [],
+        };
+      }
+      const plan = planProjectRelationshipTypeRetirement({
+        connections: s.connections,
+        operation: "archive",
+        projectTypes: before,
+        reassignToTypeId,
+        styles: s.settings.connectionStyles,
+        typeId: id,
+      });
+      if (!plan) return {};
+      const nextModeTypeId = s.connectionModeTypeId === id ? plan.replacementTypeId : s.connectionModeTypeId;
+      changed = true;
+      return {
+        connections: plan.connections,
+        settings: { ...s.settings, projectRelationshipTypes: plan.projectTypes },
+        connectionModeTypeId: nextModeTypeId,
+        connectionAuthoring: s.connectionModeActive && nextModeTypeId !== s.connectionModeTypeId
+          ? reduceConnectionAuthoring(s.connectionAuthoring, {
+              type: "ready",
+              typeId: nextModeTypeId,
+              message: `Ready to create ${resolveRelationshipType(nextModeTypeId, plan.projectTypes, s.settings.connectionStyles).name} Connections.`,
+              retainPriorSelection: true,
+            })
+          : s.connectionAuthoring,
+        transformUndoStack: pushHistory(s.transformUndoStack, {
+          kind: "relationship-types",
+          before,
+          after: cloneProjectRelationshipTypes(plan.projectTypes),
+          patches: plan.patches,
+        }),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  deleteProjectRelationshipType: (id, reassignToTypeId) => {
+    let changed = false;
+    set((s) => {
+      const before = cloneProjectRelationshipTypes(s.settings.projectRelationshipTypes);
+      const plan = planProjectRelationshipTypeRetirement({
+        connections: s.connections,
+        operation: "delete",
+        projectTypes: before,
+        reassignToTypeId,
+        styles: s.settings.connectionStyles,
+        typeId: id,
+      });
+      if (!plan) return {};
+      const nextModeTypeId = s.connectionModeTypeId === id ? plan.replacementTypeId : s.connectionModeTypeId;
+      changed = true;
+      return {
+        connections: plan.connections,
+        settings: { ...s.settings, projectRelationshipTypes: plan.projectTypes },
+        connectionModeTypeId: nextModeTypeId,
+        connectionAuthoring: s.connectionModeActive && nextModeTypeId !== s.connectionModeTypeId
+          ? reduceConnectionAuthoring(s.connectionAuthoring, {
+              type: "ready",
+              typeId: nextModeTypeId,
+              message: `Ready to create ${resolveRelationshipType(nextModeTypeId, plan.projectTypes, s.settings.connectionStyles).name} Connections.`,
+              retainPriorSelection: true,
+            })
+          : s.connectionAuthoring,
+        transformUndoStack: pushHistory(s.transformUndoStack, {
+          kind: "relationship-types",
+          before,
+          after: cloneProjectRelationshipTypes(plan.projectTypes),
+          patches: plan.patches,
+        }),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  resetFactoryRelationshipTypeDefaults: () => {
+    let changed = false;
+    set((s) => {
+      const before = cloneProjectConnectionStyles(s.settings.connectionStyles);
+      const after = createDefaultProjectConnectionStyles();
+      const patches = changedConnectionStylePatches(before, after);
+      if (!patches.length) return {};
+      changed = true;
+      return {
+        settings: { ...s.settings, connectionStyles: after },
+        transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connection-styles", patches }),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
   },
 
   copySelectedConnectionStyle: () => {

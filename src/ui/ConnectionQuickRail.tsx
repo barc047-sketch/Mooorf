@@ -1,10 +1,9 @@
-import { useLayoutEffect, useState, type CSSProperties } from "react";
+import { useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { SlidersHorizontal, Waypoints, X } from "lucide-react";
-import { CONNECTION_SEMANTIC_TYPES } from "../domain/connections/registry";
-import type { KnownConnectionSemanticTypeId } from "../domain/graph/types";
+import { getSelectableRelationshipTypes } from "../domain/connections/relationshipTypes";
 import { useLab } from "../state/store";
-import { RelationshipTypePicker } from "./RelationshipTypePicker";
+import { recordRelationshipTypeUse, RelationshipTypePicker } from "./RelationshipTypePicker";
 
 type RailLayout = {
   left: number;
@@ -14,12 +13,18 @@ type RailLayout = {
 export default function ConnectionQuickRail() {
   const modeActive = useLab((state) => state.connectionModeActive);
   const typeId = useLab((state) => state.connectionModeTypeId);
+  const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
+  const connectionStyles = useLab((state) => state.settings.connectionStyles);
   const performanceQuality = useLab((state) => state.settings.performanceQuality);
   const setConnectionModeType = useLab((state) => state.setConnectionModeType);
   const exitConnectionMode = useLab((state) => state.exitConnectionMode);
   const openWidget = useLab((state) => state.openWidget);
   const reduceMotion = useReducedMotion();
   const [railLayout, setRailLayout] = useState<RailLayout>({ left: 24, width: 520 });
+  const typeOptions = useMemo(
+    () => getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles),
+    [projectRelationshipTypes, connectionStyles],
+  );
 
   useLayoutEffect(() => {
     if (!modeActive || typeof document === "undefined") return;
@@ -75,9 +80,12 @@ export default function ConnectionQuickRail() {
       <RelationshipTypePicker
         direction="up"
         label="Current Relationship Type"
-        options={CONNECTION_SEMANTIC_TYPES}
+        options={typeOptions}
         value={typeId}
-        onChange={(id) => setConnectionModeType(id as KnownConnectionSemanticTypeId)}
+        onChange={(nextTypeId) => {
+          setConnectionModeType(nextTypeId);
+          recordRelationshipTypeUse(nextTypeId);
+        }}
       />
       <button
         type="button"

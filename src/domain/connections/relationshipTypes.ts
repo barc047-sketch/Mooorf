@@ -59,6 +59,11 @@ export interface CreateProjectRelationshipTypeInput {
   annotationDefaults?: Partial<RelationshipTypeAnnotationDefaults>;
 }
 
+export type RelationshipTypeMetadataInput = Pick<
+  CreateProjectRelationshipTypeInput,
+  "name" | "shortCode" | "description"
+>;
+
 export interface RelationshipTypeMutationGuard {
   allowed: boolean;
   reason: "custom-permanent" | "factory-read-only" | "type-in-use" | null;
@@ -124,6 +129,34 @@ const resolveVisualDefaults = (
 
 const knownFactoryId = (id: string): id is KnownConnectionSemanticTypeId => RESERVED_IDS.has(id);
 
+const comparableText = (value: string): string => value.trim().toLocaleLowerCase();
+
+export const getRelationshipTypeMetadataError = (
+  input: RelationshipTypeMetadataInput,
+  existingTypes: readonly ProjectRelationshipType[],
+  editingId?: string,
+): string | null => {
+  const name = typeof input.name === "string" ? input.name.trim() : "";
+  if (!name) return "Relationship Type name is required.";
+  let shortCode = "";
+  try {
+    shortCode = normalizedShortCode(input.shortCode, name);
+  } catch (error) {
+    return error instanceof Error ? error.message : "Relationship Type code is required.";
+  }
+  const identities = [
+    ...CONNECTION_SEMANTIC_TYPES.map((type) => ({ id: type.id, name: type.name, shortCode: type.tableCode })),
+    ...existingTypes.map((type) => ({ id: type.id, name: type.name, shortCode: type.shortCode })),
+  ].filter((type) => type.id !== editingId);
+  if (identities.some((type) => comparableText(type.name) === comparableText(name))) {
+    return "A Relationship Type with this name already exists.";
+  }
+  if (identities.some((type) => comparableText(type.shortCode) === comparableText(shortCode))) {
+    return "A Relationship Type with this code already exists.";
+  }
+  return null;
+};
+
 export const createProjectRelationshipTypeId = (
   existingIds: Iterable<string>,
   now = Date.now(),
@@ -136,11 +169,12 @@ export const createProjectRelationshipTypeId = (
   }
 };
 
-export const createProjectRelationshipType = (
+const buildProjectRelationshipType = (
   input: CreateProjectRelationshipTypeInput,
   existingTypes: readonly ProjectRelationshipType[],
   styles: ProjectConnectionStyles,
-  now = Date.now(),
+  now: number,
+  validateMetadata: boolean,
 ): ProjectRelationshipType => {
   const existingIds = new Set(existingTypes.map((type) => type.id));
   const id = input.id === undefined
@@ -148,6 +182,14 @@ export const createProjectRelationshipType = (
     : cleanText(input.id, "Relationship Type ID", 160);
   if (knownFactoryId(id) || existingIds.has(id)) throw new Error(`Relationship Type ID "${id}" already exists.`);
   const name = cleanText(input.name, "Relationship Type name", 120);
+  if (validateMetadata) {
+    const metadataError = getRelationshipTypeMetadataError({
+      name,
+      shortCode: input.shortCode,
+      description: input.description,
+    }, existingTypes);
+    if (metadataError) throw new Error(metadataError);
+  }
   return {
     id,
     name,
@@ -162,6 +204,33 @@ export const createProjectRelationshipType = (
   };
 };
 
+export const createProjectRelationshipType = (
+  input: CreateProjectRelationshipTypeInput,
+  existingTypes: readonly ProjectRelationshipType[],
+  styles: ProjectConnectionStyles,
+  now = Date.now(),
+): ProjectRelationshipType => buildProjectRelationshipType(input, existingTypes, styles, now, true);
+
+export const updateProjectRelationshipTypeMetadata = (
+  id: string,
+  input: RelationshipTypeMetadataInput,
+  existingTypes: readonly ProjectRelationshipType[],
+): ProjectRelationshipType[] => {
+  const current = existingTypes.find((type) => type.id === id);
+  if (!current) throw new Error("Project Relationship Type was not found.");
+  const metadataError = getRelationshipTypeMetadataError(input, existingTypes, id);
+  if (metadataError) throw new Error(metadataError);
+  const name = cleanText(input.name, "Relationship Type name", 120);
+  const shortCode = normalizedShortCode(input.shortCode, name);
+  const description = cleanOptionalText(input.description, "Relationship Type description", 1_200);
+  return existingTypes.map((type) => type.id === id ? {
+    ...type,
+    name,
+    shortCode,
+    description,
+  } : type);
+};
+
 export const normalizeProjectRelationshipTypes = (
   value: unknown,
   styles: ProjectConnectionStyles,
@@ -171,7 +240,7 @@ export const normalizeProjectRelationshipTypes = (
   const result: ProjectRelationshipType[] = [];
   for (const raw of value) {
     if (!isRecord(raw)) throw new Error("Project Relationship Type is invalid.");
-    const type = createProjectRelationshipType({
+    const type = buildProjectRelationshipType({
       id: raw.id as string,
       name: raw.name as string,
       shortCode: raw.shortCode as string,
@@ -179,7 +248,7 @@ export const normalizeProjectRelationshipTypes = (
       semanticDefaults: raw.semanticDefaults as CreateProjectRelationshipTypeInput["semanticDefaults"],
       visualDefaults: raw.visualDefaults as ConnectionStylePatch,
       annotationDefaults: raw.annotationDefaults as RelationshipTypeAnnotationDefaults,
-    }, result, styles);
+    }, result, styles, Date.now(), false);
     result.push({ ...type, archived: raw.archived === true });
   }
   return result;
@@ -226,6 +295,16 @@ export const getSelectableRelationshipTypes = (
   styles: ProjectConnectionStyles,
 ): RelationshipTypeDefinition[] => getAllRelationshipTypes(projectTypes, styles)
   .filter((type) => !type.archived);
+
+export const searchRelationshipTypes = (
+  types: readonly RelationshipTypeDefinition[],
+  query: string,
+): RelationshipTypeDefinition[] => {
+  const normalized = comparableText(query);
+  if (!normalized) return [...types];
+  return types.filter((type) => [type.name, type.shortCode, type.description]
+    .some((value) => comparableText(value).includes(normalized)));
+};
 
 export const resolveRelationshipType = (
   id: string | null | undefined,

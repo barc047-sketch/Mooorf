@@ -14,7 +14,7 @@ test("Dock owns one Connection mode toggle while Manager remains registry-owned"
   } | undefined;
   assert.ok(definition, "Connections widget definition should exist");
   assert.equal(definition?.id, "connections");
-  assert.equal(definition?.label, "Connections");
+  assert.equal(definition?.label, "RELATIONSHIP MANAGER");
   assert.equal(definition?.launcher, "dock");
   assert.equal(definition?.status, "live");
 
@@ -27,7 +27,7 @@ test("Dock owns one Connection mode toggle while Manager remains registry-owned"
   assert.doesNotMatch(dock, /openWidget\("connections"\)/, "Dock must not open Manager directly");
 });
 
-test("Manager reuses shared semantics/filtering and retains a bounded native fallback", () => {
+test("Manager reuses the canonical Relationship Type library and leaves Connection management for R4", () => {
   const widgetPath = new URL("../../ui/widgets/ConnectionsWidget.tsx", import.meta.url);
   assert.equal(existsSync(widgetPath), true, "ConnectionsWidget should exist");
   const widget = readFileSync(widgetPath, "utf8");
@@ -35,24 +35,14 @@ test("Manager reuses shared semantics/filtering and retains a bounded native fal
 
   assert.match(host, /import ConnectionsWidget from "\.\/ConnectionsWidget"/);
   assert.match(host, /connections:\s*\(\) => <ConnectionsWidget \/>/);
-  assert.match(widget, /CONNECTION_SEMANTIC_TYPES/);
-  assert.match(widget, /filterConnections/);
-  assert.match(widget, /connectionModeTypeId/);
-  assert.match(widget, /enterConnectionMode/);
-  assert.match(widget, /chooseConnectionSource/);
-  assert.match(widget, /completeConnectionAuthoring/);
-  assert.match(widget, /connectSelectedCells/);
-  assert.match(widget, /selectedConnectionIds/);
-  assert.match(widget, /Relationship type/);
-  assert.match(widget, /<select/);
-  assert.match(widget, /Show next/);
-  assert.match(widget, /rowOffset/);
-  assert.match(widget, /slice\(rowOffset, rowOffset \+ MANAGER_ROW_LIMIT\)/);
-  assert.doesNotMatch(widget, /setRowLimit|slice\(0, rowLimit\)/, "Manager pagination must replace the bounded page instead of accumulating mounted rows");
-  assert.doesNotMatch(widget, /aria-live="polite"/, "Manager must not announce mode state");
-  assert.match(widget, /Connect Cells/);
-  assert.match(widget, /Connect Selected/);
-  assert.match(widget, /Existing Connections/);
+  assert.match(widget, /getAllRelationshipTypes/);
+  assert.match(widget, /getRelationshipTypeUsageCount/);
+  assert.match(widget, /getConnectionIndex/);
+  assert.match(widget, /searchRelationshipTypes/);
+  assert.match(widget, />TYPES</);
+  assert.match(widget, />CONNECTIONS</);
+  assert.match(widget, /Connection management arrives in the next stage/);
+  assert.doesNotMatch(widget, /CONNECTION_SEMANTIC_TYPES|filterConnections|Existing Connections|Connect endpoints/);
   assert.doesNotMatch(widget, /useLab\(\(state\) => state\)/, "widget must not subscribe to the full store");
 });
 
@@ -99,7 +89,10 @@ test("Quick Rail owns one dynamic type dropdown, Manager, and Close", async () =
   assert.match(rail, /aria-label="Connections mode active"/);
   assert.match(rail, /RelationshipTypePicker/);
   assert.match(rail, /direction="up"/);
-  assert.match(rail, /options=\{CONNECTION_SEMANTIC_TYPES\}/);
+  assert.match(rail, /getSelectableRelationshipTypes/);
+  assert.match(rail, /projectRelationshipTypes/);
+  assert.match(rail, /connectionStyles/);
+  assert.match(rail, /options=\{typeOptions\}/);
   assert.match(typePicker, /aria-haspopup="listbox"/);
   assert.match(typePicker, /role="listbox"/);
   assert.match(typePicker, /role="option"/);
@@ -114,6 +107,7 @@ test("Quick Rail owns one dynamic type dropdown, Manager, and Close", async () =
   assert.match(rail, /querySelector<HTMLElement>\("\.dock-group-center"\)/);
   assert.match(rail, /dockCenterRect\.left/);
   assert.doesNotMatch(rail, /CONNECTION_SEMANTIC_TYPES\.slice/);
+  assert.doesNotMatch(rail, /CONNECTION_SEMANTIC_TYPES/, "Quick Rail must consume the same dynamic selectable library as Manager and Inspector");
   assert.doesNotMatch(rail, /function TypeButton|className="connection-quick-type"|connection-quick-wing/);
   assert.doesNotMatch(rail, /openWidget\("connection-studio"\)/);
   assert.doesNotMatch(rail, /aria-live="polite"|connection-onboarding-hint/);

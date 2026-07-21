@@ -1,218 +1,384 @@
-import { useMemo, useState } from "react";
-import { Check, Link2, X } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
 import {
-  CONNECTION_SEMANTIC_TYPES,
-  resolveConnectionSemanticType,
-} from "../../domain/connections/registry";
+  Archive,
+  ChevronDown,
+  ChevronRight,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Search,
+  Settings2,
+  Trash2,
+} from "lucide-react";
 import {
-  isConnectionAuthoringActive,
-  isValidConnectionEndpoint,
-} from "../../domain/connections/model";
-import type { ConnectionSemanticTypeId } from "../../domain/graph/types";
-import {
-  createDefaultConnectionFilterSpec,
-  filterConnections,
-} from "../../domain/connections/filters";
+  getAllRelationshipTypes,
+  getRelationshipTypeMetadataError,
+  getRelationshipTypeUsageCount,
+  getSelectableRelationshipTypes,
+  searchRelationshipTypes,
+  type RelationshipTypeDefinition,
+  type RelationshipTypeMetadataInput,
+} from "../../domain/connections/relationshipTypes";
+import { getConnectionIndex } from "../../domain/connections/selectors";
 import { useLab } from "../../state/store";
+import {
+  recordRelationshipTypeUse,
+  RelationshipTypePicker,
+  RelationshipTypeStylePreview,
+} from "../RelationshipTypePicker";
 
-const MANAGER_ROW_LIMIT = 120;
+type ManagerTab = "types" | "connections";
+type RelationshipTypeOperation = "archive" | "delete";
 
-const directionLabel = (direction: string) => direction
-  .split("-")
-  .map((part) => part.length === 1 ? part.toUpperCase() : `${part[0]?.toUpperCase()}${part.slice(1)}`)
-  .join(" ");
+type MetadataEditorState = {
+  mode: "create" | "edit";
+  typeId?: string;
+  draft: RelationshipTypeMetadataInput;
+};
+
+const EMPTY_DRAFT: RelationshipTypeMetadataInput = {
+  name: "",
+  shortCode: "",
+  description: "",
+};
+
+const usageLabel = (count: number): string => `${count} ${count === 1 ? "use" : "uses"}`;
+
+function RelationshipTypeMetadataEditor({
+  editor,
+  error,
+  onCancel,
+  onChange,
+  onSubmit,
+}: {
+  editor: MetadataEditorState;
+  error: string | null;
+  onCancel: () => void;
+  onChange: (draft: RelationshipTypeMetadataInput) => void;
+  onSubmit: (event: FormEvent) => void;
+}) {
+  return (
+    <form className="relationship-type-editor" onSubmit={onSubmit}>
+      <div className="relationship-type-editor-grid">
+        <label>
+          <span>Name</span>
+          <input
+            autoFocus
+            maxLength={120}
+            required
+            value={editor.draft.name}
+            onChange={(event) => onChange({ ...editor.draft, name: event.target.value })}
+          />
+        </label>
+        <label>
+          <span>Code</span>
+          <input
+            maxLength={12}
+            required
+            value={editor.draft.shortCode ?? ""}
+            onChange={(event) => onChange({
+              ...editor.draft,
+              shortCode: event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12),
+            })}
+          />
+        </label>
+      </div>
+      <label>
+        <span>Description <i>optional</i></span>
+        <textarea
+          maxLength={1_200}
+          rows={2}
+          value={editor.draft.description ?? ""}
+          onChange={(event) => onChange({ ...editor.draft, description: event.target.value })}
+        />
+      </label>
+      {error && <p className="relationship-manager-error" role="alert">{error}</p>}
+      <div className="relationship-type-editor-actions">
+        <button type="button" className="m1-btn" onClick={onCancel}>Cancel</button>
+        <button type="submit" className="m1-primary-btn">
+          {editor.mode === "create" ? "Create" : "Save changes"}
+        </button>
+      </div>
+    </form>
+  );
+}
 
 export default function ConnectionsWidget() {
-  const [sourceId, setSourceId] = useState("");
-  const [targetId, setTargetId] = useState("");
-  const [requestedRowOffset, setRowOffset] = useState(0);
+  const [tab, setTab] = useState<ManagerTab>("types");
+  const [query, setQuery] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editor, setEditor] = useState<MetadataEditorState | null>(null);
+  const [editorError, setEditorError] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ typeId: string; operation: RelationshipTypeOperation } | null>(null);
+  const [reassignToTypeId, setReassignToTypeId] = useState("custom");
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const connections = useLab((state) => state.connections);
-  const spaces = useLab((state) => state.spaces);
-  const selectedCellIds = useLab((state) => state.selectedIds);
-  const selectedConnectionIds = useLab((state) => state.selectedConnectionIds);
-  const authoring = useLab((state) => state.connectionAuthoring);
-  const connectionModeActive = useLab((state) => state.connectionModeActive);
-  const typeId = useLab((state) => state.connectionModeTypeId);
-  const setConnectionModeType = useLab((state) => state.setConnectionModeType);
-  const enterConnectionMode = useLab((state) => state.enterConnectionMode);
-  const chooseConnectionSource = useLab((state) => state.chooseConnectionSource);
-  const completeConnectionAuthoring = useLab((state) => state.completeConnectionAuthoring);
-  const connectSelectedCells = useLab((state) => state.connectSelectedCells);
-  const cancelConnectionGesture = useLab((state) => state.cancelConnectionGesture);
-  const selectConnection = useLab((state) => state.selectConnection);
-  const openWidget = useLab((state) => state.openWidget);
-  const authoringActive = isConnectionAuthoringActive(authoring);
+  const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
+  const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const createProjectRelationshipType = useLab((state) => state.createProjectRelationshipType);
+  const updateProjectRelationshipTypeMetadata = useLab((state) => state.updateProjectRelationshipTypeMetadata);
+  const setProjectRelationshipTypeArchived = useLab((state) => state.setProjectRelationshipTypeArchived);
+  const deleteProjectRelationshipType = useLab((state) => state.deleteProjectRelationshipType);
+  const resetFactoryRelationshipTypeDefaults = useLab((state) => state.resetFactoryRelationshipTypeDefaults);
 
-  const spaceById = useMemo(
-    () => new Map(spaces.map((space) => [space.id, space])),
-    [spaces],
+  const connectionIndex = useMemo(() => getConnectionIndex(connections), [connections]);
+  const allTypes = useMemo(
+    () => getAllRelationshipTypes(projectRelationshipTypes, connectionStyles),
+    [projectRelationshipTypes, connectionStyles],
   );
-  const selectedCells = useMemo(
-    () => selectedCellIds.map((id) => spaceById.get(id)),
-    [selectedCellIds, spaceById],
+  const activeTypes = useMemo(
+    () => searchRelationshipTypes(allTypes.filter((type) => !type.archived), query),
+    [allTypes, query],
   );
-  const canConnectSelected = selectedCells.length === 2 && selectedCells.every(isValidConnectionEndpoint);
-  const filteredConnections = useMemo(() => filterConnections({
-    connections,
-    cellsById: new Map(spaces.map((space) => [space.id, {
-      id: space.id,
-      name: space.name,
-      floorId: (space as typeof space & { floorId?: string }).floorId,
-    }])),
-    spec: createDefaultConnectionFilterSpec(),
-  }), [connections, spaces]);
-  const lastPageOffset = Math.max(0, Math.floor(Math.max(0, filteredConnections.length - 1) / MANAGER_ROW_LIMIT) * MANAGER_ROW_LIMIT);
-  const rowOffset = Math.min(requestedRowOffset, lastPageOffset);
-  const rows = useMemo(() => filteredConnections.slice(rowOffset, rowOffset + MANAGER_ROW_LIMIT).map((connection) => ({
-    connection,
-    sourceName: spaceById.get(connection.fromSpaceId)?.name ?? "Missing Cell",
-    targetName: spaceById.get(connection.toSpaceId)?.name ?? "Missing Cell",
-    semantic: resolveConnectionSemanticType(connection.semantic.typeId),
-  })), [filteredConnections, rowOffset, spaceById]);
-  const validSpaces = useMemo(() => spaces.filter(isValidConnectionEndpoint), [spaces]);
-  const previousRows = Math.min(MANAGER_ROW_LIMIT, rowOffset);
-  const remainingRows = Math.max(0, filteredConnections.length - rowOffset - MANAGER_ROW_LIMIT);
+  const archivedTypes = useMemo(
+    () => searchRelationshipTypes(allTypes.filter((type) => type.origin === "project" && type.archived), query),
+    [allTypes, query],
+  );
+  const reassignOptions = useMemo(
+    () => getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles)
+      .filter((type) => type.id !== pending?.typeId),
+    [connectionStyles, pending?.typeId, projectRelationshipTypes],
+  );
 
-  const connectNativeEndpoints = () => {
-    if (!sourceId || !targetId || sourceId === targetId) return;
-    enterConnectionMode(typeId);
-    if (chooseConnectionSource(sourceId)) completeConnectionAuthoring(targetId);
+  const openCreate = () => {
+    setEditor({ mode: "create", draft: { ...EMPTY_DRAFT } });
+    setEditorError(null);
+    setPending(null);
   };
 
-  const openInspectorFor = (id: string) => {
-    selectConnection(id);
-    openWidget("inspector");
+  const openEdit = (type: RelationshipTypeDefinition) => {
+    if (type.origin !== "project") return;
+    setExpandedId(type.id);
+    setEditor({
+      mode: "edit",
+      typeId: type.id,
+      draft: { name: type.name, shortCode: type.shortCode, description: type.description },
+    });
+    setEditorError(null);
+    setPending(null);
+  };
+
+  const submitMetadata = (event: FormEvent) => {
+    event.preventDefault();
+    if (!editor) return;
+    const error = getRelationshipTypeMetadataError(
+      editor.draft,
+      projectRelationshipTypes,
+      editor.mode === "edit" ? editor.typeId : undefined,
+    );
+    if (error) {
+      setEditorError(error);
+      return;
+    }
+    if (editor.mode === "create") {
+      const id = createProjectRelationshipType(editor.draft);
+      if (!id) {
+        setEditorError("Relationship Type could not be created.");
+        return;
+      }
+      setExpandedId(id);
+      setActionMessage("Project Relationship Type created.");
+    } else if (!editor.typeId || !updateProjectRelationshipTypeMetadata(editor.typeId, editor.draft)) {
+      setEditorError("Relationship Type could not be updated.");
+      return;
+    } else {
+      setActionMessage("Relationship Type metadata updated.");
+    }
+    setEditor(null);
+    setEditorError(null);
+  };
+
+  const openRetirement = (typeId: string, operation: RelationshipTypeOperation) => {
+    setExpandedId(typeId);
+    setPending({ typeId, operation });
+    setReassignToTypeId("custom");
+    setEditor(null);
+    setActionMessage(null);
+  };
+
+  const confirmRetirement = (type: RelationshipTypeDefinition, usageCount: number) => {
+    if (!pending || pending.typeId !== type.id) return;
+    const targetId = usageCount > 0 ? reassignToTypeId : undefined;
+    const changed = pending.operation === "archive"
+      ? setProjectRelationshipTypeArchived(type.id, true, targetId)
+      : deleteProjectRelationshipType(type.id, targetId);
+    if (!changed) {
+      setActionMessage("This change could not be applied safely. Choose another reassignment target.");
+      return;
+    }
+    if (targetId) recordRelationshipTypeUse(targetId);
+    setPending(null);
+    setExpandedId(null);
+    setActionMessage(pending.operation === "archive" ? "Project Relationship Type archived." : "Project Relationship Type deleted.");
+  };
+
+  const renderRow = (type: RelationshipTypeDefinition) => {
+    const usageCount = getRelationshipTypeUsageCount(connectionIndex, type.id);
+    const expanded = expandedId === type.id;
+    const editing = editor?.mode === "edit" && editor.typeId === type.id;
+    const pendingHere = pending?.typeId === type.id;
+    return (
+      <article
+        key={type.id}
+        className="relationship-type-row"
+        data-expanded={expanded ? "true" : undefined}
+        data-archived={type.archived ? "true" : undefined}
+        role="listitem"
+      >
+        <div className="relationship-type-row-main">
+          <button
+            type="button"
+            className="relationship-type-disclosure"
+            aria-expanded={expanded}
+            onClick={() => {
+              setExpandedId(expanded ? null : type.id);
+              setEditor(null);
+              setPending(null);
+            }}
+          >
+            {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+            <span>
+              <strong>{type.name}</strong>
+              <small>{type.origin === "factory" ? "Factory" : type.archived ? "Project · Archived" : "Project"}</small>
+            </span>
+          </button>
+          <RelationshipTypeStylePreview type={type} />
+          <span className="relationship-type-usage">{usageLabel(usageCount)}</span>
+          <button
+            type="button"
+            className="relationship-type-edit-action"
+            onClick={() => type.origin === "project" ? openEdit(type) : setExpandedId(expanded ? null : type.id)}
+          >
+            {type.origin === "project" ? <Pencil size={11} /> : null}
+            {type.origin === "project" ? "Edit" : "Details"}
+          </button>
+        </div>
+        {expanded && <div className="relationship-type-row-details">
+          {editing && editor ? <RelationshipTypeMetadataEditor
+            editor={editor}
+            error={editorError}
+            onCancel={() => { setEditor(null); setEditorError(null); }}
+            onChange={(draft) => { setEditor({ ...editor, draft }); setEditorError(null); }}
+            onSubmit={submitMetadata}
+          /> : <>
+            <dl>
+              <div><dt>Display name</dt><dd>{type.name}</dd></div>
+              <div><dt>Code</dt><dd>{type.shortCode}</dd></div>
+              <div><dt>Source</dt><dd>{type.origin === "factory" ? "Factory" : "Project"}</dd></div>
+              <div><dt>Usage</dt><dd>{usageLabel(usageCount)}</dd></div>
+              <div className="relationship-type-description"><dt>Description</dt><dd>{type.description || "No description"}</dd></div>
+            </dl>
+            {type.id === "custom" && <p className="relationship-type-protection">Custom is permanent, always available, and cannot be archived or deleted.</p>}
+            {type.origin === "factory" && type.id !== "custom" && <p className="relationship-type-protection">Factory identity is protected. Visual defaults can be reset from Manager settings.</p>}
+            {type.origin === "project" && !pendingHere && <div className="relationship-type-row-actions">
+              {type.archived ? <button type="button" className="m1-btn" onClick={() => {
+                if (setProjectRelationshipTypeArchived(type.id, false)) {
+                  setActionMessage("Project Relationship Type restored.");
+                  setExpandedId(null);
+                }
+              }}><RotateCcw size={11} /> Restore</button> : <button type="button" className="m1-btn" onClick={() => openRetirement(type.id, "archive")}><Archive size={11} /> Archive</button>}
+              <button type="button" className="m1-btn relationship-type-delete" onClick={() => openRetirement(type.id, "delete")}><Trash2 size={11} /> Delete</button>
+            </div>}
+          </>}
+          {pendingHere && <div className="relationship-type-retirement">
+            <strong>{usageCount > 0
+              ? `${usageLabel(usageCount)} currently use “${type.name}”.`
+              : `${pending.operation === "archive" ? "Archive" : "Delete"} “${type.name}”?`}</strong>
+            {usageCount > 0 && <label>
+              <span>Reassign to</span>
+              <RelationshipTypePicker
+                direction="down"
+                label="Reassign Connections to Relationship Type"
+                options={reassignOptions}
+                value={reassignToTypeId}
+                onChange={setReassignToTypeId}
+              />
+            </label>}
+            {actionMessage && <p className="relationship-manager-error" role="alert">{actionMessage}</p>}
+            <div>
+              <button type="button" className="m1-btn" onClick={() => { setPending(null); setActionMessage(null); }}>Cancel</button>
+              <button type="button" className="m1-primary-btn" onClick={() => confirmRetirement(type, usageCount)}>
+                {usageCount > 0 ? `Reassign & ${pending.operation === "archive" ? "Archive" : "Delete"}` : pending.operation === "archive" ? "Archive" : "Delete"}
+              </button>
+            </div>
+          </div>}
+        </div>}
+      </article>
+    );
   };
 
   return (
-    <div className="connections-widget">
-      <section className="m1-section connections-create" aria-labelledby="connections-create-title">
-        <div className="m1-section-title">
-          <h3 id="connections-create-title">Connections Manager</h3>
-          <span className="m1-state-badge" data-state={connectionModeActive ? "local-override" : "project-default"}>
-            {authoringActive ? "Picking" : connectionModeActive ? "Mode on" : "Ready"}
-          </span>
+    <div className="connections-widget relationship-manager">
+      <div className="relationship-manager-toolbar">
+        <div className="relationship-manager-tabs" role="tablist" aria-label="Relationship Manager sections">
+          <button type="button" role="tab" aria-selected={tab === "types"} data-active={tab === "types"} onClick={() => setTab("types")}>TYPES</button>
+          <button type="button" role="tab" aria-selected={tab === "connections"} data-active={tab === "connections"} onClick={() => setTab("connections")}>CONNECTIONS</button>
         </div>
-        <label className="connections-type-native">
-          <span>Relationship type</span>
-          <select
-            value={typeId}
-            onChange={(event) => setConnectionModeType(event.target.value as ConnectionSemanticTypeId)}
-          >
-            {CONNECTION_SEMANTIC_TYPES.map((definition) => (
-              <option key={definition.id} value={definition.id}>{definition.name}</option>
-            ))}
-          </select>
-        </label>
-        <div className="connections-actions">
+        <div className="relationship-manager-settings">
           <button
             type="button"
-            className="m1-primary-btn"
-            disabled={authoringActive}
-            title="Choose source and target Cells on Canvas"
-            onClick={() => enterConnectionMode(typeId)}
+            className="relationship-manager-settings-trigger"
+            aria-label="Relationship Manager settings"
+            aria-expanded={settingsOpen}
+            title="Relationship Manager settings"
+            onClick={() => setSettingsOpen((open) => !open)}
           >
-            <Link2 size={12} strokeWidth={1.6} /> Connect Cells
+            <Settings2 size={14} strokeWidth={1.5} />
           </button>
-          <button
-            type="button"
-            className="m1-btn"
-            disabled={!canConnectSelected || authoringActive}
-            title={canConnectSelected ? "Connect the two selected Cells" : "Select exactly two non-Void Cells"}
-            onClick={() => connectSelectedCells(typeId)}
-          >
-            <Check size={12} strokeWidth={1.7} /> Connect Selected
-          </button>
-          {connectionModeActive && authoringActive && (
-            <button
-              type="button"
-              className="m1-btn connections-cancel"
-              aria-label="Cancel Connection authoring"
-              onClick={() => cancelConnectionGesture()}
-            >
-              <X size={12} strokeWidth={1.7} /> Cancel
-            </button>
-          )}
+          {settingsOpen && <div className="relationship-manager-settings-menu">
+            <button type="button" onClick={() => {
+              const changed = resetFactoryRelationshipTypeDefaults();
+              setActionMessage(changed ? "Factory Relationship Type defaults restored." : "Factory defaults are already current.");
+              setSettingsOpen(false);
+            }}><RotateCcw size={11} /> Reset Factory Defaults</button>
+            <p>Connection Settings arrive in a later stage.</p>
+          </div>}
         </div>
-        <div className="connections-native-fallback" aria-label="Accessible Connection endpoints">
-          <label>
-            Source Cell
-            <select value={sourceId} onChange={(event) => setSourceId(event.target.value)}>
-              <option value="">Choose source</option>
-              {validSpaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
-            </select>
-          </label>
-          <label>
-            Target Cell
-            <select value={targetId} onChange={(event) => setTargetId(event.target.value)}>
-              <option value="">Choose target</option>
-              {validSpaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="m1-btn"
-            disabled={!sourceId || !targetId || sourceId === targetId}
-            onClick={connectNativeEndpoints}
-          >
-            Connect endpoints
-          </button>
-        </div>
-        <p className="connections-status">
-          {authoring.message}
-        </p>
-      </section>
+      </div>
 
-      <section className="m1-section connections-existing" aria-labelledby="connections-existing-title">
-        <div className="m1-section-title">
-          <h3 id="connections-existing-title">Existing Connections</h3>
-          <span className="m1-state-badge">{filteredConnections.length}</span>
+      {actionMessage && !pending && <p className="relationship-manager-status" role="status">{actionMessage}</p>}
+
+      {tab === "types" ? <section className="relationship-manager-types" role="tabpanel" aria-label="Relationship Types">
+        <div className="relationship-manager-search">
+          <Search size={13} strokeWidth={1.5} />
+          <input
+            type="search"
+            value={query}
+            aria-label="Search Relationship Types"
+            placeholder="Search name, code or description"
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <span>{activeTypes.length}</span>
         </div>
-        <div className="connections-list" role="list" aria-label="Existing semantic Connections">
-          {rows.length === 0 ? (
-            <p className="m1-empty-note">No Connections yet. Choose a relationship type and connect two Cells.</p>
-          ) : rows.map(({ connection, sourceName, targetName, semantic }) => (
-            <div key={connection.id} role="listitem">
-              <button
-                type="button"
-                className="connection-row"
-                data-active={selectedConnectionIds.includes(connection.id)}
-                aria-pressed={selectedConnectionIds.includes(connection.id)}
-                onClick={() => openInspectorFor(connection.id)}
-              >
-                <span className="connection-row-endpoints">{sourceName} <i>→</i> {targetName}</span>
-                <span className="connection-row-meta">
-                  <b>{semantic.name}</b>
-                  <i>{directionLabel(connection.semantic.direction)}</i>
-                  <i>{connection.enabled ? "Enabled" : "Disabled"}</i>
-                </span>
-              </button>
-            </div>
-          ))}
+        <div className="relationship-type-list" role="list" aria-label="Relationship Type Library">
+          {activeTypes.map(renderRow)}
+          {activeTypes.length === 0 && <p className="relationship-manager-empty">No Relationship Types match “{query}”.</p>}
+          <button type="button" className="relationship-type-add" onClick={openCreate}><Plus size={13} /> Add Relationship Type</button>
+          {editor?.mode === "create" && <RelationshipTypeMetadataEditor
+            editor={editor}
+            error={editorError}
+            onCancel={() => { setEditor(null); setEditorError(null); }}
+            onChange={(draft) => { setEditor({ ...editor, draft }); setEditorError(null); }}
+            onSubmit={submitMetadata}
+          />}
+          {archivedTypes.length > 0 && <>
+            <button type="button" className="relationship-type-archived-toggle" aria-expanded={showArchived} onClick={() => setShowArchived((shown) => !shown)}>
+              {showArchived ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+              Archived project types <span>{archivedTypes.length}</span>
+            </button>
+            {showArchived && archivedTypes.map(renderRow)}
+          </>}
         </div>
-        {(previousRows > 0 || remainingRows > 0) && (
-          <div className="connections-page-actions" aria-label="Connections pages">
-            {previousRows > 0 && (
-              <button
-                type="button"
-                className="m1-btn connections-show-more"
-                onClick={() => setRowOffset(Math.max(0, rowOffset - MANAGER_ROW_LIMIT))}
-              >
-                Show previous {previousRows} Connections
-              </button>
-            )}
-            {remainingRows > 0 && (
-              <button
-                type="button"
-                className="m1-btn connections-show-more"
-                onClick={() => setRowOffset(Math.min(lastPageOffset, rowOffset + MANAGER_ROW_LIMIT))}
-              >
-                Show next {Math.min(MANAGER_ROW_LIMIT, remainingRows)} Connections
-              </button>
-            )}
-          </div>
-        )}
-      </section>
+      </section> : <section className="relationship-manager-placeholder" role="tabpanel" aria-label="Connection management">
+        <div>
+          <span>CONNECTIONS</span>
+          <h2>Connection management</h2>
+          <p>Connection management arrives in the next stage.</p>
+          <small>Search, filtering and bulk editing arrive in the next stage.</small>
+        </div>
+      </section>}
     </div>
   );
 }

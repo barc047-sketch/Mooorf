@@ -102,9 +102,14 @@ equal(workspaceStyle.minHeight, undefined, "workspace minimum height does not ou
 equal(workspaceStyle.workspaceMaxWidth, "min(44vw, calc(100dvw - 48px))", "workspace max width stays bounded");
 equal(workspaceStyle.workspaceMaxHeight, "min(85vh, calc(100dvh - 48px))", "workspace max height stays bounded");
 
-equal(WIDGET_DEFINITIONS.connections.geometry.variant, "vertical", "Connections keeps its current sizing variant");
-equal(WIDGET_DEFINITIONS.connections.geometry.width, 344, "Connections keeps its current width");
-equal(WIDGET_DEFINITIONS.connections.geometry.maxHeight, 748, "Connections keeps its current maximum height");
+equal(WIDGET_DEFINITIONS.connections.label, "RELATIONSHIP MANAGER", "Connections owns the Relationship Manager identity");
+equal(WIDGET_DEFINITIONS.connections.geometry.variant, "workspace", "Relationship Manager reuses workspace sizing");
+if (WIDGET_DEFINITIONS.connections.geometry.variant === "workspace") {
+  equal(WIDGET_DEFINITIONS.connections.geometry.workspace.width, "40vw", "Relationship Manager targets 40vw");
+  equal(WIDGET_DEFINITIONS.connections.geometry.workspace.height, "78vh", "Relationship Manager targets 78vh");
+  equal(WIDGET_DEFINITIONS.connections.geometry.workspace.maxWidth, "44vw", "Relationship Manager stays within its desktop range");
+  equal(WIDGET_DEFINITIONS.connections.geometry.workspace.maxHeight, "85vh", "Relationship Manager stays viewport bounded");
+}
 
 const frameSource = readFileSync(new URL("../widgets/WidgetFrame.tsx", import.meta.url), "utf8");
 const widgetCss = readFileSync(new URL("../widgets/widgets.css", import.meta.url), "utf8");

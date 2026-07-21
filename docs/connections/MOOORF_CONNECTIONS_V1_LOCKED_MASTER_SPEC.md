@@ -2243,3 +2243,25 @@ Until the Owner explicitly approves an amendment:
 Style copy/paste operates on visual appearance only: geometry, stroke pattern, start/end markers, and the existing canonical appearance scalars (`color`, `width`, `opacity`, `curve`, `markerSize`, `markerOffset`, `dashScale`). It excludes Connection identity, endpoints, Relationship Type and semantic metadata, enabled state, visual visibility, endpoint anchors, label/annotation content, selection, runtime lanes, and cached path data.
 
 The clipboard stores the source Connection's resolved appearance. Paste derives the minimum sparse local visual override against each target Relationship Type default. Copy creates no history entry. One paste gesture across any number of targets creates one history transaction; Undo and Redo treat the target set atomically.
+
+---
+
+## Amendment 2 — 2026-07-22
+
+**Amendment — Scalable Relationship Type Pickers, MRU, Bulk Type Editing, and Connection Delete Semantics**
+
+### Relationship Type Picker Scalability
+
+Quick Rail, single-Connection Inspector, bulk-Connection Inspector, and reassignment authoring paths use one shared Relationship Type picker primitive. The picker shows approximately five rows before internal vertical scrolling, presents a compact horizontal live preview resolved from each factory or project type's canonical visual style, opens upward from Quick Rail, and opens downward from widgets and Inspector. MRU ordering applies only to authoring pickers; Relationship Manager retains stable canonical ordering.
+
+### Relationship Type MRU
+
+Recently used Relationship Type IDs are per-user UI preference state, not canonical project semantic state. MRU is updated only when a type is actually assigned or used, never by hover, open, search, or focus. It does not enter Connection history, project export, `.mooorf` data, Saved View semantic data, or Relationship Manager ordering.
+
+### Multi-Connection Type Editing
+
+Inspector may assign one Relationship Type to multiple selected Connections. Mixed is presentation state only. One bulk assignment creates one history transaction, and each Connection's explicit visual, Title, Body, annotation, endpoint, anchor, enabled, and unrelated semantic fields remain intact.
+
+### Delete Connection Semantics
+
+Deleting a Connection removes its canonical Connection record entirely; it never means hide, archive, disable, opacity change, or deselection only. Multi-Connection delete removes all selected canonical records atomically, with one history transaction and one-step Undo restoration.

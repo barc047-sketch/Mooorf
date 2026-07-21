@@ -175,15 +175,20 @@
   padding: 4px;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline) transparent;
   border-radius: calc(var(--r-micro-card) + 2px);
   color: var(--ink);
 }
 
 .connection-quick-type-menu button {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(72px, .8fr) minmax(92px, 1.2fr);
   align-items: center;
+  gap: 9px;
   width: 100%;
-  min-height: 28px;
+  min-height: 42px;
   padding: 0 8px;
   border: 1px solid transparent;
   border-radius: 7px;
@@ -193,6 +198,21 @@
   font-size: 8px;
   text-align: left;
   cursor: pointer;
+}
+
+.connection-quick-type-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connection-quick-type-preview {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 26px;
+  overflow: visible;
 }
 
 .connection-quick-type-menu button:hover,

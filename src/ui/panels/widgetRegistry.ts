@@ -209,12 +209,25 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
   },
   connections: {
     id: "connections",
-    label: "Connections",
-    responsibility: "Semantic Connection creation, selection and bounded endpoint-aware reopening.",
+    label: "RELATIONSHIP MANAGER",
+    responsibility: "Canonical Relationship Type library and staged Connection management workspace.",
     launcher: "dock",
     status: "live",
     icon: Waypoints,
-    geometry: { variant: "vertical", width: 344, minWidth: 312, minHeight: 430, maxHeight: 748, aspectIntent: "tall" },
+    geometry: {
+      variant: "workspace",
+      width: 640,
+      minWidth: 520,
+      minHeight: 500,
+      aspectIntent: "wide",
+      workspace: {
+        width: "40vw",
+        maxWidth: "44vw",
+        height: "78vh",
+        maxHeight: "85vh",
+        viewportMargin: 24,
+      },
+    },
   },
   "connection-studio": {
     id: "connection-studio",

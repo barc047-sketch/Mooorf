@@ -33,7 +33,7 @@ import { getSelectableRelationshipTypes, resolveRelationshipType } from "../../d
 import { getPrimarySelectedConnection } from "../../domain/connections/selectors";
 import { resolveConnectionStyle } from "../../domain/connections/styles";
 import type { ConnectionAnnotationOverride } from "../../domain/graph/types";
-import { RelationshipTypePicker } from "../RelationshipTypePicker";
+import { recordRelationshipTypeUse, RelationshipTypePicker } from "../RelationshipTypePicker";
 
 type TabId = "content" | "appearance" | "symbol";
 
@@ -271,7 +271,11 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
               label="Relationship Type"
               options={typeOptions}
               value={selectedTypeId}
-              onChange={(typeId) => updateConnectionSemantic(connection.id, { typeId })}
+              onChange={(typeId) => {
+                if (updateConnectionSemantic(connection.id, { typeId })) {
+                  recordRelationshipTypeUse(typeId);
+                }
+              }}
             />
           </label>
         </section>
@@ -330,7 +334,7 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
         <section className="m1-section">
           <div className="m1-action-grid">
             <button type="button" className="m1-btn" onClick={() => reverseConnection(connection.id)}><RotateCcw size={11} /> Reverse</button>
-            <button type="button" className="m1-btn connection-delete" onClick={() => deleteConnection(connection.id)}><Trash2 size={11} /> Delete</button>
+            <button type="button" className="m1-btn connection-delete" onClick={() => deleteConnection(connection.id)}><Trash2 size={11} /> Delete Connection</button>
           </div>
         </section>
       </div>
@@ -339,7 +343,18 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
 }
 
 function ConnectionMultiInspector({ count }: { count: number }) {
+  const connections = useLab((state) => state.connections);
+  const selectedConnectionIds = useLab((state) => state.selectedConnectionIds);
+  const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
+  const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const updateSelectedConnectionTypes = useLab((state) => state.updateSelectedConnectionTypes);
   const deleteSelectedConnections = useLab((state) => state.deleteSelectedConnections);
+  const selectedConnections = connections.filter((connection) => selectedConnectionIds.includes(connection.id));
+  const typeOptions = getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles);
+  const typeSelection = common(selectedConnections.map((connection) => connection.semantic.typeId));
+  const selectedTypeId = !typeSelection.mixed && typeOptions.some((type) => type.id === typeSelection.value)
+    ? typeSelection.value ?? "custom"
+    : "";
   return (
     <div className="m1-inspector connection-inspector">
       <div className="m1-context">
@@ -351,13 +366,31 @@ function ConnectionMultiInspector({ count }: { count: number }) {
       </div>
       <div className="m1-pane">
         <section className="m1-section">
-          <p className="m1-empty-note">Style Paste and Delete apply to the complete selection.</p>
+          <h3>TYPE</h3>
+          <label className="m1-field">
+            <span>Relationship Type</span>
+            <RelationshipTypePicker
+              direction="down"
+              label="Relationship Type for selected Connections"
+              options={typeOptions}
+              value={selectedTypeId}
+              placeholder={typeSelection.mixed ? "Mixed" : "Custom"}
+              onChange={(typeId) => {
+                if (updateSelectedConnectionTypes(typeId) > 0) {
+                  recordRelationshipTypeUse(typeId);
+                }
+              }}
+            />
+          </label>
+        </section>
+        <section className="m1-section">
+          <p className="m1-empty-note">Type, Style Paste, and Delete apply to the complete selection.</p>
           <button
             type="button"
             className="m1-btn connection-delete"
             onClick={deleteSelectedConnections}
           >
-            <Trash2 size={11} /> Delete selected
+            <Trash2 size={11} /> Delete {count} Connections
           </button>
         </section>
       </div>

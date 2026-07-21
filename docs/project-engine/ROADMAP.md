@@ -20,7 +20,7 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 | 14 | Organism Target Rail | PLANNED | Requires stable Text/appearance sequencing and separate Owner GO. |
 | 15 | Quick Materials | PLANNED | Reuses the one Material Registry and requires separate Owner GO. |
 | 16 | Material Browser | PLANNED | Follows target-safe Quick Materials. |
-| 17 | Relationship foundation | R2B.2 WAITING OWNER QA | The accepted R2B.1B foundation is pushed; R2B.2 local Inspector, style clipboard, focus-opacity and glass-type-picker corrections await Owner visual/interaction QA. No R3 or merge is authorized. |
+| 17 | Relationship foundation | R3A WAITING OWNER QA | R2B is checkpointed; the local-uncommitted Manager/Types work now includes capped preview pickers, UI-only MRU ordering and atomic multi-Connection Type editing. Owner visual/interaction QA remains required. R3B, finalization and merge are not authorized. |
 | 18 | Visual Connections | PLANNED | Follows stable Relationship ownership. |
 | 19 | Morph Bridge and Cell Behaviour | BLOCKED | Requires stable Relationship semantics and bounded performance architecture. |
 | 20 | Annotation Card / broader Markup | PLANNED | Later reviewed Markup stage; no active implementation. |
@@ -33,6 +33,6 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 
 ## Current gate
 
-R2B.2 FINAL VISUAL CORRECTIONS APPLIED — WAITING OWNER QA
+R3A PICKER + BULK TYPE CORRECTIONS — WAITING OWNER QA
 
-No R3 implementation, finalization, feature merge, branch deletion or AG3 modification is authorized.
+No R3B implementation, finalization, feature merge, branch deletion or AG3 modification is authorized.
