@@ -49,7 +49,7 @@ test("Manager reuses shared semantics/filtering and retains a bounded native fal
   assert.match(widget, /rowOffset/);
   assert.match(widget, /slice\(rowOffset, rowOffset \+ MANAGER_ROW_LIMIT\)/);
   assert.doesNotMatch(widget, /setRowLimit|slice\(0, rowLimit\)/, "Manager pagination must replace the bounded page instead of accumulating mounted rows");
-  assert.doesNotMatch(widget, /aria-live="polite"/, "Quick Rail must own the only mode live region");
+  assert.doesNotMatch(widget, /aria-live="polite"/, "Manager must not announce mode state");
   assert.match(widget, /Connect Cells/);
   assert.match(widget, /Connect Selected/);
   assert.match(widget, /Existing Connections/);
@@ -87,36 +87,43 @@ test("Manager lifecycle refocuses without duplication and never owns Connection 
   assert.deepEqual(useLab.getState().selectedIds, ["cell-a"]);
 });
 
-test("split Quick Rail owns seven types, Manager, Detail, Close, and the one live status", async () => {
+test("Quick Rail owns one dynamic type dropdown, Manager, and Close", async () => {
   const railPath = new URL("../../ui/ConnectionQuickRail.tsx", import.meta.url);
   assert.equal(existsSync(railPath), true, "ConnectionQuickRail should exist");
   const rail = readFileSync(railPath, "utf8");
   const app = source("../../App.tsx");
+  const shell = source("../../ui/shell.css");
   assert.match(app, /import ConnectionQuickRail from "\.\/ui\/ConnectionQuickRail"/);
   assert.match(app, /<ConnectionQuickRail \/>/);
-  assert.match(rail, /CONNECTION_SEMANTIC_TYPES\.slice\(0, 4\)/);
-  assert.match(rail, /CONNECTION_SEMANTIC_TYPES\.slice\(4\)/);
+  assert.match(rail, /aria-label="Connections mode active"/);
+  assert.match(rail, /aria-label="Current Relationship Type"/);
+  assert.match(rail, /aria-haspopup="listbox"/);
+  assert.match(rail, /role="listbox"/);
+  assert.match(rail, /role="option"/);
+  assert.match(rail, /CONNECTION_SEMANTIC_TYPES\.map/);
   assert.match(rail, /openWidget\("connections"\)/);
-  assert.match(rail, /openWidget\("connection-studio"\)/);
   assert.match(rail, /exitConnectionMode/);
   assert.match(rail, /role="toolbar"/);
-  assert.match(rail, /aria-pressed=\{active\}/);
-  assert.doesNotMatch(rail, /role="radiogroup"|role="radio"/, "both wings are one toolbar, not two radio sets");
-  assert.match(rail, /aria-live="polite"/);
-  assert.match(rail, /Press C to connect Cells/);
-  assert.match(rail, /Drag a centre point to another Cell/);
-  assert.match(rail, /Connection created/);
-  assert.match(rail, /localStorage/);
-  assert.match(rail, /effectiveWidth/);
-  assert.match(rail, /widgetScale \* uiScale/);
+  assert.match(rail, />Connections</);
+  assert.match(rail, />Manage</);
+  assert.match(rail, /SlidersHorizontal/);
+  assert.match(rail, /querySelector<HTMLElement>\("\.dock-group-center"\)/);
+  assert.match(rail, /dockCenterRect\.left/);
+  assert.match(rail, /createPortal/);
+  assert.match(rail, /className="connection-quick-type-menu glass"/);
+  assert.doesNotMatch(rail, /CONNECTION_SEMANTIC_TYPES\.slice/);
+  assert.doesNotMatch(rail, /function TypeButton|className="connection-quick-type"|connection-quick-wing/);
+  assert.doesNotMatch(rail, /openWidget\("connection-studio"\)/);
+  assert.doesNotMatch(rail, /aria-live="polite"|connection-onboarding-hint/);
   assert.match(rail, /performanceQuality/);
   assert.match(rail, /y: 8/);
   assert.match(rail, /scale: \.985/);
   assert.match(rail, /--connection-rail-width/);
-  assert.match(rail, /effectiveWidth < 420/);
-  assert.match(rail, /Connection relationship type/);
   assert.doesNotMatch(rail, /Math\.max\(420,/, "Rail width must not exceed the measured narrow workspace");
-  assert.match(rail, /Connection created · Press Esc to exit · C to toggle/);
+  assert.match(shell, /\.connection-quick-type-menu\s*\{[^}]*position: fixed;/s);
+  assert.match(shell, /\.connection-quick-type-menu\s*\{[^}]*var\(--z-tooltip\)/s);
+  assert.match(shell, /left: var\(--connection-rail-left, 24px\)/);
+  assert.doesNotMatch(rail, /<select\b/, "Quick Rail must not use a native downward/OS-styled select");
 });
 
 test("Connection Studio is registered once and remains a read-only Task 2 shell", async () => {
