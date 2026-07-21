@@ -79,6 +79,14 @@ const cloneSettings = (settings: LabSettings): LabSettings => ({
   connectionView: normalizeConnectionViewSettings(settings.connectionView),
 });
 
+const createClosedConnectionUiState = () => ({
+  selectedConnectionIds: [] as string[],
+  primarySelectedConnectionId: null as string | null,
+  connectionAuthoring: createConnectionAuthoringState(),
+  connectionModeActive: false,
+  connectionModeTypeId: "custom" as const,
+});
+
 export const captureRecoverySnapshot = (): RecoverySnapshot => {
   const state = useLab.getState();
   return {
@@ -120,9 +128,7 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     contextSurface: null,
     contextPoint: null,
     contextTargetId: null,
-    selectedConnectionIds: [],
-    primarySelectedConnectionId: null,
-    connectionAuthoring: createConnectionAuthoringState(),
+    ...createClosedConnectionUiState(),
     transformUndoStack: [],
     transformRedoStack: [],
     savedViews: cloneViews(snapshot.savedViews),
@@ -143,6 +149,8 @@ const captureRejectedApplyState = () => {
           }
         : null,
     },
+    connectionModeActive: state.connectionModeActive,
+    connectionModeTypeId: state.connectionModeTypeId,
     transformUndoStack: [...state.transformUndoStack],
     transformRedoStack: [...state.transformRedoStack],
   };
@@ -188,9 +196,7 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
         connectionStyles: cloneProjectConnectionStyles(snapshot.settings.connectionStyles),
         connectionView: normalizeConnectionViewSettings(snapshot.settings.connectionView),
       },
-      selectedConnectionIds: [],
-      primarySelectedConnectionId: null,
-      connectionAuthoring: createConnectionAuthoringState(),
+      ...createClosedConnectionUiState(),
       transformUndoStack: [],
       transformRedoStack: [],
     });
@@ -259,9 +265,7 @@ export const applySpaceSchedule = (spaces: readonly SpaceCell[]): RecoverySnapsh
       resourcesPreview: null,
       arrangementPreview: null,
       arrangementPreviewPatternId: null,
-      selectedConnectionIds: [],
-      primarySelectedConnectionId: null,
-      connectionAuthoring: createConnectionAuthoringState(),
+      ...createClosedConnectionUiState(),
       transformUndoStack: [],
       transformRedoStack: [],
     });

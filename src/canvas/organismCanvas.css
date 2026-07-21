@@ -37,6 +37,12 @@
   visibility: hidden;
 }
 
+.organism-connection-editing-canvas {
+  display: block;
+  touch-action: none;
+  will-change: transform;
+}
+
 /* V6N.2 — camera-synced scan dot matrix (offsets driven by the render loop).
    Dots instead of crossing lines: quieter, closer to the HUD references. */
 .organism-grid {

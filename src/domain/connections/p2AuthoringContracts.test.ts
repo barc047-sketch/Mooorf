@@ -133,6 +133,8 @@ interface P2StoreContract {
   selectedConnectionIds: string[];
   primarySelectedConnectionId: string | null;
   connectionAuthoring: { phase: string; sourceId: string | null; message: string };
+  connectionModeActive: boolean;
+  connectionModeTypeId: ConnectionSemanticTypeId;
   transformUndoStack: unknown[];
   transformRedoStack: unknown[];
   openWidgets: string[];
@@ -168,6 +170,8 @@ const connectionStore = async () => {
     selectedConnectionIds: [],
     primarySelectedConnectionId: null,
     connectionAuthoring: model.createConnectionAuthoringState(),
+    connectionModeActive: false,
+    connectionModeTypeId: "custom",
     transformUndoStack: [],
     transformRedoStack: [],
     openWidgets: [],
@@ -241,7 +245,8 @@ test("an exact duplicate selects the existing Connection without history", async
   assert.equal(state().connections.length, 1);
   assert.equal(state().transformUndoStack.length, historyAfterCreate);
   assert.equal(state().primarySelectedConnectionId, created.connectionId);
-  assert.equal(state().connectionAuthoring.phase, "existing-duplicate");
+  assert.equal(state().connectionAuthoring.phase, "mode-ready");
+  assert.match(state().connectionAuthoring.message, /already exists/i);
 });
 
 test("manual authoring rejects self and Void targets and creates no preview or cancellation history", async () => {
@@ -250,16 +255,18 @@ test("manual authoring rejects self and Void targets and creates no preview or c
   const historyBefore = state().transformUndoStack.length;
   const projectBefore = JSON.stringify({ spaces: state().spaces, connections: state().connections });
   state().beginConnectionAuthoring("adjacency");
-  assert.equal(state().connectionAuthoring.phase, "choosing-source");
-  assert.deepEqual(state().selectedIds, []);
+  assert.equal(state().connectionAuthoring.phase, "mode-ready");
+  assert.deepEqual(state().selectedIds, ["cell-c"]);
   assert.equal(state().chooseConnectionSource("cell-a"), true);
   assert.equal(state().connectionAuthoring.phase, "source-chosen");
   assert.equal(state().completeConnectionAuthoring("cell-a").status, "invalid");
+  assert.equal(state().chooseConnectionSource("cell-a"), true);
   assert.equal(state().completeConnectionAuthoring("void-1").status, "invalid");
   assert.equal(JSON.stringify({ spaces: state().spaces, connections: state().connections }), projectBefore);
   assert.equal(state().transformUndoStack.length, historyBefore);
   state().cancelConnectionAuthoring();
-  assert.equal(state().connectionAuthoring.phase, "cancelled");
+  assert.equal(state().connectionAuthoring.phase, "idle");
+  assert.equal(state().connectionModeActive, false);
   assert.deepEqual(state().selectedIds, ["cell-c"]);
   assert.equal(state().transformUndoStack.length, historyBefore);
 });
@@ -271,7 +278,8 @@ test("Table activation cancels authoring and restores the prior Cell selection",
   state().chooseConnectionSource("cell-b");
   state().setView("table");
   assert.equal(state().view, "table");
-  assert.equal(state().connectionAuthoring.phase, "cancelled");
+  assert.equal(state().connectionAuthoring.phase, "idle");
+  assert.equal(state().connectionModeActive, false);
   assert.deepEqual(state().selectedIds, ["cell-a"]);
   assert.equal(state().connections.length, 0);
   assert.equal(state().transformUndoStack.length, 0);

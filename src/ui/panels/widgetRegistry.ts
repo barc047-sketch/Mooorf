@@ -153,6 +153,15 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
     icon: Waypoints,
     geometry: { variant: "vertical", width: 344, minWidth: 312, minHeight: 430, maxHeight: 748, aspectIntent: "tall" },
   },
+  "connection-studio": {
+    id: "connection-studio",
+    label: "Connection Studio",
+    responsibility: "Registry-owned Connection type-default scope and visual grammar workspace.",
+    launcher: "widget",
+    status: "live",
+    icon: Waypoints,
+    geometry: { variant: "vertical", width: 360, minWidth: 320, minHeight: 260, maxHeight: 620, aspectIntent: "tall" },
+  },
   advanced: {
     id: "advanced",
     label: "Performance",

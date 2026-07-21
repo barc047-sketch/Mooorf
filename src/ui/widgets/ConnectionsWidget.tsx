@@ -9,7 +9,13 @@ import {
   isValidConnectionEndpoint,
 } from "../../domain/connections/model";
 import type { ConnectionSemanticTypeId } from "../../domain/graph/types";
+import {
+  createDefaultConnectionFilterSpec,
+  filterConnections,
+} from "../../domain/connections/filters";
 import { useLab } from "../../state/store";
+
+const MANAGER_ROW_LIMIT = 120;
 
 const directionLabel = (direction: string) => direction
   .split("-")
@@ -17,15 +23,22 @@ const directionLabel = (direction: string) => direction
   .join(" ");
 
 export default function ConnectionsWidget() {
-  const [typeId, setTypeId] = useState<ConnectionSemanticTypeId>("adjacency");
+  const [sourceId, setSourceId] = useState("");
+  const [targetId, setTargetId] = useState("");
+  const [requestedRowOffset, setRowOffset] = useState(0);
   const connections = useLab((state) => state.connections);
   const spaces = useLab((state) => state.spaces);
   const selectedCellIds = useLab((state) => state.selectedIds);
   const selectedConnectionIds = useLab((state) => state.selectedConnectionIds);
   const authoring = useLab((state) => state.connectionAuthoring);
-  const beginConnectionAuthoring = useLab((state) => state.beginConnectionAuthoring);
+  const connectionModeActive = useLab((state) => state.connectionModeActive);
+  const typeId = useLab((state) => state.connectionModeTypeId);
+  const setConnectionModeType = useLab((state) => state.setConnectionModeType);
+  const enterConnectionMode = useLab((state) => state.enterConnectionMode);
+  const chooseConnectionSource = useLab((state) => state.chooseConnectionSource);
+  const completeConnectionAuthoring = useLab((state) => state.completeConnectionAuthoring);
   const connectSelectedCells = useLab((state) => state.connectSelectedCells);
-  const cancelConnectionAuthoring = useLab((state) => state.cancelConnectionAuthoring);
+  const cancelConnectionGesture = useLab((state) => state.cancelConnectionGesture);
   const selectConnection = useLab((state) => state.selectConnection);
   const openWidget = useLab((state) => state.openWidget);
   const authoringActive = isConnectionAuthoringActive(authoring);
@@ -39,12 +52,32 @@ export default function ConnectionsWidget() {
     [selectedCellIds, spaceById],
   );
   const canConnectSelected = selectedCells.length === 2 && selectedCells.every(isValidConnectionEndpoint);
-  const rows = useMemo(() => connections.map((connection) => ({
+  const filteredConnections = useMemo(() => filterConnections({
+    connections,
+    cellsById: new Map(spaces.map((space) => [space.id, {
+      id: space.id,
+      name: space.name,
+      floorId: (space as typeof space & { floorId?: string }).floorId,
+    }])),
+    spec: createDefaultConnectionFilterSpec(),
+  }), [connections, spaces]);
+  const lastPageOffset = Math.max(0, Math.floor(Math.max(0, filteredConnections.length - 1) / MANAGER_ROW_LIMIT) * MANAGER_ROW_LIMIT);
+  const rowOffset = Math.min(requestedRowOffset, lastPageOffset);
+  const rows = useMemo(() => filteredConnections.slice(rowOffset, rowOffset + MANAGER_ROW_LIMIT).map((connection) => ({
     connection,
     sourceName: spaceById.get(connection.fromSpaceId)?.name ?? "Missing Cell",
     targetName: spaceById.get(connection.toSpaceId)?.name ?? "Missing Cell",
     semantic: resolveConnectionSemanticType(connection.semantic.typeId),
-  })), [connections, spaceById]);
+  })), [filteredConnections, rowOffset, spaceById]);
+  const validSpaces = useMemo(() => spaces.filter(isValidConnectionEndpoint), [spaces]);
+  const previousRows = Math.min(MANAGER_ROW_LIMIT, rowOffset);
+  const remainingRows = Math.max(0, filteredConnections.length - rowOffset - MANAGER_ROW_LIMIT);
+
+  const connectNativeEndpoints = () => {
+    if (!sourceId || !targetId || sourceId === targetId) return;
+    enterConnectionMode(typeId);
+    if (chooseConnectionSource(sourceId)) completeConnectionAuthoring(targetId);
+  };
 
   const openInspectorFor = (id: string) => {
     selectConnection(id);
@@ -55,38 +88,29 @@ export default function ConnectionsWidget() {
     <div className="connections-widget">
       <section className="m1-section connections-create" aria-labelledby="connections-create-title">
         <div className="m1-section-title">
-          <h3 id="connections-create-title">Create Connection</h3>
-          <span className="m1-state-badge" data-state={authoringActive ? "local-override" : "project-default"}>
-            {authoringActive ? "Picking" : "Ready"}
+          <h3 id="connections-create-title">Connections Manager</h3>
+          <span className="m1-state-badge" data-state={connectionModeActive ? "local-override" : "project-default"}>
+            {authoringActive ? "Picking" : connectionModeActive ? "Mode on" : "Ready"}
           </span>
         </div>
-        <div className="connections-type-grid" role="radiogroup" aria-label="Relationship type">
-          {CONNECTION_SEMANTIC_TYPES.map((definition) => {
-            const descriptionId = `connection-type-${definition.id}-description`;
-            return (
-              <button
-                key={definition.id}
-                type="button"
-                role="radio"
-                aria-checked={typeId === definition.id}
-                aria-describedby={descriptionId}
-                data-active={typeId === definition.id}
-                disabled={authoringActive}
-                onClick={() => setTypeId(definition.id)}
-              >
-                <span>{definition.name}</span>
-                <small id={descriptionId}>{definition.description}</small>
-              </button>
-            );
-          })}
-        </div>
+        <label className="connections-type-native">
+          <span>Relationship type</span>
+          <select
+            value={typeId}
+            onChange={(event) => setConnectionModeType(event.target.value as ConnectionSemanticTypeId)}
+          >
+            {CONNECTION_SEMANTIC_TYPES.map((definition) => (
+              <option key={definition.id} value={definition.id}>{definition.name}</option>
+            ))}
+          </select>
+        </label>
         <div className="connections-actions">
           <button
             type="button"
             className="m1-primary-btn"
             disabled={authoringActive}
             title="Choose source and target Cells on Canvas"
-            onClick={() => beginConnectionAuthoring(typeId)}
+            onClick={() => enterConnectionMode(typeId)}
           >
             <Link2 size={12} strokeWidth={1.6} /> Connect Cells
           </button>
@@ -99,18 +123,42 @@ export default function ConnectionsWidget() {
           >
             <Check size={12} strokeWidth={1.7} /> Connect Selected
           </button>
-          {authoringActive && (
+          {connectionModeActive && authoringActive && (
             <button
               type="button"
               className="m1-btn connections-cancel"
               aria-label="Cancel Connection authoring"
-              onClick={cancelConnectionAuthoring}
+              onClick={() => cancelConnectionGesture()}
             >
               <X size={12} strokeWidth={1.7} /> Cancel
             </button>
           )}
         </div>
-        <p className="connections-status" role="status" aria-live="polite">
+        <div className="connections-native-fallback" aria-label="Accessible Connection endpoints">
+          <label>
+            Source Cell
+            <select value={sourceId} onChange={(event) => setSourceId(event.target.value)}>
+              <option value="">Choose source</option>
+              {validSpaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
+            </select>
+          </label>
+          <label>
+            Target Cell
+            <select value={targetId} onChange={(event) => setTargetId(event.target.value)}>
+              <option value="">Choose target</option>
+              {validSpaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="m1-btn"
+            disabled={!sourceId || !targetId || sourceId === targetId}
+            onClick={connectNativeEndpoints}
+          >
+            Connect endpoints
+          </button>
+        </div>
+        <p className="connections-status">
           {authoring.message}
         </p>
       </section>
@@ -118,7 +166,7 @@ export default function ConnectionsWidget() {
       <section className="m1-section connections-existing" aria-labelledby="connections-existing-title">
         <div className="m1-section-title">
           <h3 id="connections-existing-title">Existing Connections</h3>
-          <span className="m1-state-badge">{rows.length}</span>
+          <span className="m1-state-badge">{filteredConnections.length}</span>
         </div>
         <div className="connections-list" role="list" aria-label="Existing semantic Connections">
           {rows.length === 0 ? (
@@ -142,6 +190,28 @@ export default function ConnectionsWidget() {
             </div>
           ))}
         </div>
+        {(previousRows > 0 || remainingRows > 0) && (
+          <div className="connections-page-actions" aria-label="Connections pages">
+            {previousRows > 0 && (
+              <button
+                type="button"
+                className="m1-btn connections-show-more"
+                onClick={() => setRowOffset(Math.max(0, rowOffset - MANAGER_ROW_LIMIT))}
+              >
+                Show previous {previousRows} Connections
+              </button>
+            )}
+            {remainingRows > 0 && (
+              <button
+                type="button"
+                className="m1-btn connections-show-more"
+                onClick={() => setRowOffset(Math.min(lastPageOffset, rowOffset + MANAGER_ROW_LIMIT))}
+              >
+                Show next {Math.min(MANAGER_ROW_LIMIT, remainingRows)} Connections
+              </button>
+            )}
+          </div>
+        )}
       </section>
     </div>
   );

@@ -274,6 +274,8 @@
 .connections-actions .m1-primary-btn { grid-column: 1 / -1; }
 .connections-cancel { color: var(--ink); }
 .connections-status { min-height: 16px; margin: 0; padding: 3px 2px 0; color: var(--fog); font-size: 8.5px; line-height: 1.35; }
+.connections-type-native { display: grid; gap: 4px; color: var(--fog); font-size: 7.5px; font-weight: 600; }
+.connections-type-native select { min-height: 30px; border: 1px solid color-mix(in srgb, var(--hairline) 58%, transparent); border-radius: 6px; background: var(--glass-panel); color: var(--ink); font: inherit; font-size: 8.5px; }
 .connections-existing { min-height: 0; }
 .connections-list { display: flex; flex-direction: column; gap: 4px; max-height: 238px; overflow-y: auto; overscroll-behavior: contain; }
 .connection-row { display: grid; gap: 4px; width: 100%; padding: 7px 8px; border: 1px solid color-mix(in srgb, var(--hairline) 50%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-panel) 42%, transparent); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
@@ -284,6 +286,16 @@
 .connection-row-meta { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--fog); font-size: 7.5px; }
 .connection-row-meta b { overflow: hidden; color: var(--ink-soft); font-weight: 560; text-overflow: ellipsis; white-space: nowrap; }
 .connection-row-meta i { font-style: normal; white-space: nowrap; }
+.connections-native-fallback { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding-top: 7px; border-top: 1px solid color-mix(in srgb, var(--hairline) 42%, transparent); }
+.connections-native-fallback label { display: grid; gap: 3px; min-width: 0; color: var(--fog); font-size: 7.5px; font-weight: 600; }
+.connections-native-fallback select { min-width: 0; min-height: 28px; border: 1px solid color-mix(in srgb, var(--hairline) 58%, transparent); border-radius: 6px; background: var(--glass-panel); color: var(--ink); font: inherit; font-size: 8.5px; }
+.connections-native-fallback .m1-btn { grid-column: 1 / -1; min-height: 28px; }
+.connections-page-actions { display: flex; gap: 5px; margin-top: 5px; }
+.connections-show-more { flex: 1; min-width: 0; min-height: 28px; }
+.connection-studio-shell { padding: 7px 2px 2px; }
+.connection-studio-type { margin: 2px 0 7px; color: var(--ink); font-size: 16px; font-weight: 620; letter-spacing: -.02em; }
+.connection-studio-scope { margin: 0; padding: 8px; border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-panel) 48%, transparent); color: var(--ink-soft); font-size: 9px; }
+.connection-studio-scope span { color: var(--fog); font-size: 7px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
 .connection-inspector .m1-state-badge { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .connection-inspector .m1-action-grid { grid-template-columns: 1fr 1fr; }
 .connection-inspector .connection-delete { grid-column: 1 / -1; color: var(--ink); }

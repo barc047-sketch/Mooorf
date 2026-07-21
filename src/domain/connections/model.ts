@@ -249,6 +249,7 @@ export interface ConnectionAuthoringSelectionSnapshot {
 
 export type ConnectionAuthoringPhase =
   | "idle"
+  | "mode-ready"
   | "choosing-source"
   | "source-chosen"
   | "target-preview"
@@ -269,6 +270,10 @@ export interface ConnectionAuthoringState {
 
 export type ConnectionAuthoringAction =
   | {
+      type: "enter-mode";
+      typeId: ConnectionSemanticTypeId;
+    }
+  | {
       type: "start";
       typeId: ConnectionSemanticTypeId;
       priorSelection: ConnectionAuthoringSelectionSnapshot;
@@ -278,6 +283,7 @@ export type ConnectionAuthoringAction =
   | { type: "invalid-target"; message: string; targetId?: string | null }
   | { type: "duplicate"; targetId: string; connectionId: string }
   | { type: "commit"; connectionId: string; targetId?: string | null }
+  | { type: "ready"; typeId: ConnectionSemanticTypeId; message?: string; retainPriorSelection?: boolean }
   | { type: "cancel" }
   | { type: "reset" };
 
@@ -297,11 +303,26 @@ export const isConnectionAuthoringActive = (state: ConnectionAuthoringState): bo
   || state.phase === "target-preview"
   || state.phase === "invalid-target";
 
+export const isConnectionGestureActive = (state: ConnectionAuthoringState): boolean =>
+  state.phase === "source-chosen"
+  || state.phase === "target-preview"
+  || state.phase === "invalid-target";
+
 export const reduceConnectionAuthoring = (
   state: ConnectionAuthoringState,
   action: ConnectionAuthoringAction,
 ): ConnectionAuthoringState => {
   switch (action.type) {
+    case "enter-mode":
+      return {
+        phase: "mode-ready",
+        typeId: action.typeId,
+        sourceId: null,
+        targetId: null,
+        existingConnectionId: null,
+        message: "Connections shown for editing",
+        priorSelection: null,
+      };
     case "start":
       return {
         phase: "choosing-source",
@@ -355,6 +376,17 @@ export const reduceConnectionAuthoring = (
         targetId: action.targetId ?? state.targetId,
         existingConnectionId: action.connectionId,
         message: "Connection created and selected.",
+      };
+    case "ready":
+      return {
+        ...state,
+        phase: "mode-ready",
+        typeId: action.typeId,
+        sourceId: null,
+        targetId: null,
+        existingConnectionId: null,
+        message: action.message ?? "Choose a source Cell.",
+        priorSelection: action.retainPriorSelection ? state.priorSelection : null,
       };
     case "cancel":
       return {

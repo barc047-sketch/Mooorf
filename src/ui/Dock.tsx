@@ -81,6 +81,8 @@ export default function Dock() {
   const openWidgets = useLab((s) => s.openWidgets);
   const minimizedWidgets = useLab((s) => s.minimizedWidgets);
   const openWidget = useLab((s) => s.openWidget);
+  const connectionModeActive = useLab((s) => s.connectionModeActive);
+  const toggleConnectionMode = useLab((s) => s.toggleConnectionMode);
   const activeAppearanceTarget = useLab((s) => s.activeAppearanceTarget);
   const [rightOpen, setRightOpen] = useState(true);
   const activeFamily = appearanceFamilyForTarget(activeAppearanceTarget);
@@ -100,12 +102,11 @@ export default function Dock() {
       <DockGroup side="left">
         <InspectorLauncherButton surface="dock" />
         <DockButton
-          active={isExpanded("connections")}
-          title="Connections"
-          aria-label="Open Connections"
-          aria-haspopup="dialog"
-          aria-expanded={isExpanded("connections")}
-          onClick={() => openWidget("connections")}
+          active={connectionModeActive}
+          title="Toggle Connection mode"
+          aria-label="Toggle Connection mode"
+          aria-pressed={connectionModeActive}
+          onClick={toggleConnectionMode}
         >
           <Waypoints size={16} strokeWidth={1.5} />
         </DockButton>

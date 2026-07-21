@@ -129,6 +129,7 @@ export type WidgetId =
   | "display"
   | "label-studio"
   | "connections"
+  | "connection-studio"
   | "advanced"
   | "stats"
   | "category-mix"

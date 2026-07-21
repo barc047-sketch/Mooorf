@@ -26,7 +26,9 @@ import InstrumentLauncher from "./stats/InstrumentLauncher";
 import { getWidgetDefinition } from "../panels/widgetRegistry";
 import InspectorWidget from "./InspectorWidget";
 import ConnectionsWidget from "./ConnectionsWidget";
+import ConnectionStudioWidget from "./ConnectionStudioWidget";
 import { isConnectionAuthoringActive } from "../../domain/connections/model";
+import { isConnectionShortcutEditingTarget } from "../../interaction/connectionShortcut";
 import {
   CellSettingsWidget,
   MembraneSettingsWidget,
@@ -46,6 +48,7 @@ const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
   display: () => <DisplayWidget />,
   "label-studio": () => <LabelStudioWidget />,
   connections: () => <ConnectionsWidget />,
+  "connection-studio": () => <ConnectionStudioWidget />,
   advanced: () => <AdvancedWidget />,
   stats: () => <ProjectPulseWidget />,
   "category-mix": () => <CategoryMixWidget />,
@@ -78,8 +81,7 @@ export default function WidgetHost() {
     if (openWidgets.length === 0) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      const target = e.target as HTMLElement | null;
-      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      if (isConnectionShortcutEditingTarget(e.target)) return;
       const state = useLab.getState();
       if (isConnectionAuthoringActive(state.connectionAuthoring)) {
         e.preventDefault();

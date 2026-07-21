@@ -4,6 +4,7 @@ import { useLab } from "./state/store";
 import Loader from "./ui/Loader";
 import ViewToggle from "./ui/ViewToggle";
 import Dock from "./ui/Dock";
+import ConnectionQuickRail from "./ui/ConnectionQuickRail";
 import Rail from "./ui/Rail";
 import ZoomControls from "./ui/ZoomControls";
 import WidgetHost from "./ui/widgets/WidgetHost";
@@ -15,6 +16,8 @@ import ContextSurfaceHost from "./ui/context/ContextSurfaceHost";
 import RuntimeStatus from "./ui/RuntimeStatus";
 import QuickToggleBar from "./ui/QuickToggleBar";
 import { activateInspector, shouldHandleInspectorShortcut } from "./interaction/inspectorShortcut";
+import { shouldHandleConnectionEscape, shouldHandleConnectionShortcut } from "./interaction/connectionShortcut";
+import { isConnectionGestureActive } from "./domain/connections/model";
 import "./App.css";
 
 /* V6E experiment route — hidden URL, separate lazy chunk, zero cost to the
@@ -134,13 +137,28 @@ function MainApp() {
     };
   }, []);
 
-  // MainApp owns one global Inspector shortcut listener. Workspace visibility
-  // changes never duplicate the listener or remount the Canvas.
+  // MainApp owns the application shortcut listener. Workspace visibility
+  // changes never duplicate it or remount the Canvas.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!shouldHandleInspectorShortcut(event)) return;
-      event.preventDefault();
-      activateInspector("toggle");
+      const state = useLab.getState();
+      if (shouldHandleConnectionShortcut(event, state.view)) {
+        event.preventDefault();
+        event.stopPropagation();
+        state.toggleConnectionMode();
+        return;
+      }
+      if (shouldHandleConnectionEscape(event, state.connectionModeActive)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (isConnectionGestureActive(state.connectionAuthoring)) state.cancelConnectionGesture();
+        else state.exitConnectionMode();
+        return;
+      }
+      if (shouldHandleInspectorShortcut(event)) {
+        event.preventDefault();
+        activateInspector("toggle");
+      }
     };
     document.addEventListener("keydown", onKeyDown, true);
     return () => document.removeEventListener("keydown", onKeyDown, true);
@@ -273,6 +291,7 @@ function MainApp() {
                 y: { duration: reduceMotion ? 0.00001 : 0.275, ease: [0.22, 1, 0.36, 1] },
               }}
             >
+              <ConnectionQuickRail />
               <Dock />
             </motion.div>
             <motion.div
