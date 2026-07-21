@@ -13,6 +13,10 @@ import type {
   ConnectionVisual,
 } from "../graph/types";
 import type { ProjectConnectionStyles, ResolvedConnectionStyle } from "./styles";
+import {
+  cloneConnectionAnnotationOverride,
+  normalizeConnectionAnnotationOverride,
+} from "./annotations";
 import { resolveRelationshipType, type ProjectRelationshipType } from "./relationshipTypes";
 import {
   CONNECTION_DIRECTIONS,
@@ -79,6 +83,7 @@ export const cloneConnection = (connection: Connection): Connection => ({
   ...connection,
   semantic: { ...connection.semantic },
   visual: connection.visual ? cloneConnectionVisual(connection.visual) : undefined,
+  annotation: cloneConnectionAnnotationOverride(connection.annotation),
 });
 
 export const cloneConnections = (connections: readonly Connection[]): Connection[] =>
@@ -224,6 +229,7 @@ export const normalizeConnection = (
     enabled: value.enabled !== false,
     semantic,
     visual: normalizeConnectionVisual(value.visual, connectionTypeStyle(semantic.typeId, styles, projectRelationshipTypes)),
+    annotation: normalizeConnectionAnnotationOverride(value.annotation),
   };
 };
 

@@ -1,4 +1,5 @@
 import type {
+  ConnectionAnnotationDefaults,
   ConnectionDirection,
   ConnectionPriority,
   ConnectionRequirement,
@@ -8,6 +9,10 @@ import type {
   ConnectionVisual,
   KnownConnectionSemanticTypeId,
 } from "../graph/types";
+import {
+  createHiddenConnectionAnnotationDefaults,
+  normalizeConnectionAnnotationDefaults,
+} from "./annotations";
 import {
   CONNECTION_DIRECTIONS,
   CONNECTION_PRIORITIES,
@@ -24,10 +29,7 @@ import {
   type ResolvedConnectionStyle,
 } from "./styles";
 
-export interface RelationshipTypeAnnotationDefaults {
-  titleVisible?: boolean;
-  bodyVisible?: boolean;
-}
+export type RelationshipTypeAnnotationDefaults = ConnectionAnnotationDefaults;
 
 export interface RelationshipTypeDefinition {
   id: ConnectionSemanticTypeId;
@@ -54,7 +56,7 @@ export interface CreateProjectRelationshipTypeInput {
   description?: string;
   semanticDefaults?: Partial<Omit<ConnectionSemantic, "typeId" | "notes">>;
   visualDefaults?: ConnectionStylePatch;
-  annotationDefaults?: RelationshipTypeAnnotationDefaults;
+  annotationDefaults?: Partial<RelationshipTypeAnnotationDefaults>;
 }
 
 export interface RelationshipTypeMutationGuard {
@@ -90,14 +92,6 @@ const normalizedShortCode = (value: unknown, name: string): string => {
   const cleaned = source.toUpperCase().replace(/[^A-Z0-9]+/g, "").slice(0, 12);
   if (!cleaned) throw new Error("Relationship Type short code is required.");
   return cleaned;
-};
-
-const normalizeAnnotationDefaults = (value: unknown): RelationshipTypeAnnotationDefaults => {
-  if (!isRecord(value)) return {};
-  return {
-    ...(typeof value.titleVisible === "boolean" ? { titleVisible: value.titleVisible } : {}),
-    ...(typeof value.bodyVisible === "boolean" ? { bodyVisible: value.bodyVisible } : {}),
-  };
 };
 
 const defaultSemantic = (): Omit<ConnectionSemantic, "typeId" | "notes"> => {
@@ -161,7 +155,7 @@ export const createProjectRelationshipType = (
     description: cleanOptionalText(input.description, "Relationship Type description", 1_200),
     semanticDefaults: normalizeSemanticDefaults(input.semanticDefaults),
     visualDefaults: resolveVisualDefaults(input.visualDefaults, styles),
-    annotationDefaults: normalizeAnnotationDefaults(input.annotationDefaults),
+    annotationDefaults: normalizeConnectionAnnotationDefaults(input.annotationDefaults),
     origin: "project",
     builtIn: false,
     archived: false,
@@ -213,7 +207,7 @@ export const getFactoryRelationshipTypes = (
   description: semantic.description,
   semanticDefaults: { ...semantic.defaults },
   visualDefaults: connectionTypeStyle(semantic.id, styles),
-  annotationDefaults: {},
+  annotationDefaults: createHiddenConnectionAnnotationDefaults(),
   origin: "factory",
   builtIn: true,
   archived: false,

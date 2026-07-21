@@ -232,6 +232,45 @@ export interface ConnectionVisual {
   appearance?: ConnectionVisualAppearance;
 }
 
+/** Annotation content is inherited from the Relationship Type unless a Connection overrides a part. */
+export type ConnectionAnnotationTitleSource = "hidden" | "relationship-type" | "custom";
+
+export type ConnectionAnnotationBodySource = "hidden" | "custom";
+
+export interface ConnectionAnnotationTitle {
+  source: ConnectionAnnotationTitleSource;
+  text?: string;
+}
+
+export interface ConnectionAnnotationBody {
+  source: ConnectionAnnotationBodySource;
+  text?: string;
+}
+
+/** Complete Relationship Type default; Connection records store only the sparse override below. */
+export interface ConnectionAnnotationDefaults {
+  title: ConnectionAnnotationTitle;
+  body: ConnectionAnnotationBody;
+}
+
+export interface ConnectionAnnotationOverride {
+  title?: ConnectionAnnotationTitle;
+  body?: ConnectionAnnotationBody;
+}
+
+export interface ResolvedConnectionAnnotation {
+  title: {
+    source: ConnectionAnnotationTitleSource;
+    text: string;
+    visible: boolean;
+  };
+  body: {
+    source: ConnectionAnnotationBodySource;
+    text: string;
+    visible: boolean;
+  };
+}
+
 export interface Connection {
   id: string;
   fromSpaceId: string;
@@ -239,6 +278,8 @@ export interface Connection {
   enabled: boolean;
   semantic: ConnectionSemantic;
   visual?: ConnectionVisual;
+  /** Sparse local Title/Body override; omitted records inherit their Relationship Type defaults. */
+  annotation?: ConnectionAnnotationOverride;
 }
 
 export interface CreateConnectionInput {

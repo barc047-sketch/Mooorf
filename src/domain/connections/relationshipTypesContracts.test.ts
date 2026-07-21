@@ -100,3 +100,69 @@ test("project snapshots retain project-created Relationship Types without rewrit
 
   assert.deepEqual(snapshot.settings.projectRelationshipTypes?.map((type) => type.id), [projectType.id]);
 });
+
+test("Connection annotations inherit sparsely, normalize safely, and resolve without mutation", async () => {
+  const annotations = await import("./annotations");
+  const types = await import("./relationshipTypes");
+  const styles = await import("./styles");
+  const model = await import("./model");
+  const { buildProjectSnapshot } = await import("../../export/projectSnapshot");
+  const { currentSettingsForSnapshot } = await import("../../export/exportService");
+  const { buildProjectEnvelope, parseProjectEnvelope } = await import("../../import/projectFiles");
+  const factoryStyles = styles.createDefaultProjectConnectionStyles();
+  const projectType = types.createProjectRelationshipType({
+    name: "Primary Circulation",
+    shortCode: "PC",
+    annotationDefaults: {
+      title: { source: "relationship-type" },
+      body: { source: "custom", text: "Main public route." },
+    },
+  }, [], factoryStyles, 41);
+  const customTitleType = types.createProjectRelationshipType({
+    name: "Service Route",
+    annotationDefaults: { title: { source: "custom", text: "Back of house" } },
+  }, [projectType], factoryStyles, 42);
+  const inherited = connection("inherited", projectType.id);
+  const titleOverride = { ...inherited, annotation: { title: { source: "custom" as const, text: "Visitor Route" } } };
+  const bodyOverride = { ...inherited, annotation: { body: { source: "custom" as const, text: "Gallery route" } } };
+  const hidden = { ...inherited, annotation: { title: { source: "hidden" as const }, body: { source: "hidden" as const } } };
+
+  assert.deepEqual(annotations.resolveConnectionAnnotation(connection("custom", "custom"), types.resolveRelationshipType("custom", [], factoryStyles)), {
+    title: { source: "hidden", text: "", visible: false },
+    body: { source: "hidden", text: "", visible: false },
+  });
+  assert.equal(annotations.resolveConnectionAnnotation(inherited, projectType).title.text, "Primary Circulation");
+  assert.equal(annotations.resolveConnectionAnnotation(inherited, projectType).body.text, "Main public route.");
+  assert.equal(annotations.resolveConnectionAnnotation(connection("custom-title", customTitleType.id), customTitleType).title.text, "Back of house");
+  assert.deepEqual(annotations.resolveConnectionAnnotation(titleOverride, projectType).body, {
+    source: "custom", text: "Main public route.", visible: true,
+  });
+  assert.equal(annotations.resolveConnectionAnnotation(bodyOverride, projectType).title.text, "Primary Circulation");
+  assert.equal(annotations.resolveConnectionAnnotation(hidden, projectType).title.visible, false);
+  assert.equal(annotations.resolveConnectionAnnotation(hidden, projectType).body.visible, false);
+  assert.equal(annotations.clearConnectionAnnotationOverride(), undefined);
+
+  const reclassified = { ...titleOverride, semantic: { ...titleOverride.semantic, typeId: "custom" } };
+  assert.equal(annotations.resolveConnectionAnnotation(reclassified, types.resolveRelationshipType("custom", [], factoryStyles)).title.text, "Visitor Route");
+  assert.equal(annotations.resolveConnectionAnnotation({ ...inherited, semantic: { ...inherited.semantic, typeId: "custom" } }, types.resolveRelationshipType("custom", [], factoryStyles)).title.visible, false);
+  assert.doesNotThrow(() => annotations.resolveConnectionAnnotation(inherited, undefined));
+
+  const normalized = model.normalizeConnectionCollection([{ ...bodyOverride, annotation: { body: { source: "custom", text: "  " } } }], new Set(["cell-a", "cell-b"]), factoryStyles, [projectType]);
+  assert.equal(normalized[0]?.annotation?.body?.source, "hidden");
+  assert.equal(model.cloneConnection(bodyOverride).annotation?.body?.text, "Gallery route");
+  assert.equal(annotations.resolveConnectionAnnotation(inherited, projectType).body.text, "Main public route.");
+
+  const settings = currentSettingsForSnapshot();
+  const snapshot = buildProjectSnapshot({
+    spaces: [
+      { id: "cell-a", name: "A", body: "", kind: "space", area: 1, category: "Test", privacy: "public", color: "", x: 0, y: 0 },
+      { id: "cell-b", name: "B", body: "", kind: "space", area: 1, category: "Test", privacy: "public", color: "", x: 1, y: 1 },
+    ],
+    connections: [bodyOverride],
+    camera: { x: 0, y: 0, zoom: 1 },
+    theme: "night",
+    settings: { ...settings, projectRelationshipTypes: [projectType] },
+  }, "Annotation persistence");
+  const roundTrip = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [])));
+  assert.deepEqual(roundTrip.snapshot.connections[0]?.annotation, bodyOverride.annotation);
+});
