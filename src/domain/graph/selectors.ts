@@ -179,8 +179,11 @@ export const getLargestSpaces = (
 
 export const getSpaceCount = (p: ZonuertProject): number => p.spaces.length;
 
-export const getRelationshipCount = (p: ZonuertProject): number =>
-  p.relationships.length;
+export const getConnectionCount = (p: ZonuertProject): number =>
+  p.connections.length;
+
+/** @deprecated Use getConnectionCount; retained for current stats consumers. */
+export const getRelationshipCount = getConnectionCount;
 
 export const getFlowCount = (p: ZonuertProject): number => p.flows.length;
 
@@ -249,8 +252,8 @@ export const getSelectedSpaceStats = (
     category: space.category,
     privacy: space.privacy,
     floor: p.floors.find((f) => f.id === space.floor_id) ?? null,
-    relationship_count: p.relationships.filter(
-      (r) => r.from === space.id || r.to === space.id
+    relationship_count: p.connections.filter(
+      (connection) => connection.fromSpaceId === space.id || connection.toSpaceId === space.id
     ).length,
     flow_count: p.flows.filter(
       (f) =>

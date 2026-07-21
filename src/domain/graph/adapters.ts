@@ -37,7 +37,7 @@ const LEGACY_TO_PRIVACY: Record<Privacy, PrivacyCode> = {
   private: "P3",
 };
 
-/** Graph → current canvas cell (lossy: floor/relationships stay in the graph). */
+/** Graph → current canvas cell (lossy: floor/Connections stay in the graph). */
 export const spaceNodeToCanvasCell = (space: SpaceNode): SpaceCell => ({
   id: space.id,
   name: space.name,

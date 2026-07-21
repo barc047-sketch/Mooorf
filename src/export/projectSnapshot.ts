@@ -25,6 +25,8 @@ import {
   cloneProjectPresentationDefaults,
   normalizeCellAppearanceOverrides,
 } from "../domain/presentation/validation";
+import type { Connection } from "../domain/graph/types";
+import { cloneConnections } from "../domain/connections/model";
 
 /* Mirrors the existing SavedCanvasSnapshot field set (src/types.ts) so the
    JSON project export reuses one canonical project-state shape instead of
@@ -67,6 +69,7 @@ export interface ProjectExportSnapshot {
   exportedAt: string;
   project: { title: string };
   spaces: SpaceCell[];
+  connections: Connection[];
   camera: Camera;
   theme: Theme;
   settings: ProjectExportSettings;
@@ -75,6 +78,7 @@ export interface ProjectExportSnapshot {
 
 export interface ProjectExportInput {
   spaces: SpaceCell[];
+  connections?: readonly Connection[];
   camera: Camera;
   theme: Theme;
   settings: ProjectExportSettings;
@@ -102,6 +106,7 @@ export const buildProjectSnapshot = (
       ...space,
       appearance: normalizeCellAppearanceOverrides(space.appearance, input.settings.presentationDefaults),
     })),
+    connections: cloneConnections(input.connections ?? []),
     camera: { ...input.camera },
     theme: input.theme,
     settings: {

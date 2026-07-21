@@ -19,6 +19,12 @@ import {
   normalizeCellAppearanceOverrides,
   normalizeProjectPresentationDefaults,
 } from "../domain/presentation/validation";
+import {
+  cloneConnections,
+  connectionCellIds,
+  normalizeConnectionCollection,
+} from "../domain/connections/model";
+import { buildConnectionIndex, findExactConnectionDuplicate } from "../domain/connections/selectors";
 
 export const PROJECT_FILE_VERSION = 1;
 export const CONFIG_FILE_VERSION = 1;
@@ -193,6 +199,17 @@ const validateSettings = (value: unknown): ProjectExportSettings => {
   };
 };
 
+const validateConnections = (value: unknown, spaces: readonly SpaceCell[]) => {
+  const connections = normalizeConnectionCollection(value, connectionCellIds(spaces));
+  const index = buildConnectionIndex(connections);
+  for (const connection of connections) {
+    if (findExactConnectionDuplicate(index, connection, connection.id)) {
+      throw new Error(`Connection "${connection.id}" is an exact semantic duplicate.`);
+    }
+  }
+  return connections;
+};
+
 const validateSnapshot = (value: unknown): ProjectExportSnapshot => {
   if (!isRecord(value)) throw new Error("Project snapshot is missing.");
   if (value.schemaVersion !== PROJECT_SNAPSHOT_SCHEMA_VERSION) {
@@ -206,11 +223,13 @@ const validateSnapshot = (value: unknown): ProjectExportSnapshot => {
   if (theme !== "day" && theme !== "night") throw new Error("Project theme is invalid.");
   const settings = validateSettings(value.settings);
   const spaces = ensureSpaceCodes(value.spaces.map((space, index) => validateSpace(space, index, settings.presentationDefaults)));
+  const connections = validateConnections(value.connections, spaces);
   return {
     schemaVersion: PROJECT_SNAPSHOT_SCHEMA_VERSION,
     exportedAt: clean(value.exportedAt, "Exported date", 80),
     project: { title: clean(value.project.title, "Project title") },
     spaces,
+    connections,
     camera: validateCamera(value.camera),
     theme,
     settings,
@@ -251,12 +270,14 @@ const validateSavedView = (value: unknown, index: number): SavedCanvasSnapshot =
     labelColourMode: value.labelColourMode as SavedCanvasSnapshot["labelColourMode"],
     labelCustomColour: value.labelCustomColour as string,
   });
+  const spaces = ensureSpaceCodes(value.spaces.map((space, spaceIndex) => validateSpace(space, spaceIndex, presentationDefaults)));
   return {
     ...(value as unknown as SavedCanvasSnapshot),
     id: clean(value.id, `Saved view ${index + 1} id`, 160),
     name: clean(value.name, `Saved view ${index + 1} name`),
     createdAt: finite(value.createdAt, `Saved view ${index + 1} createdAt`),
-    spaces: ensureSpaceCodes(value.spaces.map((space, spaceIndex) => validateSpace(space, spaceIndex, presentationDefaults))),
+    spaces,
+    connections: validateConnections(value.connections, spaces),
     camera: validateCamera(value.camera),
     theme,
     rendererMode,
@@ -303,6 +324,7 @@ export const buildProjectEnvelope = (
       ...space,
       appearance: normalizeCellAppearanceOverrides(space.appearance, snapshot.settings.presentationDefaults),
     })),
+    connections: cloneConnections(snapshot.connections),
     camera: { ...snapshot.camera },
     settings: {
       ...snapshot.settings,
@@ -333,6 +355,7 @@ export const buildProjectEnvelope = (
         ...space,
         appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
       })),
+      connections: cloneConnections(view.connections ?? []),
       camera: { ...view.camera },
       organism,
       resources,

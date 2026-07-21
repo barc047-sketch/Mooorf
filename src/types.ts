@@ -1,5 +1,6 @@
 import type { ResourceSettings } from "./resources/types";
 import type { CellAppearanceOverrides, ProjectPresentationDefaults } from "./domain/presentation/types";
+import type { Connection } from "./domain/graph/types";
 
 export type Theme = "day" | "night";
 
@@ -255,6 +256,8 @@ export interface SavedCanvasSnapshot {
   name: string;
   createdAt: number;
   spaces: SpaceCell[];
+  /** Optional on legacy Saved Views; normalized to [] when absent. */
+  connections?: Connection[];
   camera: Camera;
   rendererMode: RendererMode;
   morphMode: MorphMode;

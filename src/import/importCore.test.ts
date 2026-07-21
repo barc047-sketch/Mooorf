@@ -78,6 +78,7 @@ const snapshot: ProjectExportSnapshot = {
   exportedAt: "2026-07-11T00:00:00.000Z",
   project: { title: "Test" },
   spaces,
+  connections: [],
   camera: { x: 1, y: 2, zoom: 1.2 },
   theme: "day",
   settings: settingsWithPresentation,

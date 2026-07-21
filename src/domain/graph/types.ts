@@ -115,6 +115,105 @@ export interface RelationshipEdge {
   notes?: string;
 }
 
+/**
+ * Legacy pre-P1 relationship shape retained only for compatibility adapters.
+ * Production project meaning is owned by the canonical Connection contract
+ * below; visual presentation remains optional and independent.
+ */
+export type ConnectionRequirement = "required" | "preferred" | "optional" | "avoid";
+
+export type ConnectionDirection = "none" | "two-way" | "a-to-b" | "b-to-a";
+
+export type ConnectionStrength = "weak" | "medium" | "strong";
+
+export type ConnectionPriority = "low" | "normal" | "high" | "critical";
+
+export type KnownConnectionSemanticTypeId =
+  | "adjacency"
+  | "direct-access"
+  | "visual-access"
+  | "shared-support"
+  | "circulation-flow"
+  | "separation";
+
+/** Open registry ID: known launch values autocomplete, future IDs round-trip. */
+export type ConnectionSemanticTypeId = KnownConnectionSemanticTypeId | (string & {});
+
+export type KnownConnectionGeometryId = "straight" | "curved" | "orthogonal" | "elbow";
+
+export type ConnectionGeometryId = KnownConnectionGeometryId | (string & {});
+
+export type KnownConnectionStrokePatternId =
+  | "solid"
+  | "dashed"
+  | "dotted"
+  | "dash-dot"
+  | "double"
+  | "segmented-bars";
+
+export type ConnectionStrokePatternId = KnownConnectionStrokePatternId | (string & {});
+
+export type KnownConnectionMarkerId =
+  | "none"
+  | "open-arrow"
+  | "filled-arrow"
+  | "open-triangle"
+  | "filled-triangle"
+  | "circle"
+  | "filled-dot"
+  | "square"
+  | "diamond"
+  | "bar"
+  | "slash"
+  | "cross"
+  | "architectural-tick"
+  | "chevron";
+
+export type ConnectionMarkerId = KnownConnectionMarkerId | (string & {});
+
+export interface ConnectionSemantic {
+  typeId: ConnectionSemanticTypeId;
+  requirement: ConnectionRequirement;
+  direction: ConnectionDirection;
+  strength: ConnectionStrength;
+  priority: ConnectionPriority;
+  notes: string;
+}
+
+/** Lightweight authored appearance only. Derived anchors and paths never persist. */
+export interface ConnectionVisualAppearance {
+  color?: string;
+  width?: number;
+  opacity?: number;
+}
+
+export interface ConnectionVisual {
+  visible: boolean;
+  geometryId: ConnectionGeometryId;
+  strokePatternId: ConnectionStrokePatternId;
+  startMarkerId: ConnectionMarkerId;
+  endMarkerId: ConnectionMarkerId;
+  appearance?: ConnectionVisualAppearance;
+}
+
+export interface Connection {
+  id: string;
+  fromSpaceId: string;
+  toSpaceId: string;
+  enabled: boolean;
+  semantic: ConnectionSemantic;
+  visual?: ConnectionVisual;
+}
+
+export interface CreateConnectionInput {
+  fromSpaceId: string;
+  toSpaceId: string;
+  typeId: ConnectionSemanticTypeId;
+  enabled?: boolean;
+  semantic?: Partial<Omit<ConnectionSemantic, "typeId">>;
+  visual?: ConnectionVisual;
+}
+
 export interface FlowPath {
   id: string;
   name: string;
@@ -151,7 +250,7 @@ export interface ZonuertProject {
   meta: ProjectMeta;
   floors: FloorNode[];
   spaces: SpaceNode[];
-  relationships: RelationshipEdge[];
+  connections: Connection[];
   flows: FlowPath[];
   categories: CategoryDefinition[];
 }

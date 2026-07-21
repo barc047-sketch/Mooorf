@@ -87,9 +87,32 @@ import {
   resetTextLabelAppearance,
   type AppearanceFamilyId,
 } from "../domain/presentation/editing";
+import type {
+  Connection,
+  ConnectionSemantic,
+  ConnectionVisual,
+  CreateConnectionInput,
+} from "../domain/graph/types";
+import {
+  cloneConnection,
+  cloneConnections,
+  connectionCellIds,
+  createConnectionSemantic,
+  normalizeConnectionCollection,
+  normalizeConnectionVisual,
+} from "../domain/connections/model";
+import {
+  dependentConnectionIds,
+  findExactConnectionDuplicate,
+  getConnectionIndex,
+  getConnectionById as selectConnectionById,
+  getConnectionsBetweenSpaces as selectConnectionsBetweenSpaces,
+  getConnectionsForSpace as selectConnectionsForSpace,
+} from "../domain/connections/selectors";
 
 let idCounter = 0;
 const uid = () => `sc_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
+const connectionUid = () => `cn_${Date.now().toString(36)}_${(idCounter++).toString(36)}`;
 const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 export const SAVED_VIEWS_LIMIT = 20;
 const TRANSFORM_HISTORY_LIMIT = 50;
@@ -138,7 +161,17 @@ type SpaceHistoryEntry =
   | { kind: "membrane-runtime"; before: MembraneRuntimeSnapshot; after: MembraneRuntimeSnapshot }
   | { kind: "visual-settings"; before: VisualSettingsSnapshot; after: VisualSettingsSnapshot }
   | { kind: "resources"; before: ResourceSettings; after: ResourceSettings }
-  | { kind: "style"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[]; beforeResources: ResourceSettings; afterResources: ResourceSettings };
+  | { kind: "style"; before: CellHistorySnapshot[]; after: CellHistorySnapshot[]; beforeResources: ResourceSettings; afterResources: ResourceSettings }
+  | { kind: "connections"; before: Connection[]; after: Connection[] }
+  | {
+      kind: "space-delete";
+      space: SpaceCell;
+      spaceIndex: number;
+      dependentConnections: Array<{ index: number; connection: Connection }>;
+      iconPlacements: Array<{ index: number; placement: IconPlacementSettings }>;
+      beforeSelection: SelectionSnapshot;
+      afterSelection: SelectionSnapshot;
+    };
 
 export interface LabSettings {
   uiScale: number;
@@ -183,6 +216,8 @@ interface LabState {
   theme: Theme;
   view: ViewMode;
   spaces: SpaceCell[];
+  /** Sole canonical authored Connection collection. Derived indexes never persist. */
+  connections: Connection[];
   loaderDone: boolean;
   canvasReadiness: CanvasReadiness;
   settings: LabSettings;
@@ -298,6 +333,14 @@ interface LabState {
   undoSpaceTransform: () => void;
   redoSpaceTransform: () => void;
   removeSpace: (id: string) => void;
+  createConnection: (input: CreateConnectionInput) => string | null;
+  updateConnectionSemantic: (id: string, patch: Partial<ConnectionSemantic>) => boolean;
+  updateConnectionVisual: (id: string, visual: ConnectionVisual | null) => boolean;
+  setConnectionEnabled: (id: string, enabled: boolean) => boolean;
+  deleteConnection: (id: string) => boolean;
+  getConnectionById: (id: string) => Connection | null;
+  getConnectionsForSpace: (spaceId: string) => readonly Connection[];
+  getConnectionsBetweenSpaces: (firstSpaceId: string, secondSpaceId: string) => readonly Connection[];
   applyLayoutPreset: (presetId: LayoutPresetId) => void;
   previewArrangement: (patternId: ArrangementPatternId, parameters: ArrangementParameters) => Promise<void>;
   applyArrangementPreview: () => void;
@@ -434,7 +477,20 @@ const applyHistoryEntry = (
     const liveIds = new Set(spaces.map((space) => space.id));
     return [...spaces, ...entry.added.filter((space) => !liveIds.has(space.id)).map(cloneSpace)];
   }
-  if (entry.kind === "defaults" || entry.kind === "membrane-runtime" || entry.kind === "visual-settings" || entry.kind === "resources") return [...spaces];
+  if (entry.kind === "space-delete") {
+    if (direction === "after") return spaces.filter((space) => space.id !== entry.space.id);
+    if (spaces.some((space) => space.id === entry.space.id)) return [...spaces];
+    const restored = [...spaces];
+    restored.splice(Math.min(entry.spaceIndex, restored.length), 0, cloneSpace(entry.space));
+    return restored;
+  }
+  if (
+    entry.kind === "defaults" ||
+    entry.kind === "membrane-runtime" ||
+    entry.kind === "visual-settings" ||
+    entry.kind === "resources" ||
+    entry.kind === "connections"
+  ) return [...spaces];
   const values = new Map(entry[direction].map((value) => [value.id, value]));
   return spaces.map((space) => {
     const value = values.get(space.id);
@@ -447,6 +503,36 @@ const applyHistoryEntry = (
       appearance: cloneCellAppearanceOverrides(value.appearance),
     };
   });
+};
+
+const applyConnectionHistoryEntry = (
+  connections: readonly Connection[],
+  entry: SpaceHistoryEntry,
+  direction: "before" | "after",
+): Connection[] => {
+  if (entry.kind === "connections") return cloneConnections(entry[direction]);
+  if (entry.kind !== "space-delete") return [...connections];
+  const dependentIds = new Set(entry.dependentConnections.map(({ connection }) => connection.id));
+  if (direction === "after") return connections.filter((connection) => !dependentIds.has(connection.id));
+  const restored = cloneConnections(connections.filter((connection) => !dependentIds.has(connection.id)));
+  for (const item of [...entry.dependentConnections].sort((left, right) => left.index - right.index)) {
+    restored.splice(Math.min(item.index, restored.length), 0, cloneConnection(item.connection));
+  }
+  return restored;
+};
+
+const applyDeletedSpaceResources = (
+  resources: ResourceSettings,
+  entry: Extract<SpaceHistoryEntry, { kind: "space-delete" }>,
+  direction: "before" | "after",
+): ResourceSettings => {
+  const placements = resources.iconPlacements.filter((placement) => placement.targetSpaceId !== entry.space.id);
+  if (direction === "before") {
+    for (const item of [...entry.iconPlacements].sort((left, right) => left.index - right.index)) {
+      placements.splice(Math.min(item.index, placements.length), 0, { ...item.placement });
+    }
+  }
+  return cloneResourceSettings({ ...resources, iconPlacements: placements });
 };
 
 const snapshotCells = (spaces: readonly SpaceCell[], ids: ReadonlySet<string>): CellHistorySnapshot[] =>
@@ -502,15 +588,17 @@ const cloneSnapshot = (snapshot: SavedCanvasSnapshot): SavedCanvasSnapshot => {
     labelColourMode: snapshot.labelColourMode,
     labelCustomColour: snapshot.labelCustomColour,
   });
+  const spaces = snapshot.spaces.map((space) => ({
+    ...cloneSpace(space),
+    appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
+  }));
   return {
     ...snapshot,
     colorSource: snapshot.colorSource === "privacy" ? "privacy" : "category",
     uiScale: normalizeUiScale(snapshot.uiScale),
     widgetScale: normalizeWidgetScale(snapshot.widgetScale),
-    spaces: snapshot.spaces.map((space) => ({
-      ...cloneSpace(space),
-      appearance: normalizeCellAppearanceOverrides(space.appearance, presentationDefaults),
-    })),
+    spaces,
+    connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces)),
     camera: cloneCamera(snapshot.camera),
     organism: cloneOrganism(snapshot.organism),
     resources,
@@ -594,13 +682,14 @@ const defaultSnapshotName = (views: SavedCanvasSnapshot[]) =>
   `Iteration ${String(views.length + 1).padStart(2, "0")}`;
 
 const makeSnapshot = (
-  state: Pick<LabState, "spaces" | "camera" | "settings" | "theme" | "savedViews">,
+  state: Pick<LabState, "spaces" | "connections" | "camera" | "settings" | "theme" | "savedViews">,
   name?: string
 ): SavedCanvasSnapshot => ({
   id: snapshotId(),
   name: name?.trim() || defaultSnapshotName(state.savedViews),
   createdAt: Date.now(),
   spaces: state.spaces.map(cloneSpace),
+  connections: cloneConnections(state.connections),
   camera: cloneCamera(state.camera),
   rendererMode: state.settings.rendererMode,
   morphMode: state.settings.morphMode,
@@ -648,10 +737,11 @@ const makeCell = (i: number, partial?: Partial<SpaceCell>): SpaceCell => {
   };
 };
 
-export const useLab = create<LabState>((set) => ({
+export const useLab = create<LabState>((set, get) => ({
   theme: "day",
   view: "canvas",
   spaces: [],
+  connections: [],
   loaderDone: false,
   canvasReadiness: "shell-start",
   settings: {
@@ -1431,20 +1521,25 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const entry = s.transformUndoStack[s.transformUndoStack.length - 1];
       if (!entry) return {};
-      const historySelection = entry.kind === "batch-add" ? entry.beforeSelection : null;
+      const historySelection = entry.kind === "batch-add" || entry.kind === "space-delete"
+        ? entry.beforeSelection
+        : null;
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "before"),
-        settings: entry.kind === "defaults"
-          ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.before) }
-          : entry.kind === "membrane-runtime"
-            ? { ...s.settings, ...entry.before }
-            : entry.kind === "visual-settings"
-              ? { ...s.settings, ...cloneVisualSettings(entry.before) }
-              : entry.kind === "resources"
-                ? { ...s.settings, resources: cloneResourceSettings(entry.before) }
-                : entry.kind === "style"
-                  ? { ...s.settings, resources: cloneResourceSettings(entry.beforeResources) }
-                  : s.settings,
+        connections: applyConnectionHistoryEntry(s.connections, entry, "before"),
+        settings: entry.kind === "space-delete"
+          ? { ...s.settings, resources: applyDeletedSpaceResources(s.settings.resources, entry, "before") }
+          : entry.kind === "defaults"
+            ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.before) }
+            : entry.kind === "membrane-runtime"
+              ? { ...s.settings, ...entry.before }
+              : entry.kind === "visual-settings"
+                ? { ...s.settings, ...cloneVisualSettings(entry.before) }
+                : entry.kind === "resources"
+                  ? { ...s.settings, resources: cloneResourceSettings(entry.before) }
+                  : entry.kind === "style"
+                    ? { ...s.settings, resources: cloneResourceSettings(entry.beforeResources) }
+                    : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
         membraneRuntimePreview: null,
@@ -1460,20 +1555,25 @@ export const useLab = create<LabState>((set) => ({
     set((s) => {
       const entry = s.transformRedoStack[s.transformRedoStack.length - 1];
       if (!entry) return {};
-      const historySelection = entry.kind === "batch-add" ? entry.afterSelection : null;
+      const historySelection = entry.kind === "batch-add" || entry.kind === "space-delete"
+        ? entry.afterSelection
+        : null;
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "after"),
-        settings: entry.kind === "defaults"
-          ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.after) }
-          : entry.kind === "membrane-runtime"
-            ? { ...s.settings, ...entry.after }
-            : entry.kind === "visual-settings"
-              ? { ...s.settings, ...cloneVisualSettings(entry.after) }
-              : entry.kind === "resources"
-                ? { ...s.settings, resources: cloneResourceSettings(entry.after) }
-                : entry.kind === "style"
-                  ? { ...s.settings, resources: cloneResourceSettings(entry.afterResources) }
-                  : s.settings,
+        connections: applyConnectionHistoryEntry(s.connections, entry, "after"),
+        settings: entry.kind === "space-delete"
+          ? { ...s.settings, resources: applyDeletedSpaceResources(s.settings.resources, entry, "after") }
+          : entry.kind === "defaults"
+            ? { ...s.settings, presentationDefaults: cloneProjectPresentationDefaults(entry.after) }
+            : entry.kind === "membrane-runtime"
+              ? { ...s.settings, ...entry.after }
+              : entry.kind === "visual-settings"
+                ? { ...s.settings, ...cloneVisualSettings(entry.after) }
+                : entry.kind === "resources"
+                  ? { ...s.settings, resources: cloneResourceSettings(entry.after) }
+                  : entry.kind === "style"
+                    ? { ...s.settings, resources: cloneResourceSettings(entry.afterResources) }
+                    : s.settings,
         appearancePreview: null,
         presentationDefaultsPreview: null,
         membraneRuntimePreview: null,
@@ -1487,13 +1587,40 @@ export const useLab = create<LabState>((set) => ({
 
   removeSpace: (id) =>
     set((s) => {
+      const spaceIndex = s.spaces.findIndex((space) => space.id === id);
+      if (spaceIndex < 0) return {};
+      const deletedSpace = s.spaces[spaceIndex];
       const spaces = s.spaces.filter((c) => c.id !== id);
       const selection = normalizeSelectionState(
         selectionFromState(s),
         new Set(spaces.map((space) => space.id))
       );
+      const connectionIndex = getConnectionIndex(s.connections);
+      const dependentIds = dependentConnectionIds(connectionIndex, id);
+      const dependentConnections = s.connections.flatMap((connection, index) =>
+        dependentIds.has(connection.id) ? [{ index, connection: cloneConnection(connection) }] : []
+      );
+      const iconPlacements = s.settings.resources.iconPlacements.flatMap((placement, index) =>
+        placement.targetSpaceId === id ? [{ index, placement: { ...placement } }] : []
+      );
+      const entry: SpaceHistoryEntry = {
+        kind: "space-delete",
+        space: cloneSpace(deletedSpace),
+        spaceIndex,
+        dependentConnections,
+        iconPlacements,
+        beforeSelection: {
+          selectedIds: [...s.selectedIds],
+          primarySelectedId: s.primarySelectedId,
+        },
+        afterSelection: {
+          selectedIds: [...selection.selectedIds],
+          primarySelectedId: selection.primarySelectedId,
+        },
+      };
       return {
         spaces,
+        connections: s.connections.filter((connection) => !dependentIds.has(connection.id)),
         settings: {
           ...s.settings,
           resources: cloneResourceSettings({
@@ -1503,8 +1630,158 @@ export const useLab = create<LabState>((set) => ({
         },
         ...selection,
         ...(s.contextTargetId === id ? closedContext : {}),
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
       };
     }),
+
+  createConnection: (input) => {
+    let createdId: string | null = null;
+    set((s) => {
+      const validCellIds = connectionCellIds(s.spaces);
+      if (
+        input.fromSpaceId === input.toSpaceId ||
+        !validCellIds.has(input.fromSpaceId) ||
+        !validCellIds.has(input.toSpaceId)
+      ) return {};
+      try {
+        const index = getConnectionIndex(s.connections);
+        let id = connectionUid();
+        while (index.byId.has(id)) id = connectionUid();
+        const candidate: Connection = {
+          id,
+          fromSpaceId: input.fromSpaceId,
+          toSpaceId: input.toSpaceId,
+          enabled: input.enabled !== false,
+          semantic: createConnectionSemantic(input.typeId, input.semantic),
+          visual: normalizeConnectionVisual(input.visual),
+        };
+        if (findExactConnectionDuplicate(index, candidate)) return {};
+        const before = cloneConnections(s.connections);
+        const after = [...before, cloneConnection(candidate)];
+        const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+        createdId = id;
+        return {
+          connections: after,
+          transformUndoStack: pushHistory(s.transformUndoStack, entry),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return createdId;
+  },
+
+  updateConnectionSemantic: (id, patch) => {
+    let changed = false;
+    set((s) => {
+      const index = getConnectionIndex(s.connections);
+      const current = selectConnectionById(index, id);
+      if (!current) return {};
+      try {
+        const semantic = createConnectionSemantic(patch.typeId ?? current.semantic.typeId, {
+          requirement: patch.requirement ?? current.semantic.requirement,
+          direction: patch.direction ?? current.semantic.direction,
+          strength: patch.strength ?? current.semantic.strength,
+          priority: patch.priority ?? current.semantic.priority,
+          notes: patch.notes ?? current.semantic.notes,
+        });
+        const candidate: Connection = { ...cloneConnection(current), semantic };
+        if (findExactConnectionDuplicate(index, candidate, id)) return {};
+        if (JSON.stringify(current.semantic) === JSON.stringify(semantic)) return {};
+        const before = cloneConnections(s.connections);
+        const after = before.map((connection) => connection.id === id ? candidate : connection);
+        const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+        changed = true;
+        return {
+          connections: after,
+          transformUndoStack: pushHistory(s.transformUndoStack, entry),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return changed;
+  },
+
+  updateConnectionVisual: (id, visual) => {
+    let changed = false;
+    set((s) => {
+      const current = selectConnectionById(getConnectionIndex(s.connections), id);
+      if (!current) return {};
+      try {
+        const normalized = normalizeConnectionVisual(visual);
+        if (JSON.stringify(current.visual) === JSON.stringify(normalized)) return {};
+        const before = cloneConnections(s.connections);
+        const after = before.map((connection) => connection.id === id
+          ? { ...connection, visual: normalized }
+          : connection
+        );
+        const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+        changed = true;
+        return {
+          connections: after,
+          transformUndoStack: pushHistory(s.transformUndoStack, entry),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return changed;
+  },
+
+  setConnectionEnabled: (id, enabled) => {
+    let changed = false;
+    set((s) => {
+      const current = selectConnectionById(getConnectionIndex(s.connections), id);
+      if (!current || current.enabled === enabled) return {};
+      const before = cloneConnections(s.connections);
+      const after = before.map((connection) => connection.id === id ? { ...connection, enabled } : connection);
+      const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+      changed = true;
+      return {
+        connections: after,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  deleteConnection: (id) => {
+    let changed = false;
+    set((s) => {
+      if (!selectConnectionById(getConnectionIndex(s.connections), id)) return {};
+      const before = cloneConnections(s.connections);
+      const after = before.filter((connection) => connection.id !== id);
+      const entry: SpaceHistoryEntry = { kind: "connections", before, after };
+      changed = true;
+      return {
+        connections: after,
+        transformUndoStack: pushHistory(s.transformUndoStack, entry),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  getConnectionById: (id) => {
+    const connection = selectConnectionById(getConnectionIndex(get().connections), id);
+    return connection ? cloneConnection(connection) : null;
+  },
+
+  getConnectionsForSpace: (spaceId) =>
+    selectConnectionsForSpace(getConnectionIndex(get().connections), spaceId).map(cloneConnection),
+
+  getConnectionsBetweenSpaces: (firstSpaceId, secondSpaceId) =>
+    selectConnectionsBetweenSpaces(
+      getConnectionIndex(get().connections),
+      firstSpaceId,
+      secondSpaceId,
+    ).map(cloneConnection),
 
   applyLayoutPreset: (presetId) =>
     set((s) => {
@@ -1549,7 +1826,7 @@ export const useLab = create<LabState>((set) => ({
     }),
 
   previewArrangement: async (patternId, parameters) => {
-    const state = useLab.getState();
+    const state = get();
     const visibleIds = visibleSelectableIds(state.spaces, state.settings.rendererMode);
     const arrangedIds = resolveArrangementScope(
       state.spaces,
@@ -1647,6 +1924,7 @@ export const useLab = create<LabState>((set) => ({
       return {
         theme: snapshot.theme,
         spaces,
+        connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces)),
         camera: cloneCamera(snapshot.camera),
         ...replaceSelectionState(null),
         ...closedContext,

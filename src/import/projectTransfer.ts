@@ -3,6 +3,7 @@ import { normalizeUiScale, normalizeWidgetScale } from "../state/uiScale";
 import { useLab, type LabSettings } from "../state/store";
 import { ensureSpaceCodes } from "../domain/spaceCode";
 import type { Camera, SavedCanvasSnapshot, SpaceCell, Theme, ViewMode } from "../types";
+import type { Connection } from "../domain/graph/types";
 import { normalizeSelectionState, replaceSelectionState } from "../interaction/selection";
 import { cloneResourceSettings } from "../resources/resourcePersistence";
 import { normalizeOrganismSettings } from "../canvas/organismProductionSettings";
@@ -16,6 +17,8 @@ import {
   cloneCellAppearanceOverrides,
   cloneProjectPresentationDefaults,
 } from "../domain/presentation/validation";
+import { cloneConnections, connectionCellIds } from "../domain/connections/model";
+import { retainConnectionsForSpaces } from "../domain/connections/selectors";
 
 const SAVED_VIEWS_KEY = "mooorf.savedViews.v1";
 
@@ -23,6 +26,7 @@ export interface RecoverySnapshot {
   theme: Theme;
   view: ViewMode;
   spaces: SpaceCell[];
+  connections: Connection[];
   camera: Camera;
   settings: LabSettings;
   selectedId: string | null;
@@ -38,6 +42,7 @@ const cloneSpaces = (spaces: readonly SpaceCell[]) => spaces.map((space) => ({
 const cloneViews = (views: readonly SavedCanvasSnapshot[]) => views.map((view) => ({
   ...view,
   spaces: cloneSpaces(view.spaces),
+  connections: cloneConnections(view.connections ?? []),
   camera: { ...view.camera },
   organism: normalizeOrganismSettings(view.organism),
   annotationDetail: view.annotationDetail ? { ...view.annotationDetail } : undefined,
@@ -54,6 +59,7 @@ export const captureRecoverySnapshot = (): RecoverySnapshot => {
     theme: state.theme,
     view: state.view,
     spaces: cloneSpaces(state.spaces),
+    connections: cloneConnections(state.connections),
     camera: { ...state.camera },
     settings: { ...state.settings, organism: normalizeOrganismSettings(state.settings.organism), annotationDetail: { ...state.settings.annotationDetail }, cellShadow: { ...state.settings.cellShadow }, resources: cloneResourceSettings(state.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(state.settings.presentationDefaults) },
     selectedId: state.selectedId,
@@ -77,6 +83,7 @@ export const restoreRecoverySnapshot = (snapshot: RecoverySnapshot): void => {
     theme: snapshot.theme,
     view: snapshot.view,
     spaces: cloneSpaces(snapshot.spaces),
+    connections: cloneConnections(snapshot.connections),
     camera: { ...snapshot.camera },
     settings: { ...snapshot.settings, organism: normalizeOrganismSettings(snapshot.settings.organism), annotationDetail: { ...snapshot.settings.annotationDetail }, cellShadow: { ...snapshot.settings.cellShadow }, resources: cloneResourceSettings(snapshot.settings.resources), presentationDefaults: cloneProjectPresentationDefaults(snapshot.settings.presentationDefaults) },
     ...normalizeSelectionState({
@@ -102,6 +109,7 @@ export const applyProjectFile = (project: MooorfProjectEnvelope): RecoverySnapsh
       theme: snapshot.theme,
       view: "canvas",
       spaces: cloneSpaces(snapshot.spaces),
+      connections: cloneConnections(snapshot.connections),
       camera: { ...snapshot.camera },
       ...replaceSelectionState(null),
       contextSurface: null,
@@ -164,8 +172,10 @@ export const applySpaceSchedule = (spaces: readonly SpaceCell[]): RecoverySnapsh
   const recovery = captureRecoverySnapshot();
   try {
     useLab.getState().cancelArrangementPreview();
+    const nextSpaces = ensureSpaceCodes(cloneSpaces(spaces));
     useLab.setState({
-      spaces: ensureSpaceCodes(cloneSpaces(spaces)),
+      spaces: nextSpaces,
+      connections: retainConnectionsForSpaces(useLab.getState().connections, connectionCellIds(nextSpaces)),
       ...replaceSelectionState(null),
       contextSurface: null,
       contextPoint: null,

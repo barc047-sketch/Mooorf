@@ -1,16 +1,19 @@
 // Sample ZONUERT project — "Meridian Community Hub", a small mixed civic
 // program used to exercise the full V4.5B schema (floors, categories,
-// privacy, relationships, flows) without being huge.
+// privacy, Connections, flows) without being huge.
 
 import { radiusFromArea, shortLabelFromName } from "./adapters";
 import type {
   CategoryCode,
+  Connection,
+  ConnectionSemantic,
+  ConnectionSemanticTypeId,
   FlowPath,
-  RelationshipEdge,
   SpaceNode,
   ZonuertProject,
 } from "./types";
 import { DEFAULT_CATEGORIES } from "./types";
+import { createConnectionSemantic } from "../connections/model";
 
 const CAT = new Map(DEFAULT_CATEGORIES.map((c) => [c.code, c]));
 
@@ -82,17 +85,31 @@ const spaces: SpaceNode[] = [
   space("sp_f08", "fl_f1", "Toilets (First)", 40, "SER", "P0", -60, -680),
 ];
 
-const relationships: RelationshipEdge[] = [
-  { id: "re_01", from: "sp_g01", to: "sp_g02", type: "ADJ", strength: 0.9, notes: "Reception faces lobby" },
-  { id: "re_02", from: "sp_g01", to: "sp_g03", type: "S3", strength: 1 },
-  { id: "re_03", from: "sp_g04", to: "sp_g05", type: "DEP", access: true, notes: "Kitchen serves café" },
-  { id: "re_04", from: "sp_g03", to: "sp_b02", type: "AV", avoid: true, notes: "Gallery away from plant noise" },
-  { id: "re_05", from: "sp_f01", to: "sp_g04", type: "AV", avoid: true, notes: "Reading away from café noise" },
-  { id: "re_06", from: "sp_b01", to: "sp_g01", type: "ACC", access: true, notes: "Parking reaches lobby via core" },
-  { id: "re_07", from: "sp_f04", to: "sp_f05", type: "S2", strength: 0.6 },
-  { id: "re_08", from: "sp_g05", to: "sp_b05", type: "DEP", notes: "Kitchen stock from storage" },
-  { id: "re_09", from: "sp_g01", to: "sp_g08", type: "VIS", notes: "Lobby sees courtyard" },
-  { id: "re_10", from: "sp_g09", to: "sp_g10", type: "CF", conflict: true, notes: "Keep fire control clear of core queue" },
+const connection = (
+  id: string,
+  fromSpaceId: string,
+  toSpaceId: string,
+  typeId: ConnectionSemanticTypeId,
+  semantic: Partial<Omit<ConnectionSemantic, "typeId">> = {},
+): Connection => ({
+  id,
+  fromSpaceId,
+  toSpaceId,
+  enabled: true,
+  semantic: createConnectionSemantic(typeId, semantic),
+});
+
+const connections: Connection[] = [
+  connection("re_01", "sp_g01", "sp_g02", "adjacency", { notes: "Reception faces lobby" }),
+  connection("re_02", "sp_g01", "sp_g03", "adjacency", { strength: "strong" }),
+  connection("re_03", "sp_g04", "sp_g05", "shared-support", { notes: "Kitchen serves café" }),
+  connection("re_04", "sp_g03", "sp_b02", "separation", { notes: "Gallery away from plant noise" }),
+  connection("re_05", "sp_f01", "sp_g04", "separation", { notes: "Reading away from café noise" }),
+  connection("re_06", "sp_b01", "sp_g01", "direct-access", { direction: "a-to-b", notes: "Parking reaches lobby via core" }),
+  connection("re_07", "sp_f04", "sp_f05", "shared-support", { strength: "medium" }),
+  connection("re_08", "sp_g05", "sp_b05", "shared-support", { notes: "Kitchen stock from storage" }),
+  connection("re_09", "sp_g01", "sp_g08", "visual-access", { notes: "Lobby sees courtyard" }),
+  connection("re_10", "sp_g09", "sp_g10", "separation", { priority: "critical", notes: "Keep fire control clear of core queue" }),
 ];
 
 const flows: FlowPath[] = [
@@ -144,7 +161,7 @@ export const SAMPLE_PROJECT: ZonuertProject = {
     { id: "fl_f1", name: "First Floor", level: 1, elevation: 4.2, area_target: 1300, visible: true, locked: false },
   ],
   spaces,
-  relationships,
+  connections,
   flows,
   categories: DEFAULT_CATEGORIES,
 };

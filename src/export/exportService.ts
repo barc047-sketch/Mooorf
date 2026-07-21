@@ -89,7 +89,7 @@ const withDownloadFeedback = async <T>(
 export const buildCurrentProjectSnapshot = (project: string) => {
   const state = useLab.getState();
   return buildProjectSnapshot(
-    { spaces: state.spaces, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
+    { spaces: state.spaces, connections: state.connections, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
     project
   );
 };
@@ -234,7 +234,7 @@ export const buildPresentationPack = async (
 
   const csv = spacesToCsv(state.spaces);
   const snapshot = buildProjectSnapshot(
-    { spaces: state.spaces, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
+    { spaces: state.spaces, connections: state.connections, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
     project
   );
   const jsonText = JSON.stringify(snapshot, null, 2);
