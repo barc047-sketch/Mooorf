@@ -19,6 +19,7 @@ import {
   SlidersHorizontal,
   Type,
   Upload,
+  Waypoints,
   type LucideIcon,
 } from "lucide-react";
 import type { WidgetId } from "../../types";
@@ -142,6 +143,15 @@ export const WIDGET_DEFINITIONS: Readonly<Record<WidgetId, WidgetDefinition>> = 
     status: "live",
     icon: Type,
     geometry: { variant: "vertical", width: 372, minWidth: 320, minHeight: 480, maxHeight: 748, aspectIntent: "tall" },
+  },
+  connections: {
+    id: "connections",
+    label: "Connections",
+    responsibility: "Semantic Connection creation, selection and bounded endpoint-aware reopening.",
+    launcher: "dock",
+    status: "live",
+    icon: Waypoints,
+    geometry: { variant: "vertical", width: 344, minWidth: 312, minHeight: 430, maxHeight: 748, aspectIntent: "tall" },
   },
   advanced: {
     id: "advanced",

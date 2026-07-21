@@ -159,3 +159,140 @@ export const normalizeConnectionCollection = (
 
 export const connectionCellIds = (spaces: readonly { id: string; kind?: string }[]): Set<string> =>
   new Set(spaces.filter((space) => space.kind !== "void").map((space) => space.id));
+
+export interface ConnectionAuthoringSelectionSnapshot {
+  selectedIds: string[];
+  primarySelectedId: string | null;
+}
+
+export type ConnectionAuthoringPhase =
+  | "idle"
+  | "choosing-source"
+  | "source-chosen"
+  | "target-preview"
+  | "commit"
+  | "cancelled"
+  | "invalid-target"
+  | "existing-duplicate";
+
+export interface ConnectionAuthoringState {
+  phase: ConnectionAuthoringPhase;
+  typeId: ConnectionSemanticTypeId;
+  sourceId: string | null;
+  targetId: string | null;
+  existingConnectionId: string | null;
+  message: string;
+  priorSelection: ConnectionAuthoringSelectionSnapshot | null;
+}
+
+export type ConnectionAuthoringAction =
+  | {
+      type: "start";
+      typeId: ConnectionSemanticTypeId;
+      priorSelection: ConnectionAuthoringSelectionSnapshot;
+    }
+  | { type: "choose-source"; sourceId: string }
+  | { type: "preview-target"; targetId: string | null }
+  | { type: "invalid-target"; message: string; targetId?: string | null }
+  | { type: "duplicate"; targetId: string; connectionId: string }
+  | { type: "commit"; connectionId: string; targetId?: string | null }
+  | { type: "cancel" }
+  | { type: "reset" };
+
+export const createConnectionAuthoringState = (): ConnectionAuthoringState => ({
+  phase: "idle",
+  typeId: "adjacency",
+  sourceId: null,
+  targetId: null,
+  existingConnectionId: null,
+  message: "Choose a relationship type to begin.",
+  priorSelection: null,
+});
+
+export const isConnectionAuthoringActive = (state: ConnectionAuthoringState): boolean =>
+  state.phase === "choosing-source"
+  || state.phase === "source-chosen"
+  || state.phase === "target-preview"
+  || state.phase === "invalid-target";
+
+export const reduceConnectionAuthoring = (
+  state: ConnectionAuthoringState,
+  action: ConnectionAuthoringAction,
+): ConnectionAuthoringState => {
+  switch (action.type) {
+    case "start":
+      return {
+        phase: "choosing-source",
+        typeId: action.typeId,
+        sourceId: null,
+        targetId: null,
+        existingConnectionId: null,
+        message: "Choose a source Cell.",
+        priorSelection: {
+          selectedIds: [...action.priorSelection.selectedIds],
+          primarySelectedId: action.priorSelection.primarySelectedId,
+        },
+      };
+    case "choose-source":
+      return {
+        ...state,
+        phase: "source-chosen",
+        sourceId: action.sourceId,
+        targetId: null,
+        existingConnectionId: null,
+        message: "Choose a target Cell.",
+      };
+    case "preview-target":
+      return {
+        ...state,
+        phase: "target-preview",
+        targetId: action.targetId,
+        existingConnectionId: null,
+        message: action.targetId ? "Click to connect this target." : "Choose a target Cell.",
+      };
+    case "invalid-target":
+      return {
+        ...state,
+        phase: "invalid-target",
+        targetId: action.targetId ?? null,
+        existingConnectionId: null,
+        message: action.message,
+      };
+    case "duplicate":
+      return {
+        ...state,
+        phase: "existing-duplicate",
+        targetId: action.targetId,
+        existingConnectionId: action.connectionId,
+        message: "That exact Connection already exists and is now selected.",
+      };
+    case "commit":
+      return {
+        ...state,
+        phase: "commit",
+        targetId: action.targetId ?? state.targetId,
+        existingConnectionId: action.connectionId,
+        message: "Connection created and selected.",
+      };
+    case "cancel":
+      return {
+        ...state,
+        phase: "cancelled",
+        targetId: null,
+        existingConnectionId: null,
+        message: "Connection authoring cancelled.",
+      };
+    case "reset":
+      return createConnectionAuthoringState();
+  }
+};
+
+/** Current SpaceCell has no lock/visibility fields, but imports and future graph
+ * adapters may supply them. Authoring treats every explicit non-live signal as
+ * invalid without widening the authored SpaceCell schema in P2. */
+export const isValidConnectionEndpoint = (value: unknown): value is { id: string } => {
+  if (!isRecord(value) || typeof value.id !== "string" || !value.id.trim()) return false;
+  if (value.kind === "void") return false;
+  if (value.locked === true || value.visible === false || value.hidden === true || value.deleted === true) return false;
+  return true;
+};

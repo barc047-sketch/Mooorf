@@ -62,6 +62,15 @@ export const getConnectionIndex = (connections: readonly Connection[]): Connecti
 export const getConnectionById = (index: ConnectionIndex, id: string): Connection | null =>
   index.byId.get(id) ?? null;
 
+/** Connection selection is ephemeral UI state. Resolve it against the current
+ * canonical collection so stale IDs can never leak into Inspector consumers. */
+export const getPrimarySelectedConnection = (
+  connections: readonly Connection[],
+  primarySelectedConnectionId: string | null,
+): Connection | null => primarySelectedConnectionId
+  ? getConnectionById(getConnectionIndex(connections), primarySelectedConnectionId)
+  : null;
+
 export const getConnectionsForSpace = (index: ConnectionIndex, spaceId: string): readonly Connection[] =>
   index.byEndpoint.get(spaceId) ?? [];
 

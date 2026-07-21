@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Copy, RotateCcw, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Copy, LocateFixed, RotateCcw, SlidersHorizontal, Sparkles, Trash2, X } from "lucide-react";
 import {
   type TextAppearanceOverride,
   type TextStylePresetId,
@@ -28,6 +28,16 @@ import {
 import SymbolInspectorPane from "./SymbolInspectorPane";
 import LabelLayoutPane from "./LabelLayoutPane";
 import { mergeCellLabelConfig } from "../../domain/labels/layoutContract";
+import {
+  CONNECTION_DIRECTIONS,
+  CONNECTION_PRIORITIES,
+  CONNECTION_REQUIREMENTS,
+  CONNECTION_SEMANTIC_TYPES,
+  CONNECTION_STRENGTHS,
+  resolveConnectionSemanticType,
+} from "../../domain/connections/registry";
+import { getPrimarySelectedConnection } from "../../domain/connections/selectors";
+import type { Connection } from "../../domain/graph/types";
 
 type TabId = "content" | "appearance" | "symbol";
 
@@ -101,7 +111,151 @@ function ContentField({ label, field, spaces }: {
   );
 }
 
-export default function InspectorWidget() {
+function ConnectionNotesField({ connection }: { connection: Connection }) {
+  const updateConnectionSemantic = useLab((state) => state.updateConnectionSemantic);
+  const canonical = connection.semantic.notes;
+  const [draft, setDraft] = useState(canonical);
+  const session = useRef(beginContentEdit(canonical));
+  useEffect(() => {
+    session.current = beginContentEdit(canonical);
+    setDraft(canonical);
+  }, [canonical, connection.id]);
+
+  const apply = (result: ContentEditResolution) => {
+    session.current = result.session;
+    if (result.action.kind === "cancel") setDraft(result.action.value);
+    if (result.action.kind === "commit") updateConnectionSemantic(connection.id, { notes: result.action.value });
+  };
+
+  return (
+    <label className="m1-field">
+      <span>Connection notes</span>
+      <textarea
+        rows={4}
+        value={draft}
+        aria-label="Connection notes"
+        placeholder="Add relationship intent, constraints or coordination notes."
+        onChange={(event) => {
+          session.current = changeContentEdit(session.current, event.target.value);
+          setDraft(session.current.draft);
+        }}
+        onBlur={() => apply(resolveContentEditBlur(session.current))}
+        onKeyDown={(event) => {
+          const result = resolveContentEditKey(session.current, {
+            key: event.key,
+            shiftKey: event.shiftKey,
+            multiline: true,
+          });
+          if (result.action.kind !== "none") event.preventDefault();
+          apply(result);
+          if (result.blur) event.currentTarget.blur();
+        }}
+      />
+    </label>
+  );
+}
+
+function ConnectionInspector({ connectionId }: { connectionId: string }) {
+  const connection = useLab((state) => getPrimarySelectedConnection(state.connections, connectionId));
+  const source = useLab((state) => state.spaces.find((space) => space.id === connection?.fromSpaceId));
+  const target = useLab((state) => state.spaces.find((space) => space.id === connection?.toSpaceId));
+  const updateConnectionSemantic = useLab((state) => state.updateConnectionSemantic);
+  const setConnectionEnabled = useLab((state) => state.setConnectionEnabled);
+  const deleteConnection = useLab((state) => state.deleteConnection);
+  const clearConnectionSelection = useLab((state) => state.clearConnectionSelection);
+  const replaceSelection = useLab((state) => state.replaceSelection);
+  const addToSelection = useLab((state) => state.addToSelection);
+  const fitSelection = useLab((state) => state.fitSelection);
+  if (!connection) return <CellInspector />;
+
+  const semantic = resolveConnectionSemanticType(connection.semantic.typeId);
+  const typeOptions = semantic.known
+    ? CONNECTION_SEMANTIC_TYPES
+    : [semantic, ...CONNECTION_SEMANTIC_TYPES];
+  const update = <K extends keyof Connection["semantic"]>(key: K, value: Connection["semantic"][K]) => {
+    updateConnectionSemantic(connection.id, { [key]: value });
+  };
+  const locateEndpoints = () => {
+    replaceSelection(connection.fromSpaceId);
+    addToSelection(connection.toSpaceId);
+    fitSelection();
+  };
+
+  return (
+    <div className="m1-inspector connection-inspector">
+      <div className="m1-context">
+        <span className="m1-signal" data-selected="true" />
+        <div>
+          <small>CONNECTION</small>
+          <strong>{source?.name ?? "Missing Cell"} → {target?.name ?? "Missing Cell"}</strong>
+        </div>
+        <span className="m1-state-badge" data-state="local-override">{semantic.name}</span>
+      </div>
+
+      <div className="m1-pane">
+        <section className="m1-section">
+          <h3>Quick</h3>
+          <label className="m1-field">
+            <span>Relationship type</span>
+            <select
+              aria-label="Relationship type"
+              value={connection.semantic.typeId}
+              onChange={(event) => update("typeId", event.target.value)}
+            >
+              {typeOptions.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
+            </select>
+          </label>
+          <SwitchRow
+            label="Enabled"
+            on={connection.enabled}
+            onToggle={() => setConnectionEnabled(connection.id, !connection.enabled)}
+          />
+          <label className="m1-field">
+            <span>Direction</span>
+            <select aria-label="Connection direction" value={connection.semantic.direction} onChange={(event) => update("direction", event.target.value as Connection["semantic"]["direction"])}>
+              {CONNECTION_DIRECTIONS.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+          <label className="m1-field">
+            <span>Requirement</span>
+            <select aria-label="Connection requirement" value={connection.semantic.requirement} onChange={(event) => update("requirement", event.target.value as Connection["semantic"]["requirement"])}>
+              {CONNECTION_REQUIREMENTS.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+          <label className="m1-field">
+            <span>Strength</span>
+            <select aria-label="Connection strength" value={connection.semantic.strength} onChange={(event) => update("strength", event.target.value as Connection["semantic"]["strength"])}>
+              {CONNECTION_STRENGTHS.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+          <label className="m1-field">
+            <span>Priority</span>
+            <select aria-label="Connection priority" value={connection.semantic.priority} onChange={(event) => update("priority", event.target.value as Connection["semantic"]["priority"])}>
+              {CONNECTION_PRIORITIES.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+          </label>
+        </section>
+
+        <section className="m1-section">
+          <h3>Notes</h3>
+          <ConnectionNotesField connection={connection} />
+        </section>
+
+        <section className="m1-section">
+          <h3>Actions</h3>
+          <div className="m1-action-grid">
+            <button type="button" className="m1-btn" onClick={locateEndpoints}><LocateFixed size={11} /> Select endpoints</button>
+            <button type="button" className="m1-btn" onClick={clearConnectionSelection}><X size={11} /> Clear selection</button>
+            <button type="button" className="m1-btn connection-delete" onClick={() => deleteConnection(connection.id)}><Trash2 size={11} /> Delete Connection</button>
+          </div>
+        </section>
+        <p className="m1-empty-note">Connection selection is editing UI only and never changes Cell appearance or exports.</p>
+      </div>
+    </div>
+  );
+}
+
+function CellInspector() {
   const [tab, setTab] = useState<TabId>("content");
   const spaces = useLab((state) => state.appearancePreview ?? state.spaces);
   const selectedIds = useLab((state) => state.selectedIds);
@@ -259,4 +413,11 @@ export default function InspectorWidget() {
       </div>}
     </div>
   );
+}
+
+export default function InspectorWidget() {
+  const primarySelectedConnectionId = useLab((state) => state.primarySelectedConnectionId);
+  return primarySelectedConnectionId
+    ? <ConnectionInspector connectionId={primarySelectedConnectionId} />
+    : <CellInspector />;
 }

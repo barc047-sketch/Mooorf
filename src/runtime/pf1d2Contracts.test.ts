@@ -69,7 +69,7 @@ test("inactive store, theme, and resize events only retain latest work", () => {
 
 test("resume prepares current state and theme before successful readiness", () => {
   occursBefore(organismSource, "applyStoreSnapshot(latestState, true)", "theme = pendingTheme ?? readTheme()");
-  assert.match(organismSource, /if \(qualityChanged && !forceFull\) resize\(\)/);
+  assert.match(organismSource, /if \(\(qualityChanged \|\| detailChanged\) && !forceFull\) resize\(\)/);
   assert.match(organismSource, /applyPerformanceSnapshot\(latestPerformanceSnapshot, true\)/);
   assert.match(
     organismSource,

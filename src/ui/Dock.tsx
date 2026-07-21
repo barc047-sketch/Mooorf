@@ -11,6 +11,7 @@ import {
   Shuffle,
   SlidersHorizontal,
   Upload,
+  Waypoints,
 } from "lucide-react";
 import { appearanceFamilyDefinition, appearanceFamilyForTarget } from "../domain/presentation/editing";
 import { useLab } from "../state/store";
@@ -98,6 +99,16 @@ export default function Dock() {
     >
       <DockGroup side="left">
         <InspectorLauncherButton surface="dock" />
+        <DockButton
+          active={isExpanded("connections")}
+          title="Connections"
+          aria-label="Open Connections"
+          aria-haspopup="dialog"
+          aria-expanded={isExpanded("connections")}
+          onClick={() => openWidget("connections")}
+        >
+          <Waypoints size={16} strokeWidth={1.5} />
+        </DockButton>
         <DockButton
           active={isExpanded("label-studio")}
           title="Label Studio"

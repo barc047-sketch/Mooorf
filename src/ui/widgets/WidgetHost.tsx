@@ -25,6 +25,8 @@ import DataHealthWidget from "./stats/DataHealthWidget";
 import InstrumentLauncher from "./stats/InstrumentLauncher";
 import { getWidgetDefinition } from "../panels/widgetRegistry";
 import InspectorWidget from "./InspectorWidget";
+import ConnectionsWidget from "./ConnectionsWidget";
+import { isConnectionAuthoringActive } from "../../domain/connections/model";
 import {
   CellSettingsWidget,
   MembraneSettingsWidget,
@@ -43,6 +45,7 @@ const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
   saved: () => <SavedViewsWidget />,
   display: () => <DisplayWidget />,
   "label-studio": () => <LabelStudioWidget />,
+  connections: () => <ConnectionsWidget />,
   advanced: () => <AdvancedWidget />,
   stats: () => <ProjectPulseWidget />,
   "category-mix": () => <CategoryMixWidget />,
@@ -77,7 +80,14 @@ export default function WidgetHost() {
       if (e.key !== "Escape") return;
       const target = e.target as HTMLElement | null;
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-      const stack = useLab.getState().openWidgets;
+      const state = useLab.getState();
+      if (isConnectionAuthoringActive(state.connectionAuthoring)) {
+        e.preventDefault();
+        e.stopPropagation();
+        state.cancelConnectionAuthoring();
+        return;
+      }
+      const stack = state.openWidgets;
       const top = stack[stack.length - 1];
       if (top) closeWidget(top);
     };

@@ -97,9 +97,14 @@ import {
   cloneConnection,
   cloneConnections,
   connectionCellIds,
+  createConnectionAuthoringState,
   createConnectionSemantic,
+  isConnectionAuthoringActive,
+  isValidConnectionEndpoint,
   normalizeConnectionCollection,
   normalizeConnectionVisual,
+  reduceConnectionAuthoring,
+  type ConnectionAuthoringState,
 } from "../domain/connections/model";
 import {
   dependentConnectionIds,
@@ -230,6 +235,11 @@ interface LabState {
   selectedIds: string[];
   /** Compatibility mirror for pre-V8.2 consumers. Always equals primarySelectedId. */
   selectedId: string | null;
+  /** Connection selection is explicit editing UI and never persists/exports. */
+  selectedConnectionIds: string[];
+  primarySelectedConnectionId: string | null;
+  /** Click-level authoring state only. Pointer preview coordinates remain Canvas-local. */
+  connectionAuthoring: ConnectionAuthoringState;
   camera: Camera;
   savedViews: SavedCanvasSnapshot[];
   /** Ephemeral canvas translation history. Saved project/view data stores final positions only. */
@@ -276,6 +286,19 @@ interface LabState {
   removeFromSelection: (id: string) => void;
   clearSelection: () => void;
   selectAllVisible: () => void;
+  selectConnection: (id: string | null) => void;
+  clearConnectionSelection: () => void;
+  beginConnectionAuthoring: (typeId: Connection["semantic"]["typeId"]) => void;
+  chooseConnectionSource: (id: string) => boolean;
+  completeConnectionAuthoring: (id: string) => {
+    status: "created" | "duplicate" | "invalid";
+    connectionId: string | null;
+  };
+  cancelConnectionAuthoring: () => void;
+  connectSelectedCells: (typeId: Connection["semantic"]["typeId"]) => {
+    status: "created" | "duplicate" | "invalid";
+    connectionId: string | null;
+  };
   openContextSurface: (
     surface: Exclude<ContextSurface, null>,
     point: ContextPoint,
@@ -360,6 +383,43 @@ const selectionFromState = (state: SelectionStateSlice): SelectionStateSlice => 
   primarySelectedId: state.primarySelectedId,
   selectedIds: state.selectedIds,
 });
+
+const clearedConnectionSelection = () => ({
+  selectedConnectionIds: [] as string[],
+  primarySelectedConnectionId: null as string | null,
+});
+
+const normalizeConnectionSelection = (
+  selectedConnectionIds: readonly string[],
+  primarySelectedConnectionId: string | null,
+  connections: readonly Connection[],
+) => {
+  const liveIds = new Set(connections.map((connection) => connection.id));
+  const ids = [...new Set(selectedConnectionIds)].filter((id) => liveIds.has(id));
+  return {
+    selectedConnectionIds: ids,
+    primarySelectedConnectionId: primarySelectedConnectionId && ids.includes(primarySelectedConnectionId)
+      ? primarySelectedConnectionId
+      : ids[ids.length - 1] ?? null,
+  };
+};
+
+const cancelConnectionAuthoringPatch = (state: {
+  spaces: readonly SpaceCell[];
+  connectionAuthoring: ConnectionAuthoringState;
+}) => {
+  if (!isConnectionAuthoringActive(state.connectionAuthoring)) return {};
+  const prior = state.connectionAuthoring.priorSelection;
+  const selection = normalizeSelectionState(
+    prior ?? { selectedIds: [], primarySelectedId: null },
+    new Set(state.spaces.map((space) => space.id)),
+  );
+  return {
+    connectionAuthoring: reduceConnectionAuthoring(state.connectionAuthoring, { type: "cancel" }),
+    ...selection,
+    ...clearedConnectionSelection(),
+  };
+};
 
 const closedContext = {
   contextSurface: null,
@@ -781,6 +841,9 @@ export const useLab = create<LabState>((set, get) => ({
   primarySelectedId: null,
   selectedIds: [],
   selectedId: null,
+  selectedConnectionIds: [],
+  primarySelectedConnectionId: null,
+  connectionAuthoring: createConnectionAuthoringState(),
   camera: { x: 0, y: 0, zoom: 1 },
   savedViews: loadSavedViews(),
   transformUndoStack: [],
@@ -803,7 +866,9 @@ export const useLab = create<LabState>((set, get) => ({
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "day" ? "night" : "day" })),
 
-  setView: (view) => set(view === "canvas" ? { view } : { view, ...closedContext }),
+  setView: (view) => set((s) => view === "canvas"
+    ? { view }
+    : { view, ...closedContext, ...cancelConnectionAuthoringPatch(s) }),
 
   setLoaderDone: () => set({ loaderDone: true }),
 
@@ -898,6 +963,7 @@ export const useLab = create<LabState>((set, get) => ({
         openWidgets: s.openWidgets.filter((w) => w !== id),
         minimizedWidgets: s.minimizedWidgets.filter((widgetId) => widgetId !== id),
         ...(id === "layout" ? { arrangementPreview: null, arrangementPreviewPatternId: null } : {}),
+        ...(id === "connections" ? cancelConnectionAuthoringPatch(s) : {}),
       };
     }),
 
@@ -924,31 +990,167 @@ export const useLab = create<LabState>((set, get) => ({
   clearTemporaryTool: () => set({ temporaryTool: null }),
 
   replaceSelection: (id) =>
-    set((s) => id && !s.spaces.some((space) => space.id === id) ? {} : replaceSelectionState(id)),
+    set((s) => id && !s.spaces.some((space) => space.id === id)
+      ? {}
+      : { ...replaceSelectionState(id), ...clearedConnectionSelection() }),
 
   toggleSelection: (id) =>
     set((s) => s.spaces.some((space) => space.id === id)
-      ? toggleSelectionState(selectionFromState(s), id)
+      ? { ...toggleSelectionState(selectionFromState(s), id), ...clearedConnectionSelection() }
       : {}),
 
   addToSelection: (id) =>
     set((s) => s.spaces.some((space) => space.id === id)
-      ? addSelectionState(selectionFromState(s), id)
+      ? { ...addSelectionState(selectionFromState(s), id), ...clearedConnectionSelection() }
       : {}),
 
   removeFromSelection: (id) =>
-    set((s) => removeSelectionState(selectionFromState(s), id)),
+    set((s) => ({ ...removeSelectionState(selectionFromState(s), id), ...clearedConnectionSelection() })),
 
-  clearSelection: () => set(replaceSelectionState(null)),
+  clearSelection: () => set({ ...replaceSelectionState(null), ...clearedConnectionSelection() }),
 
   selectAllVisible: () =>
     set((s) => {
       const selectedIds = visibleSelectableIds(s.spaces, s.settings.rendererMode);
-      return normalizeSelectionState({
-        selectedIds,
-        primarySelectedId: selectedIds[selectedIds.length - 1] ?? null,
-      });
+      return {
+        ...normalizeSelectionState({
+          selectedIds,
+          primarySelectedId: selectedIds[selectedIds.length - 1] ?? null,
+        }),
+        ...clearedConnectionSelection(),
+      };
     }),
+
+  selectConnection: (id) =>
+    set((s) => {
+      if (!id) return clearedConnectionSelection();
+      if (!selectConnectionById(getConnectionIndex(s.connections), id)) return {};
+      return {
+        ...replaceSelectionState(null),
+        selectedConnectionIds: [id],
+        primarySelectedConnectionId: id,
+        ...closedContext,
+      };
+    }),
+
+  clearConnectionSelection: () => set(clearedConnectionSelection()),
+
+  beginConnectionAuthoring: (typeId) =>
+    set((s) => ({
+      connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+        type: "start",
+        typeId,
+        priorSelection: {
+          selectedIds: [...s.selectedIds],
+          primarySelectedId: s.primarySelectedId,
+        },
+      }),
+      ...replaceSelectionState(null),
+      ...clearedConnectionSelection(),
+      ...closedContext,
+    })),
+
+  chooseConnectionSource: (id) => {
+    let accepted = false;
+    set((s) => {
+      if (!isConnectionAuthoringActive(s.connectionAuthoring) || s.connectionAuthoring.sourceId) return {};
+      const source = s.spaces.find((space) => space.id === id);
+      if (!isValidConnectionEndpoint(source)) {
+        return {
+          connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+            type: "invalid-target",
+            message: "Choose a visible, unlocked Cell as the source.",
+            targetId: id,
+          }),
+        };
+      }
+      accepted = true;
+      return {
+        connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+          type: "choose-source",
+          sourceId: id,
+        }),
+      };
+    });
+    return accepted;
+  },
+
+  completeConnectionAuthoring: (id) => {
+    const state = get();
+    const authoring = state.connectionAuthoring;
+    const sourceId = authoring.sourceId;
+    const target = state.spaces.find((space) => space.id === id);
+    if (!isConnectionAuthoringActive(authoring) || !sourceId || sourceId === id || !isValidConnectionEndpoint(target)) {
+      set((s) => ({
+        connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+          type: "invalid-target",
+          targetId: id,
+          message: sourceId === id
+            ? "A Cell cannot connect to itself. Choose another Cell."
+            : "Choose a visible, unlocked non-Void target Cell.",
+        }),
+      }));
+      return { status: "invalid", connectionId: null };
+    }
+    const semantic = createConnectionSemantic(authoring.typeId);
+    const candidate: Connection = {
+      id: "__connection-authoring-candidate__",
+      fromSpaceId: sourceId,
+      toSpaceId: id,
+      enabled: true,
+      semantic,
+    };
+    const duplicate = findExactConnectionDuplicate(getConnectionIndex(state.connections), candidate);
+    if (duplicate) {
+      get().selectConnection(duplicate.id);
+      get().openWidget("inspector");
+      set((s) => ({
+        connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+          type: "duplicate",
+          targetId: id,
+          connectionId: duplicate.id,
+        }),
+      }));
+      return { status: "duplicate", connectionId: duplicate.id };
+    }
+    const connectionId = get().createConnection({
+      fromSpaceId: sourceId,
+      toSpaceId: id,
+      typeId: authoring.typeId,
+    });
+    if (!connectionId) {
+      set((s) => ({
+        connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+          type: "invalid-target",
+          targetId: id,
+          message: "This Connection could not be created.",
+        }),
+      }));
+      return { status: "invalid", connectionId: null };
+    }
+    get().selectConnection(connectionId);
+    get().openWidget("inspector");
+    set((s) => ({
+      connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+        type: "commit",
+        targetId: id,
+        connectionId,
+      }),
+    }));
+    return { status: "created", connectionId };
+  },
+
+  cancelConnectionAuthoring: () => set((s) => cancelConnectionAuthoringPatch(s)),
+
+  connectSelectedCells: (typeId) => {
+    const state = get();
+    if (state.selectedIds.length !== 2) return { status: "invalid", connectionId: null };
+    const selected = state.selectedIds.map((id) => state.spaces.find((space) => space.id === id));
+    if (!selected.every(isValidConnectionEndpoint)) return { status: "invalid", connectionId: null };
+    state.beginConnectionAuthoring(typeId);
+    if (!get().chooseConnectionSource(selected[0]!.id)) return { status: "invalid", connectionId: null };
+    return get().completeConnectionAuthoring(selected[1]!.id);
+  },
 
   openContextSurface: (contextSurface, contextPoint, contextTargetId = null) =>
     set({ contextSurface, contextPoint: { ...contextPoint }, contextTargetId }),
@@ -956,7 +1158,9 @@ export const useLab = create<LabState>((set, get) => ({
   closeContextSurface: () => set(closedContext),
 
   select: (id) =>
-    set((s) => id && !s.spaces.some((space) => space.id === id) ? {} : replaceSelectionState(id)),
+    set((s) => id && !s.spaces.some((space) => space.id === id)
+      ? {}
+      : { ...replaceSelectionState(id), ...clearedConnectionSelection() }),
 
   setCamera: (camera) => set({ camera }),
 
@@ -989,6 +1193,7 @@ export const useLab = create<LabState>((set, get) => ({
       return {
         spaces: [...s.spaces, cell],
         ...replaceSelectionState(cell.id),
+        ...clearedConnectionSelection(),
       };
     }),
 
@@ -1003,6 +1208,7 @@ export const useLab = create<LabState>((set, get) => ({
       return {
         spaces: [...s.spaces, cell],
         ...replaceSelectionState(cell.id),
+        ...clearedConnectionSelection(),
       };
     }),
 
@@ -1035,6 +1241,7 @@ export const useLab = create<LabState>((set, get) => ({
       return {
         spaces: [...s.spaces, ...added],
         ...normalizeSelectionState(afterSelection),
+        ...clearedConnectionSelection(),
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: [],
       };
@@ -1067,6 +1274,7 @@ export const useLab = create<LabState>((set, get) => ({
         spaces: [...s.spaces, duplicate],
         settings: resources === s.settings.resources ? s.settings : { ...s.settings, resources },
         ...replaceSelectionState(duplicate.id),
+        ...clearedConnectionSelection(),
       };
     });
     return duplicateId;
@@ -1524,9 +1732,10 @@ export const useLab = create<LabState>((set, get) => ({
       const historySelection = entry.kind === "batch-add" || entry.kind === "space-delete"
         ? entry.beforeSelection
         : null;
+      const connections = applyConnectionHistoryEntry(s.connections, entry, "before");
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "before"),
-        connections: applyConnectionHistoryEntry(s.connections, entry, "before"),
+        connections,
         settings: entry.kind === "space-delete"
           ? { ...s.settings, resources: applyDeletedSpaceResources(s.settings.resources, entry, "before") }
           : entry.kind === "defaults"
@@ -1546,6 +1755,13 @@ export const useLab = create<LabState>((set, get) => ({
         visualSettingsPreview: null,
         resourcesPreview: null,
         ...(historySelection ? normalizeSelectionState(historySelection) : {}),
+        ...(historySelection
+          ? clearedConnectionSelection()
+          : normalizeConnectionSelection(
+              s.selectedConnectionIds,
+              s.primarySelectedConnectionId,
+              connections,
+            )),
         transformUndoStack: s.transformUndoStack.slice(0, -1),
         transformRedoStack: [...s.transformRedoStack, entry].slice(-TRANSFORM_HISTORY_LIMIT),
       };
@@ -1558,9 +1774,10 @@ export const useLab = create<LabState>((set, get) => ({
       const historySelection = entry.kind === "batch-add" || entry.kind === "space-delete"
         ? entry.afterSelection
         : null;
+      const connections = applyConnectionHistoryEntry(s.connections, entry, "after");
       return {
         spaces: applyHistoryEntry(s.spaces, entry, "after"),
-        connections: applyConnectionHistoryEntry(s.connections, entry, "after"),
+        connections,
         settings: entry.kind === "space-delete"
           ? { ...s.settings, resources: applyDeletedSpaceResources(s.settings.resources, entry, "after") }
           : entry.kind === "defaults"
@@ -1580,6 +1797,13 @@ export const useLab = create<LabState>((set, get) => ({
         visualSettingsPreview: null,
         resourcesPreview: null,
         ...(historySelection ? normalizeSelectionState(historySelection) : {}),
+        ...(historySelection
+          ? clearedConnectionSelection()
+          : normalizeConnectionSelection(
+              s.selectedConnectionIds,
+              s.primarySelectedConnectionId,
+              connections,
+            )),
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: s.transformRedoStack.slice(0, -1),
       };
@@ -1600,6 +1824,7 @@ export const useLab = create<LabState>((set, get) => ({
       const dependentConnections = s.connections.flatMap((connection, index) =>
         dependentIds.has(connection.id) ? [{ index, connection: cloneConnection(connection) }] : []
       );
+      const connections = s.connections.filter((connection) => !dependentIds.has(connection.id));
       const iconPlacements = s.settings.resources.iconPlacements.flatMap((placement, index) =>
         placement.targetSpaceId === id ? [{ index, placement: { ...placement } }] : []
       );
@@ -1620,7 +1845,7 @@ export const useLab = create<LabState>((set, get) => ({
       };
       return {
         spaces,
-        connections: s.connections.filter((connection) => !dependentIds.has(connection.id)),
+        connections,
         settings: {
           ...s.settings,
           resources: cloneResourceSettings({
@@ -1629,6 +1854,11 @@ export const useLab = create<LabState>((set, get) => ({
           }),
         },
         ...selection,
+        ...normalizeConnectionSelection(
+          s.selectedConnectionIds,
+          s.primarySelectedConnectionId,
+          connections,
+        ),
         ...(s.contextTargetId === id ? closedContext : {}),
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: [],
@@ -1761,6 +1991,11 @@ export const useLab = create<LabState>((set, get) => ({
       changed = true;
       return {
         connections: after,
+        ...normalizeConnectionSelection(
+          s.selectedConnectionIds,
+          s.primarySelectedConnectionId,
+          after,
+        ),
         transformUndoStack: pushHistory(s.transformUndoStack, entry),
         transformRedoStack: [],
       };
@@ -1927,6 +2162,8 @@ export const useLab = create<LabState>((set, get) => ({
         connections: normalizeConnectionCollection(snapshot.connections, connectionCellIds(spaces)),
         camera: cloneCamera(snapshot.camera),
         ...replaceSelectionState(null),
+        ...clearedConnectionSelection(),
+        connectionAuthoring: createConnectionAuthoringState(),
         ...closedContext,
         settings: {
           ...s.settings,

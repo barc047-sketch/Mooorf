@@ -109,6 +109,11 @@ import {
   resolveCameraShake,
 } from "./cameraShake";
 import OrganismCellLabel from "./OrganismCellLabel";
+import {
+  isConnectionAuthoringActive,
+  isValidConnectionEndpoint,
+  reduceConnectionAuthoring,
+} from "../domain/connections/model";
 import "./organismCanvas.css";
 
 const THEME_TRANSITION_MS = 200;
@@ -173,6 +178,12 @@ export default function OrganismCanvasView({
   const presentationBackCanvasRef = useRef<HTMLCanvasElement>(null);
   const labelLayerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const connectionPreviewOverlayRef = useRef<SVGSVGElement>(null);
+  const connectionPreviewLineRef = useRef<SVGLineElement>(null);
+  const connectionPreviewSourceRef = useRef<SVGCircleElement>(null);
+  const connectionPreviewTargetRef = useRef<SVGCircleElement>(null);
+  const connectionPreviewMessageRef = useRef<SVGTextElement>(null);
+  const connectionAuthoringPreviewRef = useRef(useLab.getState().connectionAuthoring);
   const activeRef = useRef(active);
   const onResumeReadyRef = useRef(onResumeReady);
   const runtimeActivityRef = useRef<((nextActive: boolean) => void) | null>(null);
@@ -273,6 +284,10 @@ export default function OrganismCanvasView({
     let stagingPresentationCanvas = presentationBackCanvas;
     let stagingPresentationCtx = presentationBackCanvas.getContext("2d");
     presentationBackCanvas.style.visibility = "hidden";
+    const hideConnectionPreview = () => {
+      const overlay = connectionPreviewOverlayRef.current;
+      if (overlay) overlay.style.visibility = "hidden";
+    };
 
     const announceReadiness = (stage: "canvas-mounted" | "renderer-ready" | "render-requested" | "ready") => {
       const state = useLab.getState();
@@ -363,6 +378,9 @@ export default function OrganismCanvasView({
     let lastAppearancePreviewTarget = initialState.appearancePreviewTarget;
     let lastSelectedIds = initialState.selectedIds;
     let lastSelectedId = initialState.selectedId;
+    let connectionAuthoring = initialState.connectionAuthoring;
+    let connectionPreviewPointer: { sx: number; sy: number } | null = null;
+    let connectionEndpointById = new Map(spaces.map((space) => [space.id, space]));
     let derivedDirty = true;
     let cachedAreaRange = getAreaRange(spaces.slice(0, MAX_NUCLEI));
     let cachedCellColors = new Map<string, string>();
@@ -500,10 +518,19 @@ export default function OrganismCanvasView({
         : spaces;
       const spacesChanged = nextSpaces !== spaces;
       spaces = nextSpaces;
+      if (spacesChanged) connectionEndpointById = new Map(spaces.map((space) => [space.id, space]));
       const selectionChanged = s.selectedIds !== lastSelectedIds || s.selectedId !== lastSelectedId;
+      const connectionAuthoringChanged = s.connectionAuthoring !== connectionAuthoring;
+      connectionAuthoring = s.connectionAuthoring;
+      connectionAuthoringPreviewRef.current = s.connectionAuthoring;
+      if (connectionAuthoringChanged) {
+        if (!isConnectionAuthoringActive(connectionAuthoring)) hideConnectionPreview();
+        else cancelCanvasGesture(gesture);
+      }
       selectedId = s.selectedId;
       selectedIdSet = new Set(s.selectedIds);
       let invalidation: OrganismInvalidation | null = selectionChanged ? "LABEL_PRESENTATION" : null;
+      if (connectionAuthoringChanged && !invalidation) invalidation = "CELL_PRESENTATION";
       const nextAuthoredSettings = authoredCanvasSettings(s);
       if (nextAuthoredSettings !== authoredSettings) {
         authoredSettings = nextAuthoredSettings;
@@ -701,6 +728,7 @@ export default function OrganismCanvasView({
       presentationBackCanvas.style.transform = transform;
       gridRef.current?.style.setProperty("transform", transform);
       labelLayerRef.current?.style.setProperty("transform", transform);
+      connectionPreviewOverlayRef.current?.style.setProperty("transform", transform);
       host.dataset.cameraShake = cameraShake.active ? "active" : "off";
     };
 
@@ -736,6 +764,76 @@ export default function OrganismCanvasView({
       );
     };
     let lastNuclei: ProductionNucleus[] = [];
+
+    const updateConnectionPreview = (sx: number, sy: number) => {
+      const overlay = connectionPreviewOverlayRef.current;
+      const line = connectionPreviewLineRef.current;
+      const sourceCircle = connectionPreviewSourceRef.current;
+      const targetCircle = connectionPreviewTargetRef.current;
+      const message = connectionPreviewMessageRef.current;
+      if (!overlay || !line || !sourceCircle || !targetCircle || !message) return;
+      if (!runtimeActive || !isConnectionAuthoringActive(connectionAuthoring)) {
+        hideConnectionPreview();
+        return;
+      }
+
+      const hit = hitTestNuclei(lastNuclei, sx, sy);
+      const targetSpace = hit ? connectionEndpointById.get(hit.id) : null;
+      const source = connectionAuthoring.sourceId
+        ? lastNuclei.find((nucleus) => nucleus.id === connectionAuthoring.sourceId)
+        : null;
+      const targetValid = Boolean(
+        hit
+        && hit.id !== connectionAuthoring.sourceId
+        && isValidConnectionEndpoint(targetSpace),
+      );
+      const sourceCandidateValid = Boolean(hit && isValidConnectionEndpoint(targetSpace));
+      const invalidMessage = hit
+        ? hit.id === connectionAuthoring.sourceId
+          ? "Choose another Cell — self-connections are unavailable."
+          : targetSpace?.kind === "void"
+            ? "Void Cells cannot be Connection endpoints."
+            : !isValidConnectionEndpoint(targetSpace)
+              ? "This Cell is unavailable as a Connection endpoint."
+              : ""
+        : "";
+
+      connectionAuthoringPreviewRef.current = source
+        ? targetValid
+          ? reduceConnectionAuthoring(connectionAuthoring, { type: "preview-target", targetId: hit!.id })
+          : invalidMessage
+            ? reduceConnectionAuthoring(connectionAuthoring, { type: "invalid-target", targetId: hit?.id, message: invalidMessage })
+            : connectionAuthoring
+        : connectionAuthoring;
+
+      overlay.style.visibility = "visible";
+      line.style.display = source ? "block" : "none";
+      if (source) {
+        line.setAttribute("x1", source.sx.toFixed(2));
+        line.setAttribute("y1", source.sy.toFixed(2));
+        line.setAttribute("x2", (targetValid ? hit!.sx : sx).toFixed(2));
+        line.setAttribute("y2", (targetValid ? hit!.sy : sy).toFixed(2));
+        sourceCircle.style.display = "block";
+        sourceCircle.setAttribute("cx", source.sx.toFixed(2));
+        sourceCircle.setAttribute("cy", source.sy.toFixed(2));
+        sourceCircle.setAttribute("r", Math.max(10, source.screenR + 5).toFixed(2));
+      } else {
+        sourceCircle.style.display = "none";
+      }
+
+      targetCircle.style.display = hit ? "block" : "none";
+      if (hit) {
+        targetCircle.setAttribute("cx", hit.sx.toFixed(2));
+        targetCircle.setAttribute("cy", hit.sy.toFixed(2));
+        targetCircle.setAttribute("r", Math.max(10, hit.screenR + 5).toFixed(2));
+        targetCircle.setAttribute("stroke-dasharray", (source ? targetValid : sourceCandidateValid) ? "" : "3 3");
+        targetCircle.setAttribute("opacity", (source ? targetValid : sourceCandidateValid) ? "1" : ".68");
+      }
+      message.textContent = invalidMessage;
+      message.style.display = invalidMessage ? "block" : "none";
+      message.setAttribute("x", (sx + 12).toFixed(2));
+      message.setAttribute("y", (sy - 12).toFixed(2));
+    };
 
     const drawPresentationOverlay = (nuclei: ProductionNucleus[], scale: number) => {
       if (!activePresentationCtx || !stagingPresentationCtx) return false;
@@ -1046,6 +1144,26 @@ export default function OrganismCanvasView({
     const onDown = (e: PointerEvent) => {
       if (!runtimeActive) return;
       if (e.button !== 0 || (e.ctrlKey && e.pointerType === "mouse")) return;
+      const activeAuthoring = useLab.getState().connectionAuthoring;
+      if (isConnectionAuthoringActive(activeAuthoring)) {
+        e.preventDefault();
+        resetCellActivation(activation);
+        cancelCanvasGesture(gesture);
+        const { sx, sy } = local(e);
+        connectionPreviewPointer = { sx, sy };
+        const hit = hitTestNuclei(lastNuclei, sx, sy);
+        if (hit) {
+          const state = useLab.getState();
+          if (activeAuthoring.sourceId) state.completeConnectionAuthoring(hit.id);
+          else state.chooseConnectionSource(hit.id);
+          connectionAuthoring = useLab.getState().connectionAuthoring;
+          connectionAuthoringPreviewRef.current = connectionAuthoring;
+        }
+        if (isConnectionAuthoringActive(connectionAuthoring)) updateConnectionPreview(sx, sy);
+        else hideConnectionPreview();
+        canvas.style.cursor = "crosshair";
+        return;
+      }
       if (isInlineEditorCommitPointer(e)) {
         resetCellActivation(activation);
         return;
@@ -1091,6 +1209,12 @@ export default function OrganismCanvasView({
 
     const processMove = (e: PointerEvent) => {
       const { sx, sy } = local(e);
+      if (isConnectionAuthoringActive(connectionAuthoring)) {
+        connectionPreviewPointer = { sx, sy };
+        updateConnectionPreview(sx, sy);
+        canvas.style.cursor = "crosshair";
+        return;
+      }
       if (gesture.mode === "none") {
         const nextHoveredId = hitTestNuclei(lastNuclei, sx, sy)?.id ?? null;
         if (nextHoveredId !== hoveredId) {
@@ -1153,6 +1277,11 @@ export default function OrganismCanvasView({
 
     const onUp = (e: PointerEvent) => {
       if (!runtimeActive) return;
+      if (isConnectionAuthoringActive(useLab.getState().connectionAuthoring)) {
+        moveScheduler.push(latestCoalescedPointerEvent(e));
+        moveScheduler.flush();
+        return;
+      }
       const completedMode = gesture.mode;
       if (gesture.mode !== "none") {
         moveScheduler.push(latestCoalescedPointerEvent(e));
@@ -1298,6 +1427,9 @@ export default function OrganismCanvasView({
       applyCameraShakeOffset();
       const nuclei = currentNuclei();
       lastNuclei = nuclei;
+      if (connectionPreviewPointer && isConnectionAuthoringActive(connectionAuthoring)) {
+        updateConnectionPreview(connectionPreviewPointer.sx, connectionPreviewPointer.sy);
+      }
       const sc = cachedStyle;
       const palette = cachedPalette;
       const params = resolved.params;
@@ -1549,6 +1681,7 @@ export default function OrganismCanvasView({
       if (runtimeActive === nextActive) return;
       runtimeActive = nextActive;
       if (!runtimeActive) {
+        hideConnectionPreview();
         resumePreparationPending = false;
         renderLoop?.setPaused(true);
         moveScheduler.cancel();
@@ -1606,6 +1739,7 @@ export default function OrganismCanvasView({
       unregisterCapture();
       renderer?.dispose();
       resetCameraShake(cameraShake);
+      hideConnectionPreview();
       applyCameraShakeOffset();
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
@@ -1635,6 +1769,41 @@ export default function OrganismCanvasView({
         className="organism-presentation-canvas organism-presentation-buffer"
         aria-hidden="true"
       />
+      <svg
+        ref={connectionPreviewOverlayRef}
+        data-testid="connection-authoring-preview"
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          overflow: "visible",
+          pointerEvents: "none",
+          visibility: "hidden",
+          color: "var(--ink-soft)",
+        }}
+      >
+        <line
+          ref={connectionPreviewLineRef}
+          stroke="currentColor"
+          strokeWidth="1.35"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+          opacity=".78"
+        />
+        <circle ref={connectionPreviewSourceRef} fill="none" stroke="currentColor" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+        <circle ref={connectionPreviewTargetRef} fill="none" stroke="currentColor" strokeWidth="1.35" vectorEffect="non-scaling-stroke" />
+        <text
+          ref={connectionPreviewMessageRef}
+          fill="currentColor"
+          stroke="var(--bg)"
+          strokeWidth="3"
+          paintOrder="stroke"
+          fontSize="10"
+          fontWeight="600"
+        />
+      </svg>
       {showGrid && <div ref={gridRef} className="organism-grid" aria-hidden="true" />}
       {showLabels && annotationMode !== "hidden" && <div
         ref={labelLayerRef}
