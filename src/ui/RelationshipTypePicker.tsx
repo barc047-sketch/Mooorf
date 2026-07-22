@@ -463,8 +463,20 @@ export function RelationshipTypePicker({
     };
   }, [open]);
 
-  const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+  const chooseOption = (optionId: string) => {
+    onChange(optionId);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
+
+  const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, index: number, optionId: string) => {
     if (!menuRef.current || !orderedOptions.length) return;
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      chooseOption(optionId);
+      return;
+    }
     let nextIndex = index;
     if (event.key === "ArrowDown") nextIndex = (index + 1) % orderedOptions.length;
     else if (event.key === "ArrowUp") nextIndex = (index - 1 + orderedOptions.length) % orderedOptions.length;
@@ -509,12 +521,8 @@ export function RelationshipTypePicker({
             role="option"
             aria-selected={option.id === value}
             tabIndex={option.id === value ? 0 : -1}
-            onKeyDown={(event) => moveFocus(event, index)}
-            onClick={() => {
-              onChange(option.id);
-              setOpen(false);
-              triggerRef.current?.focus();
-            }}
+            onKeyDown={(event) => moveFocus(event, index, option.id)}
+            onClick={() => chooseOption(option.id)}
           >
             <span className="connection-quick-type-name">{option.name}</span>
             <RelationshipTypeStylePreview compact type={option} />

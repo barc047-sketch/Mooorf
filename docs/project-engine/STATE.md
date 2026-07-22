@@ -12,7 +12,7 @@
 | PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains Connections P1/P2, checkpointed R2B, the Owner-accepted R3A local checkpoint, and local-uncommitted R3B universal Style Panel plus advanced stroke work; no merge is authorized. |
+| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains pushed accepted R3B plus local-uncommitted R4A Relationship Manager Connections work; no merge is authorized. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
@@ -27,8 +27,9 @@
 | CONNECTIONS R2B.1B FOUNDATION | `6c41d25381ad7943f6b2fa3938520864bfdbbea8` is pushed to `origin/work/next-feature` by normal fast-forward. |
 | CONNECTIONS R2B.2 STATUS | LOCAL UNCOMMITTED / FINAL VISUAL CORRECTIONS APPLIED / PREVIEW AVAILABLE / WAITING OWNER QA. |
 | CONNECTIONS R3A STATUS | OWNER QA PASSED / LOCAL CHECKPOINT `5f5e178` / NOT PUSHED. |
-| CONNECTIONS R3B STATUS | LOCAL UNCOMMITTED / SCREEN-SPACE STYLE + ENTER APPLY COMPLETE / PREVIEW AVAILABLE / WAITING OWNER QA. |
-| NEXT AUTHORITY | Owner visual and interaction QA for R3B only. Finalization, push, merge and branch cleanup each require separate explicit authority. |
+| CONNECTIONS R3B STATUS | OWNER ACCEPTED / PUSHED at `e9f9219`; no merge is authorized. |
+| CONNECTIONS R4A STATUS | LOCAL UNCOMMITTED / CONNECTIONS TAB COMPLETE / PREVIEW AVAILABLE / WAITING OWNER QA. |
+| NEXT AUTHORITY | Owner visual and interaction QA for R4A only. Commit, push, merge and branch cleanup each require separate explicit authority. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -146,6 +147,18 @@
 - eligible Style Panel Enter applies through the same one-transaction command as the button after pending range values flush; menus/options, buttons, multiline/contenteditable surfaces, repeats, modifiers, prevented events and IME composition retain native ownership, with a compact `↵` Apply hint;
 - annotation appearance remains visibly deferred until its later canonical schema; R5 retains Auto/Center, Cardinal 4, Horizontal 2 and Vertical 2 port layouts plus the other listed Connection settings; no Canvas annotation, CONNECTIONS-tab, advanced-port, export, Matrix, Table, Classic or production-build work occurred.
 
+### Connections R4A — OWNER-PASSED / CORRECTION WAITING OWNER QA
+
+- the existing registry-owned Relationship Manager now replaces its CONNECTIONS placeholder with a canonical Connection projection; TYPES remains the accepted R3A library and settings/style owners;
+- `src/domain/connections/selectors.ts` owns a pure reusable filter model for normalized query, dynamic Relationship Type, Active/Inactive and inherited/visual/annotation override modes, preserving canonical order and hidden selected IDs;
+- the bounded Connections tab uses an internal fixed-row overscan window, compact glass rows, endpoint/type metadata, resolved local style previews, enabled state, icon-first override indicators and Locate actions;
+- Manager row, Shift-click, checkbox and filtered select-all interactions reuse the central `selectedConnectionIds` owner; bulk Change Type and Delete reuse existing atomic history commands;
+- `locateConnection` returns Table to Canvas and fits the existing camera around canonical endpoint Cells without persisting geometry or creating history; global Connections visibility remains distinct from enabled state;
+- exactly one selected Relationship Type exposes icon-first Duplicate, Copy Style, Paste Style and Edit Style actions; duplication creates a project type with unique identity/metadata, while Copy/Paste reuse the existing source-agnostic visual clipboard for Type↔Connection compatibility;
+- icon-focused plain Enter now reaches the same canonical Connection Studio Apply command, latest field values settle before the queued Apply, and open listboxes select without prematurely applying the Studio session;
+- Inspector presentation now prioritizes selected Connection(s), then the existing canonical Connection mode, then normal Cell selection; a no-selection mode state shows the current authoring Relationship Type without adding another mode or selection owner;
+- focused R4A/Manager/shared-selection/lifecycle contracts passed 38/38, `npx --no-install tsc -b --pretty false` passed, and `git diff --check` passed. No browser automation, production build, commit or R4A push occurred.
+
 ## Verification disposition
 
 Correction 2 passed its focused correction contracts, `npx tsc -b --pretty false`, the final diff check, and exactly one production build. Codex browser checks were recorded at 1440×900 and 1280×800; Owner visual/interaction QA remains the active gate. The baseline Owner-QA failures were recorded before repair: Flag lost stable callout behaviour, Ring changed identity at low zoom, inside text overflowed, Membrane distorted across zoom, and the compact Inspector/Display lacked the requested controls.
@@ -162,10 +175,14 @@ Connections R2B.2 final visual correction passed 40/40 focused Connection presen
 
 Connections R3A initially passed 60/60 focused and affected contracts. The Owner-QA picker/bulk correction then passed 63/63 affected Relationship Type, Manager, picker, Inspector, canonical delete and history contracts followed by `npx tsc -b --pretty false`, tracked/untracked whitespace checks and an HTTP 200 response from the existing preview at `http://127.0.0.1:5173/`. Owner QA passed, and the exact accepted scope is protected by local-only checkpoint `5f5e178e4de36c8ab8b1fa03d5b014b6e0b47878`; no push occurred.
 
-Connections R3B real zoom mode and visible toggle correction passed 88/88 affected final-render, transform, procedural, marker, Manager, persistence, live-draft, hit-testing, history and keyboard contracts, followed by TypeScript, tracked/untracked whitespace checks and final scope review. The existing local preview returned HTTP 200 at `http://127.0.0.1:5173/`. Per task boundary, no browser automation or production build ran; visual and interaction judgement remains Owner QA.
+Connections R3B real zoom mode and visible toggle correction passed 88/88 affected final-render, transform, procedural, marker, Manager, persistence, live-draft, hit-testing, history and keyboard contracts, followed by TypeScript, tracked/untracked whitespace checks and final scope review. The accepted local checkpoint was pushed normally to `origin/work/next-feature` at `e9f9219524e2f4721670151340456a7e92bfab77`; `main` remains untouched.
+
+Connections R4A Type duplication/clipboard correction passed 63/63 focused Manager, Relationship Type, style, history and shared-selection contracts, followed by `npx --no-install tsc -b --pretty false` and `git diff --check`. Per task boundary, no browser automation or production build ran; visual and interaction judgement remains Owner QA.
+
+Connections R4A Enter/Inspector correction passed 46/46 focused Style Panel, picker, Inspector, authoring, Manager and lifecycle contracts. Development-browser QA at `http://127.0.0.1:5173/` verified icon-focused Enter Apply persistence, listbox Enter select-only ownership, one-step Undo, C-mode suppression of Cell Inspector, selected-Connection priority and Cell restoration after mode exit. No production build, commit or push occurred.
 
 ## Current gate
 
-R3B REAL ZOOM MODE + VISIBLE TOGGLE — WAITING OWNER QA
+R4A OWNER-PASSED — ENTER APPLY + CONNECTION MODE INSPECTOR CORRECTION WAITING OWNER QA
 
-`main` remains untouched. R3B finalization, push, merge and branch cleanup are not authorized.
+`main` remains untouched. R4A commit, push, merge and branch cleanup are not authorized.

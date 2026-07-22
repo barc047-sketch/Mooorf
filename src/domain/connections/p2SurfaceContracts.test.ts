@@ -41,8 +41,9 @@ test("Manager reuses the canonical Relationship Type library and leaves Connecti
   assert.match(widget, /searchRelationshipTypes/);
   assert.match(widget, />TYPES</);
   assert.match(widget, />CONNECTIONS</);
-  assert.match(widget, /Connection management arrives in the next stage/);
-  assert.doesNotMatch(widget, /CONNECTION_SEMANTIC_TYPES|filterConnections|Existing Connections|Connect endpoints/);
+  assert.match(widget, /ConnectionManagementTab/);
+  assert.match(widget, /filterConnections/);
+  assert.doesNotMatch(widget, /CONNECTION_SEMANTIC_TYPES|Connect endpoints/);
   assert.doesNotMatch(widget, /useLab\(\(state\) => state\)/, "widget must not subscribe to the full store");
 });
 
@@ -171,6 +172,20 @@ test("the one production Inspector keeps Connection editing compact, dynamic, an
   assert.doesNotMatch(inspector, /CONNECTION_SEMANTIC_TYPES/);
   assert.doesNotMatch(inspector, /CONNECTION_DIRECTIONS|CONNECTION_REQUIREMENTS|CONNECTION_STRENGTHS|CONNECTION_PRIORITIES/);
   assert.doesNotMatch(inspector, /Connection notes|Select endpoints|Clear selection|Morph Bridge/);
+});
+
+test("Connection mode owns Inspector presentation without replacing canonical selection", () => {
+  const inspector = source("../../ui/widgets/InspectorWidget.tsx");
+  assert.match(inspector, /function ConnectionModeInspector/);
+  assert.match(inspector, /connectionModeActive/);
+  assert.match(inspector, /Connection Mode Active/);
+  assert.match(inspector, /Draw from a Cell\/port to create a Connection\./);
+  assert.match(inspector, /ConnectionModeInspector[\s\S]*RelationshipTypeStylePreview/);
+  assert.match(
+    inspector,
+    /selectedConnectionIds\.length > 1[\s\S]*connectionId[\s\S]*ConnectionInspector[\s\S]*connectionModeActive[\s\S]*ConnectionModeInspector[\s\S]*CellInspector/,
+    "selected Connections win first, then Connection mode, then normal Cell presentation",
+  );
 });
 
 test("Inspector consumes the shared selectable Relationship Type library including active project types", async () => {

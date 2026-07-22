@@ -346,6 +346,12 @@ export const copyResolvedConnectionStyle = (
   projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
 ): ConnectionStyleClipboard => {
   const resolved = resolveConnectionStyle(connection, styles, projectRelationshipTypes);
+  return copyResolvedStyle(resolved);
+};
+
+export const copyResolvedStyle = (
+  resolved: ResolvedConnectionStyle,
+): ConnectionStyleClipboard => {
   return {
     geometryId: resolved.geometryId,
     strokePatternId: resolved.strokePatternId,
@@ -356,6 +362,22 @@ export const copyResolvedConnectionStyle = (
     appearance: cloneAppearance(resolved.appearance),
   };
 };
+
+/** Applies the shared resolved visual clipboard to a Type default while
+ * retaining target-only label and anchor defaults. */
+export const pasteConnectionStyleToResolvedStyle = (
+  clipboard: ConnectionStyleClipboard,
+  target: ResolvedConnectionStyle,
+): ResolvedConnectionStyle => ({
+  ...target,
+  geometryId: clipboard.geometryId,
+  strokePatternId: clipboard.strokePatternId,
+  lineCap: clipboard.lineCap,
+  lineJoin: clipboard.lineJoin,
+  startMarkerId: clipboard.startMarkerId,
+  endMarkerId: clipboard.endMarkerId,
+  appearance: { ...target.appearance, ...clipboard.appearance },
+});
 
 /** Rebase a copied resolved appearance onto the target Relationship Type.
  * Only differing appearance values become local overrides; excluded target

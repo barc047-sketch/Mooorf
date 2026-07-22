@@ -446,6 +446,44 @@ function ConnectionMultiInspector({ count }: { count: number }) {
   );
 }
 
+function ConnectionModeInspector() {
+  const typeId = useLab((state) => state.connectionModeTypeId);
+  const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
+  const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
+  const relationshipType = resolveRelationshipType(typeId, projectRelationshipTypes, connectionStyles);
+  const style = resolveRelationshipTypeStylePreview(
+    relationshipType.id,
+    relationshipType.visualDefaults,
+    connectionStylePreview,
+  );
+
+  return (
+    <div className="m1-inspector connection-inspector">
+      <div className="m1-context">
+        <span className="m1-signal" data-selected="true" />
+        <div>
+          <small>CONNECTION</small>
+          <strong>Connection Mode Active</strong>
+        </div>
+      </div>
+      <div className="m1-pane">
+        <section className="m1-section">
+          <p className="m1-empty-note">Draw from a Cell/port to create a Connection.</p>
+        </section>
+        <section className="m1-section">
+          <h3>TYPE</h3>
+          <RelationshipTypeStylePreview type={{
+            ...relationshipType,
+            visualDefaults: style,
+          }} />
+          <p className="connection-style-origin">{relationshipType.name}</p>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 function CellInspector() {
   const [tab, setTab] = useState<TabId>("content");
   const spaces = useLab((state) => state.appearancePreview ?? state.spaces);
@@ -609,11 +647,12 @@ function CellInspector() {
 export default function InspectorWidget() {
   const selectedConnectionIds = useLab((state) => state.selectedConnectionIds);
   const primarySelectedConnectionId = useLab((state) => state.primarySelectedConnectionId);
+  const connectionModeActive = useLab((state) => state.connectionModeActive);
   if (selectedConnectionIds.length > 1) {
     return <ConnectionMultiInspector count={selectedConnectionIds.length} />;
   }
   const connectionId = primarySelectedConnectionId ?? selectedConnectionIds[0] ?? null;
-  return connectionId
-    ? <ConnectionInspector connectionId={connectionId} />
-    : <CellInspector />;
+  if (connectionId) return <ConnectionInspector connectionId={connectionId} />;
+  if (connectionModeActive) return <ConnectionModeInspector />;
+  return <CellInspector />;
 }

@@ -108,6 +108,7 @@ function VisualOption<T extends string>({
   return <button
     type="button"
     className="connection-visual-option"
+    data-connection-style-control="true"
     data-active={active ? "true" : undefined}
     aria-pressed={active}
     aria-label={label}
@@ -213,7 +214,7 @@ export default function ConnectionStudioWidget() {
     }) !== "apply") return;
     event.preventDefault();
     event.stopPropagation();
-    apply();
+    queueMicrotask(apply);
   };
 
   return <div className="connection-studio-shell" onKeyDown={handleEnterApply}>

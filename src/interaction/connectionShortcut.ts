@@ -83,6 +83,7 @@ export function shouldHandleConnectionEscape(event: KeyboardEvent, modeActive: b
 
 export type ConnectionStyleEnterTargetKind =
   | "surface"
+  | "style-control"
   | "number-input"
   | "range-input"
   | "single-line-input"
@@ -110,6 +111,7 @@ export const connectionStyleEnterTargetKind = (
   }
   if (element.closest?.("textarea, [role='textbox'][aria-multiline='true']")) return "multiline";
   if (element.closest?.("[role='option'], [role='menuitem'], [role='menuitemradio'], option")) return "option";
+  if (element.closest?.("[data-connection-style-control='true']")) return "style-control";
   if (element.closest?.("button, [role='button']")) return "button";
 
   const input = element.closest?.("input") as HTMLInputElement | null | undefined;
@@ -157,6 +159,7 @@ export const resolveConnectionStyleEnterAction = (
     || input.shiftKey
   ) return "preserve";
   return input.targetKind === "surface"
+    || input.targetKind === "style-control"
     || input.targetKind === "number-input"
     || input.targetKind === "range-input"
     || input.targetKind === "single-line-input"

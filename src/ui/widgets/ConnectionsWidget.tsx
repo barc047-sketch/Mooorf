@@ -1,8 +1,13 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
   Archive,
+  Clipboard,
   ChevronDown,
   ChevronRight,
+  Copy,
+  Crosshair,
+  EyeOff,
+  FileText,
   Maximize2,
   Monitor,
   Pencil,
@@ -10,19 +15,31 @@ import {
   RotateCcw,
   Search,
   Settings2,
+  SlidersHorizontal,
   Trash2,
+  Type,
 } from "lucide-react";
+import type { Connection } from "../../domain/graph/types";
 import {
   getAllRelationshipTypes,
   getRelationshipTypeMetadataError,
   getRelationshipTypeUsageCount,
   getSelectableRelationshipTypes,
+  resolveRelationshipType,
   searchRelationshipTypes,
   type RelationshipTypeDefinition,
   type RelationshipTypeMetadataInput,
 } from "../../domain/connections/relationshipTypes";
-import { getConnectionIndex } from "../../domain/connections/selectors";
-import { resolveRelationshipTypeStylePreview } from "../../domain/connections/styles";
+import { resolveConnectionAnnotation } from "../../domain/connections/annotations";
+import {
+  defaultConnectionFilterState,
+  filterConnections,
+  getConnectionIndex,
+  orderedConnectionRange,
+  type ConnectionFilterMetadata,
+  type ConnectionFilterState,
+} from "../../domain/connections/selectors";
+import { resolveConnectionStylePreview, resolveRelationshipTypeStylePreview, type ResolvedConnectionStyle } from "../../domain/connections/styles";
 import { useLab } from "../../state/store";
 import {
   recordRelationshipTypeUse,
@@ -106,10 +123,255 @@ function RelationshipTypeMetadataEditor({
   );
 }
 
+const CONNECTION_ROW_HEIGHT = 64;
+const CONNECTION_OVERSCAN = 8;
+
+type ConnectionRowModel = {
+  connection: Connection;
+  sourceName: string;
+  targetName: string;
+  type: RelationshipTypeDefinition;
+  style: ResolvedConnectionStyle;
+  title: string;
+  body: string;
+  hasVisualOverride: boolean;
+  hasAnnotationOverride: boolean;
+};
+
+function ConnectionManagementTab() {
+  const connections = useLab((state) => state.connections);
+  const spaces = useLab((state) => state.spaces);
+  const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
+  const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
+  const selectedConnectionIds = useLab((state) => state.selectedConnectionIds);
+  const selectConnection = useLab((state) => state.selectConnection);
+  const locateConnection = useLab((state) => state.locateConnection);
+  const clearConnectionSelection = useLab((state) => state.clearConnectionSelection);
+  const updateSelectedConnectionTypes = useLab((state) => state.updateSelectedConnectionTypes);
+  const deleteSelectedConnections = useLab((state) => state.deleteSelectedConnections);
+
+  const [filters, setFilters] = useState<ConnectionFilterState>(defaultConnectionFilterState);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [selectionAnchorConnectionId, setSelectionAnchorConnectionId] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const selectedSet = useMemo(() => new Set(selectedConnectionIds), [selectedConnectionIds]);
+  const typeLibrary = useMemo(
+    () => getAllRelationshipTypes(projectRelationshipTypes, connectionStyles),
+    [connectionStyles, projectRelationshipTypes],
+  );
+  const typeById = useMemo(
+    () => new Map(typeLibrary.map((type) => [type.id, type] as const)),
+    [typeLibrary],
+  );
+  const spaceById = useMemo(
+    () => new Map(spaces.map((space) => [space.id, space] as const)),
+    [spaces],
+  );
+  const rows = useMemo<ConnectionRowModel[]>(() => connections.map((connection) => {
+    const type = typeById.get(connection.semantic.typeId)
+      ?? resolveRelationshipType(connection.semantic.typeId, projectRelationshipTypes, connectionStyles);
+    const annotation = resolveConnectionAnnotation(connection, type);
+    const style = resolveConnectionStylePreview(connection, connectionStyles, projectRelationshipTypes, connectionStylePreview);
+    return {
+      connection,
+      sourceName: spaceById.get(connection.fromSpaceId)?.name ?? "Missing Cell",
+      targetName: spaceById.get(connection.toSpaceId)?.name ?? "Missing Cell",
+      type,
+      style,
+      title: annotation.title.text,
+      body: annotation.body.text,
+      hasVisualOverride: Boolean(connection.visual && Object.keys(connection.visual).length > 0),
+      hasAnnotationOverride: Boolean(connection.annotation && Object.keys(connection.annotation).length > 0),
+    };
+  }), [connectionStylePreview, connectionStyles, connections, projectRelationshipTypes, spaceById, typeById]);
+  const rowById = useMemo(() => new Map(rows.map((row) => [row.connection.id, row] as const)), [rows]);
+  const filteredConnections = useMemo(() => filterConnections(
+    connections,
+    filters,
+    (connection): ConnectionFilterMetadata => {
+      const row = rowById.get(connection.id);
+      return row ? {
+        sourceName: row.sourceName,
+        targetName: row.targetName,
+        typeName: row.type.name,
+        typeCode: row.type.shortCode,
+        title: row.title,
+        body: row.body,
+        hasVisualOverride: row.hasVisualOverride,
+        hasAnnotationOverride: row.hasAnnotationOverride,
+      } : {
+        sourceName: "",
+        targetName: "",
+        typeName: "",
+        typeCode: "",
+        title: "",
+        body: "",
+        hasVisualOverride: false,
+        hasAnnotationOverride: false,
+      };
+    },
+  ), [connections, filters, rowById]);
+
+  useEffect(() => {
+    setScrollTop(0);
+    if (listRef.current) listRef.current.scrollTop = 0;
+  }, [filters]);
+
+  const visibleStart = Math.max(0, Math.floor(scrollTop / CONNECTION_ROW_HEIGHT) - CONNECTION_OVERSCAN);
+  const visibleEnd = Math.min(
+    filteredConnections.length,
+    Math.ceil((scrollTop + (listRef.current?.clientHeight ?? 420)) / CONNECTION_ROW_HEIGHT) + CONNECTION_OVERSCAN,
+  );
+  const visibleConnections = filteredConnections.slice(visibleStart, visibleEnd);
+  const selectedVisibleCount = filteredConnections.reduce((count, connection) => count + (selectedSet.has(connection.id) ? 1 : 0), 0);
+  const allVisibleSelected = filteredConnections.length > 0 && selectedVisibleCount === filteredConnections.length;
+  const filteredConnectionIds = useMemo(() => filteredConnections.map((connection) => connection.id), [filteredConnections]);
+
+  useEffect(() => {
+    if (selectionAnchorConnectionId && !filteredConnectionIds.includes(selectionAnchorConnectionId)) {
+      setSelectionAnchorConnectionId(null);
+    }
+  }, [filteredConnectionIds, selectionAnchorConnectionId]);
+
+  const resetFilters = () => setFilters(defaultConnectionFilterState());
+  const selectVisibleRange = (targetId: string) => {
+    const range = orderedConnectionRange(filteredConnectionIds, selectionAnchorConnectionId, targetId);
+    if (!range.length) return;
+    selectConnection(range[0] ?? null);
+    range.slice(1).forEach((id) => selectConnection(id, true));
+  };
+  const selectConnectionFromList = (id: string, event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }) => {
+    if (event.shiftKey && selectionAnchorConnectionId && filteredConnectionIds.includes(selectionAnchorConnectionId)) {
+      selectVisibleRange(id);
+      return;
+    }
+    selectConnection(id, event.metaKey || event.ctrlKey);
+    setSelectionAnchorConnectionId(id);
+  };
+  const toggleVisibleSelection = () => {
+    if (allVisibleSelected) {
+      filteredConnections.forEach((connection) => {
+        if (selectedSet.has(connection.id)) selectConnection(connection.id, true);
+      });
+      setSelectionAnchorConnectionId(null);
+      return;
+    }
+    filteredConnections.forEach((connection) => {
+      if (!selectedSet.has(connection.id)) selectConnection(connection.id, true);
+    });
+    setSelectionAnchorConnectionId(null);
+  };
+  const updateFilter = <K extends keyof ConnectionFilterState>(key: K, value: ConnectionFilterState[K]) => {
+    setFilters((current) => ({ ...current, [key]: value }));
+  };
+
+  return (
+    <section
+      className="relationship-manager-connections"
+      role="tabpanel"
+      aria-label="Connection management"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        const target = event.target as HTMLElement;
+        const editable = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target.isContentEditable;
+        if ((event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === "a" && !editable) {
+          event.preventDefault();
+          clearConnectionSelection();
+          filteredConnectionIds.forEach((id, index) => selectConnection(id, index > 0));
+          setSelectionAnchorConnectionId(null);
+        }
+      }}
+    >
+      <div className="connection-management-search relationship-manager-search">
+        <Search size={13} strokeWidth={1.5} />
+        <input
+          type="search"
+          value={filters.query}
+          aria-label="Search Connections"
+          placeholder="Search Connections..."
+          onChange={(event) => updateFilter("query", event.target.value)}
+        />
+        <span>{filteredConnections.length}</span>
+      </div>
+      <div className="connection-management-filters" aria-label="Connection filters">
+        <label><span>Type</span><select aria-label="Filter by Relationship Type" value={filters.relationshipTypeId} onChange={(event) => updateFilter("relationshipTypeId", event.target.value)}>
+          <option value="all">All</option>
+          {typeLibrary.filter((type) => !type.archived).map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
+        </select></label>
+        <label><span>Active</span><select aria-label="Filter by Active state" value={filters.enabled} onChange={(event) => updateFilter("enabled", event.target.value as ConnectionFilterState["enabled"])}>
+          <option value="all">All</option><option value="active">Active</option><option value="inactive">Inactive</option>
+        </select></label>
+        <label><span>Overrides</span><select aria-label="Filter by Connection overrides" value={filters.overrideMode} onChange={(event) => updateFilter("overrideMode", event.target.value as ConnectionFilterState["overrideMode"])}>
+          <option value="all">All</option><option value="inherited">Inherited</option><option value="visual">Visual</option><option value="annotation">Annotation</option>
+        </select></label>
+        {(filters.query || filters.relationshipTypeId !== "all" || filters.enabled !== "all" || filters.overrideMode !== "all") && <button type="button" className="connection-filter-reset" onClick={resetFilters}>Reset</button>}
+      </div>
+      {selectedConnectionIds.length > 0 && <div className="connection-selection-toolbar" role="toolbar" aria-label="Selected Connection actions">
+        <strong>{selectedConnectionIds.length} Connection{selectedConnectionIds.length === 1 ? "" : "s"} selected</strong>
+        <RelationshipTypePicker
+          direction="down"
+          label="Change selected Connections Relationship Type"
+          options={typeLibrary.filter((type) => !type.archived)}
+          value={selectedConnectionIds.length === 1 ? rowById.get(selectedConnectionIds[0] ?? "")?.connection.semantic.typeId ?? "custom" : ""}
+          placeholder="Change Type"
+          onChange={(typeId) => { updateSelectedConnectionTypes(typeId); recordRelationshipTypeUse(typeId); }}
+        />
+        <button type="button" className="connection-delete-action" onClick={deleteSelectedConnections}><Trash2 size={12} /> Delete {selectedConnectionIds.length} Connection{selectedConnectionIds.length === 1 ? "" : "s"}</button>
+      </div>}
+      <div className="connection-list-toolbar">
+        <label className="connection-select-all"><input type="checkbox" checked={allVisibleSelected} onChange={toggleVisibleSelection} aria-label="Select all visible Connections" /><span>Select all visible</span></label>
+        <span>{connections.length} Connection{connections.length === 1 ? "" : "s"}{selectedVisibleCount > 0 ? ` · ${selectedVisibleCount} visible selected` : ""}</span>
+      </div>
+      <div
+        ref={listRef}
+        className="connection-management-list"
+        role="list"
+        aria-label="Canonical Connections"
+        onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+      >
+        {filteredConnections.length > 0 && <div style={{ height: visibleStart * CONNECTION_ROW_HEIGHT, pointerEvents: "none" }} aria-hidden="true" />}
+        {visibleConnections.map((connection) => {
+          const row = rowById.get(connection.id)!;
+          const selected = selectedSet.has(connection.id);
+          return <article key={connection.id} role="listitem" className="connection-management-row" data-selected={selected ? "true" : undefined}>
+            <input
+              type="checkbox"
+              checked={selected}
+              aria-label={`Select ${row.sourceName} to ${row.targetName}`}
+              onChange={() => undefined}
+              onClick={(event) => { event.stopPropagation(); selectConnectionFromList(connection.id, event); }}
+            />
+            <button
+              type="button"
+              className="connection-management-row-main"
+              onClick={(event) => selectConnectionFromList(connection.id, event)}
+              aria-pressed={selected}
+            >
+              <span className="connection-management-route"><strong>{row.sourceName} → {row.targetName}</strong><small>{row.type.name}{!connection.enabled ? " · Inactive" : ""}</small></span>
+              <RelationshipTypeStylePreview type={{ id: connection.id, name: row.type.name, visualDefaults: row.style }} />
+              <span className="connection-management-indicators" aria-label="Connection overrides">
+                {row.hasVisualOverride && <span title="Local visual style override" aria-label="Local visual style override"><SlidersHorizontal size={11} /></span>}
+                {row.hasAnnotationOverride && connection.annotation?.title && <span title="Title override" aria-label="Title override"><Type size={11} /></span>}
+                {row.hasAnnotationOverride && connection.annotation?.body && <span title="Body override" aria-label="Body override"><FileText size={11} /></span>}
+                {!connection.enabled && <span title="Inactive Connection" aria-label="Inactive Connection"><EyeOff size={11} /></span>}
+              </span>
+            </button>
+            <button type="button" className="connection-locate-action" title="Locate on Canvas" aria-label={`Locate ${row.sourceName} to ${row.targetName} on Canvas`} onClick={() => { selectConnection(connection.id); setSelectionAnchorConnectionId(connection.id); locateConnection(connection.id); }}><Crosshair size={13} /></button>
+          </article>;
+        })}
+        {filteredConnections.length > 0 && <div style={{ height: Math.max(0, (filteredConnections.length - visibleEnd) * CONNECTION_ROW_HEIGHT), pointerEvents: "none" }} aria-hidden="true" />}
+        {filteredConnections.length === 0 && <div className="connection-management-empty"><strong>{connections.length === 0 ? "No Connections yet." : "No Connections match these filters."}</strong><span>{connections.length === 0 ? "Use C or the Quick Rail to create one." : "Reset filters to restore the full list."}</span>{connections.length > 0 && <button type="button" className="m1-btn" onClick={resetFilters}>Reset filters</button>}</div>}
+      </div>
+    </section>
+  );
+}
+
 export default function ConnectionsWidget() {
   const [tab, setTab] = useState<ManagerTab>("types");
   const [query, setQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editor, setEditor] = useState<MetadataEditorState | null>(null);
@@ -123,12 +385,16 @@ export default function ConnectionsWidget() {
   const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
   const connectionVisualScaleMode = useLab((state) => state.settings.connectionView.visualScaleMode);
   const createProjectRelationshipType = useLab((state) => state.createProjectRelationshipType);
+  const duplicateProjectRelationshipType = useLab((state) => state.duplicateProjectRelationshipType);
   const updateProjectRelationshipTypeMetadata = useLab((state) => state.updateProjectRelationshipTypeMetadata);
   const setProjectRelationshipTypeArchived = useLab((state) => state.setProjectRelationshipTypeArchived);
   const deleteProjectRelationshipType = useLab((state) => state.deleteProjectRelationshipType);
   const resetFactoryRelationshipTypeDefaults = useLab((state) => state.resetFactoryRelationshipTypeDefaults);
   const setConnectionVisualScaleMode = useLab((state) => state.setConnectionVisualScaleMode);
   const openConnectionStyleEditor = useLab((state) => state.openConnectionStyleEditor);
+  const connectionStyleClipboard = useLab((state) => state.connectionStyleClipboard);
+  const copyRelationshipTypeStyle = useLab((state) => state.copyRelationshipTypeStyle);
+  const pasteConnectionStyleToRelationshipType = useLab((state) => state.pasteConnectionStyleToRelationshipType);
 
   const connectionIndex = useMemo(() => getConnectionIndex(connections), [connections]);
   const allTypes = useMemo(
@@ -228,15 +494,45 @@ export default function ConnectionsWidget() {
     setActionMessage(pending.operation === "archive" ? "Project Relationship Type archived." : "Project Relationship Type deleted.");
   };
 
+  const duplicateType = (type: RelationshipTypeDefinition) => {
+    const id = duplicateProjectRelationshipType(type.id);
+    if (!id) {
+      setActionMessage("Relationship Type could not be duplicated.");
+      return;
+    }
+    setSelectedTypeId(id);
+    setExpandedId(id);
+    setActionMessage("Relationship Type duplicated as a project type.");
+  };
+
+  const isEditableTypeTarget = (target: EventTarget | null): boolean => {
+    const element = target as HTMLElement | null;
+    return element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || Boolean(element?.isContentEditable);
+  };
+
+  const handleTypesKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (!selectedTypeId || isEditableTypeTarget(event.target)) return;
+    if ((event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === "c") {
+      event.preventDefault();
+      copyRelationshipTypeStyle(selectedTypeId);
+      setActionMessage("Relationship Type style copied.");
+    } else if ((event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === "v" && connectionStyleClipboard) {
+      event.preventDefault();
+      if (pasteConnectionStyleToRelationshipType(selectedTypeId)) setActionMessage("Relationship Type style pasted.");
+    }
+  };
+
   const renderRow = (type: RelationshipTypeDefinition) => {
     const usageCount = getRelationshipTypeUsageCount(connectionIndex, type.id);
     const expanded = expandedId === type.id;
+    const selected = selectedTypeId === type.id;
     const editing = editor?.mode === "edit" && editor.typeId === type.id;
     const pendingHere = pending?.typeId === type.id;
     return (
       <article
         key={type.id}
         className="relationship-type-row"
+        data-selected={selected ? "true" : undefined}
         data-expanded={expanded ? "true" : undefined}
         data-archived={type.archived ? "true" : undefined}
         role="listitem"
@@ -247,6 +543,7 @@ export default function ConnectionsWidget() {
             className="relationship-type-disclosure"
             aria-expanded={expanded}
             onClick={() => {
+              setSelectedTypeId(type.id);
               setExpandedId(expanded ? null : type.id);
               setEditor(null);
               setPending(null);
@@ -263,7 +560,10 @@ export default function ConnectionsWidget() {
           <button
             type="button"
             className="relationship-type-edit-action"
-            onClick={() => type.origin === "project" ? openEdit(type) : setExpandedId(expanded ? null : type.id)}
+            onClick={() => {
+              setSelectedTypeId(type.id);
+              type.origin === "project" ? openEdit(type) : setExpandedId(expanded ? null : type.id);
+            }}
           >
             {type.origin === "project" ? <Pencil size={11} /> : null}
             {type.origin === "project" ? "Edit" : "Details"}
@@ -287,6 +587,11 @@ export default function ConnectionsWidget() {
             {type.id === "custom" && <p className="relationship-type-protection">Custom is permanent, always available, and cannot be archived or deleted.</p>}
             {type.origin === "factory" && type.id !== "custom" && <p className="relationship-type-protection">Factory identity is protected. Visual defaults can be reset from Manager settings.</p>}
             <div className="relationship-type-row-actions">
+              {selected && <>
+                <button type="button" className="m1-btn" title="Duplicate Relationship Type" aria-label="Duplicate Relationship Type" onClick={() => duplicateType(type)}><Copy size={11} /> Duplicate</button>
+                <button type="button" className="m1-btn" title="Copy Relationship Type style" aria-label="Copy Relationship Type style" onClick={() => { copyRelationshipTypeStyle(type.id); setActionMessage("Relationship Type style copied."); }}><Clipboard size={11} /> Copy Style</button>
+                <button type="button" className="m1-btn" title="Paste visual style to Relationship Type" aria-label="Paste visual style to Relationship Type" disabled={!connectionStyleClipboard} onClick={() => { if (pasteConnectionStyleToRelationshipType(type.id)) setActionMessage("Relationship Type style pasted."); }}><Clipboard size={11} /> Paste Style</button>
+              </>}
               <button
                 type="button"
                 className="m1-btn"
@@ -388,7 +693,7 @@ export default function ConnectionsWidget() {
 
       {actionMessage && !pending && <p className="relationship-manager-status" role="status">{actionMessage}</p>}
 
-      {tab === "types" ? <section className="relationship-manager-types" role="tabpanel" aria-label="Relationship Types">
+      {tab === "types" ? <section className="relationship-manager-types" role="tabpanel" aria-label="Relationship Types" data-connection-shortcut="ignore" tabIndex={0} onKeyDown={handleTypesKeyDown}>
         <div className="relationship-manager-search">
           <Search size={13} strokeWidth={1.5} />
           <input
@@ -419,14 +724,7 @@ export default function ConnectionsWidget() {
             {showArchived && archivedTypes.map(renderRow)}
           </>}
         </div>
-      </section> : <section className="relationship-manager-placeholder" role="tabpanel" aria-label="Connection management">
-        <div>
-          <span>CONNECTIONS</span>
-          <h2>Connection management</h2>
-          <p>Connection management arrives in the next stage.</p>
-          <small>Search, filtering and bulk editing arrive in the next stage.</small>
-        </div>
-      </section>}
+      </section> : <ConnectionManagementTab />}
     </div>
   );
 }

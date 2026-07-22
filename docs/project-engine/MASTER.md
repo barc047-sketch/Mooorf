@@ -69,6 +69,7 @@ The current production editor still projects its live Canvas/Table subset throug
 - Labels default to Auto Contrast and must remain readable across themes and materials.
 - Existing WidgetFrame lifecycle is reused; opening/focusing does not create duplicate widgets.
 - Visual references guide proportion and hierarchy only; never copy proprietary assets, branding, or literal layouts.
+- Ordered list/table/tree surfaces use standard desktop selection semantics: click establishes a UI-only anchor, Shift-click selects the contiguous current visible range, Cmd/Ctrl-click toggles one item, and Cmd/Ctrl+A selects the active visible surface outside editable controls. Spatial Canvas surfaces retain additive/toggle Shift behavior and never invent linear ranges.
 
 ## Non-negotiable performance rules
 

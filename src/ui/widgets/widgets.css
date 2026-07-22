@@ -352,6 +352,36 @@
 .relationship-manager-placeholder h2 { margin: 7px 0 5px; color: var(--ink); font-size: 14px; font-weight: 620; }
 .relationship-manager-placeholder p { margin: 0; color: var(--ink-soft); font-size: 9px; }
 .relationship-manager-placeholder small { display: block; margin-top: 5px; color: var(--fog); font-size: 7.5px; line-height: 1.4; }
+.relationship-manager-connections { display: flex; flex: 1; flex-direction: column; min-height: 0; gap: 7px; }
+.connection-management-search { margin-top: 1px; }
+.connection-management-filters { display: flex; align-items: end; gap: 5px; flex: none; min-height: 35px; }
+.connection-management-filters label { display: flex; align-items: center; gap: 4px; min-width: 0; color: var(--fog); font-size: 7px; letter-spacing: .06em; text-transform: uppercase; }
+.connection-management-filters select { max-width: 120px; min-height: 26px; padding: 0 5px; border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--glass-light) 30%, transparent); color: var(--ink-soft); font: inherit; font-size: 8px; text-transform: none; }
+.connection-filter-reset { min-height: 26px; padding: 0 7px; border: 1px solid color-mix(in srgb, var(--hairline) 48%, transparent); border-radius: 6px; background: transparent; color: var(--fog); font: inherit; font-size: 8px; cursor: pointer; }
+.connection-selection-toolbar { display: flex; align-items: center; gap: 7px; flex: none; min-height: 34px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--chrome-accent) 30%, var(--hairline)); border-radius: 7px; background: color-mix(in srgb, var(--chrome-accent) 8%, var(--glass-light)); }
+.connection-selection-toolbar strong { flex: 1; min-width: 0; color: var(--ink); font-size: 8px; font-weight: 650; }
+.connection-selection-toolbar .connection-quick-select-trigger { min-width: 110px; height: 25px; }
+.connection-delete-action { display: inline-flex; align-items: center; gap: 4px; min-height: 25px; padding: 0 7px; border: 1px solid color-mix(in srgb, #c85f5f 48%, var(--hairline)); border-radius: 6px; background: color-mix(in srgb, #8f2727 12%, transparent); color: var(--ink-soft); font: inherit; font-size: 8px; cursor: pointer; white-space: nowrap; }
+.connection-list-toolbar { display: flex; align-items: center; justify-content: space-between; flex: none; min-height: 25px; color: var(--fog); font-size: 7.5px; }
+.connection-select-all { display: inline-flex; align-items: center; gap: 5px; color: var(--ink-soft); cursor: pointer; }
+.connection-select-all input, .connection-management-row > input { accent-color: var(--chrome-accent); }
+.connection-management-list { display: block; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 0 2px 4px 0; scrollbar-width: thin; scrollbar-color: var(--hairline) transparent; }
+.connection-management-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) 28px; align-items: center; gap: 5px; min-height: 56px; padding: 4px 5px; border: 1px solid transparent; border-radius: 7px; }
+.connection-management-row:hover { background: color-mix(in srgb, var(--glass-light) 28%, transparent); }
+.connection-management-row[data-selected="true"] { border-color: color-mix(in srgb, var(--chrome-accent) 52%, var(--hairline)); background: color-mix(in srgb, var(--chrome-accent) 9%, var(--glass-light)); }
+.connection-management-row-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(100px, 30%) auto; align-items: center; gap: 8px; min-width: 0; min-height: 46px; padding: 3px 5px; border: 0; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.connection-management-route { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.connection-management-route strong { overflow: hidden; color: var(--ink); font-size: 9px; font-weight: 620; text-overflow: ellipsis; white-space: nowrap; }
+.connection-management-route small { overflow: hidden; color: var(--fog); font-size: 7.5px; text-overflow: ellipsis; white-space: nowrap; }
+.connection-management-row-main .relationship-type-preview { width: 100%; min-width: 70px; }
+.connection-management-indicators { display: inline-flex; align-items: center; gap: 5px; color: var(--fog); }
+.connection-management-indicators span { display: inline-grid; place-items: center; }
+.connection-locate-action { display: grid; place-items: center; width: 27px; height: 27px; padding: 0; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--fog); cursor: pointer; }
+.connection-locate-action:hover { border-color: var(--hairline); background: color-mix(in srgb, var(--glass-light) 40%, transparent); color: var(--ink); }
+.connection-management-empty { display: flex; min-height: 160px; flex-direction: column; align-items: center; justify-content: center; gap: 7px; padding: 24px; color: var(--fog); text-align: center; }
+.connection-management-empty strong { color: var(--ink-soft); font-size: 10px; font-weight: 620; }
+.connection-management-empty span { max-width: 250px; font-size: 8px; line-height: 1.4; }
+.connection-management-empty .m1-btn { margin-top: 3px; }
 .relationship-manager button:focus-visible,
 .relationship-manager input:focus-visible,
 .relationship-manager textarea:focus-visible { outline: 2px solid color-mix(in srgb, var(--ink) 52%, transparent); outline-offset: 1px; }

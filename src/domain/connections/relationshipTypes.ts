@@ -211,6 +211,33 @@ export const createProjectRelationshipType = (
   now = Date.now(),
 ): ProjectRelationshipType => buildProjectRelationshipType(input, existingTypes, styles, now, true);
 
+/** Duplicates any resolved Relationship Type as a new project type. Factory
+ * identity, usage and archive state are intentionally not part of the copy. */
+export const duplicateRelationshipType = (
+  source: RelationshipTypeDefinition,
+  existingTypes: readonly ProjectRelationshipType[],
+  styles: ProjectConnectionStyles,
+  now = Date.now(),
+): ProjectRelationshipType => {
+  const baseName = `${source.name} Copy`;
+  const baseCode = `${source.shortCode}C`.slice(0, 12);
+  for (let suffix = 1; suffix < 10_000; suffix += 1) {
+    const name = suffix === 1 ? baseName : `${baseName} ${suffix}`;
+    const suffixText = suffix === 1 ? "" : String(suffix);
+    const shortCode = `${baseCode.slice(0, 12 - suffixText.length)}${suffixText}`;
+    if (getRelationshipTypeMetadataError({ name, shortCode, description: source.description }, existingTypes)) continue;
+    return createProjectRelationshipType({
+      name,
+      shortCode,
+      description: source.description,
+      semanticDefaults: source.semanticDefaults,
+      visualDefaults: source.visualDefaults,
+      annotationDefaults: source.annotationDefaults,
+    }, existingTypes, styles, now + suffix - 1);
+  }
+  throw new Error("Could not generate a unique duplicated Relationship Type.");
+};
+
 export const updateProjectRelationshipTypeMetadata = (
   id: string,
   input: RelationshipTypeMetadataInput,

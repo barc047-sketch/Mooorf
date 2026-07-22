@@ -1,6 +1,80 @@
 import type { Connection } from "../graph/types";
 import { resolveConnectionSemanticType } from "./registry";
 
+export type ConnectionOverrideMode = "all" | "inherited" | "visual" | "annotation";
+
+export interface ConnectionFilterState {
+  query: string;
+  relationshipTypeId: string;
+  enabled: "all" | "active" | "inactive";
+  overrideMode: ConnectionOverrideMode;
+}
+
+export interface ConnectionFilterMetadata {
+  sourceName: string;
+  targetName: string;
+  typeName: string;
+  typeCode: string;
+  title: string;
+  body: string;
+  hasVisualOverride: boolean;
+  hasAnnotationOverride: boolean;
+}
+
+const normalizedQuery = (value: string): string => value.trim().toLocaleLowerCase();
+
+export const defaultConnectionFilterState = (): ConnectionFilterState => ({
+  query: "",
+  relationshipTypeId: "all",
+  enabled: "all",
+  overrideMode: "all",
+});
+
+/** Returns the inclusive visible-order range between two IDs. Hidden or
+ * unmounted records are irrelevant because callers pass the filtered model. */
+export const orderedConnectionRange = (
+  orderedIds: readonly string[],
+  anchorId: string | null,
+  targetId: string,
+): string[] => {
+  if (!anchorId) return [targetId];
+  const anchorIndex = orderedIds.indexOf(anchorId);
+  const targetIndex = orderedIds.indexOf(targetId);
+  if (anchorIndex < 0 || targetIndex < 0) return [targetId];
+  const start = Math.min(anchorIndex, targetIndex);
+  const end = Math.max(anchorIndex, targetIndex);
+  return orderedIds.slice(start, end + 1);
+};
+
+/** Pure projection filter. It preserves canonical input order and never mutates
+ * or persists Manager UI state. The metadata callback keeps this reusable for
+ * future Matrix/Table/export projections without duplicating Connection data. */
+export const filterConnections = (
+  connections: readonly Connection[],
+  filters: ConnectionFilterState,
+  metadataFor: (connection: Connection) => ConnectionFilterMetadata,
+): Connection[] => {
+  const query = normalizedQuery(filters.query);
+  return connections.filter((connection) => {
+    const metadata = metadataFor(connection);
+    if (filters.relationshipTypeId !== "all" && connection.semantic.typeId !== filters.relationshipTypeId) return false;
+    if (filters.enabled === "active" && !connection.enabled) return false;
+    if (filters.enabled === "inactive" && connection.enabled) return false;
+    if (filters.overrideMode === "inherited" && (metadata.hasVisualOverride || metadata.hasAnnotationOverride)) return false;
+    if (filters.overrideMode === "visual" && !metadata.hasVisualOverride) return false;
+    if (filters.overrideMode === "annotation" && !metadata.hasAnnotationOverride) return false;
+    if (!query) return true;
+    return [
+      metadata.sourceName,
+      metadata.targetName,
+      metadata.typeName,
+      metadata.typeCode,
+      metadata.title,
+      metadata.body,
+    ].some((value) => normalizedQuery(value).includes(query));
+  });
+};
+
 export interface ConnectionIndex {
   byId: ReadonlyMap<string, Connection>;
   byEndpoint: ReadonlyMap<string, readonly Connection[]>;

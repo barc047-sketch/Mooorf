@@ -48,7 +48,7 @@ const connection = (id: string, typeId: string, overrides: Partial<Connection> =
   ...overrides,
 });
 
-test("Relationship Manager exposes only the R3A shell, canonical Types library, and bounded long-list strategy", () => {
+test("Relationship Manager preserves the R3A Types shell while exposing the R4A Connections projection", () => {
   const widget = source("../../ui/widgets/ConnectionsWidget.tsx");
   const picker = source("../../ui/RelationshipTypePicker.tsx");
   const css = source("../../ui/widgets/widgets.css");
@@ -65,8 +65,10 @@ test("Relationship Manager exposes only the R3A shell, canonical Types library, 
   assert.match(picker, /visualDefaults/);
   assert.match(widget, /Add Relationship Type/);
   assert.match(widget, /Reset Factory Defaults/);
-  assert.match(widget, /Connection management arrives in the next stage/);
-  assert.doesNotMatch(widget, /filterConnections|Existing Connections|bulk selection|locate on Canvas/);
+  assert.match(widget, /filterConnections/);
+  assert.match(widget, /Select all visible Connections/);
+  assert.match(widget, /Locate .* on Canvas/);
+  assert.match(widget, /Delete .* Connection/);
   assert.doesNotMatch(widget, /width slider|opacity slider|marker editor|geometry editor/i);
   assert.match(css, /\.relationship-type-list\s*\{[^}]*overflow-y:\s*auto/s);
   assert.match(css, /\.relationship-type-row\s*\{[^}]*content-visibility:\s*auto/s);

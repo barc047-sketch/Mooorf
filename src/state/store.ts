@@ -119,6 +119,8 @@ import {
 import {
   cloneProjectRelationshipTypes,
   createProjectRelationshipType as buildProjectRelationshipType,
+  duplicateRelationshipType,
+  getAllRelationshipTypes,
   getRelationshipTypeMutationGuard,
   getRelationshipTypeUsageCount,
   getSelectableRelationshipTypes,
@@ -140,6 +142,8 @@ import {
   normalizeConnectionViewSettings,
   normalizeProjectConnectionStyles,
   pasteConnectionStyleVisual,
+  pasteConnectionStyleToResolvedStyle,
+  copyResolvedStyle,
   resolveConnectionStyle,
   updateProjectConnectionStyle,
   type ConnectionStyleClipboard,
@@ -394,6 +398,7 @@ interface LabState {
   zoomBy: (factor: number) => void;
   fitView: () => void;
   fitSelection: () => void;
+  locateConnection: (id: string) => boolean;
   resetView: () => void;
 
   addSpace: (partial?: Partial<SpaceCell>) => void;
@@ -450,6 +455,7 @@ interface LabState {
   deleteConnection: (id: string) => boolean;
   deleteSelectedConnections: () => number;
   createProjectRelationshipType: (input: CreateProjectRelationshipTypeInput) => string | null;
+  duplicateProjectRelationshipType: (id: string) => string | null;
   updateProjectRelationshipTypeMetadata: (id: string, input: RelationshipTypeMetadataInput) => boolean;
   setProjectRelationshipTypeArchived: (id: string, archived: boolean, reassignToTypeId?: string) => boolean;
   deleteProjectRelationshipType: (id: string, reassignToTypeId?: string) => boolean;
@@ -460,7 +466,9 @@ interface LabState {
   cancelConnectionStyleEditor: () => void;
   commitConnectionStyleEditor: (style?: ResolvedConnectionStyle | null) => boolean;
   copySelectedConnectionStyle: () => boolean;
+  copyRelationshipTypeStyle: (typeId: string) => boolean;
   pasteConnectionStyleToSelection: () => number;
+  pasteConnectionStyleToRelationshipType: (typeId: string) => boolean;
   updateConnectionTypeStyle: (
     typeId: keyof ProjectConnectionStyles,
     patch: ConnectionStylePatch,
@@ -1641,6 +1649,24 @@ export const useLab = create<LabState>((set, get) => ({
         : {};
     }),
 
+  locateConnection: (id) => {
+    let located = false;
+    set((s) => {
+      const connection = selectConnectionById(getConnectionIndex(s.connections), id);
+      if (!connection) return {};
+      const endpoints = s.spaces.filter((space) =>
+        space.id === connection.fromSpaceId || space.id === connection.toSpaceId,
+      );
+      if (!endpoints.length) return {};
+      located = true;
+      return {
+        view: "canvas",
+        camera: fitCamera(endpoints, window.innerWidth, window.innerHeight, 220),
+      };
+    });
+    return located;
+  },
+
   resetView: () => set({ camera: { ...DEFAULT_CAMERA } }),
 
   addSpace: (partial) =>
@@ -2782,6 +2808,33 @@ export const useLab = create<LabState>((set, get) => ({
     return createdId;
   },
 
+  duplicateProjectRelationshipType: (id) => {
+    let duplicatedId: string | null = null;
+    set((s) => {
+      try {
+        const before = cloneProjectRelationshipTypes(s.settings.projectRelationshipTypes);
+        const source = getAllRelationshipTypes(before, s.settings.connectionStyles).find((type) => type.id === id);
+        if (!source) return {};
+        const created = duplicateRelationshipType(source, before, s.settings.connectionStyles);
+        const after = [...before, created];
+        duplicatedId = created.id;
+        return {
+          settings: { ...s.settings, projectRelationshipTypes: after },
+          transformUndoStack: pushHistory(s.transformUndoStack, {
+            kind: "relationship-types",
+            before,
+            after: cloneProjectRelationshipTypes(after),
+            patches: [],
+          }),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return duplicatedId;
+  },
+
   updateProjectRelationshipTypeMetadata: (id, input) => {
     let changed = false;
     set((s) => {
@@ -3101,6 +3154,18 @@ export const useLab = create<LabState>((set, get) => ({
     return copied;
   },
 
+  copyRelationshipTypeStyle: (typeId) => {
+    let copied = false;
+    set((s) => {
+      const type = getAllRelationshipTypes(s.settings.projectRelationshipTypes, s.settings.connectionStyles)
+        .find((candidate) => candidate.id === typeId);
+      if (!type) return {};
+      copied = true;
+      return { connectionStyleClipboard: copyResolvedStyle(type.visualDefaults) };
+    });
+    return copied;
+  },
+
   pasteConnectionStyleToSelection: () => {
     let changed = 0;
     set((s) => {
@@ -3131,6 +3196,51 @@ export const useLab = create<LabState>((set, get) => ({
       return {
         connections,
         transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connections", patches }),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  pasteConnectionStyleToRelationshipType: (typeId) => {
+    let changed = false;
+    set((s) => {
+      const clipboard = s.connectionStyleClipboard;
+      if (!clipboard) return {};
+      const types = getAllRelationshipTypes(s.settings.projectRelationshipTypes, s.settings.connectionStyles);
+      const target = types.find((type) => type.id === typeId);
+      if (!target) return {};
+      if (target.origin === "project") {
+        const before = cloneProjectRelationshipTypes(s.settings.projectRelationshipTypes);
+        const after = before.map((type) => type.id === typeId
+          ? { ...type, visualDefaults: pasteConnectionStyleToResolvedStyle(clipboard, type.visualDefaults) }
+          : type);
+        if (JSON.stringify(before) === JSON.stringify(after)) return {};
+        changed = true;
+        return {
+          settings: { ...s.settings, projectRelationshipTypes: after },
+          transformUndoStack: pushHistory(s.transformUndoStack, {
+            kind: "relationship-types",
+            before,
+            after: cloneProjectRelationshipTypes(after),
+            patches: [],
+          }),
+          transformRedoStack: [],
+        };
+      }
+      if (!(target.id in s.settings.connectionStyles)) return {};
+      const before = cloneProjectConnectionStyles(s.settings.connectionStyles);
+      const after = updateProjectConnectionStyle(
+        before,
+        target.id as keyof ProjectConnectionStyles,
+        pasteConnectionStyleToResolvedStyle(clipboard, target.visualDefaults),
+      );
+      const patches = changedConnectionStylePatches(before, after);
+      if (!patches.length) return {};
+      changed = true;
+      return {
+        settings: { ...s.settings, connectionStyles: after },
+        transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connection-styles", patches }),
         transformRedoStack: [],
       };
     });

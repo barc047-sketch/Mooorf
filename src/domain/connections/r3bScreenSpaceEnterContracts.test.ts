@@ -248,6 +248,7 @@ test("Enter Apply policy preserves menus, native buttons, multiline editing and 
     targetKind: string;
   }) => "apply" | "preserve";
   assert.equal(resolve({ key: "Enter", targetKind: "surface" }), "apply");
+  assert.equal(resolve({ key: "Enter", targetKind: "style-control" }), "apply");
   assert.equal(resolve({ key: "Enter", targetKind: "number-input" }), "apply");
   assert.equal(resolve({ key: "Enter", targetKind: "range-input" }), "apply");
   assert.equal(resolve({ key: "Enter", targetKind: "single-line-input" }), "apply");
@@ -261,11 +262,19 @@ test("Enter Apply policy preserves menus, native buttons, multiline editing and 
 
   const studio = source("../../ui/widgets/ConnectionStudioWidget.tsx");
   const controls = source("../../ui/widgets/controls.tsx");
+  const picker = source("../../ui/RelationshipTypePicker.tsx");
   assert.match(controls, /event\.key === "Enter"[\s\S]{0,140}?finishInteraction\(\)/);
   assert.match(studio, /connection-mixed-colour[\s\S]{0,620}?onKeyDown=\{\(event\) => \{[\s\S]{0,180}?event\.key !== "Enter"[\s\S]{0,260}?update\(/);
+  assert.match(studio, /data-connection-style-control="true"/);
   assert.match(studio, /onKeyDown=\{[^}]*handleEnterApply/);
   assert.match(studio, /resolveConnectionStyleEnterAction/);
-  assert.match(studio, /event\.preventDefault\(\)[\s\S]{0,160}?event\.stopPropagation\(\)[\s\S]{0,220}?apply\(\)/);
+  assert.match(
+    studio,
+    /event\.preventDefault\(\)[\s\S]{0,160}?event\.stopPropagation\(\)[\s\S]{0,220}?queueMicrotask\(apply\)/,
+    "Enter waits until the focused single-line control has committed its draft before sharing Apply",
+  );
   assert.match(studio, /Apply[\s\S]{0,80}↵/);
   assert.equal((studio.match(/const apply = \(\) =>/g) ?? []).length, 1, "button and Enter share one canonical Apply command");
+  assert.match(picker, /event\.key === "Enter"[\s\S]{0,180}?chooseOption\(/);
+  assert.match(picker, /const chooseOption = [\s\S]{0,220}?onChange\([\s\S]{0,120}?setOpen\(false\)/);
 });

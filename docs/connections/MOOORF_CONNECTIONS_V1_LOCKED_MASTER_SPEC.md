@@ -2369,3 +2369,15 @@ Connection visual scaling is resolved at the last Canvas draw boundary from the 
 The Relationship Manager settings/tune surface exposes one project-level `VISUAL SCALE` segmented control: `Fixed on Screen` and `Scale with Canvas`. Fixed on Screen is the default for legacy and new projects. The selected mode lives in canonical Connection view settings, updates the mounted Canvas immediately without Apply or Connection history, survives Manager and Canvas/Table lifecycle changes, and round-trips through existing project/config persistence. It is never stored per Connection, per Relationship Type, or in Style Panel drafts. Camera-independent UI specimens remain adaptive and unscaled.
 
 This amendment supersedes only Amendment 6's deferral of the visual-scale setting UI. R5 retains advanced port layouts and the other separately listed Connection settings; no advanced ports or broader R5 surface are authorized here.
+
+## Amendment 8 — 2026-07-22
+
+**Amendment — Standard Desktop Selection Semantics**
+
+Ordered MOOORF list, table, and tree surfaces use established desktop conventions unless a surface explicitly defines another semantic: plain click selects one item and establishes its UI-only anchor; Shift-click selects the contiguous range in the current visible/filter order; Cmd-click on macOS or Ctrl-click on Windows/Linux toggles one item while preserving the remaining shared selection; Cmd/Ctrl+A selects the active surface's visible items when focus is not editable; and Delete/Backspace removes selected records only where that surface owns canonical deletion. Native text-editing shortcuts retain precedence in editable controls. Spatial Canvas surfaces remain non-linear: click selects one and Shift-click preserves the established additive/toggle behavior, with no fabricated spatial range. Anchors are UI-only, never canonical data, persistence or history, and virtualization never limits a range because range resolution uses the full filtered model order.
+
+## Amendment 9 — 2026-07-22
+
+**Amendment — Relationship Type Duplication and Universal Visual Clipboard**
+
+The Relationship Manager TYPES surface may duplicate one factory or project Relationship Type into a new project type with a generated stable project ID and unique name/code. Duplication copies safe semantic defaults, resolved visual defaults, description and annotation defaults, begins at zero usage, and never copies Connection records, usage, archived/deleted state or immutable factory identity; Custom remains the unique fallback while a Custom duplicate is ordinary project data. The existing source-agnostic visual Connection clipboard is the one shared clipboard for resolved Connection or Relationship Type appearance. Type Copy writes only visual fields; Type Paste updates one project Type default or the established project-level factory override layer in one history transaction, immediately updating inheritors while Connection-local overrides remain authoritative. Clipboard copy is history-free, excludes semantic/type/annotation/topology data, and native editable-field Cmd/Ctrl+C/V precedence is retained.
