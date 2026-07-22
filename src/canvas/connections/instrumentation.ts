@@ -16,6 +16,18 @@ export interface ConnectionDrawWork {
   strokeCalls: number;
   fillCalls: number;
   markerCalls: number;
+  /** First command measured at the actual draw boundary in final CSS pixels. */
+  finalRender?: {
+    connectionId: string;
+    visualScaleMode: "screen" | "canvas";
+    cameraZoom: number;
+    outputScale: number;
+    authoredWidth: number;
+    visibleWidth: number;
+    visiblePatternAmplitude: number;
+    visiblePatternWavelength: number;
+    visibleMarkerSize: number;
+  };
 }
 
 export interface ConnectionInstrumentationSnapshot extends ConnectionProjectionMetrics {

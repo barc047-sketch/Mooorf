@@ -8,11 +8,20 @@ import {
   useSyncExternalStore,
   type CSSProperties,
   type KeyboardEvent,
+  type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 import type { RelationshipTypeDefinition } from "../domain/connections/relationshipTypes";
 import type { ResolvedConnectionStyle } from "../domain/connections/styles";
+import {
+  buildConnectionStrokeMotif,
+  connectionStrokeDashArray,
+  resolveConnectionStrokePattern,
+  type ConnectionStrokeCenterline,
+  type ConnectionStrokePoint,
+} from "../domain/connections/strokePatterns";
+import type { ConnectionLineCap, ConnectionLineJoin } from "../domain/graph/types";
 
 export type RelationshipTypePickerOption = Pick<RelationshipTypeDefinition, "id" | "name" | "visualDefaults">;
 
@@ -105,37 +114,206 @@ const subscribeToRelationshipTypeMRU = (listener: () => void) => {
   return () => recentRelationshipTypeListeners.delete(listener);
 };
 
-const previewDash = (style: ResolvedConnectionStyle): string | undefined => {
-  const scale = style.appearance.dashScale;
-  if (style.strokePatternId === "dashed") return `${9 * scale} ${6 * scale}`;
-  if (style.strokePatternId === "dotted") return `${1.2 * scale} ${5 * scale}`;
-  if (style.strokePatternId === "dash-dot") return `${9 * scale} ${4 * scale} ${1.2 * scale} ${4 * scale}`;
-  if (style.strokePatternId === "segmented-bars") return `${4 * scale} ${8 * scale}`;
-  return undefined;
+const useAdaptiveSpecimenLength = (
+  compact: boolean,
+): { length: number; ref: RefObject<SVGSVGElement | null> } => {
+  const ref = useRef<SVGSVGElement>(null);
+  const [length, setLength] = useState(compact ? 132 : 180);
+  useLayoutEffect(() => {
+    const specimen = ref.current;
+    if (!specimen) return;
+    const limits = compact ? [105, 165] : [145, 240];
+    const measure = () => {
+      const measured = Math.round(specimen.getBoundingClientRect().width);
+      const bounded = Math.max(limits[0]!, Math.min(limits[1]!, measured || length));
+      setLength((current) => current === bounded ? current : bounded);
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(specimen);
+    return () => observer.disconnect();
+  }, [compact, length]);
+  return { length, ref };
 };
 
-const previewPath = (geometryId: string): string => {
-  if (geometryId === "curved") return "M 7 15 C 74 2, 176 28, 253 15";
-  if (geometryId === "orthogonal") return "M 7 15 H 105 V 7 H 173 V 15 H 253";
-  if (geometryId === "elbow") return "M 7 15 L 112 7 H 253";
-  return "M 7 15 H 253";
+const previewCenterline = (geometryId: string, length: number): ConnectionStrokeCenterline => {
+  const start = 7;
+  const end = Math.max(start + 1, length - 7);
+  const span = end - start;
+  if (geometryId === "curved") return {
+    kind: "bezier",
+    points: [
+      { x: start, y: 15 },
+      { x: start + span * 0.26, y: 2 },
+      { x: start + span * 0.72, y: 28 },
+      { x: end, y: 15 },
+    ],
+  };
+  if (geometryId === "orthogonal") return {
+    kind: "polyline",
+    points: [
+      { x: start, y: 15 },
+      { x: start + span * 0.36, y: 15 },
+      { x: start + span * 0.36, y: 7 },
+      { x: start + span * 0.66, y: 7 },
+      { x: start + span * 0.66, y: 15 },
+      { x: end, y: 15 },
+    ],
+  };
+  if (geometryId === "elbow") return {
+    kind: "polyline",
+    points: [{ x: start, y: 15 }, { x: start + span * 0.42, y: 7 }, { x: end, y: 15 }],
+  };
+  return { kind: "line", points: [{ x: start, y: 15 }, { x: end, y: 15 }] };
 };
 
-function PreviewMarkerShape({ markerId }: { markerId: string }) {
-  if (markerId === "open-arrow" || markerId === "chevron") {
-    return <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="context-stroke" strokeWidth="1.4" />;
+const pointsPath = (points: readonly ConnectionStrokePoint[]): string => points.length
+  ? `M ${points.map((point) => `${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" L ")}`
+  : "";
+
+const centerlinePath = (centerline: ConnectionStrokeCenterline): string => {
+  if (centerline.kind === "bezier" && centerline.points.length >= 4) {
+    const [start, first, second, end] = centerline.points;
+    return `M ${start!.x} ${start!.y} C ${first!.x} ${first!.y}, ${second!.x} ${second!.y}, ${end!.x} ${end!.y}`;
   }
-  if (markerId === "filled-arrow") return <path d="M 1 1 L 9 5 L 1 9 Z" fill="context-stroke" />;
-  if (markerId === "open-triangle") return <path d="M 1 1 L 9 5 L 1 9 Z" fill="none" stroke="context-stroke" strokeWidth="1.2" />;
-  if (markerId === "filled-triangle") return <path d="M 1 1 L 9 5 L 1 9 Z" fill="context-stroke" />;
-  if (markerId === "circle") return <circle cx="5" cy="5" r="3.2" fill="none" stroke="context-stroke" strokeWidth="1.2" />;
-  if (markerId === "filled-dot") return <circle cx="5" cy="5" r="3.2" fill="context-stroke" />;
-  if (markerId === "square") return <rect x="2" y="2" width="6" height="6" fill="none" stroke="context-stroke" strokeWidth="1.2" />;
-  if (markerId === "diamond") return <path d="M 5 1 L 9 5 L 5 9 L 1 5 Z" fill="none" stroke="context-stroke" strokeWidth="1.2" />;
-  if (markerId === "bar") return <path d="M 5 0 V 10" fill="none" stroke="context-stroke" strokeWidth="1.5" />;
-  if (markerId === "slash" || markerId === "architectural-tick") return <path d="M 2 9 L 8 1" fill="none" stroke="context-stroke" strokeWidth="1.4" />;
-  if (markerId === "cross") return <path d="M 1 1 L 9 9 M 9 1 L 1 9" fill="none" stroke="context-stroke" strokeWidth="1.2" />;
-  return <circle cx="5" cy="5" r="2.4" fill="context-stroke" />;
+  return pointsPath(centerline.points);
+};
+
+function ConnectionStrokePreviewPaths({
+  centerline,
+  markerEnd,
+  markerStart,
+  style,
+}: {
+  centerline: ConnectionStrokeCenterline;
+  markerEnd?: string;
+  markerStart?: string;
+  style: ResolvedConnectionStyle;
+}) {
+  const definition = resolveConnectionStrokePattern(style.strokePatternId);
+  const common = {
+    fill: "none",
+    stroke: style.appearance.color,
+    strokeLinecap: style.lineCap,
+    strokeLinejoin: style.lineJoin,
+    strokeWidth: Math.max(0.5, Math.min(64, style.appearance.width)),
+    opacity: style.appearance.opacity,
+    vectorEffect: "non-scaling-stroke" as const,
+  };
+  if (definition.family === "procedural") {
+    const motif = buildConnectionStrokeMotif(
+      centerline,
+      style.strokePatternId,
+      style.appearance.dashScale,
+      style.appearance.patternAmplitude,
+    );
+    const marks = motif.marks.map((mark) => `M ${mark.from.x.toFixed(2)} ${mark.from.y.toFixed(2)} L ${mark.to.x.toFixed(2)} ${mark.to.y.toFixed(2)}`).join(" ");
+    return <>
+      {motif.paths.length === 0 && (markerStart || markerEnd) && <path
+        d={centerlinePath(centerline)}
+        fill="none"
+        stroke="none"
+        markerStart={markerStart}
+        markerEnd={markerEnd}
+      />}
+      {motif.paths.map((points, index) => <path
+        key={index}
+        d={pointsPath(points)}
+        {...common}
+        markerStart={index === 0 ? markerStart : undefined}
+        markerEnd={index === 0 ? markerEnd : undefined}
+      />)}
+      {marks && <path d={marks} {...common} />}
+    </>;
+  }
+  const path = centerlinePath(centerline);
+  const native = {
+    ...common,
+    strokeDasharray: connectionStrokeDashArray(style.strokePatternId, style.appearance.dashScale).join(" ") || undefined,
+  };
+  return style.strokePatternId === "double" ? <>
+    <path d={path} {...native} transform="translate(0 -2)" markerStart={markerStart} markerEnd={markerEnd} />
+    <path d={path} {...native} transform="translate(0 2)" />
+  </> : <path d={path} {...native} markerStart={markerStart} markerEnd={markerEnd} />;
+}
+
+export function PreviewMarkerShape({
+  color = "context-stroke",
+  markerId,
+}: {
+  color?: string;
+  markerId: string;
+}) {
+  if (markerId === "open-arrow" || markerId === "chevron") {
+    return <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke={color} strokeWidth="1.4" />;
+  }
+  if (markerId === "filled-arrow") return <path d="M 1 1 L 9 5 L 1 9 Z" fill={color} />;
+  if (markerId === "open-triangle") return <path d="M 1 1 L 9 5 L 1 9 Z" fill="none" stroke={color} strokeWidth="1.2" />;
+  if (markerId === "filled-triangle") return <path d="M 1 1 L 9 5 L 1 9 Z" fill={color} />;
+  if (markerId === "circle") return <circle cx="5" cy="5" r="3.2" fill="none" stroke={color} strokeWidth="1.2" />;
+  if (markerId === "filled-dot") return <circle cx="5" cy="5" r="3.2" fill={color} />;
+  if (markerId === "square") return <rect x="2" y="2" width="6" height="6" fill="none" stroke={color} strokeWidth="1.2" />;
+  if (markerId === "diamond") return <path d="M 5 1 L 9 5 L 5 9 L 1 5 Z" fill="none" stroke={color} strokeWidth="1.2" />;
+  if (markerId === "bar") return <path d="M 5 0 V 10" fill="none" stroke={color} strokeWidth="1.5" />;
+  if (markerId === "slash" || markerId === "architectural-tick") return <path d="M 2 9 L 8 1" fill="none" stroke={color} strokeWidth="1.4" />;
+  if (markerId === "cross") return <path d="M 1 1 L 9 9 M 9 1 L 1 9" fill="none" stroke={color} strokeWidth="1.2" />;
+  return <circle cx="5" cy="5" r="2.4" fill={color} />;
+}
+
+export function ConnectionGeometrySpecimen({ geometryId }: { geometryId: string }) {
+  const { length, ref } = useAdaptiveSpecimenLength(false);
+  return <svg ref={ref} className="connection-option-specimen" viewBox={`0 0 ${length} 30`} data-specimen-length={length} aria-hidden="true">
+    <path d={centerlinePath(previewCenterline(geometryId, length))} fill="none" stroke="currentColor" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+  </svg>;
+}
+
+export function ConnectionStrokeSpecimen({ style }: { style: ResolvedConnectionStyle }) {
+  const { length, ref } = useAdaptiveSpecimenLength(false);
+  const specimenStyle = { ...style, appearance: { ...style.appearance, color: "currentColor" } };
+  return <svg ref={ref} className="connection-option-specimen" viewBox={`0 0 ${length} 30`} data-specimen-length={length} aria-hidden="true">
+    <ConnectionStrokePreviewPaths centerline={previewCenterline("straight", length)} style={specimenStyle} />
+  </svg>;
+}
+
+export function ConnectionLineCapSpecimen({ lineCap }: { lineCap: ConnectionLineCap }) {
+  return <svg className="connection-cap-join-specimen" viewBox="0 0 64 24" aria-hidden="true">
+    <path d="M 14 4 V 20 M 50 4 V 20" stroke="currentColor" strokeWidth=".75" opacity=".3" />
+    <path d="M 14 12 H 50" stroke="currentColor" strokeWidth="6" strokeLinecap={lineCap} />
+  </svg>;
+}
+
+export function ConnectionLineJoinSpecimen({ lineJoin }: { lineJoin: ConnectionLineJoin }) {
+  return <svg className="connection-cap-join-specimen" viewBox="0 0 64 24" aria-hidden="true">
+    <path d="M 13 19 L 32 5 L 51 19" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="butt" strokeLinejoin={lineJoin} />
+  </svg>;
+}
+
+export function ConnectionMarkerSpecimen({
+  markerId,
+  position,
+}: {
+  markerId: string;
+  position: "start" | "end";
+}) {
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, "-");
+  const markerIdValue = `connection-marker-specimen-${position}-${markerId}-${instanceId}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+  const url = markerId === "none" ? undefined : `url(#${markerIdValue})`;
+  return <svg className="connection-marker-specimen" viewBox="0 0 64 20" aria-hidden="true">
+    <defs>
+      {markerId !== "none" && <marker id={markerIdValue} viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <PreviewMarkerShape markerId={markerId} />
+      </marker>}
+    </defs>
+    <path
+      d="M 8 10 H 56"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      markerStart={position === "start" ? url : undefined}
+      markerEnd={position === "end" ? url : undefined}
+    />
+  </svg>;
 }
 
 export function RelationshipTypeStylePreview({
@@ -145,29 +323,20 @@ export function RelationshipTypeStylePreview({
   compact?: boolean;
   type: RelationshipTypePickerOption;
 }) {
+  const { length, ref } = useAdaptiveSpecimenLength(compact);
   const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, "-");
   const style = type.visualDefaults;
   const markerKey = `${type.id}-${instanceId}`.replace(/[^a-zA-Z0-9_-]/g, "-");
   const startMarker = `relationship-type-${markerKey}-start`;
   const endMarker = `relationship-type-${markerKey}-end`;
   const markerScale = Math.max(3.5, Math.min(7, style.appearance.markerSize * .65));
-  const path = previewPath(style.geometryId);
-  const common = {
-    fill: "none",
-    stroke: style.appearance.color,
-    strokeDasharray: previewDash(style),
-    strokeLinecap: "round" as const,
-    strokeWidth: Math.max(1, Math.min(4, style.appearance.width)),
-    opacity: style.appearance.opacity,
-    vectorEffect: "non-scaling-stroke" as const,
-  };
   const markerStart = style.startMarkerId === "none" ? undefined : `url(#${startMarker})`;
   const markerEnd = style.endMarkerId === "none" ? undefined : `url(#${endMarker})`;
   return (
     <svg
+      ref={ref}
       className={`relationship-type-preview${compact ? " connection-quick-type-preview" : ""}`}
-      viewBox="0 0 260 30"
-      preserveAspectRatio="none"
+      viewBox={`0 0 ${length} 30`}
       role={compact ? undefined : "img"}
       aria-hidden={compact || undefined}
       aria-label={compact ? undefined : `${type.name} resolved style preview`}
@@ -175,20 +344,23 @@ export function RelationshipTypeStylePreview({
       data-pattern={style.strokePatternId}
       data-start-marker={style.startMarkerId}
       data-end-marker={style.endMarkerId}
+      data-specimen-length={length}
     >
       {!compact && <title>{type.name} resolved style</title>}
       <defs>
         {style.startMarkerId !== "none" && <marker id={startMarker} viewBox="0 0 10 10" refX="5" refY="5" markerWidth={markerScale} markerHeight={markerScale} orient="auto-start-reverse">
-          <PreviewMarkerShape markerId={style.startMarkerId} />
+          <PreviewMarkerShape markerId={style.startMarkerId} color={style.appearance.color} />
         </marker>}
         {style.endMarkerId !== "none" && <marker id={endMarker} viewBox="0 0 10 10" refX="5" refY="5" markerWidth={markerScale} markerHeight={markerScale} orient="auto-start-reverse">
-          <PreviewMarkerShape markerId={style.endMarkerId} />
+          <PreviewMarkerShape markerId={style.endMarkerId} color={style.appearance.color} />
         </marker>}
       </defs>
-      {style.strokePatternId === "double" ? <>
-        <path d={path} {...common} transform="translate(0 -2)" markerStart={markerStart} markerEnd={markerEnd} />
-        <path d={path} {...common} transform="translate(0 2)" />
-      </> : <path d={path} {...common} markerStart={markerStart} markerEnd={markerEnd} />}
+      <ConnectionStrokePreviewPaths
+        centerline={previewCenterline(style.geometryId, length)}
+        style={style}
+        markerStart={markerStart}
+        markerEnd={markerEnd}
+      />
     </svg>
   );
 }

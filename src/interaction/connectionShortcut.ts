@@ -80,3 +80,86 @@ export function shouldHandleConnectionEscape(event: KeyboardEvent, modeActive: b
     && !event.repeat
     && !isConnectionShortcutEditingTarget(event.target);
 }
+
+export type ConnectionStyleEnterTargetKind =
+  | "surface"
+  | "number-input"
+  | "range-input"
+  | "single-line-input"
+  | "button"
+  | "option"
+  | "multiline"
+  | "contenteditable"
+  | "native-control";
+
+type ClosestTarget = EventTarget & {
+  closest?: (selector: string) => Element | null;
+  isContentEditable?: boolean;
+};
+
+/** Classify local Style Panel key ownership without installing a global Enter
+ * shortcut. Descendants such as SVGs still resolve through their native
+ * button/menu ancestor. */
+export const connectionStyleEnterTargetKind = (
+  target: EventTarget | null,
+): ConnectionStyleEnterTargetKind => {
+  const element = target as ClosestTarget | null;
+  if (!element) return "surface";
+  if (element.isContentEditable || element.closest?.("[contenteditable]:not([contenteditable='false'])")) {
+    return "contenteditable";
+  }
+  if (element.closest?.("textarea, [role='textbox'][aria-multiline='true']")) return "multiline";
+  if (element.closest?.("[role='option'], [role='menuitem'], [role='menuitemradio'], option")) return "option";
+  if (element.closest?.("button, [role='button']")) return "button";
+
+  const input = element.closest?.("input") as HTMLInputElement | null | undefined;
+  if (input) {
+    if (input.type === "number") return "number-input";
+    if (input.type === "range") return "range-input";
+    if (["text", "search", "color", "email", "url", "tel"].includes(input.type)) return "single-line-input";
+    return "native-control";
+  }
+  if (element.closest?.("select, [role='combobox'], [aria-haspopup='listbox'], [aria-haspopup='menu']")) {
+    return "native-control";
+  }
+  if (element.closest?.("[role='textbox']")) return "single-line-input";
+  return "surface";
+};
+
+export interface ConnectionStyleEnterInput {
+  key: string;
+  defaultPrevented?: boolean;
+  isComposing?: boolean;
+  repeat?: boolean;
+  openMenu?: boolean;
+  targetKind: ConnectionStyleEnterTargetKind;
+  altKey?: boolean;
+  ctrlKey?: boolean;
+  metaKey?: boolean;
+  shiftKey?: boolean;
+}
+
+/** Pure policy for the active universal Style Panel. Native/menu/editor
+ * owners win; eligible panel surfaces and single-line numeric/style inputs
+ * share the existing Apply command exactly once. */
+export const resolveConnectionStyleEnterAction = (
+  input: ConnectionStyleEnterInput,
+): "apply" | "preserve" => {
+  if (
+    input.key !== "Enter"
+    || input.defaultPrevented
+    || input.isComposing
+    || input.repeat
+    || input.openMenu
+    || input.altKey
+    || input.ctrlKey
+    || input.metaKey
+    || input.shiftKey
+  ) return "preserve";
+  return input.targetKind === "surface"
+    || input.targetKind === "number-input"
+    || input.targetKind === "range-input"
+    || input.targetKind === "single-line-input"
+    ? "apply"
+    : "preserve";
+};

@@ -11,6 +11,7 @@ import type {
   KnownConnectionSemanticTypeId,
   KnownConnectionStrokePatternId,
 } from "../graph/types";
+import { CONNECTION_STROKE_PATTERNS } from "./strokePatterns";
 
 export const CONNECTION_REQUIREMENTS = ["required", "preferred", "optional", "avoid"] as const satisfies readonly ConnectionRequirement[];
 export const CONNECTION_DIRECTIONS = ["none", "two-way", "a-to-b", "b-to-a"] as const satisfies readonly ConnectionDirection[];
@@ -18,7 +19,9 @@ export const CONNECTION_STRENGTHS = ["weak", "medium", "strong"] as const satisf
 export const CONNECTION_PRIORITIES = ["low", "normal", "high", "critical"] as const satisfies readonly ConnectionPriority[];
 
 export const CONNECTION_GEOMETRY_IDS = ["straight", "curved", "orthogonal", "elbow"] as const satisfies readonly KnownConnectionGeometryId[];
-export const CONNECTION_STROKE_PATTERN_IDS = ["solid", "dashed", "dotted", "dash-dot", "double", "segmented-bars"] as const satisfies readonly KnownConnectionStrokePatternId[];
+export const CONNECTION_STROKE_PATTERN_IDS = CONNECTION_STROKE_PATTERNS.map(
+  (definition) => definition.id,
+) as readonly KnownConnectionStrokePatternId[];
 export const CONNECTION_MARKER_IDS = [
   "none",
   "open-arrow",

@@ -31,9 +31,16 @@ import { mergeCellLabelConfig } from "../../domain/labels/layoutContract";
 import { resolveConnectionAnnotation } from "../../domain/connections/annotations";
 import { getSelectableRelationshipTypes, resolveRelationshipType } from "../../domain/connections/relationshipTypes";
 import { getPrimarySelectedConnection } from "../../domain/connections/selectors";
-import { resolveConnectionStyle } from "../../domain/connections/styles";
+import {
+  resolveConnectionStylePreview,
+  resolveRelationshipTypeStylePreview,
+} from "../../domain/connections/styles";
 import type { ConnectionAnnotationOverride } from "../../domain/graph/types";
-import { recordRelationshipTypeUse, RelationshipTypePicker } from "../RelationshipTypePicker";
+import {
+  recordRelationshipTypeUse,
+  RelationshipTypePicker,
+  RelationshipTypeStylePreview,
+} from "../RelationshipTypePicker";
 
 type TabId = "content" | "appearance" | "symbol";
 
@@ -227,26 +234,28 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
   const updateConnectionAnnotation = useLab((state) => state.updateConnectionAnnotation);
   const reverseConnection = useLab((state) => state.reverseConnection);
   const deleteConnection = useLab((state) => state.deleteConnection);
+  const openConnectionStyleEditor = useLab((state) => state.openConnectionStyleEditor);
   const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
   if (!connection) return <CellInspector />;
 
-  const typeOptions = getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles);
+  const typeOptions = getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles).map((type) => ({
+    ...type,
+    visualDefaults: resolveRelationshipTypeStylePreview(type.id, type.visualDefaults, connectionStylePreview),
+  }));
   const relationshipType = resolveRelationshipType(connection.semantic.typeId, projectRelationshipTypes, connectionStyles);
   const selectedTypeId = typeOptions.some((type) => type.id === connection.semantic.typeId)
     ? connection.semantic.typeId
     : "custom";
   const annotation = resolveConnectionAnnotation(connection, relationshipType);
-  const style = resolveConnectionStyle(connection, connectionStyles, projectRelationshipTypes);
+  const style = resolveConnectionStylePreview(
+    connection,
+    connectionStyles,
+    projectRelationshipTypes,
+    connectionStylePreview,
+  );
   const titleOn = annotation.title.source !== "hidden";
-  const styleLine = {
-    borderTopColor: style.appearance.color,
-    borderTopWidth: `${Math.max(1, Math.min(4, style.appearance.width))}px`,
-    borderTopStyle: (style.strokePatternId === "dashed"
-      ? "dashed"
-      : style.strokePatternId === "dotted" || style.strokePatternId === "dash-dot" ? "dotted" : "solid") as "dashed" | "dotted" | "solid",
-    opacity: style.appearance.opacity,
-  };
   const commitAnnotation = (patch: ConnectionAnnotationOverride) => {
     updateConnectionAnnotation(connection.id, { ...connection.annotation, ...patch });
   };
@@ -324,11 +333,17 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
 
         <section className="m1-section">
           <h3>STYLE</h3>
-          <div className="connection-style-preview" aria-label="Resolved Connection style preview">
-            <span className="connection-style-preview-line" style={styleLine} />
-            <span className="connection-style-preview-marker">›</span>
-          </div>
+          <RelationshipTypeStylePreview type={{
+            id: connection.id,
+            name: "Connection",
+            visualDefaults: style,
+          }} />
           <p className="connection-style-origin">{connection.visual ? "Custom appearance" : "Relationship Type"}</p>
+          <button
+            type="button"
+            className="m1-btn"
+            onClick={() => openConnectionStyleEditor({ context: "connection-override", connectionIds: [connection.id] })}
+          ><SlidersHorizontal size={11} /> Edit Style</button>
         </section>
 
         <section className="m1-section">
@@ -347,10 +362,21 @@ function ConnectionMultiInspector({ count }: { count: number }) {
   const selectedConnectionIds = useLab((state) => state.selectedConnectionIds);
   const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
   const updateSelectedConnectionTypes = useLab((state) => state.updateSelectedConnectionTypes);
+  const openConnectionStyleEditor = useLab((state) => state.openConnectionStyleEditor);
   const deleteSelectedConnections = useLab((state) => state.deleteSelectedConnections);
   const selectedConnections = connections.filter((connection) => selectedConnectionIds.includes(connection.id));
-  const typeOptions = getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles);
+  const typeOptions = getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles).map((type) => ({
+    ...type,
+    visualDefaults: resolveRelationshipTypeStylePreview(type.id, type.visualDefaults, connectionStylePreview),
+  }));
+  const selectedStyles = selectedConnections.map((connection) => resolveConnectionStylePreview(
+    connection,
+    connectionStyles,
+    projectRelationshipTypes,
+    connectionStylePreview,
+  ));
   const typeSelection = common(selectedConnections.map((connection) => connection.semantic.typeId));
   const selectedTypeId = !typeSelection.mixed && typeOptions.some((type) => type.id === typeSelection.value)
     ? typeSelection.value ?? "custom"
@@ -382,6 +408,28 @@ function ConnectionMultiInspector({ count }: { count: number }) {
               }}
             />
           </label>
+        </section>
+        <section className="m1-section">
+          <h3>STYLE</h3>
+          <div className="connection-multi-style-previews">
+            {selectedStyles.slice(0, 3).map((style, index) => <RelationshipTypeStylePreview
+              key={selectedConnections[index]?.id}
+              type={{
+                id: selectedConnections[index]?.id ?? `selected-${index}`,
+                name: `Selected Connection ${index + 1}`,
+                visualDefaults: style,
+              }}
+            />)}
+          </div>
+          <p className="connection-style-origin">{selectedStyles.length > 1 ? "Mixed values remain independent until touched" : "Resolved style"}</p>
+          <button
+            type="button"
+            className="m1-btn"
+            onClick={() => openConnectionStyleEditor({
+              context: "connection-override",
+              connectionIds: [...selectedConnectionIds],
+            })}
+          ><SlidersHorizontal size={11} /> Edit Style</button>
         </section>
         <section className="m1-section">
           <p className="m1-empty-note">Type, Style Paste, and Delete apply to the complete selection.</p>

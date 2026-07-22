@@ -209,9 +209,11 @@
 
 .connection-quick-type-preview {
   display: block;
-  width: 100%;
+  flex: none;
+  width: clamp(105px, 100%, 165px);
   min-width: 0;
-  height: 26px;
+  max-width: 165px;
+  height: 30px;
   overflow: visible;
 }
 

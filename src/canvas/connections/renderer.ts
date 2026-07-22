@@ -1,4 +1,5 @@
 import type { Connection } from "../../domain/graph/types";
+import type { ProjectRelationshipType } from "../../domain/connections/relationshipTypes";
 import {
   filterConnections,
   type ConnectionFilterCell,
@@ -6,11 +7,19 @@ import {
 } from "../../domain/connections/filters";
 import {
   cloneResolvedConnectionStyle,
-  resolveConnectionStyle,
+  resolveConnectionStylePreview,
   type ConnectionFocusMode,
+  type ConnectionStylePreview,
+  type ConnectionVisualScaleMode,
   type ProjectConnectionStyles,
   type ResolvedConnectionStyle,
 } from "../../domain/connections/styles";
+import {
+  buildConnectionStrokeMotif,
+  connectionStrokeDashArray,
+  resolveConnectionStrokePattern,
+} from "../../domain/connections/strokePatterns";
+import { Z_MAX, Z_MIN } from "../../lib/camera";
 import {
   buildConnectionPath,
   connectionBoundsIntersectViewport,
@@ -40,6 +49,113 @@ export const CONNECTION_FOCUS_OPACITY = {
 
 /** Half-width of the practical 12 px screen-space line hit corridor. */
 export const CONNECTION_HIT_TOLERANCE_PX = 6;
+
+export type { ConnectionVisualScaleMode } from "../../domain/connections/styles";
+
+/** Fixed-on-screen is the compatibility default; the project setting may opt
+ * into normal Canvas scaling without changing authored Connection styles. */
+export const CONNECTION_VISUAL_SCALE_MODE_DEFAULT: ConnectionVisualScaleMode = "screen";
+
+export interface ConnectionVisualMetrics {
+  normalizedZoom: number;
+  lineWidth: number;
+  dashArray: number[];
+  patternScale: number;
+  patternAmplitude: number;
+  patternWavelength: number;
+  doubleInnerWidth: number;
+  markerSize: number;
+  markerOffset: number;
+  selectionExpansion: number;
+  hitTolerance: number;
+}
+
+const safePositiveScale = (value: number): number =>
+  Number.isFinite(value) && value > 0 ? Math.min(100, Math.max(0.01, value)) : 1;
+
+const positiveOrOne = (value: number): number =>
+  Number.isFinite(value) && value > 0 ? value : 1;
+
+/** Final CSS pixels produced by one Canvas draw unit under the active 2D
+ * transform and backing-store/CSS ratio. Camera zoom is intentionally absent:
+ * Organism path coordinates already arrive camera-projected. */
+export const resolveConnectionCanvasOutputScale = (
+  context: CanvasRenderingContext2D,
+): number => {
+  const transform = typeof context.getTransform === "function"
+    ? context.getTransform()
+    : { a: 1, b: 0, c: 0, d: 1 };
+  const canvas = context.canvas;
+  if (!canvas) return 1;
+  const rect = typeof canvas.getBoundingClientRect === "function"
+    ? canvas.getBoundingClientRect()
+    : { width: canvas.width, height: canvas.height };
+  const backingWidth = positiveOrOne(canvas.width);
+  const backingHeight = positiveOrOne(canvas.height);
+  const cssScaleX = positiveOrOne(rect.width) / backingWidth;
+  const cssScaleY = positiveOrOne(rect.height) / backingHeight;
+  const transformScaleX = Math.hypot(transform.a, transform.b);
+  const transformScaleY = Math.hypot(transform.c, transform.d);
+  return safePositiveScale(Math.sqrt(
+    safePositiveScale(transformScaleX * cssScaleX)
+    * safePositiveScale(transformScaleY * cssScaleY),
+  ));
+};
+
+const resolveConnectionDrawMetrics = (
+  metrics: ConnectionVisualMetrics,
+  outputScale: number,
+): ConnectionVisualMetrics => {
+  const drawScale = 1 / safePositiveScale(outputScale);
+  return {
+    ...metrics,
+    lineWidth: metrics.lineWidth * drawScale,
+    dashArray: metrics.dashArray.map((value) => value * drawScale),
+    patternScale: metrics.patternScale * drawScale,
+    patternAmplitude: metrics.patternAmplitude * drawScale,
+    patternWavelength: metrics.patternWavelength * drawScale,
+    doubleInnerWidth: metrics.doubleInnerWidth * drawScale,
+    markerSize: metrics.markerSize * drawScale,
+    markerOffset: metrics.markerOffset * drawScale,
+    selectionExpansion: metrics.selectionExpansion * drawScale,
+  };
+};
+
+const normalizeConnectionCameraZoom = (cameraZoom: number): number => {
+  if (!Number.isFinite(cameraZoom) || cameraZoom <= 0) return 1;
+  return Math.min(Z_MAX, Math.max(Z_MIN, cameraZoom));
+};
+
+/** Resolve live Canvas visual metrics without mutating the canonical style.
+ * Commands are already camera-projected into screen coordinates, so screen
+ * mode retains authored pixel metrics. Canvas mode scales those
+ * same metrics through this single seam. */
+export const resolveConnectionVisualMetrics = (
+  style: ResolvedConnectionStyle,
+  cameraZoom: number,
+  mode: ConnectionVisualScaleMode = CONNECTION_VISUAL_SCALE_MODE_DEFAULT,
+): ConnectionVisualMetrics => {
+  const normalizedZoom = normalizeConnectionCameraZoom(cameraZoom);
+  const metricScale = mode === "canvas" ? normalizedZoom : 1;
+  const definition = resolveConnectionStrokePattern(style.strokePatternId);
+  const patternScale = (definition.capabilities.scale ? style.appearance.dashScale : 1) * metricScale;
+  return {
+    normalizedZoom,
+    lineWidth: style.appearance.width * metricScale,
+    dashArray: connectionStrokeDashArray(
+      style.strokePatternId,
+      style.appearance.dashScale * metricScale,
+    ),
+    patternScale,
+    patternAmplitude: style.appearance.patternAmplitude * metricScale,
+    patternWavelength: definition.motif.baseWavelength * patternScale,
+    doubleInnerWidth: Math.max(0.5, style.appearance.width * 0.35) * metricScale,
+    markerSize: style.appearance.markerSize * metricScale,
+    markerOffset: style.appearance.markerOffset * metricScale,
+    selectionExpansion: 2 * metricScale,
+    hitTolerance: CONNECTION_HIT_TOLERANCE_PX,
+  };
+};
 
 /**
  * One frame never projects, draws, or hit-indexes more than this retained
@@ -84,6 +200,8 @@ export interface ConnectionProjectionInput {
   authoredCount?: number;
   endpoints: ReadonlyMap<string, ConnectionEndpointGeometry>;
   styles: ProjectConnectionStyles;
+  projectRelationshipTypes?: readonly ProjectRelationshipType[];
+  stylePreview?: ConnectionStylePreview | null;
   filter: ConnectionFilterSpec;
   cellsById?: ReadonlyMap<string, ConnectionFilterCell>;
   viewport: ConnectionPathBounds;
@@ -91,6 +209,8 @@ export interface ConnectionProjectionInput {
   changedEndpointIds: ReadonlySet<string>;
   lod: ConnectionLod;
   focusMode: ConnectionFocusMode;
+  cameraZoom?: number;
+  visualScaleMode?: ConnectionVisualScaleMode;
 }
 
 export interface ConnectionProjectionResult {
@@ -192,6 +312,8 @@ const cacheKey = (
   lane: ConnectionLane,
   viewport: ConnectionPathBounds,
   lod: ConnectionLod,
+  cameraZoom: number,
+  visualScaleMode: ConnectionVisualScaleMode,
 ): string => JSON.stringify([
   connection.id,
   connection.fromSpaceId,
@@ -202,17 +324,24 @@ const cacheKey = (
   [lane.pairKey, lane.pairIndex, lane.pairCount, lane.laneOffset],
   [viewport.x, viewport.y, viewport.width, viewport.height],
   lod,
+  resolveConnectionVisualMetrics(style, cameraZoom, visualScaleMode),
 ]);
 
 const resolvedForLod = (
   connection: Connection,
   styles: ProjectConnectionStyles,
+  projectRelationshipTypes: readonly ProjectRelationshipType[],
+  stylePreview: ConnectionStylePreview | null | undefined,
   lod: ConnectionLod,
 ): ResolvedConnectionStyle => {
-  const style = resolveConnectionStyle(connection, styles);
+  const style = resolveConnectionStylePreview(connection, styles, projectRelationshipTypes, stylePreview);
   if (lod !== "critical") return style;
   const degraded = cloneResolvedConnectionStyle(style);
-  if (degraded.strokePatternId === "double" || degraded.strokePatternId === "segmented-bars") {
+  if (
+    degraded.strokePatternId === "double"
+    || degraded.strokePatternId === "segmented-bars"
+    || resolveConnectionStrokePattern(degraded.strokePatternId).family === "procedural"
+  ) {
     degraded.strokePatternId = "solid";
   }
   degraded.label.content = "hidden";
@@ -290,7 +419,13 @@ export const projectConnections = (
     const source = input.endpoints.get(connection.fromSpaceId);
     const target = input.endpoints.get(connection.toSpaceId);
     if (!source || !target) continue;
-    const style = resolvedForLod(connection, input.styles, input.lod);
+    const style = resolvedForLod(
+      connection,
+      input.styles,
+      input.projectRelationshipTypes ?? [],
+      input.stylePreview,
+      input.lod,
+    );
     if (!style.visible) continue;
     drawable.push({ connection, source, target, style });
   }
@@ -326,16 +461,33 @@ export const projectConnections = (
     ) break;
     projectionAttempts += 1;
     metrics.eligibleCount += 1;
-    const key = cacheKey(connection, style, source, target, lane, input.viewport, input.lod);
+    const cameraZoom = input.cameraZoom ?? 1;
+    const visualScaleMode = input.visualScaleMode ?? CONNECTION_VISUAL_SCALE_MODE_DEFAULT;
+    const visualMetrics = resolveConnectionVisualMetrics(style, cameraZoom, visualScaleMode);
+    const key = cacheKey(
+      connection,
+      style,
+      source,
+      target,
+      lane,
+      input.viewport,
+      input.lod,
+      cameraZoom,
+      visualScaleMode,
+    );
     let cached = cache.get(key);
     if (cached) {
       metrics.cacheHits += 1;
     } else {
       const path = buildConnectionPath(source, target, style, lane.laneOffset);
+      const strokePattern = resolveConnectionStrokePattern(style.strokePatternId);
       const renderExtent = Math.max(
-        CONNECTION_HIT_TOLERANCE_PX,
-        style.appearance.width / 2 + 2,
-        style.appearance.markerSize * 1.5 + Math.abs(style.appearance.markerOffset),
+        visualMetrics.hitTolerance,
+        visualMetrics.lineWidth / 2 + visualMetrics.selectionExpansion,
+        strokePattern.capabilities.amplitude
+          ? visualMetrics.patternAmplitude + visualMetrics.lineWidth / 2
+          : 0,
+        visualMetrics.markerSize * 1.5 + Math.abs(visualMetrics.markerOffset),
       ) + 2;
       cached = {
         key,
@@ -405,22 +557,17 @@ export const hitTestConnections = (
 
 export interface ConnectionDrawOptions {
   theme: "day" | "night" | string;
-  scale: number;
+  /** @deprecated Use cameraZoom plus visualScaleMode. */
+  scale?: number;
+  cameraZoom?: number;
+  visualScaleMode?: ConnectionVisualScaleMode;
+  /** Active context-transform × CSS/backing-store scale. */
+  outputScale?: number;
   fadeUnrelated: boolean;
   drawLabels: boolean;
   markerDetail: "full" | "simple" | "hidden";
   patternFallback: boolean;
 }
-
-const dashFor = (style: ResolvedConnectionStyle, patternFallback: boolean): number[] => {
-  if (patternFallback) return [];
-  const scale = style.appearance.dashScale;
-  if (style.strokePatternId === "dashed") return [8 * scale, 6 * scale];
-  if (style.strokePatternId === "dotted") return [1 * scale, 5 * scale];
-  if (style.strokePatternId === "dash-dot") return [8 * scale, 4 * scale, 1 * scale, 4 * scale];
-  if (style.strokePatternId === "segmented-bars") return [12 * scale, 3 * scale];
-  return [];
-};
 
 const tracePath = (context: CanvasRenderingContext2D, path: ConnectionPath) => {
   const start = path.points[0];
@@ -440,6 +587,38 @@ const tracePath = (context: CanvasRenderingContext2D, path: ConnectionPath) => {
   }
   for (let index = 1; index < path.points.length; index += 1) {
     context.lineTo(path.points[index]!.x, path.points[index]!.y);
+  }
+};
+
+const traceStrokePoints = (
+  context: CanvasRenderingContext2D,
+  points: readonly ConnectionPoint[],
+) => {
+  const start = points[0];
+  if (!start) return;
+  context.moveTo(start.x, start.y);
+  for (let index = 1; index < points.length; index += 1) {
+    context.lineTo(points[index]!.x, points[index]!.y);
+  }
+};
+
+const traceProceduralStroke = (
+  context: CanvasRenderingContext2D,
+  path: ConnectionPath,
+  style: ResolvedConnectionStyle,
+  metrics: ConnectionVisualMetrics,
+) => {
+  const motif = buildConnectionStrokeMotif(
+    path,
+    style.strokePatternId,
+    metrics.patternScale,
+    metrics.patternAmplitude,
+  );
+  context.beginPath();
+  for (const points of motif.paths) traceStrokePoints(context, points);
+  for (const mark of motif.marks) {
+    context.moveTo(mark.from.x, mark.from.y);
+    context.lineTo(mark.to.x, mark.to.y);
   }
 };
 
@@ -530,9 +709,29 @@ export const drawConnectionBatch = (
     fillCalls: 0,
     markerCalls: 0,
   };
-  const screenScale = Number.isFinite(options.scale) && options.scale > 0 ? options.scale : 1;
+  const cameraZoom = options.cameraZoom ?? options.scale ?? 1;
+  const visualScaleMode = options.visualScaleMode ?? CONNECTION_VISUAL_SCALE_MODE_DEFAULT;
+  const outputScale = options.outputScale ?? resolveConnectionCanvasOutputScale(context);
   for (const command of commands) {
     const style = command.style;
+    const metrics = resolveConnectionDrawMetrics(
+      resolveConnectionVisualMetrics(style, cameraZoom, visualScaleMode),
+      outputScale,
+    );
+    if (!work.finalRender) {
+      const finalCssScale = safePositiveScale(outputScale);
+      work.finalRender = {
+        connectionId: command.id,
+        visualScaleMode,
+        cameraZoom: metrics.normalizedZoom,
+        outputScale: finalCssScale,
+        authoredWidth: style.appearance.width,
+        visibleWidth: metrics.lineWidth * finalCssScale,
+        visiblePatternAmplitude: metrics.patternAmplitude * finalCssScale,
+        visiblePatternWavelength: metrics.patternWavelength * finalCssScale,
+        visibleMarkerSize: metrics.markerSize * finalCssScale,
+      };
+    }
     context.save();
     context.globalAlpha = !options.fadeUnrelated || command.emphasis === "normal"
       ? style.appearance.opacity
@@ -542,15 +741,20 @@ export const drawConnectionBatch = (
           ? CONNECTION_FOCUS_OPACITY.related
           : CONNECTION_FOCUS_OPACITY.contextual;
     context.strokeStyle = style.appearance.color;
-    context.lineWidth = style.appearance.width / screenScale;
-    context.lineCap = "round";
-    context.lineJoin = "round";
-    context.setLineDash(dashFor(style, options.patternFallback).map((value) => value / screenScale));
-    tracePath(context, command.path);
+    context.lineWidth = metrics.lineWidth;
+    context.lineCap = style.lineCap;
+    context.lineJoin = style.lineJoin;
+    context.setLineDash(options.patternFallback ? [] : metrics.dashArray);
+    if (!options.patternFallback && resolveConnectionStrokePattern(style.strokePatternId).family === "procedural") {
+      context.setLineDash([]);
+      traceProceduralStroke(context, command.path, style, metrics);
+    } else {
+      tracePath(context, command.path);
+    }
     context.stroke();
     work.strokeCalls += 1;
     if (style.strokePatternId === "double" && !options.patternFallback) {
-      context.lineWidth = Math.max(0.5, style.appearance.width * 0.35) / screenScale;
+      context.lineWidth = metrics.doubleInnerWidth;
       context.strokeStyle = options.theme === "night" ? "#16181b" : "#ffffff";
       tracePath(context, command.path);
       context.stroke();
@@ -558,8 +762,8 @@ export const drawConnectionBatch = (
     }
     if (options.markerDetail !== "hidden" && command.path.points.length >= 2) {
       const markerScale = options.markerDetail === "simple" ? 0.72 : 1;
-      const markerSize = style.appearance.markerSize * markerScale / screenScale;
-      const markerOffset = style.appearance.markerOffset / screenScale;
+      const markerSize = metrics.markerSize * markerScale;
+      const markerOffset = metrics.markerOffset;
       const start = command.path.points[0]!;
       const next = command.path.points[1]!;
       const end = command.path.points[command.path.points.length - 1]!;

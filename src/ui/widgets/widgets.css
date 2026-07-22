@@ -282,10 +282,16 @@
 .relationship-manager-settings { position: relative; }
 .relationship-manager-settings-trigger { display: grid; place-items: center; width: 29px; height: 29px; padding: 0; border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 32%, transparent); color: var(--fog); cursor: pointer; }
 .relationship-manager-settings-trigger[aria-expanded="true"] { color: var(--ink); background: color-mix(in srgb, var(--glass-light) 62%, transparent); }
-.relationship-manager-settings-menu { position: absolute; top: 35px; right: 0; z-index: 2; width: 214px; padding: 6px; border: 1px solid color-mix(in srgb, var(--glass-border) 70%, transparent); border-radius: 8px; background: var(--glass-panel-strong); }
+.relationship-manager-settings-menu { position: absolute; top: 35px; right: 0; z-index: 2; width: 258px; padding: 8px; border: 1px solid color-mix(in srgb, var(--glass-border) 70%, transparent); border-radius: 8px; background: var(--glass-panel-strong); }
 .relationship-manager-settings-menu button { display: flex; align-items: center; gap: 6px; width: 100%; min-height: 29px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-soft); font: inherit; font-size: 8.5px; text-align: left; cursor: pointer; }
 .relationship-manager-settings-menu button:hover { background: color-mix(in srgb, var(--glass-light) 52%, transparent); color: var(--ink); }
 .relationship-manager-settings-menu p { margin: 5px 8px 3px; color: var(--fog); font-size: 7.5px; line-height: 1.35; }
+.connection-settings-title { display: block; margin: 2px 4px 8px; color: var(--ink); font-size: 8px; font-weight: 700; letter-spacing: .1em; }
+.connection-visual-scale-setting { display: grid; gap: 5px; margin-bottom: 7px; padding: 7px; border: 1px solid color-mix(in srgb, var(--hairline) 46%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 22%, transparent); }
+.connection-visual-scale-setting > span { color: var(--fog); font-size: 7px; font-weight: 680; letter-spacing: .1em; }
+.connection-visual-scale-options { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.relationship-manager-settings-menu .connection-visual-scale-options button { min-height: 43px; justify-content: center; flex-direction: column; gap: 3px; padding: 5px 4px; border: 1px solid transparent; text-align: center; line-height: 1.15; }
+.relationship-manager-settings-menu .connection-visual-scale-options button[data-active="true"] { border-color: color-mix(in srgb, var(--chrome-accent) 38%, var(--hairline)); background: color-mix(in srgb, var(--chrome-accent) 9%, var(--glass-light)); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glass-highlight) 28%, transparent); }
 .relationship-manager-status { flex: none; margin: -2px 3px 0; color: var(--fog); font-size: 8px; line-height: 1.3; }
 .relationship-manager-types { display: flex; flex: 1; flex-direction: column; min-height: 0; gap: 7px; }
 .relationship-manager-search { display: flex; align-items: center; gap: 7px; flex: none; min-height: 32px; padding: 0 9px; border: 1px solid color-mix(in srgb, var(--hairline) 54%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--glass-light) 28%, transparent); color: var(--fog); }
@@ -301,7 +307,8 @@
 .relationship-type-disclosure > span { display: grid; min-width: 0; gap: 2px; }
 .relationship-type-disclosure strong { overflow: hidden; color: var(--ink); font-size: 9.5px; font-weight: 630; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
 .relationship-type-disclosure small { color: var(--fog); font-size: 6.8px; letter-spacing: .05em; }
-.relationship-type-preview { display: block; width: 100%; min-width: 0; height: 28px; overflow: visible; }
+.relationship-type-preview { display: block; flex: none; width: clamp(145px, 100%, 240px); min-width: 0; max-width: 240px; height: 30px; overflow: visible; }
+.relationship-type-preview.connection-quick-type-preview { width: clamp(105px, 100%, 165px); max-width: 165px; }
 .relationship-type-usage { color: var(--fog); font-size: 7.5px; text-align: right; white-space: nowrap; }
 .relationship-type-edit-action { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 0; border: 0; background: transparent; color: var(--fog); font: inherit; font-size: 7.5px; cursor: pointer; }
 .relationship-type-edit-action:hover { color: var(--ink); }
@@ -359,6 +366,29 @@
 .connection-studio-type { margin: 2px 0 7px; color: var(--ink); font-size: 16px; font-weight: 620; letter-spacing: -.02em; }
 .connection-studio-scope { margin: 0; padding: 8px; border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-panel) 48%, transparent); color: var(--ink-soft); font-size: 9px; }
 .connection-studio-scope span { color: var(--fog); font-size: 7px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.connection-apply-shortcut { margin-left: 3px; color: var(--fog); font-size: .86em; font-weight: 500; opacity: .72; }
+.connection-studio-previews,
+.connection-multi-style-previews { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; }
+.connection-control-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.connection-control-heading h3 { margin: 0; }
+.connection-control-heading > span,
+.connection-mixed-number i,
+.connection-mixed-colour i { color: var(--fog); font-size: 7px; font-style: normal; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.connection-visual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 5px; }
+.connection-visual-option { display: grid; min-width: 0; place-items: center; gap: 2px; padding: 4px; border: 1px solid color-mix(in srgb, var(--hairline) 56%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 24%, transparent); color: var(--ink-soft); font: inherit; cursor: pointer; }
+.connection-visual-option:hover { border-color: color-mix(in srgb, var(--ink-soft) 38%, var(--hairline)); background: color-mix(in srgb, var(--glass-light) 48%, transparent); }
+.connection-visual-option[data-active="true"] { border-color: color-mix(in srgb, var(--ink) 52%, var(--hairline)); background: color-mix(in srgb, var(--glass-light) 66%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent); }
+.connection-visual-option > span { max-width: 100%; overflow: hidden; font-size: 7px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.connection-option-specimen { display: block; flex: none; width: clamp(145px, 100%, 240px); min-width: 0; max-width: 240px; height: 30px; }
+.connection-cap-join-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.connection-cap-join-specimen { display: block; width: 64px; max-width: 100%; height: 24px; }
+.connection-marker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(70px, 1fr)); gap: 4px; }
+.connection-marker-grid .connection-visual-option { min-width: 0; padding-inline: 2px; }
+.connection-marker-specimen { display: block; flex: none; width: 64px; min-width: 64px; max-width: 64px; height: 20px; }
+.connection-mixed-number > span,
+.connection-mixed-colour > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.connection-mixed-number input,
+.connection-mixed-colour input { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent); border-radius: 6px; outline: 0; padding: 6px 7px; background: color-mix(in srgb, var(--glass-light) 46%, transparent); color: var(--ink); font: inherit; font-size: 8.5px; }
 .connection-inspector .m1-state-badge { max-width: 112px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .connection-inspector .m1-action-grid { grid-template-columns: 1fr 1fr; }
 .connection-inspector .connection-delete { color: var(--ink); }

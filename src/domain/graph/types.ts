@@ -150,9 +150,19 @@ export type KnownConnectionStrokePatternId =
   | "dotted"
   | "dash-dot"
   | "double"
-  | "segmented-bars";
+  | "segmented-bars"
+  | "zigzag"
+  | "wave"
+  | "scallop"
+  | "vertical-hash"
+  | "vertical-hatch"
+  | "lightning";
 
 export type ConnectionStrokePatternId = KnownConnectionStrokePatternId | (string & {});
+
+export type ConnectionLineCap = "butt" | "square" | "round";
+
+export type ConnectionLineJoin = "miter" | "bevel" | "round";
 
 export type KnownConnectionMarkerId =
   | "none"
@@ -218,12 +228,15 @@ export interface ConnectionVisualAppearance {
   markerSize?: number;
   markerOffset?: number;
   dashScale?: number;
+  patternAmplitude?: number;
 }
 
 export interface ConnectionVisual {
   visible?: boolean;
   geometryId?: ConnectionGeometryId;
   strokePatternId?: ConnectionStrokePatternId;
+  lineCap?: ConnectionLineCap;
+  lineJoin?: ConnectionLineJoin;
   startMarkerId?: ConnectionMarkerId;
   endMarkerId?: ConnectionMarkerId;
   startAnchorId?: ConnectionAnchorId;

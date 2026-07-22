@@ -2265,3 +2265,107 @@ Inspector may assign one Relationship Type to multiple selected Connections. Mix
 ### Delete Connection Semantics
 
 Deleting a Connection removes its canonical Connection record entirely; it never means hide, archive, disable, opacity change, or deselection only. Multi-Connection delete removes all selected canonical records atomically, with one history transaction and one-step Undo restoration.
+
+---
+
+## Amendment 3 — 2026-07-22
+
+**Amendment — Icon-First Live and Multi-Connection Style Editing**
+
+### Icon-First Interaction Principle
+
+Where a style property or action is understood visually, MOOORF prefers an icon, thumbnail, or graphical specimen over a text-first control. Tooltips, accessible labels, and compact secondary captions retain semantic clarity. Relationship Type names and other semantically necessary names remain textual.
+
+### Live Style Editing
+
+Connection Style Panel edits preview immediately on Canvas through transient draft state. Apply commits one history transaction. Cancel discards the transient draft, restores exact canonical appearance, and creates zero history.
+
+### Multi-Connection Style Editing
+
+The universal Style Panel supports one or multiple selected Connections. Differing values present as UI-only `Mixed`. Only fields explicitly touched by the user preview and apply across the fixed target set; untouched per-Connection differences remain unchanged. Live Canvas preview applies to every target. Apply is one bulk history transaction; Cancel restores each target's exact individual pre-edit appearance with zero history.
+
+### Fixed Preview Specimens
+
+Connection and Relationship Type previews use consistent intrinsic specimen dimensions. Their line specimens do not stretch merely because a container becomes wider; constrained layouts wrap or reposition without distorting markers or dash proportions.
+
+### Quick Rail Selection Semantics
+
+With no selected Connections, the Quick Rail Relationship Type picker controls the type used for subsequent authored Connections. With one or more selected Connections, choosing a Relationship Type atomically applies it to every selected Connection and also becomes the current authoring Relationship Type. Existing visual, annotation, endpoint, anchor, enabled, and unrelated semantic fields remain intact; one Undo restores every prior type.
+
+---
+
+## Amendment 4 — 2026-07-22
+
+**Amendment — Adaptive Preview and Advanced Stroke Language**
+
+### Adaptive Non-Stretching Preview
+
+Connection visual previews adapt their centerline length to available layout space. Dash length, procedural wavelength, tooth spacing, marker proportions, amplitude, cap/join form, and stroke width retain intrinsic metrics; a longer preview renders more motif repetitions rather than non-uniformly scaling them.
+
+### Canonical Stroke Grammar
+
+Connection styles support canonical Butt, Square, and Round caps plus Miter, Bevel, and Round joins. Authored width uses a safe `0.5–64` range. Stroke patterns are registry-driven and remain independent from Straight, Curved, Orthogonal, and Elbow centerline geometry. Pattern scale controls applicable motif frequency, while pattern amplitude is authored and shown only for motif families that require transverse extent.
+
+The transient style clipboard includes cap, join, advanced pattern ID, Pattern scale, and Pattern amplitude alongside the previously approved visual fields. Paste continues to derive only minimal sparse target overrides and never copies endpoints, anchors, semantics, annotations, visibility, selection, or runtime geometry.
+
+### Procedural Pattern Ownership
+
+Procedural patterns render around the canonical Connection centerline without changing endpoints, anchors, semantic geometry, hit-test ownership, or canonical graph storage. Preview and Canvas consume the same pattern registry and motif interpretation.
+
+### Deferred R5 Settings
+
+Fixed-on-screen versus Scale-with-Canvas visual scaling and advanced port layouts remain Connection Settings R5 work. Planned port layouts remain Auto/Center, Cardinal 4, Horizontal 2, and Vertical 2; this amendment does not authorize zoom compensation or advanced ports in R3B.
+
+---
+
+## Amendment 5 — 2026-07-22
+
+**Amendment — Explicit Type Supersession, Vertical Hatch, Automatic Preview Adaptation, and Authored Selection Appearance**
+
+### Authoring Relationship Type Supersession
+
+An explicit Relationship Type choice from the single-Connection Inspector, multi-Connection Inspector, or Quick Rail with selected Connections assigns the chosen type and clears each affected Connection's sparse local visual override. The Connection immediately resolves to the selected type defaults. One atomic history transaction preserves and restores each target's prior Relationship Type and exact local visual override while leaving IDs, endpoints, anchors, enabled state, semantic metadata, Title, Body, and annotation overrides unchanged. Relationship Manager archive/delete reassignment remains a safety migration and continues preserving local visual overrides.
+
+### Vertical Hatch Pattern
+
+Vertical Hash remains backward compatible: it draws the canonical centerline plus repeated perpendicular marks. A separate Vertical Hatch pattern draws only repeated perpendicular marks, with no visible base centerline. Its invisible canonical path still owns endpoints, attachment geometry, marker placement, hit testing, and pattern placement. Hatch marks consume canonical color, width, opacity, cap/join where meaningful, Pattern Scale for spacing, and Pattern Amplitude for perpendicular length.
+
+### Automatic Adaptive Preview Behavior
+
+Adaptive non-stretching preview length is automatic responsive layout behavior, not an authored setting or user toggle. Available width changes the preview centerline length and repetition count without stretching motif wavelength, amplitude, thickness, or markers. Pattern Scale remains the explicit authored spacing/frequency control.
+
+### Selection Appearance
+
+Selection never replaces or covers a Connection's resolved authored or transient color, pattern, width, cap, join, opacity, or markers with a thick neutral-grey stroke. Procedural patterns, including Vertical Hatch, remain visually exact and never reveal a normally hidden canonical base centerline when selected. Any retained selection underlay must sit behind the authored motif, remain subtle and theme-aware, and use bounded screen-space expansion rather than scaling into a slab with authored width.
+
+---
+
+## Amendment 6 — 2026-07-22
+
+**Amendment — Screen-Space Connection Visuals and Enter Apply**
+
+### Screen-Space Connection Visuals
+
+The default MOOORF Connection rendering mode uses screen-space-stable visual metrics. Canvas zoom changes Connection position and path extent, but does not proportionally scale authored stroke width, dash/gap metrics, procedural wavelength or amplitude, hash/hatch mark spacing or length, marker dimensions or offset, bounded selection expansion, ports, or practical interaction sizes. Color, authored opacity, categorical caps and joins, canonical style values, endpoints, topology and hit-test ownership remain unchanged.
+
+R5 may expose `Fixed on Screen` and `Scale with Canvas`; `Fixed on Screen` is the preferred default. R3B provides one internal visual-scale seam only and adds no Connection Settings UI. Live Canvas drafts use the same screen-space resolution, while Manager, Quick Rail, Inspector and Style Panel specimens remain camera-independent adaptive UI previews. Export remains separately gated and authored styles never persist zoom-compensated values.
+
+### Style Panel Enter Apply
+
+Enter applies the active universal Style Panel draft through the same canonical Apply action when the keystroke is not already handled, is not part of IME composition, and is not owned by an open menu/listbox/popover, focused button or other native interactive control, textarea, or contenteditable surface. Numeric and eligible single-line Style inputs may finalize their current draft and Apply. Enter Apply creates exactly one history transaction and presents a compact shortcut affordance on the Apply control. Cancel and existing Escape behavior remain unchanged.
+
+---
+
+## Amendment 7 — 2026-07-22
+
+**Amendment — Final Render-Scale Compensation and Visible Project Setting**
+
+### Final Canvas Boundary
+
+Connection visual scaling is resolved at the last Canvas draw boundary from the active 2D transform and the Canvas CSS/backing-store ratio. Camera zoom remains embedded in projected path geometry. Fixed-on-screen metrics compensate the measured final output scale; Scale-with-Canvas metrics additionally apply the bounded camera zoom. DPR, CSS sizing, invalid scale inputs, base and hover passes, procedural motifs, markers, and bounded selection expansion share this one interpretation. Hit tolerance remains practical screen-space interaction geometry in both modes.
+
+### Global Visual Scale Setting
+
+The Relationship Manager settings/tune surface exposes one project-level `VISUAL SCALE` segmented control: `Fixed on Screen` and `Scale with Canvas`. Fixed on Screen is the default for legacy and new projects. The selected mode lives in canonical Connection view settings, updates the mounted Canvas immediately without Apply or Connection history, survives Manager and Canvas/Table lifecycle changes, and round-trips through existing project/config persistence. It is never stored per Connection, per Relationship Type, or in Style Panel drafts. Camera-independent UI specimens remain adaptive and unscaled.
+
+This amendment supersedes only Amendment 6's deferral of the visual-scale setting UI. R5 retains advanced port layouts and the other separately listed Connection settings; no advanced ports or broader R5 surface are authorized here.

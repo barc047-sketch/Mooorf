@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useState, type CSSProperties } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { SlidersHorizontal, Waypoints, X } from "lucide-react";
 import { getSelectableRelationshipTypes } from "../domain/connections/relationshipTypes";
+import { resolveRelationshipTypeStylePreview } from "../domain/connections/styles";
 import { useLab } from "../state/store";
 import { recordRelationshipTypeUse, RelationshipTypePicker } from "./RelationshipTypePicker";
 
@@ -15,15 +16,19 @@ export default function ConnectionQuickRail() {
   const typeId = useLab((state) => state.connectionModeTypeId);
   const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
   const performanceQuality = useLab((state) => state.settings.performanceQuality);
-  const setConnectionModeType = useLab((state) => state.setConnectionModeType);
+  const chooseConnectionQuickRailType = useLab((state) => state.chooseConnectionQuickRailType);
   const exitConnectionMode = useLab((state) => state.exitConnectionMode);
   const openWidget = useLab((state) => state.openWidget);
   const reduceMotion = useReducedMotion();
   const [railLayout, setRailLayout] = useState<RailLayout>({ left: 24, width: 520 });
   const typeOptions = useMemo(
-    () => getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles),
-    [projectRelationshipTypes, connectionStyles],
+    () => getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles).map((type) => ({
+      ...type,
+      visualDefaults: resolveRelationshipTypeStylePreview(type.id, type.visualDefaults, connectionStylePreview),
+    })),
+    [projectRelationshipTypes, connectionStyles, connectionStylePreview],
   );
 
   useLayoutEffect(() => {
@@ -83,7 +88,7 @@ export default function ConnectionQuickRail() {
         options={typeOptions}
         value={typeId}
         onChange={(nextTypeId) => {
-          setConnectionModeType(nextTypeId);
+          chooseConnectionQuickRailType(nextTypeId);
           recordRelationshipTypeUse(nextTypeId);
         }}
       />

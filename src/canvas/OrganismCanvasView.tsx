@@ -131,6 +131,7 @@ import {
   drawConnectionBatch,
   hitTestConnections,
   projectConnections,
+  resolveConnectionCanvasOutputScale,
   type ConnectionProjectionResult,
 } from "./connections/renderer";
 import { createConnectionInstrumentation } from "./connections/instrumentation";
@@ -156,7 +157,10 @@ const sameCanvasSettingsExceptConnections = (
   left: ReturnType<typeof authoredCanvasSettings>,
   right: ReturnType<typeof authoredCanvasSettings>,
 ): boolean => (Object.keys(left) as Array<keyof typeof left>).every(
-  (key) => key === "connectionStyles" || key === "connectionView" || left[key] === right[key],
+  (key) => key === "connectionStyles"
+    || key === "projectRelationshipTypes"
+    || key === "connectionView"
+    || left[key] === right[key],
 );
 const Z_MIN = 0.25;
 const Z_MAX = 4;
@@ -380,7 +384,10 @@ export default function OrganismCanvasView({
     const gesture = createCanvasGestureState<DragPosition, GroupTranslation, SpacePosition>();
     let connections = initialState.connections;
     let connectionStyles = initialState.settings.connectionStyles;
+    let projectRelationshipTypes = initialState.settings.projectRelationshipTypes;
+    let connectionStylePreview = initialState.connectionStyleEditorPreview;
     let connectionFocusMode = initialState.settings.connectionView.focusMode;
+    let connectionVisualScaleMode = initialState.settings.connectionView.visualScaleMode;
     let selectedConnectionIdSet = new Set(initialState.selectedConnectionIds);
     let hoveredConnectionId: string | null = null;
     let connectionModeActive = initialState.connectionModeActive;
@@ -649,12 +656,18 @@ export default function OrganismCanvasView({
       const selectionChanged = s.selectedIds !== lastSelectedIds || s.selectedId !== lastSelectedId;
       const connectionRecordsChanged = s.connections !== connections;
       const connectionStylesChanged = s.settings.connectionStyles !== connectionStyles;
+      const projectRelationshipTypesChanged = s.settings.projectRelationshipTypes !== projectRelationshipTypes;
+      const connectionStylePreviewChanged = s.connectionStyleEditorPreview !== connectionStylePreview;
       const connectionFocusChanged = s.settings.connectionView.focusMode !== connectionFocusMode;
+      const connectionVisualScaleChanged = s.settings.connectionView.visualScaleMode !== connectionVisualScaleMode;
       const connectionSelectionChanged = s.selectedConnectionIds.length !== selectedConnectionIdSet.size
         || s.selectedConnectionIds.some((id) => !selectedConnectionIdSet.has(id));
       connections = s.connections;
       connectionStyles = s.settings.connectionStyles;
+      projectRelationshipTypes = s.settings.projectRelationshipTypes;
+      connectionStylePreview = s.connectionStyleEditorPreview;
       connectionFocusMode = s.settings.connectionView.focusMode;
+      connectionVisualScaleMode = s.settings.connectionView.visualScaleMode;
       selectedConnectionIdSet = new Set(s.selectedConnectionIds);
       const connectionModeChanged = s.connectionModeActive !== connectionModeActive
         || s.settings.connectionView.visible !== connectionLayerVisible;
@@ -681,7 +694,10 @@ export default function OrganismCanvasView({
         selectionChanged
         || connectionRecordsChanged
         || connectionStylesChanged
+        || projectRelationshipTypesChanged
+        || connectionStylePreviewChanged
         || connectionFocusChanged
+        || connectionVisualScaleChanged
         || connectionSelectionChanged
         || connectionAuthoringChanged
         || connectionModeChanged
@@ -826,6 +842,7 @@ export default function OrganismCanvasView({
     };
     type Dimensions = { width: number; height: number };
     let pendingDimensions: Dimensions | null = null;
+    let connectionCanvasOutputScale = 1;
     const applyDimensions = (dimensions: Dimensions) => {
       presentationPixelRatio = resolveOrganismDpr(window.devicePixelRatio || 1, "high");
       w = dimensions.width;
@@ -842,6 +859,8 @@ export default function OrganismCanvasView({
       if (connectionCanvas.height !== presentationHeight) connectionCanvas.height = presentationHeight;
       if (connectionEditingCanvas.width !== presentationWidth) connectionEditingCanvas.width = presentationWidth;
       if (connectionEditingCanvas.height !== presentationHeight) connectionEditingCanvas.height = presentationHeight;
+      connectionContext.setTransform(presentationPixelRatio, 0, 0, presentationPixelRatio, 0, 0);
+      connectionCanvasOutputScale = resolveConnectionCanvasOutputScale(connectionContext);
       canvas.dataset.visibleResizeCount = String(Number(canvas.dataset.visibleResizeCount ?? "0") + 1);
       surfaceNeedsClear = true;
       invalidate();
@@ -1034,6 +1053,8 @@ export default function OrganismCanvasView({
         authoredCount: connections.length,
         endpoints,
         styles: connectionStyles,
+        projectRelationshipTypes,
+        stylePreview: connectionStylePreview,
         filter: {
           ...createDefaultConnectionFilterSpec(),
           selectedCellIds: effectiveConnectionFocusMode === "selected-cell" ? [...selectedIdSet] : [],
@@ -1044,19 +1065,42 @@ export default function OrganismCanvasView({
         changedEndpointIds: pendingChangedConnectionEndpointIds,
         lod,
         focusMode: effectiveConnectionFocusMode,
+        cameraZoom: cam.zoom,
+        visualScaleMode: connectionVisualScaleMode,
       }, connectionPathCache);
       connectionInstrumentation.recordProjection(connectionProjection.metrics);
       clearConnectionBase();
       connectionContext.setTransform(presentationPixelRatio, 0, 0, presentationPixelRatio, 0, 0);
       const drawWork = drawConnectionBatch(connectionContext, connectionProjection.commands, {
         theme,
-        scale: 1,
+        cameraZoom: cam.zoom,
+        visualScaleMode: connectionVisualScaleMode,
+        outputScale: connectionCanvasOutputScale,
         fadeUnrelated: lod !== "critical" || selectedConnectionIdSet.size > 0 || selectedIdSet.size > 0,
         drawLabels: false,
         markerDetail: lod === "critical" ? "hidden" : lod === "dense" ? "simple" : "full",
         patternFallback: lod === "critical",
       });
       connectionInstrumentation.recordDrawBatch(drawWork, "base");
+      const finalRender = drawWork.finalRender;
+      connectionCanvas.dataset.visualScaleMode = connectionVisualScaleMode;
+      connectionCanvas.dataset.cameraZoom = String(cam.zoom);
+      connectionCanvas.dataset.outputScale = String(connectionCanvasOutputScale);
+      if (finalRender) {
+        connectionCanvas.dataset.finalConnectionId = finalRender.connectionId;
+        connectionCanvas.dataset.finalAuthoredWidth = String(finalRender.authoredWidth);
+        connectionCanvas.dataset.finalVisibleWidth = String(finalRender.visibleWidth);
+        connectionCanvas.dataset.finalVisiblePatternAmplitude = String(finalRender.visiblePatternAmplitude);
+        connectionCanvas.dataset.finalVisiblePatternWavelength = String(finalRender.visiblePatternWavelength);
+        connectionCanvas.dataset.finalVisibleMarkerSize = String(finalRender.visibleMarkerSize);
+      } else {
+        delete connectionCanvas.dataset.finalConnectionId;
+        delete connectionCanvas.dataset.finalAuthoredWidth;
+        delete connectionCanvas.dataset.finalVisibleWidth;
+        delete connectionCanvas.dataset.finalVisiblePatternAmplitude;
+        delete connectionCanvas.dataset.finalVisiblePatternWavelength;
+        delete connectionCanvas.dataset.finalVisibleMarkerSize;
+      }
       connectionCanvas.style.visibility = "visible";
       connectionCanvas.dataset.lod = lod;
       connectionSurfaceCleared = false;
@@ -1118,30 +1162,6 @@ export default function OrganismCanvasView({
       const surface = computedStyle.getPropertyValue("--bg").trim() || "#f7f5f0";
       let overlayPrimitiveDraws = 0;
       let selectionOverlayDraws = 0;
-      if (selectedCommands.length) {
-        const selectedWork = drawConnectionBatch(connectionEditingContext, selectedCommands.map((command) => ({
-          ...command,
-          style: {
-            ...command.style,
-            appearance: {
-              ...command.style.appearance,
-              color: accent,
-              opacity: 1,
-              width: command.style.appearance.width + 2,
-            },
-          },
-          emphasis: "focused" as const,
-        })), {
-          theme,
-          scale: 1,
-          fadeUnrelated: false,
-          drawLabels: false,
-          markerDetail: "full",
-          patternFallback: false,
-        });
-        connectionInstrumentation.recordDrawBatch(selectedWork, "overlay");
-        selectionOverlayDraws += selectedCommands.length;
-      }
       if (hoveredCommand && !hoveredCommand.selected) {
         const hoveredWork = drawConnectionBatch(connectionEditingContext, [{
           ...hoveredCommand,
@@ -1156,7 +1176,9 @@ export default function OrganismCanvasView({
           emphasis: "focused" as const,
         }], {
           theme,
-          scale: 1,
+          cameraZoom: cam.zoom,
+          visualScaleMode: connectionVisualScaleMode,
+          outputScale: connectionCanvasOutputScale,
           fadeUnrelated: false,
           drawLabels: false,
           markerDetail: "full",

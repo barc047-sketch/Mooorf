@@ -366,7 +366,7 @@ test("atomic Cell deletion records only its bulk Connection changes and preserve
   ]);
 });
 
-test("reclassification retains a sparse local override and reset returns to inheritance", async () => {
+test("explicit reclassification clears a sparse local override and Undo restores it", async () => {
   const { useLab } = await import("../../state/store");
   useLab.setState({
     spaces: [cell("cell-a"), cell("cell-b")],
@@ -378,12 +378,13 @@ test("reclassification retains a sparse local override and reset returns to inhe
 
   assert.equal(useLab.getState().updateConnectionSemantic("reclassify", { typeId: "direct-access" }), true);
   assert.equal(useLab.getState().connections[0]?.semantic.typeId, "direct-access");
-  assert.deepEqual(useLab.getState().connections[0]?.visual, { appearance: { width: 3 } });
+  assert.equal(useLab.getState().connections[0]?.visual, undefined);
   assert.equal(useLab.getState().transformUndoStack.length, before + 1);
 
-  assert.equal(useLab.getState().updateConnectionVisual("reclassify", null), true);
+  useLab.getState().undoSpaceTransform();
+  assert.deepEqual(useLab.getState().connections[0]?.visual, { appearance: { width: 3 } });
+  useLab.getState().redoSpaceTransform();
   assert.equal(useLab.getState().connections[0]?.visual, undefined);
-  assert.equal(useLab.getState().transformUndoStack.length, before + 2);
 });
 
 test("project and Saved View persistence migrate style/view defaults and preserve live settings", async () => {
@@ -423,7 +424,7 @@ test("project and Saved View persistence migrate style/view defaults and preserv
     settings: {
       ...current.settings,
       connectionStyles,
-      connectionView: { visible: false, focusMode: "selected-cell" },
+      connectionView: { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" },
     },
     savedViews: [],
   } as never);
@@ -431,16 +432,16 @@ test("project and Saved View persistence migrate style/view defaults and preserv
   const snapshot = buildCurrentProjectSnapshot("V1 persistence") as ReturnType<typeof buildCurrentProjectSnapshot> & {
     settings: {
       connectionStyles?: ReturnType<typeof styles.createDefaultProjectConnectionStyles>;
-      connectionView?: { visible: boolean; focusMode: string };
+      connectionView?: { visible: boolean; focusMode: string; visualScaleMode: string };
     };
   };
   assert.equal(snapshot.settings.connectionStyles?.["direct-access"].appearance.width, 5);
-  assert.deepEqual(snapshot.settings.connectionView, { visible: false, focusMode: "selected-cell" });
+  assert.deepEqual(snapshot.settings.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
 
   const beforeResolved = styles.resolveConnectionStyle(authored, connectionStyles);
   const parsed = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [])));
   assert.equal(parsed.snapshot.settings.connectionStyles["direct-access"].appearance.width, 5);
-  assert.deepEqual(parsed.snapshot.settings.connectionView, { visible: false, focusMode: "selected-cell" });
+  assert.deepEqual(parsed.snapshot.settings.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
   assert.deepEqual(
     styles.resolveConnectionStyle(parsed.snapshot.connections[0]!, parsed.snapshot.settings.connectionStyles),
     beforeResolved,
@@ -469,13 +470,13 @@ test("project and Saved View persistence migrate style/view defaults and preserv
   useLab.getState().saveCurrentView("Styled view");
   const saved = useLab.getState().savedViews[0] as SavedCanvasSnapshot & {
     connectionStyles?: ReturnType<typeof styles.createDefaultProjectConnectionStyles>;
-    connectionView?: { visible: boolean; focusMode: string };
+    connectionView?: { visible: boolean; focusMode: string; visualScaleMode: string };
   };
   assert.equal(saved.connectionStyles?.["direct-access"].appearance.width, 5);
-  assert.deepEqual(saved.connectionView, { visible: false, focusMode: "selected-cell" });
+  assert.deepEqual(saved.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
   const parsedView = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [saved]))).savedViews[0]!;
   assert.equal(parsedView.connectionStyles?.["direct-access"].appearance.width, 5);
-  assert.deepEqual(parsedView.connectionView, { visible: false, focusMode: "selected-cell" });
+  assert.deepEqual(parsedView.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
 });
 
 test("full project, Saved View, schedule, and recovery replacement clear stale Connection UI and history", async () => {

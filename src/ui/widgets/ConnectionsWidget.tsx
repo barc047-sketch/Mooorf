@@ -3,6 +3,8 @@ import {
   Archive,
   ChevronDown,
   ChevronRight,
+  Maximize2,
+  Monitor,
   Pencil,
   Plus,
   RotateCcw,
@@ -20,6 +22,7 @@ import {
   type RelationshipTypeMetadataInput,
 } from "../../domain/connections/relationshipTypes";
 import { getConnectionIndex } from "../../domain/connections/selectors";
+import { resolveRelationshipTypeStylePreview } from "../../domain/connections/styles";
 import { useLab } from "../../state/store";
 import {
   recordRelationshipTypeUse,
@@ -117,16 +120,23 @@ export default function ConnectionsWidget() {
   const connections = useLab((state) => state.connections);
   const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
+  const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
+  const connectionVisualScaleMode = useLab((state) => state.settings.connectionView.visualScaleMode);
   const createProjectRelationshipType = useLab((state) => state.createProjectRelationshipType);
   const updateProjectRelationshipTypeMetadata = useLab((state) => state.updateProjectRelationshipTypeMetadata);
   const setProjectRelationshipTypeArchived = useLab((state) => state.setProjectRelationshipTypeArchived);
   const deleteProjectRelationshipType = useLab((state) => state.deleteProjectRelationshipType);
   const resetFactoryRelationshipTypeDefaults = useLab((state) => state.resetFactoryRelationshipTypeDefaults);
+  const setConnectionVisualScaleMode = useLab((state) => state.setConnectionVisualScaleMode);
+  const openConnectionStyleEditor = useLab((state) => state.openConnectionStyleEditor);
 
   const connectionIndex = useMemo(() => getConnectionIndex(connections), [connections]);
   const allTypes = useMemo(
-    () => getAllRelationshipTypes(projectRelationshipTypes, connectionStyles),
-    [projectRelationshipTypes, connectionStyles],
+    () => getAllRelationshipTypes(projectRelationshipTypes, connectionStyles).map((type) => ({
+      ...type,
+      visualDefaults: resolveRelationshipTypeStylePreview(type.id, type.visualDefaults, connectionStylePreview),
+    })),
+    [projectRelationshipTypes, connectionStyles, connectionStylePreview],
   );
   const activeTypes = useMemo(
     () => searchRelationshipTypes(allTypes.filter((type) => !type.archived), query),
@@ -138,8 +148,12 @@ export default function ConnectionsWidget() {
   );
   const reassignOptions = useMemo(
     () => getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles)
+      .map((type) => ({
+        ...type,
+        visualDefaults: resolveRelationshipTypeStylePreview(type.id, type.visualDefaults, connectionStylePreview),
+      }))
       .filter((type) => type.id !== pending?.typeId),
-    [connectionStyles, pending?.typeId, projectRelationshipTypes],
+    [connectionStylePreview, connectionStyles, pending?.typeId, projectRelationshipTypes],
   );
 
   const openCreate = () => {
@@ -272,6 +286,13 @@ export default function ConnectionsWidget() {
             </dl>
             {type.id === "custom" && <p className="relationship-type-protection">Custom is permanent, always available, and cannot be archived or deleted.</p>}
             {type.origin === "factory" && type.id !== "custom" && <p className="relationship-type-protection">Factory identity is protected. Visual defaults can be reset from Manager settings.</p>}
+            <div className="relationship-type-row-actions">
+              <button
+                type="button"
+                className="m1-btn"
+                onClick={() => openConnectionStyleEditor({ context: "relationship-type", typeId: type.id })}
+              ><Settings2 size={11} /> Edit Style</button>
+            </div>
             {type.origin === "project" && !pendingHere && <div className="relationship-type-row-actions">
               {type.archived ? <button type="button" className="m1-btn" onClick={() => {
                 if (setProjectRelationshipTypeArchived(type.id, false)) {
@@ -328,12 +349,39 @@ export default function ConnectionsWidget() {
             <Settings2 size={14} strokeWidth={1.5} />
           </button>
           {settingsOpen && <div className="relationship-manager-settings-menu">
+            <strong className="connection-settings-title">CONNECTION SETTINGS</strong>
+            <section className="connection-visual-scale-setting" aria-labelledby="connection-visual-scale-label">
+              <span id="connection-visual-scale-label">VISUAL SCALE</span>
+              <div className="connection-visual-scale-options" role="radiogroup" aria-label="Connection visual scale">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={connectionVisualScaleMode === "screen"}
+                  data-active={connectionVisualScaleMode === "screen" ? "true" : undefined}
+                  title="Keep Connection strokes, patterns and markers fixed in screen pixels"
+                  onClick={() => setConnectionVisualScaleMode("screen")}
+                >
+                  <Monitor size={12} strokeWidth={1.5} />
+                  <span>Fixed on Screen</span>
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={connectionVisualScaleMode === "canvas"}
+                  data-active={connectionVisualScaleMode === "canvas" ? "true" : undefined}
+                  title="Scale Connection strokes, patterns and markers with Canvas zoom"
+                  onClick={() => setConnectionVisualScaleMode("canvas")}
+                >
+                  <Maximize2 size={12} strokeWidth={1.5} />
+                  <span>Scale with Canvas</span>
+                </button>
+              </div>
+            </section>
             <button type="button" onClick={() => {
               const changed = resetFactoryRelationshipTypeDefaults();
               setActionMessage(changed ? "Factory Relationship Type defaults restored." : "Factory defaults are already current.");
               setSettingsOpen(false);
             }}><RotateCcw size={11} /> Reset Factory Defaults</button>
-            <p>Connection Settings arrive in a later stage.</p>
           </div>}
         </div>
       </div>

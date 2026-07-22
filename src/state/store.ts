@@ -131,6 +131,7 @@ import {
 } from "../domain/connections/relationshipTypes";
 import {
   applyConnectionStylePack as createConnectionStylePack,
+  applyConnectionStylePatch,
   cloneProjectConnectionStyles,
   connectionTypeStyle,
   copyResolvedConnectionStyle,
@@ -139,10 +140,13 @@ import {
   normalizeConnectionViewSettings,
   normalizeProjectConnectionStyles,
   pasteConnectionStyleVisual,
+  resolveConnectionStyle,
   updateProjectConnectionStyle,
   type ConnectionStyleClipboard,
   type ConnectionStylePackId,
   type ConnectionStylePatch,
+  type ConnectionStylePreview,
+  type ConnectionVisualScaleMode,
   type ConnectionViewSettings,
   type ProjectConnectionStyles,
   type ResolvedConnectionStyle,
@@ -268,6 +272,10 @@ export interface LabSettings {
   connectionView: ConnectionViewSettings;
 }
 
+export type ConnectionStyleEditorTarget =
+  | { context: "relationship-type"; typeId: string }
+  | { context: "connection-override"; connectionIds: string[] };
+
 export const DEFAULT_ANNOTATION_DETAIL: AnnotationDetail = {
   textScale: 1,
   textShadow: false,
@@ -330,6 +338,10 @@ interface LabState {
   styleClipboard: StyleClipboard | null;
   /** Ephemeral Connection appearance clipboard. Never persisted or exported. */
   connectionStyleClipboard: ConnectionStyleClipboard | null;
+  /** Fixed universal Connection Style Panel target. Selection changes never retarget an open session. */
+  connectionStyleEditorTarget: ConnectionStyleEditorTarget | null;
+  /** Ephemeral touched-field draft consumed by Canvas and every style preview surface. */
+  connectionStyleEditorPreview: ConnectionStylePreview | null;
 
   toggleTheme: () => void;
   setView: (view: ViewMode) => void;
@@ -430,6 +442,7 @@ interface LabState {
   createConnection: (input: CreateConnectionInput) => string | null;
   updateConnectionSemantic: (id: string, patch: Partial<ConnectionSemantic>) => boolean;
   updateSelectedConnectionTypes: (typeId: ConnectionSemantic["typeId"]) => number;
+  chooseConnectionQuickRailType: (typeId: ConnectionSemantic["typeId"]) => number;
   updateConnectionAnnotation: (id: string, annotation: ConnectionAnnotationOverride | null) => boolean;
   updateConnectionVisual: (id: string, visual: ConnectionVisual | null) => boolean;
   reverseConnection: (id: string) => boolean;
@@ -441,6 +454,11 @@ interface LabState {
   setProjectRelationshipTypeArchived: (id: string, archived: boolean, reassignToTypeId?: string) => boolean;
   deleteProjectRelationshipType: (id: string, reassignToTypeId?: string) => boolean;
   resetFactoryRelationshipTypeDefaults: () => boolean;
+  setConnectionVisualScaleMode: (mode: ConnectionVisualScaleMode) => void;
+  openConnectionStyleEditor: (target: ConnectionStyleEditorTarget) => boolean;
+  previewConnectionStyleEditor: (patch: ConnectionStylePatch) => boolean;
+  cancelConnectionStyleEditor: () => void;
+  commitConnectionStyleEditor: (style?: ResolvedConnectionStyle | null) => boolean;
   copySelectedConnectionStyle: () => boolean;
   pasteConnectionStyleToSelection: () => number;
   updateConnectionTypeStyle: (
@@ -737,6 +755,90 @@ const changedConnectionStylePatches = (
     after: { ...after[id], label: { ...after[id].label }, appearance: { ...after[id].appearance } },
   }];
 });
+
+const mergeConnectionStylePatch = (
+  current: ConnectionStylePatch,
+  patch: ConnectionStylePatch,
+): ConnectionStylePatch => ({
+  ...current,
+  ...patch,
+  ...(current.label || patch.label ? { label: { ...current.label, ...patch.label } } : {}),
+  ...(current.appearance || patch.appearance
+    ? { appearance: { ...current.appearance, ...patch.appearance } }
+    : {}),
+});
+
+const hasOwn = (value: object, key: PropertyKey): boolean =>
+  Object.prototype.hasOwnProperty.call(value, key);
+
+/** Explicit author type choice supersedes authored styling while attachment
+ * anchors remain topology. Manager retirement uses its separate migration plan
+ * and deliberately does not call this helper. */
+const attachmentVisualAfterTypeSupersession = (
+  visual: ConnectionVisual | undefined,
+): ConnectionVisual | undefined => {
+  if (!visual) return undefined;
+  const attachment: ConnectionVisual = {
+    ...(visual.startAnchorId === undefined ? {} : { startAnchorId: visual.startAnchorId }),
+    ...(visual.endAnchorId === undefined ? {} : { endAnchorId: visual.endAnchorId }),
+  };
+  return Object.keys(attachment).length ? attachment : undefined;
+};
+
+/** Rebase only fields explicitly present in the transient patch. Untouched
+ * local override keys remain byte-for-byte owned by their Connection. */
+const applyTouchedConnectionStylePatch = (
+  connection: Connection,
+  patch: ConnectionStylePatch,
+  styles: ProjectConnectionStyles,
+  projectTypes: readonly ProjectRelationshipType[],
+): ConnectionVisual | undefined => {
+  const inherited = connectionTypeStyle(connection.semantic.typeId, styles, projectTypes);
+  const resolved = applyConnectionStylePatch(
+    resolveConnectionStyle(connection, styles, projectTypes),
+    patch,
+  );
+  const visual: ConnectionVisual = {
+    ...connection.visual,
+    ...(connection.visual?.label ? { label: { ...connection.visual.label } } : {}),
+    ...(connection.visual?.appearance ? { appearance: { ...connection.visual.appearance } } : {}),
+  };
+  const directFields = [
+    "visible",
+    "geometryId",
+    "strokePatternId",
+    "lineCap",
+    "lineJoin",
+    "startMarkerId",
+    "endMarkerId",
+    "startAnchorId",
+    "endAnchorId",
+  ] as const;
+  for (const field of directFields) {
+    if (!hasOwn(patch, field)) continue;
+    if (resolved[field] === inherited[field]) delete visual[field];
+    else visual[field] = resolved[field] as never;
+  }
+  if (patch.appearance) {
+    const appearance = { ...visual.appearance };
+    for (const key of Object.keys(patch.appearance) as Array<keyof ResolvedConnectionStyle["appearance"]>) {
+      if (resolved.appearance[key] === inherited.appearance[key]) delete appearance[key];
+      else appearance[key] = resolved.appearance[key] as never;
+    }
+    if (Object.keys(appearance).length) visual.appearance = appearance;
+    else delete visual.appearance;
+  }
+  if (patch.label) {
+    const label = { ...visual.label };
+    for (const key of Object.keys(patch.label) as Array<keyof ResolvedConnectionStyle["label"]>) {
+      if (resolved.label[key] === inherited.label[key]) delete label[key];
+      else label[key] = resolved.label[key] as never;
+    }
+    if (Object.keys(label).length) visual.label = label;
+    else delete visual.label;
+  }
+  return Object.keys(visual).length ? visual : undefined;
+};
 
 const planProjectRelationshipTypeRetirement = ({
   connections,
@@ -1100,6 +1202,8 @@ export const useLab = create<LabState>((set, get) => ({
   arrangementPreviewPatternId: null,
   styleClipboard: null,
   connectionStyleClipboard: null,
+  connectionStyleEditorTarget: null,
+  connectionStyleEditorPreview: null,
 
   toggleTheme: () =>
     set((s) => ({ theme: s.theme === "day" ? "night" : "day" })),
@@ -1219,6 +1323,10 @@ export const useLab = create<LabState>((set, get) => ({
         openWidgets: s.openWidgets.filter((w) => w !== id),
         minimizedWidgets: s.minimizedWidgets.filter((widgetId) => widgetId !== id),
         ...(id === "layout" ? { arrangementPreview: null, arrangementPreviewPatternId: null } : {}),
+        ...(id === "connection-studio" ? {
+          connectionStyleEditorTarget: null,
+          connectionStyleEditorPreview: null,
+        } : {}),
       };
     }),
 
@@ -1296,6 +1404,16 @@ export const useLab = create<LabState>((set, get) => ({
     }),
 
   clearConnectionSelection: () => set(clearedConnectionSelection()),
+
+  setConnectionVisualScaleMode: (mode) => set((s) => ({
+    settings: {
+      ...s.settings,
+      connectionView: {
+        ...s.settings.connectionView,
+        visualScaleMode: mode === "canvas" ? "canvas" : "screen",
+      },
+    },
+  })),
 
   enterConnectionMode: (typeId = "custom") =>
     set((s) => ({
@@ -2310,8 +2428,13 @@ export const useLab = create<LabState>((set, get) => ({
           notes: patch.notes ?? current.semantic.notes,
         }, s.settings.projectRelationshipTypes, s.settings.connectionStyles);
         const candidate: Connection = { ...cloneConnection(current), semantic };
+        if (patch.typeId !== undefined) {
+          const attachment = attachmentVisualAfterTypeSupersession(current.visual);
+          if (attachment) candidate.visual = attachment;
+          else delete candidate.visual;
+        }
         if (findExactConnectionDuplicate(index, candidate, id)) return {};
-        if (JSON.stringify(current.semantic) === JSON.stringify(semantic)) return {};
+        if (JSON.stringify(current) === JSON.stringify(candidate)) return {};
         const currentIndex = s.connections.findIndex((connection) => connection.id === id);
         const after = s.connections.map((connection) => connection.id === id ? candidate : connection);
         const entry: SpaceHistoryEntry = {
@@ -2347,7 +2470,7 @@ export const useLab = create<LabState>((set, get) => ({
       try {
         const patches: ConnectionRecordPatch[] = [];
         const connections = s.connections.map((current, index) => {
-          if (!selectedIds.has(current.id) || current.semantic.typeId === typeId) return current;
+          if (!selectedIds.has(current.id)) return current;
           const semantic = createConnectionSemantic(typeId, {
             requirement: current.semantic.requirement,
             direction: current.semantic.direction,
@@ -2356,6 +2479,10 @@ export const useLab = create<LabState>((set, get) => ({
             notes: current.semantic.notes,
           }, s.settings.projectRelationshipTypes, s.settings.connectionStyles);
           const candidate: Connection = { ...cloneConnection(current), semantic };
+          const attachment = attachmentVisualAfterTypeSupersession(current.visual);
+          if (attachment) candidate.visual = attachment;
+          else delete candidate.visual;
+          if (JSON.stringify(current) === JSON.stringify(candidate)) return current;
           patches.push(connectionRecordPatch(
             current.id,
             { index, connection: current },
@@ -2371,6 +2498,70 @@ export const useLab = create<LabState>((set, get) => ({
         })) return {};
         changed = patches.length;
         return {
+          connections,
+          transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connections", patches }),
+          transformRedoStack: [],
+        };
+      } catch {
+        return {};
+      }
+    });
+    return changed;
+  },
+
+  chooseConnectionQuickRailType: (typeId) => {
+    let changed = 0;
+    set((s) => {
+      const selectable = getSelectableRelationshipTypes(
+        s.settings.projectRelationshipTypes,
+        s.settings.connectionStyles,
+      ).some((type) => type.id === typeId);
+      if (!selectable) return {};
+      const authoringPatch = {
+        connectionModeTypeId: typeId,
+        connectionAuthoring: s.connectionModeActive
+          ? reduceConnectionAuthoring(s.connectionAuthoring, {
+              type: "ready",
+              typeId,
+              message: `Ready to create ${resolveRelationshipType(typeId, s.settings.projectRelationshipTypes, s.settings.connectionStyles).name} Connections.`,
+              retainPriorSelection: true,
+            })
+          : s.connectionAuthoring,
+      };
+      const selectedIds = new Set(s.selectedConnectionIds);
+      if (!selectedIds.size) return authoringPatch;
+      try {
+        const patches: ConnectionRecordPatch[] = [];
+        const connections = s.connections.map((current, index) => {
+          if (!selectedIds.has(current.id)) return current;
+          const semantic = createConnectionSemantic(typeId, {
+            requirement: current.semantic.requirement,
+            direction: current.semantic.direction,
+            strength: current.semantic.strength,
+            priority: current.semantic.priority,
+            notes: current.semantic.notes,
+          }, s.settings.projectRelationshipTypes, s.settings.connectionStyles);
+          const candidate: Connection = { ...cloneConnection(current), semantic };
+          const attachment = attachmentVisualAfterTypeSupersession(current.visual);
+          if (attachment) candidate.visual = attachment;
+          else delete candidate.visual;
+          if (JSON.stringify(current) === JSON.stringify(candidate)) return current;
+          patches.push(connectionRecordPatch(
+            current.id,
+            { index, connection: current },
+            { index, connection: candidate },
+          ));
+          return candidate;
+        });
+        if (!patches.length) return authoringPatch;
+        const nextIndex = getConnectionIndex(connections);
+        if (patches.some((patch) => {
+          const candidate = patch.after?.connection;
+          return candidate ? Boolean(findExactConnectionDuplicate(nextIndex, candidate, candidate.id)) : false;
+        })) return {};
+        changed = patches.length;
+        return {
+          ...authoringPatch,
           connections,
           transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connections", patches }),
           transformRedoStack: [],
@@ -2721,6 +2912,168 @@ export const useLab = create<LabState>((set, get) => ({
       return {
         settings: { ...s.settings, connectionStyles: after },
         transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connection-styles", patches }),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
+  openConnectionStyleEditor: (target) => {
+    const state = get();
+    if (target.context === "connection-override") {
+      const connectionIds = [...new Set(target.connectionIds)];
+      const index = getConnectionIndex(state.connections);
+      if (!connectionIds.length || !connectionIds.every((id) => Boolean(selectConnectionById(index, id)))) {
+        return false;
+      }
+      set({
+        connectionStyleEditorTarget: { context: "connection-override", connectionIds },
+        connectionStyleEditorPreview: {
+          context: "connection-override",
+          connectionIds,
+          patch: {},
+        },
+      });
+    } else {
+      const valid = Object.prototype.hasOwnProperty.call(state.settings.connectionStyles, target.typeId)
+        || state.settings.projectRelationshipTypes.some((type) => type.id === target.typeId);
+      if (!valid) return false;
+      set({
+        connectionStyleEditorTarget: { ...target },
+        connectionStyleEditorPreview: {
+          context: "relationship-type",
+          typeId: target.typeId,
+          style: connectionTypeStyle(
+            target.typeId,
+            state.settings.connectionStyles,
+            state.settings.projectRelationshipTypes,
+          ),
+        },
+      });
+    }
+    get().openWidget("connection-studio");
+    return true;
+  },
+
+  previewConnectionStyleEditor: (patch) => {
+    let changed = false;
+    set((s) => {
+      const preview = s.connectionStyleEditorPreview;
+      if (!preview) return {};
+      changed = true;
+      return {
+        connectionStyleEditorPreview: preview.context === "relationship-type"
+          ? {
+              ...preview,
+              style: applyConnectionStylePatch(preview.style, patch),
+            }
+          : {
+              ...preview,
+              patch: mergeConnectionStylePatch(preview.patch, patch),
+            },
+      };
+    });
+    return changed;
+  },
+
+  cancelConnectionStyleEditor: () => get().closeWidget("connection-studio"),
+
+  commitConnectionStyleEditor: (style) => {
+    let changed = false;
+    set((s) => {
+      const target = s.connectionStyleEditorTarget;
+      if (!target) return {};
+      if (target.context === "connection-override") {
+        const preview = s.connectionStyleEditorPreview?.context === "connection-override"
+          ? s.connectionStyleEditorPreview
+          : null;
+        const legacyPatch: ConnectionStylePatch | null = style && style !== null ? {
+          geometryId: style.geometryId,
+          strokePatternId: style.strokePatternId,
+          lineCap: style.lineCap,
+          lineJoin: style.lineJoin,
+          startMarkerId: style.startMarkerId,
+          endMarkerId: style.endMarkerId,
+          appearance: { ...style.appearance },
+        } : null;
+        const patch = legacyPatch ?? preview?.patch ?? {};
+        const targetIds = new Set(target.connectionIds);
+        const patches: ConnectionRecordPatch[] = [];
+        const connections = s.connections.map((current, index) => {
+          if (!targetIds.has(current.id)) return current;
+          const visual = style === null
+            ? undefined
+            : applyTouchedConnectionStylePatch(
+                current,
+                patch,
+                s.settings.connectionStyles,
+                s.settings.projectRelationshipTypes,
+              );
+          if (JSON.stringify(current.visual) === JSON.stringify(visual)) return current;
+          const candidate = cloneConnection(current);
+          if (visual) candidate.visual = visual;
+          else delete candidate.visual;
+          patches.push(connectionRecordPatch(
+            current.id,
+            { index, connection: current },
+            { index, connection: candidate },
+          ));
+          return candidate;
+        });
+        if (!patches.length) return {};
+        changed = true;
+        return {
+          connections,
+          transformUndoStack: pushHistory(s.transformUndoStack, {
+            kind: "connections",
+            patches,
+          }),
+          transformRedoStack: [],
+        };
+      }
+
+      const previewStyle = s.connectionStyleEditorPreview?.context === "relationship-type"
+        ? s.connectionStyleEditorPreview.style
+        : null;
+      const committedStyle = style ?? previewStyle;
+      if (!committedStyle) return {};
+      if (Object.prototype.hasOwnProperty.call(s.settings.connectionStyles, target.typeId)) {
+        const typeId = target.typeId as keyof ProjectConnectionStyles;
+        const before = cloneProjectConnectionStyles(s.settings.connectionStyles);
+        const after = updateProjectConnectionStyle(before, typeId, committedStyle);
+        const patches = changedConnectionStylePatches(before, after);
+        if (!patches.length) return {};
+        changed = true;
+        return {
+          settings: { ...s.settings, connectionStyles: after },
+          transformUndoStack: pushHistory(s.transformUndoStack, { kind: "connection-styles", patches }),
+          transformRedoStack: [],
+        };
+      }
+
+      if (!s.settings.projectRelationshipTypes.some((type) => type.id === target.typeId)) return {};
+      const before = cloneProjectRelationshipTypes(s.settings.projectRelationshipTypes);
+      const after = normalizeProjectRelationshipTypes(
+        before.map((type) => type.id === target.typeId ? {
+          ...type,
+          visualDefaults: {
+            ...committedStyle,
+            label: { ...committedStyle.label },
+            appearance: { ...committedStyle.appearance },
+          },
+        } : type),
+        s.settings.connectionStyles,
+      );
+      if (JSON.stringify(before) === JSON.stringify(after)) return {};
+      changed = true;
+      return {
+        settings: { ...s.settings, projectRelationshipTypes: after },
+        transformUndoStack: pushHistory(s.transformUndoStack, {
+          kind: "relationship-types",
+          before,
+          after: cloneProjectRelationshipTypes(after),
+          patches: [],
+        }),
         transformRedoStack: [],
       };
     });

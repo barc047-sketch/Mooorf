@@ -92,6 +92,10 @@ export function SliderRow({
         onPointerUp={finishInteraction}
         onKeyUp={finishInteraction}
         onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            finishInteraction();
+            return;
+          }
           if (event.key !== "Escape") return;
           event.preventDefault();
           cancelInteraction();

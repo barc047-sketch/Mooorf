@@ -20,8 +20,8 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 | 14 | Organism Target Rail | PLANNED | Requires stable Text/appearance sequencing and separate Owner GO. |
 | 15 | Quick Materials | PLANNED | Reuses the one Material Registry and requires separate Owner GO. |
 | 16 | Material Browser | PLANNED | Follows target-safe Quick Materials. |
-| 17 | Relationship foundation | R3A WAITING OWNER QA | R2B is checkpointed; the local-uncommitted Manager/Types work now includes capped preview pickers, UI-only MRU ordering and atomic multi-Connection Type editing. Owner visual/interaction QA remains required. R3B, finalization and merge are not authorized. |
-| 18 | Visual Connections | PLANNED | Follows stable Relationship ownership. |
+| 17 | Relationship foundation | COMPLETE | R3A Owner QA passed and the Manager/Types library is protected by local checkpoint `5f5e178`; it is not pushed or merged. |
+| 18 | Visual Connections | HOLD | R3B final-render compensation, visible project Visual Scale setting and Enter Apply are local-uncommitted and waiting Owner visual/interaction QA; R5 advanced ports and other settings remain deferred, and finalization, push and merge require separate authority. |
 | 19 | Morph Bridge and Cell Behaviour | BLOCKED | Requires stable Relationship semantics and bounded performance architecture. |
 | 20 | Annotation Card / broader Markup | PLANNED | Later reviewed Markup stage; no active implementation. |
 
@@ -33,6 +33,6 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 
 ## Current gate
 
-R3A PICKER + BULK TYPE CORRECTIONS — WAITING OWNER QA
+R3B REAL ZOOM MODE + VISIBLE TOGGLE — WAITING OWNER QA
 
-No R3B implementation, finalization, feature merge, branch deletion or AG3 modification is authorized.
+No R3B finalization, push, feature merge, branch deletion or AG3 modification is authorized.

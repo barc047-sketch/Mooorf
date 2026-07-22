@@ -122,7 +122,7 @@ test("Quick Rail owns one dynamic type dropdown, Manager, and Close", async () =
   assert.doesNotMatch(rail, /<select\b/, "Quick Rail must not use a native downward/OS-styled select");
 });
 
-test("Connection Studio is registered once and remains a read-only Task 2 shell", async () => {
+test("Connection Studio remains registered once and owns the universal style draft", async () => {
   const registry = await import("../../ui/panels/widgetRegistry");
   const definition = (registry.WIDGET_DEFINITIONS as Record<string, unknown>)["connection-studio"] as {
     id?: string;
@@ -135,11 +135,15 @@ test("Connection Studio is registered once and remains a read-only Task 2 shell"
   assert.match(host, /import ConnectionStudioWidget from "\.\/ConnectionStudioWidget"/);
   assert.match(host, /"connection-studio":\s*\(\) => <ConnectionStudioWidget \/>/);
   assert.match(studio, /Editing:/);
-  assert.match(studio, /Type Default/);
-  assert.match(studio, /connectionModeTypeId/);
-  assert.match(studio, /getPrimarySelectedConnection/);
-  assert.match(studio, /selectedConnection\?\.semantic\.typeId/);
-  assert.doesNotMatch(studio, /geometryId|markerId|strokePatternId|resetConnection|updateConnectionVisual/);
+  assert.match(studio, /connectionStyleEditorTarget/);
+  assert.match(studio, /relationship-type/);
+  assert.match(studio, /connection-override/);
+  assert.match(studio, /CONNECTION_GEOMETRY_IDS/);
+  assert.match(studio, /CONNECTION_MARKER_IDS/);
+  assert.match(studio, /CONNECTION_STROKE_PATTERNS/);
+  assert.match(studio, /commitConnectionStyleEditor/);
+  assert.match(studio, /RelationshipTypeStylePreview/);
+  assert.doesNotMatch(studio, /updateConnectionVisual/);
 });
 
 test("the one production Inspector keeps Connection editing compact, dynamic, and annotation-led", () => {
@@ -157,7 +161,9 @@ test("the one production Inspector keeps Connection editing compact, dynamic, an
   assert.match(inspector, /deleteConnection/);
   assert.match(inspector, /Title/);
   assert.match(inspector, /Body/);
-  assert.match(inspector, /connection-style-preview/);
+  assert.match(inspector, /RelationshipTypeStylePreview/);
+  assert.match(inspector, /openConnectionStyleEditor/);
+  assert.match(inspector, /Edit Style/);
   assert.match(inspector, /Relationship Type/);
   assert.match(inspector, /Custom appearance/);
   assert.match(inspector, /function CellInspector/);

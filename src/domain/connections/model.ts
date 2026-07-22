@@ -129,6 +129,8 @@ const omitInheritedVisualValues = (
     "visible",
     "geometryId",
     "strokePatternId",
+    "lineCap",
+    "lineJoin",
     "startMarkerId",
     "endMarkerId",
     "startAnchorId",
@@ -163,12 +165,13 @@ export const normalizeConnectionVisual = (
     color: typeof value.appearance.color === "string" && value.appearance.color.trim()
       ? value.appearance.color.trim().slice(0, 64)
       : undefined,
-    width: finiteInRange(value.appearance.width, undefined, 0.25, 32),
+    width: finiteInRange(value.appearance.width, undefined, 0.5, 64),
     opacity: finiteInRange(value.appearance.opacity, undefined, 0, 1),
     curve: finiteInRange(value.appearance.curve, undefined, -2, 2),
     markerSize: finiteInRange(value.appearance.markerSize, undefined, 2, 64),
     markerOffset: finiteInRange(value.appearance.markerOffset, undefined, -64, 64),
     dashScale: finiteInRange(value.appearance.dashScale, undefined, 0.25, 8),
+    patternAmplitude: finiteInRange(value.appearance.patternAmplitude, undefined, 0.5, 64),
   } : undefined;
   const compactAppearance = appearance && Object.values(appearance).some((entry) => entry !== undefined)
     ? compactDefined(appearance)
@@ -189,6 +192,8 @@ export const normalizeConnectionVisual = (
     visible: typeof value.visible === "boolean" ? value.visible : undefined,
     geometryId: optionalRegistryId(value.geometryId),
     strokePatternId: optionalRegistryId(value.strokePatternId),
+    lineCap: optionalOneOf(value.lineCap, ["butt", "square", "round"]),
+    lineJoin: optionalOneOf(value.lineJoin, ["miter", "bevel", "round"]),
     startMarkerId: optionalRegistryId(value.startMarkerId),
     endMarkerId: optionalRegistryId(value.endMarkerId),
     startAnchorId: optionalRegistryId(value.startAnchorId),

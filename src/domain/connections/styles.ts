@@ -7,6 +7,8 @@ import type {
   ConnectionLabelOrientation,
   ConnectionLabelPosition,
   ConnectionLabelStyle,
+  ConnectionLineCap,
+  ConnectionLineJoin,
   ConnectionMarkerId,
   ConnectionStrokePatternId,
   ConnectionVisual,
@@ -23,12 +25,15 @@ export interface ResolvedConnectionAppearance {
   markerSize: number;
   markerOffset: number;
   dashScale: number;
+  patternAmplitude: number;
 }
 
 export interface ResolvedConnectionStyle {
   visible: boolean;
   geometryId: ConnectionGeometryId;
   strokePatternId: ConnectionStrokePatternId;
+  lineCap: ConnectionLineCap;
+  lineJoin: ConnectionLineJoin;
   startMarkerId: ConnectionMarkerId;
   endMarkerId: ConnectionMarkerId;
   startAnchorId: ConnectionAnchorId;
@@ -42,6 +47,8 @@ export interface ResolvedConnectionStyle {
 export interface ConnectionStyleClipboard {
   geometryId: ConnectionGeometryId;
   strokePatternId: ConnectionStrokePatternId;
+  lineCap: ConnectionLineCap;
+  lineJoin: ConnectionLineJoin;
   startMarkerId: ConnectionMarkerId;
   endMarkerId: ConnectionMarkerId;
   appearance: ResolvedConnectionAppearance;
@@ -52,13 +59,29 @@ export type ConnectionStylePatch = Partial<Omit<ResolvedConnectionStyle, "label"
   appearance?: Partial<ResolvedConnectionAppearance>;
 };
 
+/** One transient, runtime-only style draft shared by the panel and every
+ * preview consumer. Connection patches contain only explicitly touched fields. */
+export type ConnectionStylePreview =
+  | {
+      context: "relationship-type";
+      typeId: string;
+      style: ResolvedConnectionStyle;
+    }
+  | {
+      context: "connection-override";
+      connectionIds: readonly string[];
+      patch: ConnectionStylePatch;
+    };
+
 export type ProjectConnectionStyles = Record<KnownConnectionSemanticTypeId, ResolvedConnectionStyle>;
 
 export type ConnectionFocusMode = "all" | "selected-cell" | "selected-connections";
+export type ConnectionVisualScaleMode = "screen" | "canvas";
 
 export interface ConnectionViewSettings {
   visible: boolean;
   focusMode: ConnectionFocusMode;
+  visualScaleMode: ConnectionVisualScaleMode;
 }
 
 export const CONNECTION_STYLE_PACK_IDS = [
@@ -105,6 +128,7 @@ const BASE_APPEARANCE: ResolvedConnectionAppearance = {
   markerSize: 8,
   markerOffset: 0,
   dashScale: 1,
+  patternAmplitude: 5,
 };
 
 const cloneLabel = (label: ConnectionLabelStyle): ConnectionLabelStyle => ({ ...label });
@@ -126,6 +150,8 @@ const makeStyle = (
   visible: patch.visible ?? true,
   geometryId: patch.geometryId ?? "straight",
   strokePatternId: patch.strokePatternId ?? "solid",
+  lineCap: patch.lineCap ?? "butt",
+  lineJoin: patch.lineJoin ?? "miter",
   startMarkerId: patch.startMarkerId ?? "none",
   endMarkerId: patch.endMarkerId ?? "none",
   startAnchorId: patch.startAnchorId ?? "auto",
@@ -137,11 +163,11 @@ const makeStyle = (
 const launchDefaults = (): ProjectConnectionStyles => ({
   custom: makeStyle({ appearance: { width: 1, opacity: 0.76 } }),
   adjacency: makeStyle({ strokePatternId: "dashed", appearance: { width: 1, opacity: 0.76, dashScale: 0.9 } }),
-  "direct-access": makeStyle({ endMarkerId: "open-arrow", appearance: { width: 1.75, opacity: 0.9, markerSize: 8.5 } }),
-  "visual-access": makeStyle({ geometryId: "curved", strokePatternId: "dotted", appearance: { width: 1, opacity: 0.72, curve: 0.3 } }),
+  "direct-access": makeStyle({ lineCap: "square", endMarkerId: "open-arrow", appearance: { width: 1.75, opacity: 0.9, markerSize: 8.5 } }),
+  "visual-access": makeStyle({ geometryId: "curved", strokePatternId: "dotted", lineCap: "round", lineJoin: "round", appearance: { width: 1, opacity: 0.72, curve: 0.3 } }),
   "shared-support": makeStyle({ strokePatternId: "double", appearance: { width: 1.25, opacity: 0.78 } }),
-  "circulation-flow": makeStyle({ geometryId: "curved", endMarkerId: "filled-arrow", appearance: { width: 1.8, opacity: 0.9, curve: 0.2, markerSize: 9 } }),
-  separation: makeStyle({ strokePatternId: "dash-dot", appearance: { width: 1.35, opacity: 0.84, dashScale: 1.1 } }),
+  "circulation-flow": makeStyle({ geometryId: "curved", lineCap: "round", lineJoin: "round", endMarkerId: "filled-arrow", appearance: { width: 1.8, opacity: 0.9, curve: 0.2, markerSize: 9 } }),
+  separation: makeStyle({ strokePatternId: "dash-dot", lineCap: "square", appearance: { width: 1.35, opacity: 0.84, dashScale: 1.1 } }),
 });
 
 export const createDefaultProjectConnectionStyles = (): ProjectConnectionStyles =>
@@ -176,12 +202,13 @@ const normalizeAppearance = (value: unknown, fallback: ResolvedConnectionAppeara
     color: typeof value.color === "string" && value.color.trim()
       ? value.color.trim().slice(0, 64)
       : fallback.color,
-    width: finiteInRange(value.width, fallback.width, 0.25, 32),
+    width: finiteInRange(value.width, fallback.width, 0.5, 64),
     opacity: finiteInRange(value.opacity, fallback.opacity, 0, 1),
     curve: finiteInRange(value.curve, fallback.curve, -2, 2),
     markerSize: finiteInRange(value.markerSize, fallback.markerSize, 2, 64),
     markerOffset: finiteInRange(value.markerOffset, fallback.markerOffset, -64, 64),
     dashScale: finiteInRange(value.dashScale, fallback.dashScale, 0.25, 8),
+    patternAmplitude: finiteInRange(value.patternAmplitude, fallback.patternAmplitude, 0.5, 64),
   };
 };
 
@@ -191,6 +218,8 @@ const normalizeResolvedStyle = (value: unknown, fallback: ResolvedConnectionStyl
     visible: typeof value.visible === "boolean" ? value.visible : fallback.visible,
     geometryId: registryId<ConnectionGeometryId>(value.geometryId, fallback.geometryId),
     strokePatternId: registryId<ConnectionStrokePatternId>(value.strokePatternId, fallback.strokePatternId),
+    lineCap: oneOf<ConnectionLineCap>(value.lineCap, ["butt", "square", "round"], fallback.lineCap),
+    lineJoin: oneOf<ConnectionLineJoin>(value.lineJoin, ["miter", "bevel", "round"], fallback.lineJoin),
     startMarkerId: registryId<ConnectionMarkerId>(value.startMarkerId, fallback.startMarkerId),
     endMarkerId: registryId<ConnectionMarkerId>(value.endMarkerId, fallback.endMarkerId),
     startAnchorId: registryId<ConnectionAnchorId>(value.startAnchorId, fallback.startAnchorId),
@@ -249,6 +278,8 @@ const mergeLocalVisual = (base: ResolvedConnectionStyle, visual: ConnectionVisua
     visible: visual.visible ?? base.visible,
     geometryId: visual.geometryId ?? base.geometryId,
     strokePatternId: visual.strokePatternId ?? base.strokePatternId,
+    lineCap: visual.lineCap ?? base.lineCap,
+    lineJoin: visual.lineJoin ?? base.lineJoin,
     startMarkerId: visual.startMarkerId ?? base.startMarkerId,
     endMarkerId: visual.endMarkerId ?? base.endMarkerId,
     startAnchorId: visual.startAnchorId ?? base.startAnchorId,
@@ -256,6 +287,48 @@ const mergeLocalVisual = (base: ResolvedConnectionStyle, visual: ConnectionVisua
     label: normalizeLabel(visual.label, base.label),
     appearance: normalizeAppearance(visual.appearance, base.appearance),
   };
+};
+
+export const applyConnectionStylePatch = (
+  style: ResolvedConnectionStyle,
+  patch: ConnectionStylePatch,
+): ResolvedConnectionStyle => normalizeResolvedStyle({
+  ...style,
+  ...patch,
+  label: { ...style.label, ...patch.label },
+  appearance: { ...style.appearance, ...patch.appearance },
+}, style);
+
+export const resolveRelationshipTypeStylePreview = (
+  typeId: string,
+  style: ResolvedConnectionStyle,
+  preview: ConnectionStylePreview | null | undefined,
+): ResolvedConnectionStyle => preview?.context === "relationship-type" && preview.typeId === typeId
+  ? cloneResolvedConnectionStyle(preview.style)
+  : cloneResolvedConnectionStyle(style);
+
+/** Resolve canonical type defaults, local overrides, then the transient
+ * touched-field draft. This ordering keeps local overrides authoritative when
+ * a Relationship Type default is previewed and lets explicit panel touches win
+ * for the fixed Connection target set. */
+export const resolveConnectionStylePreview = (
+  connection: Connection,
+  styles: ProjectConnectionStyles,
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
+  preview?: ConnectionStylePreview | null,
+): ResolvedConnectionStyle => {
+  const canonicalBase = connectionTypeStyle(
+    connection.semantic.typeId,
+    styles,
+    projectRelationshipTypes,
+  );
+  const base = preview?.context === "relationship-type" && preview.typeId === connection.semantic.typeId
+    ? preview.style
+    : canonicalBase;
+  const resolved = mergeLocalVisual(base, connection.visual);
+  return preview?.context === "connection-override" && preview.connectionIds.includes(connection.id)
+    ? applyConnectionStylePatch(resolved, preview.patch)
+    : resolved;
 };
 
 export const resolveConnectionStyle = (
@@ -276,6 +349,8 @@ export const copyResolvedConnectionStyle = (
   return {
     geometryId: resolved.geometryId,
     strokePatternId: resolved.strokePatternId,
+    lineCap: resolved.lineCap,
+    lineJoin: resolved.lineJoin,
     startMarkerId: resolved.startMarkerId,
     endMarkerId: resolved.endMarkerId,
     appearance: cloneAppearance(resolved.appearance),
@@ -300,11 +375,14 @@ export const pasteConnectionStyleVisual = (
     ...(clipboard.appearance.markerSize === base.appearance.markerSize ? {} : { markerSize: clipboard.appearance.markerSize }),
     ...(clipboard.appearance.markerOffset === base.appearance.markerOffset ? {} : { markerOffset: clipboard.appearance.markerOffset }),
     ...(clipboard.appearance.dashScale === base.appearance.dashScale ? {} : { dashScale: clipboard.appearance.dashScale }),
+    ...(clipboard.appearance.patternAmplitude === base.appearance.patternAmplitude ? {} : { patternAmplitude: clipboard.appearance.patternAmplitude }),
   };
   const visual: ConnectionVisual = {
     ...(target.visual?.visible === undefined ? {} : { visible: target.visual.visible }),
     ...(clipboard.geometryId === base.geometryId ? {} : { geometryId: clipboard.geometryId }),
     ...(clipboard.strokePatternId === base.strokePatternId ? {} : { strokePatternId: clipboard.strokePatternId }),
+    ...(clipboard.lineCap === base.lineCap ? {} : { lineCap: clipboard.lineCap }),
+    ...(clipboard.lineJoin === base.lineJoin ? {} : { lineJoin: clipboard.lineJoin }),
     ...(clipboard.startMarkerId === base.startMarkerId ? {} : { startMarkerId: clipboard.startMarkerId }),
     ...(clipboard.endMarkerId === base.endMarkerId ? {} : { endMarkerId: clipboard.endMarkerId }),
     ...(target.visual?.startAnchorId === undefined ? {} : { startAnchorId: target.visual.startAnchorId }),
@@ -334,6 +412,8 @@ const transformPackStyle = (
   if (packId === "minimal") {
     style.appearance = { ...style.appearance, color: "#60636a", width: Math.max(0.8, style.appearance.width * 0.82), opacity: 0.68, markerSize: 7 };
   } else if (packId === "technical") {
+    style.lineCap = "butt";
+    style.lineJoin = "miter";
     style.appearance = { ...style.appearance, color: "#344250", width: Math.max(1, style.appearance.width), opacity: 0.88, curve: Math.min(style.appearance.curve, 0.18), dashScale: 0.85 };
   } else if (packId === "presentation") {
     style.appearance = { ...style.appearance, color: semanticColors[typeId], width: style.appearance.width * 1.25, opacity: 0.94, markerSize: style.appearance.markerSize * 1.15 };
@@ -360,6 +440,7 @@ export const applyConnectionStylePack = (
 export const createDefaultConnectionViewSettings = (): ConnectionViewSettings => ({
   visible: true,
   focusMode: "all",
+  visualScaleMode: "screen",
 });
 
 export const normalizeConnectionViewSettings = (value: unknown): ConnectionViewSettings => {
@@ -367,5 +448,6 @@ export const normalizeConnectionViewSettings = (value: unknown): ConnectionViewS
   return {
     visible: typeof value.visible === "boolean" ? value.visible : true,
     focusMode: oneOf<ConnectionFocusMode>(value.focusMode, ["all", "selected-cell", "selected-connections"], "all"),
+    visualScaleMode: oneOf<ConnectionVisualScaleMode>(value.visualScaleMode, ["screen", "canvas"], "screen"),
   };
 };

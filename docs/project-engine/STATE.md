@@ -12,7 +12,7 @@
 | PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains Connections P1/P2, the checkpointed R2B work, and local-uncommitted R3A Relationship Manager Types work; no merge is authorized. |
+| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains Connections P1/P2, checkpointed R2B, the Owner-accepted R3A local checkpoint, and local-uncommitted R3B universal Style Panel plus advanced stroke work; no merge is authorized. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
@@ -26,8 +26,9 @@
 | CONNECTIONS P2 STATUS | PUSHED / CODEX BROWSER QA PASSED / WAITING OWNER REVIEW. |
 | CONNECTIONS R2B.1B FOUNDATION | `6c41d25381ad7943f6b2fa3938520864bfdbbea8` is pushed to `origin/work/next-feature` by normal fast-forward. |
 | CONNECTIONS R2B.2 STATUS | LOCAL UNCOMMITTED / FINAL VISUAL CORRECTIONS APPLIED / PREVIEW AVAILABLE / WAITING OWNER QA. |
-| CONNECTIONS R3A STATUS | LOCAL UNCOMMITTED / OWNER QA PICKER + BULK TYPE CORRECTIONS APPLIED / PREVIEW AVAILABLE / WAITING OWNER QA. |
-| NEXT AUTHORITY | Owner visual and interaction QA for R3A only. R3B, finalization, merge and branch cleanup each require separate explicit authority. |
+| CONNECTIONS R3A STATUS | OWNER QA PASSED / LOCAL CHECKPOINT `5f5e178` / NOT PUSHED. |
+| CONNECTIONS R3B STATUS | LOCAL UNCOMMITTED / SCREEN-SPACE STYLE + ENTER APPLY COMPLETE / PREVIEW AVAILABLE / WAITING OWNER QA. |
+| NEXT AUTHORITY | Owner visual and interaction QA for R3B only. Finalization, push, merge and branch cleanup each require separate explicit authority. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -108,7 +109,7 @@
 - advanced requirement, strength, priority, direction, geometry, marker and anchor controls remain in canonical data but are removed from the normal Inspector surface;
 - no Relationship Manager, style panel, renderer, Canvas annotation, port, export, Matrix, Table, Classic or production-build work occurred.
 
-### Connections R3A — LOCAL UNCOMMITTED / WAITING OWNER QA
+### Connections R3A — OWNER QA PASSED / LOCAL CHECKPOINT
 
 - the one registry-owned Connections widget is now the `RELATIONSHIP MANAGER`, reusing workspace geometry at `40vw × 78vh` with responsive viewport bounds;
 - `TYPES` consumes the canonical factory/project library, cached indexed usage counts and resolved style defaults; `CONNECTIONS` remains a next-stage placeholder;
@@ -121,6 +122,29 @@
 - multi-Connection Inspector now presents the shared Type or presentation-only `Mixed`, and applies one reclassification to the selected canonical records in one Undo/Redo transaction without replacing their visual, annotation, endpoint, anchor, enabled or unrelated semantic fields;
 - Inspector labels make single/multi deletion explicit, while the existing delete actions continue to remove canonical records atomically rather than hiding, archiving or disabling them;
 - no common Style Panel, full Connections tab, renderer, Canvas annotation, advanced port, export, Matrix, Table or Classic work occurred.
+
+### Connections R3B — LOCAL UNCOMMITTED / WAITING OWNER QA
+
+- the existing registry-owned `ConnectionStudioWidget` is the single universal Style Panel for Relationship Type defaults, one Connection and a fixed multi-Connection target set, including Custom Connections through the same override path;
+- one shared runtime-only draft feeds Canvas, Manager, picker, Inspector and panel previews while canonical project data and history remain unchanged until Apply; Cancel removes the draft with zero history;
+- geometry, stroke patterns, canonical start/end markers, line caps and line joins use visual tiles/specimens rather than text-first dropdowns; width is safely authored from `0.5–64`, Pattern scale is shared, and Pattern amplitude is capability-gated;
+- `strokePatterns.ts` is the extensible source for the six existing patterns plus Zigzag, Wave, Scallop, Vertical Hash, Vertical Hatch and Lightning, including preview/renderer strategy and bounded motif metrics;
+- procedural motifs sample the unchanged canonical Connection path as a centerline and never replace persisted endpoints, anchors, lanes, hit testing or semantic geometry with sampled points;
+- multi style displays presentation-only Mixed values; only touched fields preview/apply across targets, and Apply derives sparse overrides independently while preserving untouched local differences, semantics, endpoints, anchors, enabled state and annotations;
+- single Apply and bulk Apply each create one history entry total; Undo restores each individual prior style, while Reset remains an intentional one-transaction removal of selected visual overrides;
+- Relationship Type and factory style drafts preview through inheritors on the actual batched Canvas and every shared preview surface; explicit Connection-local fields remain overriding;
+- shared Relationship Type/Connection previews adapt to available space (`105–165px` compact, `145–240px` standard); increased length adds motif repetitions without non-uniformly stretching dash length, wavelength, tooth/hash size, amplitude, markers or stroke width;
+- explicit type choice through either Inspector or the selected-set Quick Rail clears sparse local styling while retaining anchors and all non-style content in one transaction; Undo restores each exact prior type/visual pair, while Manager retirement reassignment continues preserving bespoke visuals;
+- Vertical Hash remains base-plus-marks and Vertical Hatch renders marks only; its invisible canonical path retains endpoint markers, pattern placement and hit testing, with Pattern Scale and Amplitude controlling spacing and mark length;
+- adaptive previews remain automatic and add repetitions with available width; they expose no authored responsiveness toggle;
+- selection no longer redraws a thicker accent/neutral replacement stroke, so colored, thick and procedural Connections retain their exact resolved authored/transient appearance; focus opacity remains selected `1.00`, endpoint-related `0.76` and contextual `0.44`;
+- the final renderer boundary measures the active Canvas transform and CSS/backing-store ratio instead of assuming DPR cancellation; camera-projected path positions/extents still zoom, while Fixed mode compensates width, dash/gap values, procedural wavelength/amplitude, hash/hatch dimensions, marker size/offset and bounded selection expansion in final CSS pixels;
+- the Relationship Manager tune surface now visibly owns one project-level `VISUAL SCALE` segmented control. `Fixed on Screen` defaults missing/legacy data safely; `Scale with Canvas` applies the normalized `0.25–4` camera zoom to the same metrics for an intentional comparison;
+- `settings.connectionView.visualScaleMode` is the sole canonical owner, updates both Canvas draw passes immediately, creates no Connection history, mutates no Connection/type/style draft and round-trips through the existing project/config/Saved View/recovery seams;
+- hit tolerance remains screen-space practical in both modes; no grey replacement overlay or second uncompensated draw pass was introduced;
+- live single, multi and Relationship Type drafts use the same Canvas metric resolution; non-Canvas preview specimens remain camera-independent and adaptive;
+- eligible Style Panel Enter applies through the same one-transaction command as the button after pending range values flush; menus/options, buttons, multiline/contenteditable surfaces, repeats, modifiers, prevented events and IME composition retain native ownership, with a compact `↵` Apply hint;
+- annotation appearance remains visibly deferred until its later canonical schema; R5 retains Auto/Center, Cardinal 4, Horizontal 2 and Vertical 2 port layouts plus the other listed Connection settings; no Canvas annotation, CONNECTIONS-tab, advanced-port, export, Matrix, Table, Classic or production-build work occurred.
 
 ## Verification disposition
 
@@ -136,10 +160,12 @@ Connections P2 passed 46/46 focused and affected contracts with zero failures, `
 
 Connections R2B.2 final visual correction passed 40/40 focused Connection presentation and Inspector contracts, `npx tsc -b --pretty false`, and final `git diff --check`. The local Vite preview returned HTTP 200 at `http://127.0.0.1:5173/`. Per task boundary, no browser automation or production build ran; visual and interaction judgement remains Owner QA.
 
-Connections R3A initially passed 60/60 focused and affected contracts. The Owner-QA picker/bulk correction then passed 63/63 affected Relationship Type, Manager, picker, Inspector, canonical delete and history contracts followed by `npx tsc -b --pretty false`, tracked/untracked whitespace checks and an HTTP 200 response from the existing preview at `http://127.0.0.1:5173/`. Per task boundary, no browser automation or production build ran; visual and interaction judgement remains Owner QA.
+Connections R3A initially passed 60/60 focused and affected contracts. The Owner-QA picker/bulk correction then passed 63/63 affected Relationship Type, Manager, picker, Inspector, canonical delete and history contracts followed by `npx tsc -b --pretty false`, tracked/untracked whitespace checks and an HTTP 200 response from the existing preview at `http://127.0.0.1:5173/`. Owner QA passed, and the exact accepted scope is protected by local-only checkpoint `5f5e178e4de36c8ab8b1fa03d5b014b6e0b47878`; no push occurred.
+
+Connections R3B real zoom mode and visible toggle correction passed 88/88 affected final-render, transform, procedural, marker, Manager, persistence, live-draft, hit-testing, history and keyboard contracts, followed by TypeScript, tracked/untracked whitespace checks and final scope review. The existing local preview returned HTTP 200 at `http://127.0.0.1:5173/`. Per task boundary, no browser automation or production build ran; visual and interaction judgement remains Owner QA.
 
 ## Current gate
 
-R3A PICKER + BULK TYPE CORRECTIONS — WAITING OWNER QA
+R3B REAL ZOOM MODE + VISIBLE TOGGLE — WAITING OWNER QA
 
-`main` remains untouched. R3B, finalization, merge and branch cleanup are not authorized.
+`main` remains untouched. R3B finalization, push, merge and branch cleanup are not authorized.

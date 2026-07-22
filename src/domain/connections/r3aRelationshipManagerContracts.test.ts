@@ -340,7 +340,7 @@ test("multi-Connection Inspector exposes same-type and Mixed Type presentation w
   assert.match(inspector, /Delete Connection</);
 });
 
-test("bulk Relationship Type assignment is one undoable transaction and preserves every local override", async () => {
+test("bulk Relationship Type assignment is one undoable transaction, clears styling, and preserves anchors and meaning", async () => {
   const first = connection("first", "adjacency", {
     visual: {
       visible: false,
@@ -371,7 +371,7 @@ test("bulk Relationship Type assignment is one undoable transaction and preserve
   assert.deepEqual(state().connections.map((item) => item.semantic.typeId), ["direct-access", "direct-access"]);
   assert.equal(state().transformUndoStack.length, 1);
   for (const [index, item] of state().connections.entries()) {
-    assert.deepEqual(item.visual, before[index]?.visual);
+    assert.deepEqual(item.visual, index === 0 ? { startAnchorId: "left", endAnchorId: "bottom" } : undefined);
     assert.deepEqual(item.annotation, before[index]?.annotation);
     assert.equal(item.enabled, before[index]?.enabled);
     assert.equal(item.fromSpaceId, before[index]?.fromSpaceId);
@@ -383,4 +383,8 @@ test("bulk Relationship Type assignment is one undoable transaction and preserve
   assert.deepEqual(state().connections, before);
   state().redoSpaceTransform();
   assert.deepEqual(state().connections.map((item) => item.semantic.typeId), ["direct-access", "direct-access"]);
+  assert.deepEqual(state().connections.map((item) => item.visual), [
+    { startAnchorId: "left", endAnchorId: "bottom" },
+    undefined,
+  ]);
 });
