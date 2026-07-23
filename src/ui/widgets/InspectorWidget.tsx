@@ -321,13 +321,24 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
             <div className="connection-placement-control">
               <span>Alignment</span>
               <div className="connection-segmented-control" role="group" aria-label="Annotation alignment">
-                {(["left", "center", "right"] as const).map((alignment) => <button
-                  key={alignment}
-                  type="button"
-                  data-active={presentation.placement.alignment === alignment ? "true" : undefined}
-                  aria-pressed={presentation.placement.alignment === alignment}
-                  onClick={() => commitPresentation({ placement: { alignment } })}
-                >{alignment === "left" ? <AlignLeft size={11} /> : alignment === "center" ? <AlignCenter size={11} /> : <AlignRight size={11} />}<span>{alignment === "left" ? "Left" : alignment === "center" ? "Center" : "Right"}</span></button>)}
+                {(["left", "center", "right"] as const).map((alignment) => {
+                  const label = alignment === "left" ? "Align Left" : alignment === "center" ? "Align Center" : "Align Right";
+                  const Icon = alignment === "left" ? AlignLeft : alignment === "center" ? AlignCenter : AlignRight;
+                  return (
+                    <button
+                      key={alignment}
+                      type="button"
+                      title={label}
+                      aria-label={label}
+                      data-tooltip={label}
+                      data-active={presentation.placement.alignment === alignment ? "true" : undefined}
+                      aria-pressed={presentation.placement.alignment === alignment}
+                      onClick={() => commitPresentation({ placement: { alignment } })}
+                    >
+                      <Icon size={16} strokeWidth={2.0} aria-hidden="true" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="connection-placement-box-heading">BOX</div>

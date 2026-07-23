@@ -14,6 +14,7 @@ import {
   Waypoints,
 } from "lucide-react";
 import { appearanceFamilyDefinition, appearanceFamilyForTarget } from "../domain/presentation/editing";
+import { GlyphMembrane } from "../icons/customGlyphs";
 import { useLab } from "../state/store";
 import InspectorLauncherButton from "./InspectorLauncherButton";
 import "./shell.css";
@@ -59,19 +60,6 @@ function DockButton({ active, className = "", children, ...props }: DockButtonPr
   );
 }
 
-function MembraneDetailIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path
-        d="M3.1 7.7c0-2.1 1.5-3.8 3.6-3.8.9-1.2 2.6-1.5 3.8-.6 1.5-.1 2.7 1.1 2.7 2.6 1.1 1.2.8 3.1-.5 3.9-.3 1.6-1.9 2.7-3.5 2.4-1.2.8-2.9.5-3.7-.6-1.8.1-3.4-1.4-3.4-3.4Z"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinejoin="round"
-      />
-      <circle cx="7.1" cy="7.7" r="1" fill="currentColor" opacity=".72" />
-    </svg>
-  );
-}
 
 export default function Dock() {
   const addSpace = useLab((s) => s.addSpace);
@@ -128,7 +116,7 @@ export default function Dock() {
           aria-expanded={isExpanded("membrane-settings")}
           onClick={() => openWidget("membrane-settings")}
         >
-          <MembraneDetailIcon />
+          <GlyphMembrane size={16} strokeWidth={2.0} />
         </DockButton>
         {detail.detailWidgetId !== "membrane-settings" && (
           <DockButton

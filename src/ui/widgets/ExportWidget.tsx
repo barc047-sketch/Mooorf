@@ -3,7 +3,7 @@
    generation itself is fully owned by src/export/exportService.ts. */
 
 import { useRef, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Database, FileText, Image, Loader2, Package } from "lucide-react";
 import {
   buildPresentationPack,
   defaultProjectTitle,
@@ -34,11 +34,11 @@ import { useLab } from "../../state/store";
 type ExportFormatChoice = "png" | "pdf" | "data" | "pack";
 
 const FORMAT_OPTIONS = [
-  { id: "png", label: "PNG" },
-  { id: "pdf", label: "PDF" },
-  { id: "data", label: "DATA" },
-  { id: "pack", label: "PACK" },
-] as const satisfies readonly { id: ExportFormatChoice; label: string }[];
+  { id: "png", label: "PNG", icon: Image },
+  { id: "pdf", label: "PDF", icon: FileText },
+  { id: "data", label: "DATA", icon: Database },
+  { id: "pack", label: "PACK", icon: Package },
+] as const satisfies readonly { id: ExportFormatChoice; label: string; icon: typeof Image }[];
 
 const RESOLUTION_OPTIONS = [
   { id: "1", label: "1×" },

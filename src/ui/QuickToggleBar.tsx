@@ -1,5 +1,5 @@
 import { useState, useSyncExternalStore, type ReactNode } from "react";
-import { Activity, CircleDot, Grid3X3, Magnet, SlidersHorizontal, Waves } from "lucide-react";
+import { Activity, CircleDot, Grid3X3, Magnet, SlidersHorizontal, Waves, Waypoints } from "lucide-react";
 import { performanceGovernor } from "../runtime/performanceGovernor";
 import { useLab } from "../state/store";
 import "./quickToggleBar.css";
@@ -84,7 +84,8 @@ export default function QuickToggleBar() {
           setSettings({ connectionView: { ...connectionView, visible: !connectionView.visible } });
         }}
       >
-        Connections {connectionsVisible ? "ON" : "OFF"}
+        <Waypoints size={14} strokeWidth={2.0} aria-hidden="true" style={{ marginRight: 4 }} />
+        <span>Connections {connectionsVisible ? "ON" : "OFF"}</span>
       </button>
       <button
         type="button"
