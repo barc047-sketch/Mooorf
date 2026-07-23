@@ -10,7 +10,8 @@ export type ConnectionStrokeRendererStrategy =
   | "scallop"
   | "vertical-hash"
   | "vertical-hatch"
-  | "lightning";
+  | "lightning"
+  | "repeated-marker";
 
 export interface ConnectionStrokePatternDefinition {
   id: ConnectionStrokePatternId;
@@ -53,6 +54,7 @@ export const CONNECTION_STROKE_PATTERNS: readonly ConnectionStrokePatternDefinit
   define({ id: "vertical-hash", name: "Vertical Hash", family: "procedural", rendererStrategy: "vertical-hash", capabilities: { amplitude: true, scale: true }, motif: { baseAmplitude: 5, baseWavelength: 12 } }),
   define({ id: "vertical-hatch", name: "Vertical Hatch", family: "procedural", rendererStrategy: "vertical-hatch", capabilities: { amplitude: true, scale: true }, motif: { baseAmplitude: 5, baseWavelength: 12 } }),
   define({ id: "lightning", name: "Lightning", family: "procedural", rendererStrategy: "lightning", capabilities: { amplitude: true, scale: true }, motif: { baseAmplitude: 6, baseWavelength: 22 } }),
+  define({ id: "repeated-marker-flow", name: "Repeated Marker", family: "procedural", rendererStrategy: "repeated-marker", capabilities: { amplitude: true, scale: true }, motif: { baseAmplitude: 4, baseWavelength: 20 } }),
 ];
 
 const byId = new Map(CONNECTION_STROKE_PATTERNS.map((definition) => [definition.id, definition]));
@@ -202,6 +204,23 @@ export const buildConnectionStrokeMotif = (
   const repetitions = wavelength > 0 ? Math.floor(measure.length / wavelength) : 0;
   const baseMetrics = { amplitude, repetitions, wavelength };
   if (!measure.points.length) return { paths: [], marks: [], metrics: baseMetrics };
+
+  if (definition.rendererStrategy === "repeated-marker") {
+    const marks: Array<{ from: ConnectionStrokePoint; to: ConnectionStrokePoint }> = [];
+    const spacing = Math.max(8, wavelength);
+    for (let along = spacing; along < measure.length - spacing / 2; along += spacing) {
+      const topArm = offsetAt(measure, along - amplitude, -amplitude);
+      const tip = offsetAt(measure, along, 0);
+      const botArm = offsetAt(measure, along - amplitude, amplitude);
+      marks.push({ from: topArm, to: tip });
+      marks.push({ from: botArm, to: tip });
+    }
+    return {
+      paths: [measure.points],
+      marks,
+      metrics: baseMetrics,
+    };
+  }
 
   if (definition.rendererStrategy === "vertical-hash" || definition.rendererStrategy === "vertical-hatch") {
     const marks: Array<{ from: ConnectionStrokePoint; to: ConnectionStrokePoint }> = [];
