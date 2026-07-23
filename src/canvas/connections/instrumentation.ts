@@ -46,7 +46,6 @@ export interface ConnectionInstrumentationSnapshot extends ConnectionProjectionM
   overlayDrawnCommands: number;
   overlayClears: number;
   hitTests: number;
-  portProjections: number;
   selectionOverlayDraws: number;
   sleeping: boolean;
 }
@@ -77,7 +76,6 @@ const emptySnapshot = (authoredCount = 0): ConnectionInstrumentationSnapshot => 
   overlayDrawnCommands: 0,
   overlayClears: 0,
   hitTests: 0,
-  portProjections: 0,
   selectionOverlayDraws: 0,
   sleeping: true,
 });
@@ -95,7 +93,6 @@ export interface ConnectionInstrumentation {
   recordOverlayPrimitives(drawCalls: number, selectionOverlayDraws?: number): void;
   recordOverlayClear(): void;
   recordHitTest(): void;
-  recordPortProjection(portCount: number): void;
   setSleeping(sleeping: boolean): void;
   settleOff(authoredCount: number): void;
   settleAnnotations(): void;
@@ -156,9 +153,6 @@ export const createConnectionInstrumentation = (): ConnectionInstrumentation => 
     },
     recordHitTest() {
       current = { ...current, hitTests: current.hitTests + 1 };
-    },
-    recordPortProjection(portCount) {
-      current = { ...current, portProjections: current.portProjections + Math.max(0, portCount) };
     },
     setSleeping(sleeping) {
       current = { ...current, sleeping };

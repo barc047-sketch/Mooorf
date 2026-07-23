@@ -69,7 +69,17 @@ const connectionStyles = updateProjectConnectionStyle(
   "direct-access",
   { appearance: { width: 4.5 } },
 );
-const connectionView = { ...createDefaultConnectionViewSettings(), focusMode: "selected-cell" as const };
+const connectionView = {
+  ...createDefaultConnectionViewSettings(),
+  focusMode: "selected-cell" as const,
+  defaultTypeId: "direct-access",
+  stayInMode: false,
+  selectNew: false,
+  edgeAutoPan: false,
+  hitTolerance: 24,
+  unrelatedFade: 0.62,
+  motion: "reduced" as const,
+};
 const settingsWithPresentation = {
   ...settings,
   presentationDefaults,
@@ -110,6 +120,9 @@ equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.spaces[0].appearanc
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.presentationDefaults.schemaVersion, 6, "project preserves presentation defaults");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.connectionStyles["direct-access"].appearance.width, 4.5, "project preserves Connection type styles");
 equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.connectionView.focusMode, "selected-cell", "project preserves Connection view state");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.connectionView.defaultTypeId, "direct-access", "project preserves the authoring default type");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.connectionView.hitTolerance, 24, "project preserves Connection hit tolerance");
+equal(parseProjectEnvelope(JSON.stringify(project)).snapshot.settings.connectionView.unrelatedFade, 0.62, "project preserves contextual fade");
 const solidPresentationDefaults = {
   ...presentationDefaults,
   membrane: {
@@ -131,7 +144,7 @@ const savedView: SavedCanvasSnapshot = { id: "view-1", name: "Iteration", create
 const parsedSavedView = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [savedView]))).savedViews[0];
 equal(parsedSavedView.presentationDefaults?.schemaVersion, 6, "saved-view presentation defaults round-trip");
 equal(parsedSavedView.spaces[0].appearance?.boundary?.visible, true, "saved-view sparse appearance round-trips");
-equal(parsedSavedView.connectionStyles?.custom.geometryId, "straight", "legacy saved view receives Connection style defaults");
+equal(parsedSavedView.connectionStyles?.custom.geometryId, "curved", "legacy saved view receives Connection style defaults");
 equal(parsedSavedView.connectionView?.visible, true, "legacy saved view receives Connection view defaults");
 const labelPresentationDefaults = {
   ...presentationDefaults,
@@ -303,7 +316,7 @@ const migratedLegacy = parseProjectEnvelope(JSON.stringify(legacySnapshot));
 equal(migratedLegacy.snapshot.settings.presentationDefaults.membrane.visible, settings.blobOn, "legacy Morph state migrates to Membrane defaults");
 equal(migratedLegacy.snapshot.settings.presentationDefaults.core.visible, true, "legacy Core visibility migrates safely");
 equal(migratedLegacy.snapshot.spaces[0].appearance, undefined, "legacy Cells remain sparse after migration");
-equal(migratedLegacy.snapshot.settings.connectionStyles.custom.geometryId, "straight", "legacy projects receive default Connection styles");
+equal(migratedLegacy.snapshot.settings.connectionStyles.custom.geometryId, "curved", "legacy projects receive default Connection styles");
 equal(migratedLegacy.snapshot.settings.connectionView.focusMode, "all", "legacy projects receive default Connection view state");
 throws(() => parseProjectEnvelope('{"kind":"wrong","schemaVersion":1}'), "kind", "invalid project kind rejected");
 throws(() => parseProjectEnvelope('{"kind":"mooorf-project"}'), "schema", "missing schema rejected");
@@ -324,6 +337,7 @@ equal(parseConfigEnvelope(JSON.stringify(config)).kind, "mooorf-config", "settin
 equal(parseConfigEnvelope(JSON.stringify(config)).settings.presentationDefaults.schemaVersion, 6, "config presentation defaults round-trip");
 equal(parseConfigEnvelope(JSON.stringify(config)).settings.connectionStyles["direct-access"].appearance.width, 4.5, "config Connection styles round-trip");
 equal(parseConfigEnvelope(JSON.stringify(config)).settings.connectionView.focusMode, "selected-cell", "config Connection view state round-trips");
+equal(parseConfigEnvelope(JSON.stringify(config)).settings.connectionView.motion, "reduced", "config Connection motion round-trips");
 const legacyConfig = {
   ...config,
   settings: Object.fromEntries(Object.entries(config.settings).filter(
@@ -331,7 +345,7 @@ const legacyConfig = {
   )),
 };
 equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.presentationDefaults.membrane.visible, settings.blobOn, "legacy config gains presentation defaults");
-equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.connectionStyles.custom.geometryId, "straight", "legacy config gains Connection styles");
+equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.connectionStyles.custom.geometryId, "curved", "legacy config gains Connection styles");
 equal(parseConfigEnvelope(JSON.stringify(legacyConfig)).settings.connectionView.focusMode, "all", "legacy config gains Connection view state");
 const configPreview = previewConfigChanges(config, [...spaces, { ...spaces[0], id: "b", name: "Other" }]);
 equal(configPreview.matchingLayoutIds, 1, "matching layout ids counted");

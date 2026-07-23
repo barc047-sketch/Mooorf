@@ -48,6 +48,7 @@ import {
   resetCellActivation,
 } from "./cellActivation";
 import type { SpaceCell, SpaceKind } from "../types";
+import { resolveConnectionFocusOpacity } from "../domain/connections/styles";
 import { registerCanvasCapture } from "./exportCapture";
 import { renderDetachedOrganismExport } from "../export/organismExport";
 import { projectSelectionOverlay, resolveSelectionIntent } from "../interaction/selection";
@@ -116,17 +117,13 @@ import {
 import { createDefaultConnectionFilterSpec } from "../domain/connections/filters";
 import { getConnectionIndex } from "../domain/connections/selectors";
 import {
-  deriveConnectionPorts,
-  hitConnectionPort,
   resolveConnectionAutoPan,
   resolveConnectionAutoPanDelta,
   resolveConnectionPressIntent,
   resolveConnectionRelease,
-  type ConnectionPort,
   type ScreenVector,
 } from "./connections/editing";
 import {
-  CONNECTION_HIT_TOLERANCE_PX,
   createConnectionPathCache,
   drawConnectionBatch,
   hitTestConnections,
@@ -143,9 +140,6 @@ import {
 import "./organismCanvas.css";
 
 const THEME_TRANSITION_MS = 200;
-const CONNECTION_PORT_VISIBLE_RADIUS_PX = 7.25;
-const CONNECTION_PORT_HIT_RADIUS_PX = 14;
-
 const authoredCanvasSettings = (state: ReturnType<typeof useLab.getState>) => {
   const runtime = state.membraneRuntimePreview ? { ...state.settings, ...state.membraneRuntimePreview } : state.settings;
   const visual = state.visualSettingsPreview ? {
@@ -397,6 +391,9 @@ export default function OrganismCanvasView({
     let connectionStylePreview = initialState.connectionStyleEditorPreview;
     let connectionFocusMode = initialState.settings.connectionView.focusMode;
     let connectionVisualScaleMode = initialState.settings.connectionView.visualScaleMode;
+    let connectionHitTolerance = initialState.settings.connectionView.hitTolerance;
+    let connectionUnrelatedFade = initialState.settings.connectionView.unrelatedFade;
+    let connectionEdgeAutoPan = initialState.settings.connectionView.edgeAutoPan;
     let selectedConnectionIdSet = new Set(initialState.selectedConnectionIds);
     let hoveredConnectionId: string | null = null;
     let connectionModeActive = initialState.connectionModeActive;
@@ -432,7 +429,6 @@ export default function OrganismCanvasView({
     let connectionDragMoved = false;
     let connectionAutoPan: ScreenVector = { dx: 0, dy: 0 };
     let connectionAutoPanMoved = false;
-    let connectionPorts: ConnectionPort[] = [];
     let connectionHoverId: string | null = null;
     let connectionHoverValid = true;
     let connectionInvalidMessage = "";
@@ -675,6 +671,9 @@ export default function OrganismCanvasView({
       const connectionStylePreviewChanged = s.connectionStyleEditorPreview !== connectionStylePreview;
       const connectionFocusChanged = s.settings.connectionView.focusMode !== connectionFocusMode;
       const connectionVisualScaleChanged = s.settings.connectionView.visualScaleMode !== connectionVisualScaleMode;
+      const connectionHitToleranceChanged = s.settings.connectionView.hitTolerance !== connectionHitTolerance;
+      const connectionUnrelatedFadeChanged = s.settings.connectionView.unrelatedFade !== connectionUnrelatedFade;
+      const connectionEdgeAutoPanChanged = s.settings.connectionView.edgeAutoPan !== connectionEdgeAutoPan;
       const connectionSelectionChanged = s.selectedConnectionIds.length !== selectedConnectionIdSet.size
         || s.selectedConnectionIds.some((id) => !selectedConnectionIdSet.has(id));
       connections = s.connections;
@@ -683,6 +682,10 @@ export default function OrganismCanvasView({
       connectionStylePreview = s.connectionStyleEditorPreview;
       connectionFocusMode = s.settings.connectionView.focusMode;
       connectionVisualScaleMode = s.settings.connectionView.visualScaleMode;
+      connectionHitTolerance = s.settings.connectionView.hitTolerance;
+      connectionUnrelatedFade = s.settings.connectionView.unrelatedFade;
+      connectionEdgeAutoPan = s.settings.connectionView.edgeAutoPan;
+      if (connectionEdgeAutoPanChanged && !connectionEdgeAutoPan) stopConnectionAutoPan();
       selectedConnectionIdSet = new Set(s.selectedConnectionIds);
       const connectionModeChanged = s.connectionModeActive !== connectionModeActive
         || s.settings.connectionView.visible !== connectionLayerVisible;
@@ -713,6 +716,9 @@ export default function OrganismCanvasView({
         || connectionStylePreviewChanged
         || connectionFocusChanged
         || connectionVisualScaleChanged
+        || connectionHitToleranceChanged
+        || connectionUnrelatedFadeChanged
+        || connectionEdgeAutoPanChanged
         || connectionSelectionChanged
         || connectionAuthoringChanged
         || connectionModeChanged
@@ -986,7 +992,6 @@ export default function OrganismCanvasView({
       connectionCanvas.dataset.overlayDrawnCommands = String(snapshot.overlayDrawnCommands);
       connectionCanvas.dataset.overlayClears = String(snapshot.overlayClears);
       connectionCanvas.dataset.hitTests = String(snapshot.hitTests);
-      connectionCanvas.dataset.portProjections = String(snapshot.portProjections);
       connectionCanvas.dataset.selectionOverlayDraws = String(snapshot.selectionOverlayDraws);
       connectionCanvas.dataset.sleeping = String(snapshot.sleeping);
     };
@@ -1100,12 +1105,24 @@ export default function OrganismCanvasView({
       connectionInstrumentation.recordProjection(connectionProjection.metrics);
       clearConnectionBase();
       connectionContext.setTransform(presentationPixelRatio, 0, 0, presentationPixelRatio, 0, 0);
-      const drawWork = drawConnectionBatch(connectionContext, connectionProjection.commands, {
+      const focusResolvedCommands = connectionProjection.commands.map((command) => command.emphasis === "normal"
+        ? command
+        : {
+            ...command,
+            style: {
+              ...command.style,
+              appearance: {
+                ...command.style.appearance,
+                opacity: resolveConnectionFocusOpacity(command.emphasis, connectionUnrelatedFade),
+              },
+            },
+          });
+      const drawWork = drawConnectionBatch(connectionContext, focusResolvedCommands, {
         theme,
         cameraZoom: cam.zoom,
         visualScaleMode: connectionVisualScaleMode,
         outputScale: connectionCanvasOutputScale,
-        fadeUnrelated: lod !== "critical" || selectedConnectionIdSet.size > 0 || selectedIdSet.size > 0,
+        fadeUnrelated: false,
         drawLabels: false,
         markerDetail: lod === "critical" ? "hidden" : lod === "dense" ? "simple" : "full",
         patternFallback: lod === "critical",
@@ -1118,6 +1135,8 @@ export default function OrganismCanvasView({
       connectionInstrumentation.recordAnnotationDraw(annotationWork);
       const finalRender = drawWork.finalRender;
       connectionCanvas.dataset.visualScaleMode = connectionVisualScaleMode;
+      connectionCanvas.dataset.hitTolerance = String(connectionHitTolerance);
+      connectionCanvas.dataset.unrelatedFade = String(connectionUnrelatedFade);
       connectionCanvas.dataset.cameraZoom = String(cam.zoom);
       connectionCanvas.dataset.outputScale = String(connectionCanvasOutputScale);
       if (finalRender) {
@@ -1141,29 +1160,6 @@ export default function OrganismCanvasView({
       connectionNeedsRender = false;
       pendingChangedConnectionEndpointIds.clear();
       publishConnectionMetrics();
-    };
-
-    const projectConnectionPorts = () => {
-      const projected = deriveConnectionPorts(lastNuclei.map((nucleus) => {
-        const endpoint = connectionEndpointById.get(nucleus.id);
-        const presentation = cachedPresentation.byId.get(nucleus.id);
-        return {
-          ...(endpoint ?? { id: nucleus.id }),
-          id: `connection-port-${nucleus.id}`,
-          spaceId: nucleus.id,
-          x: nucleus.sx,
-          y: nucleus.sy,
-          visible: (endpoint as (SpaceCell & { visible?: boolean }) | undefined)?.visible !== false
-            && (presentation?.cell.visible ?? true),
-          inVisibleSubset: true,
-        };
-      }),
-      connectionAuthoring.sourceId,
-      connectionAuthoring.sourceId ? connectionHoverId : null,
-      connectionHoverValid);
-      connectionInstrumentation.recordPortProjection(projected.length);
-      publishConnectionMetrics();
-      return projected;
     };
 
     const drawConnectionEditingOverlay = () => {
@@ -1247,25 +1243,32 @@ export default function OrganismCanvasView({
         publishConnectionMetrics();
         return;
       }
-      connectionPorts = projectConnectionPorts();
       const source = connectionAuthoring.sourceId
-        ? connectionPorts.find((port) => port.spaceId === connectionAuthoring.sourceId) ?? null
+        ? lastNuclei.find((nucleus) => nucleus.id === connectionAuthoring.sourceId) ?? null
         : null;
-      const target = connectionHoverId
-        ? connectionPorts.find((port) => port.spaceId === connectionHoverId) ?? null
-        : null;
-      const validTarget = target?.state === "valid-target" ? target : null;
-      const targetNucleus = validTarget
-        ? lastNuclei.find((nucleus) => nucleus.id === validTarget.spaceId) ?? null
+      const validTarget = connectionHoverValid && connectionHoverId
+        ? lastNuclei.find((nucleus) => nucleus.id === connectionHoverId) ?? null
         : null;
 
-      if (validTarget && targetNucleus) {
+      if (source) {
         connectionEditingContext.save();
         connectionEditingContext.beginPath();
-        connectionEditingContext.arc(validTarget.x, validTarget.y, Math.max(10, targetNucleus.screenR + 4), 0, Math.PI * 2);
+        connectionEditingContext.arc(source.sx, source.sy, Math.max(10, source.screenR + 3), 0, Math.PI * 2);
         connectionEditingContext.strokeStyle = accent;
-        connectionEditingContext.globalAlpha = .62;
+        connectionEditingContext.globalAlpha = .7;
         connectionEditingContext.lineWidth = 1.25;
+        connectionEditingContext.stroke();
+        connectionEditingContext.restore();
+        overlayPrimitiveDraws += 1;
+      }
+
+      if (validTarget) {
+        connectionEditingContext.save();
+        connectionEditingContext.beginPath();
+        connectionEditingContext.arc(validTarget.sx, validTarget.sy, Math.max(10, validTarget.screenR + 4), 0, Math.PI * 2);
+        connectionEditingContext.strokeStyle = accent;
+        connectionEditingContext.globalAlpha = .82;
+        connectionEditingContext.lineWidth = 1.5;
         connectionEditingContext.stroke();
         connectionEditingContext.restore();
         overlayPrimitiveDraws += 1;
@@ -1274,8 +1277,8 @@ export default function OrganismCanvasView({
       if (source && connectionPreviewPointer) {
         connectionEditingContext.save();
         connectionEditingContext.beginPath();
-        connectionEditingContext.moveTo(source.x, source.y);
-        connectionEditingContext.lineTo(validTarget?.x ?? connectionPreviewPointer.sx, validTarget?.y ?? connectionPreviewPointer.sy);
+        connectionEditingContext.moveTo(source.sx, source.sy);
+        connectionEditingContext.lineTo(validTarget?.sx ?? connectionPreviewPointer.sx, validTarget?.sy ?? connectionPreviewPointer.sy);
         connectionEditingContext.strokeStyle = connectionHoverValid ? accent : neutral;
         connectionEditingContext.globalAlpha = connectionHoverValid ? .82 : .58;
         connectionEditingContext.lineWidth = 1.35;
@@ -1283,30 +1286,6 @@ export default function OrganismCanvasView({
         connectionEditingContext.stroke();
         connectionEditingContext.restore();
         overlayPrimitiveDraws += 1;
-      }
-
-      for (const port of connectionPorts) {
-        const hovered = port.spaceId === connectionHoverId;
-        const sourcePort = port.state === "source";
-        const validTarget = port.state === "valid-target";
-        connectionEditingContext.save();
-        connectionEditingContext.beginPath();
-        connectionEditingContext.arc(port.x, port.y, CONNECTION_PORT_VISIBLE_RADIUS_PX, 0, Math.PI * 2);
-        connectionEditingContext.fillStyle = surface;
-        connectionEditingContext.fill();
-        connectionEditingContext.strokeStyle = sourcePort || validTarget ? accent : neutral;
-        connectionEditingContext.globalAlpha = hovered || sourcePort || validTarget ? 1 : .58;
-        connectionEditingContext.lineWidth = sourcePort || validTarget ? 1.5 : 1.25;
-        connectionEditingContext.stroke();
-        overlayPrimitiveDraws += 2;
-        if (sourcePort) {
-          connectionEditingContext.beginPath();
-          connectionEditingContext.arc(port.x, port.y, 1.35, 0, Math.PI * 2);
-          connectionEditingContext.fillStyle = accent;
-          connectionEditingContext.fill();
-          overlayPrimitiveDraws += 1;
-        }
-        connectionEditingContext.restore();
       }
 
       if (connectionInvalidPoint) {
@@ -1357,13 +1336,11 @@ export default function OrganismCanvasView({
         hideConnectionPreview();
         return;
       }
-      connectionPorts = projectConnectionPorts();
-      const hit = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
       const nucleusHit = hitTestNuclei(lastNuclei, sx, sy);
-      const targetSpace = nucleusHit ? connectionEndpointById.get(nucleusHit.id) : null;
+      const targetSpace = nucleusHit ? connectionEndpointById.get(nucleusHit.id) : undefined;
       const sourceId = connectionAuthoring.sourceId;
-      connectionHoverId = hit?.spaceId ?? null;
-      connectionHoverValid = Boolean(sourceId && hit && hit.spaceId !== sourceId);
+      connectionHoverId = nucleusHit?.id ?? null;
+      connectionHoverValid = Boolean(sourceId && nucleusHit && nucleusHit.id !== sourceId && isValidConnectionEndpoint(targetSpace));
       connectionInvalidMessage = sourceId && nucleusHit
         ? nucleusHit.id === sourceId
           ? "Choose another Cell."
@@ -1693,17 +1670,14 @@ export default function OrganismCanvasView({
       const { sx, sy } = local(e);
       clearHoveredConnection();
       const temporaryPan = middleButtonPan || stateAtPress.temporaryTool === "pan";
-      let connectionPort: ConnectionPort | null = null;
-      if (stateAtPress.connectionModeActive && stateAtPress.settings.connectionView.visible) {
-        connectionPorts = projectConnectionPorts();
-        connectionPort = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
-      }
-      const connectionPressIntent = e.button === 0 && connectionPort
-        ? "connection"
-        : resolveConnectionPressIntent({
+      const connectionCell = stateAtPress.connectionModeActive && stateAtPress.settings.connectionView.visible
+        ? hitTestNuclei(lastNuclei, sx, sy)
+        : null;
+      const connectionEndpoint = connectionCell ? connectionEndpointById.get(connectionCell.id) : undefined;
+      const connectionPressIntent = resolveConnectionPressIntent({
         modeActive: stateAtPress.connectionModeActive,
         layerVisible: stateAtPress.settings.connectionView.visible,
-        hasPort: Boolean(connectionPort),
+        hasCell: Boolean(connectionCell && isValidConnectionEndpoint(connectionEndpoint)),
         sourceId: activeAuthoring.sourceId,
         temporaryPan,
       });
@@ -1721,7 +1695,9 @@ export default function OrganismCanvasView({
           } catch {
             // Synthetic/stale pointer ids still support the local gesture.
           }
-          if (!activeAuthoring.sourceId && connectionPort) stateAtPress.chooseConnectionSource(connectionPort.spaceId);
+          if (!activeAuthoring.sourceId && connectionCell) {
+            stateAtPress.chooseConnectionSource(connectionCell.id);
+          }
           connectionAuthoring = useLab.getState().connectionAuthoring;
           connectionAuthoringPreviewRef.current = connectionAuthoring;
           updateConnectionPreview(sx, sy);
@@ -1771,7 +1747,7 @@ export default function OrganismCanvasView({
       let connectionHit: string | null = null;
       if (stateAtPress.settings.connectionView.visible) {
         recordConnectionHitTest();
-        connectionHit = hitTestConnections(connectionProjection.hitIndex, { x: sx, y: sy }, CONNECTION_HIT_TOLERANCE_PX);
+        connectionHit = hitTestConnections(connectionProjection.hitIndex, { x: sx, y: sy }, connectionHitTolerance / 2);
       }
       if (connectionHit) {
         e.preventDefault();
@@ -1826,16 +1802,18 @@ export default function OrganismCanvasView({
           connectionDragMoved = true;
         }
         updateConnectionPreview(sx, sy);
-        connectionAutoPan = resolveConnectionAutoPan({ x: sx, y: sy }, { x: 0, y: 0, width: w, height: h });
+        connectionAutoPan = resolveConnectionAutoPan(
+          { x: sx, y: sy },
+          { x: 0, y: 0, width: w, height: h },
+          connectionEdgeAutoPan,
+        );
         renderLoop?.setContinuous(resolved.motionActive || connectionAutoPan.dx !== 0 || connectionAutoPan.dy !== 0);
         invalidate(connectionAutoPan.dx !== 0 || connectionAutoPan.dy !== 0 ? "CAMERA" : "CELL_PRESENTATION");
         canvas.style.cursor = "crosshair";
         return;
       }
-      let hoveredPort: ConnectionPort | null = null;
       if (connectionModeActive && connectionLayerVisible && gesture.mode === "none") {
         updateConnectionPreview(sx, sy);
-        hoveredPort = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
         if (connectionAuthoring.sourceId && gesture.mode === "none") {
           canvas.style.cursor = "crosshair";
           return;
@@ -1848,7 +1826,7 @@ export default function OrganismCanvasView({
           nextHoveredConnectionId = hitTestConnections(
             connectionProjection.hitIndex,
             { x: sx, y: sy },
-            CONNECTION_HIT_TOLERANCE_PX,
+            connectionHitTolerance / 2,
           );
         }
         const nextHoveredId = nextHoveredConnectionId
@@ -1862,7 +1840,9 @@ export default function OrganismCanvasView({
           hoveredConnectionId = nextHoveredConnectionId;
           drawConnectionEditingOverlay();
         }
-        canvas.style.cursor = hoveredPort ? "crosshair" : nextHoveredId ? "grab" : hoveredConnectionId ? "pointer" : "default";
+        canvas.style.cursor = connectionModeActive && nextHoveredId
+          ? "crosshair"
+          : nextHoveredId ? "grab" : hoveredConnectionId ? "pointer" : "default";
         return;
       }
       const transition = advanceCanvasGesture(gesture, { sx, sy }, CELL_DRAG_THRESHOLD_PX);
@@ -1933,15 +1913,14 @@ export default function OrganismCanvasView({
         const { sx, sy } = local(e);
         const state = useLab.getState();
         const sourceId = state.connectionAuthoring.sourceId;
-        connectionPorts = projectConnectionPorts();
-        const port = hitConnectionPort(connectionPorts, { x: sx, y: sy }, CONNECTION_PORT_HIT_RADIUS_PX);
         const nucleusHit = hitTestNuclei(lastNuclei, sx, sy);
+        const target = nucleusHit ? connectionEndpointById.get(nucleusHit.id) : undefined;
         const moved = connectionDragMoved;
         const autoPanMoved = connectionAutoPanMoved;
         const decision = resolveConnectionRelease({
           sourceId,
-          port,
           nucleusId: nucleusHit?.id ?? null,
+          targetValid: isValidConnectionEndpoint(target),
           moved,
         });
         if (decision.kind === "commit" || decision.kind === "invalid") {

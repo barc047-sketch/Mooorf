@@ -283,7 +283,7 @@ test("Connection and style history stores only changed indexed records", async (
     redoSpaceTransform(): void;
   };
 
-  assert.equal(state().updateConnectionVisual("target", { appearance: { width: 3 } }), true);
+  assert.equal(state().updateConnectionVisual("target", { appearance: { width: 2 } }), true);
   const connectionEntry = state().transformUndoStack[state().transformUndoStack.length - 1] as {
     kind?: string;
     patches?: Array<{ id: string; before: unknown; after: unknown }>;
@@ -302,7 +302,7 @@ test("Connection and style history stores only changed indexed records", async (
   assert.equal(state().connections[0]?.visual, undefined);
   assert.equal(state().connections[state().connections.length - 1]?.id, "filler-249");
   state().redoSpaceTransform();
-  assert.equal(state().connections[0]?.visual?.appearance?.width, 3);
+  assert.equal(state().connections[0]?.visual?.appearance?.width, 2);
   assert.equal(state().connections[state().connections.length - 1]?.id, "filler-249");
 
   const beforeStyleHistory = state().transformUndoStack.length;
@@ -436,12 +436,13 @@ test("project and Saved View persistence migrate style/view defaults and preserv
     };
   };
   assert.equal(snapshot.settings.connectionStyles?.["direct-access"].appearance.width, 5);
-  assert.deepEqual(snapshot.settings.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
+  const expectedConnectionView = styles.normalizeConnectionViewSettings({ visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
+  assert.deepEqual(snapshot.settings.connectionView, expectedConnectionView);
 
   const beforeResolved = styles.resolveConnectionStyle(authored, connectionStyles);
   const parsed = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [])));
   assert.equal(parsed.snapshot.settings.connectionStyles["direct-access"].appearance.width, 5);
-  assert.deepEqual(parsed.snapshot.settings.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
+  assert.deepEqual(parsed.snapshot.settings.connectionView, expectedConnectionView);
   assert.deepEqual(
     styles.resolveConnectionStyle(parsed.snapshot.connections[0]!, parsed.snapshot.settings.connectionStyles),
     beforeResolved,
@@ -473,10 +474,10 @@ test("project and Saved View persistence migrate style/view defaults and preserv
     connectionView?: { visible: boolean; focusMode: string; visualScaleMode: string };
   };
   assert.equal(saved.connectionStyles?.["direct-access"].appearance.width, 5);
-  assert.deepEqual(saved.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
+  assert.deepEqual(saved.connectionView, expectedConnectionView);
   const parsedView = parseProjectEnvelope(JSON.stringify(buildProjectEnvelope(snapshot, [saved]))).savedViews[0]!;
   assert.equal(parsedView.connectionStyles?.["direct-access"].appearance.width, 5);
-  assert.deepEqual(parsedView.connectionView, { visible: false, focusMode: "selected-cell", visualScaleMode: "canvas" });
+  assert.deepEqual(parsedView.connectionView, expectedConnectionView);
 });
 
 test("full project, Saved View, schedule, and recovery replacement clear stale Connection UI and history", async () => {
@@ -548,7 +549,7 @@ test("a rejected project import restores the current Undo and Redo stacks", asyn
     transformUndoStack: [],
     transformRedoStack: [],
   } as never);
-  assert.equal(useLab.getState().updateConnectionVisual("rollback-target", { appearance: { width: 3 } }), true);
+  assert.equal(useLab.getState().updateConnectionVisual("rollback-target", { appearance: { width: 2 } }), true);
   useLab.getState().undoSpaceTransform();
   const undoBefore = [...useLab.getState().transformUndoStack];
   const redoBefore = [...useLab.getState().transformRedoStack];

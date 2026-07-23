@@ -258,6 +258,6 @@ test("selected Connections retain authored motifs without a thick neutral replac
   assert.match(organism, /CONNECTION_FOCUS_OPACITY|focusMode|command\.selected/);
   const renderer = source("../../canvas/connections/renderer.ts");
   assert.match(renderer, /focused:\s*1/);
-  assert.match(renderer, /related:\s*0\.76/);
-  assert.match(renderer, /contextual:\s*0\.44/);
+  assert.match(renderer, /related:\s*0\.82/);
+  assert.match(renderer, /contextual:\s*0\.55/);
 });

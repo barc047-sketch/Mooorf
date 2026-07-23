@@ -21,7 +21,7 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 | 15 | Quick Materials | PLANNED | Reuses the one Material Registry and requires separate Owner GO. |
 | 16 | Material Browser | PLANNED | Follows target-safe Quick Materials. |
 | 17 | Relationship foundation | COMPLETE | R3A Owner QA passed and the Manager/Types library is protected by local checkpoint `5f5e178`; it is not pushed or merged. |
-| 18 | Visual Connections | HOLD | R3B accepted and pushed; R4A Relationship Manager Connections tab is local-uncommitted and waiting Owner visual/interaction QA. R5 advanced ports and other settings remain deferred; commit, push and merge require separate authority. |
+| 18 | Visual Connections | HOLD | R3B is accepted and pushed; R4A/R4B are protected by local checkpoints; revised R5 whole-Cell authoring and Connection Settings are local-uncommitted and waiting Owner visual/interaction QA. Commit, push and merge require separate authority. |
 | 19 | Morph Bridge and Cell Behaviour | BLOCKED | Requires stable Relationship semantics and bounded performance architecture. |
 | 20 | Annotation Card / broader Markup | PLANNED | Later reviewed Markup stage; no active implementation. |
 
@@ -33,6 +33,6 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 
 ## Current gate
 
-R4A RELATIONSHIP MANAGER CONNECTIONS TAB — WAITING OWNER QA
+R5 WHOLE-CELL CONNECTION AUTHORING — WAITING OWNER QA
 
-No R4A commit, feature merge, branch deletion or AG3 modification is authorized.
+No R5 commit/push, feature merge, branch deletion or AG3 modification is authorized.

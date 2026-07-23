@@ -50,8 +50,8 @@ export type ConnectionEmphasis = "normal" | "focused" | "related" | "faded";
  * than inheriting a compounding fade from their authored appearance opacity. */
 export const CONNECTION_FOCUS_OPACITY = {
   focused: 1,
-  related: 0.76,
-  contextual: 0.44,
+  related: 0.82,
+  contextual: 0.55,
 } as const;
 
 /** Half-width of the practical 12 px screen-space line hit corridor. */

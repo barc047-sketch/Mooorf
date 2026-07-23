@@ -124,7 +124,11 @@ test("success, duplicate, invalid, and empty cancellation keep repeated mode his
   const first = state().completeConnectionAuthoring("b");
   assert.equal(first.status, "created");
   assert.equal(state().connections.length, 1);
-  assert.equal(state().connections[0]?.visual, undefined, "inherited creation stays sparse");
+  assert.deepEqual(
+    state().connections[0]?.visual,
+    { startAnchorId: "auto", endAnchorId: "auto" },
+    "whole-Cell creation explicitly overrides any side-specific Type anchors",
+  );
   assert.equal(state().transformUndoStack.length, 1);
   assert.equal(state().connectionModeActive, true);
   assert.equal(state().connectionAuthoring.phase, "mode-ready");

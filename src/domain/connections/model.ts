@@ -130,6 +130,9 @@ const omitInheritedVisualValues = (
 ): ConnectionVisual | undefined => {
   if (!inherited) return Object.values(visual).some((entry) => entry !== undefined) ? visual : undefined;
   const next: ConnectionVisual = { ...visual };
+  // Anchors record an explicit endpoint choice, including V1 whole-Cell
+  // authoring's canonical auto/center intent. Keep them even when they match a
+  // type default so later type changes cannot silently move authored endpoints.
   for (const key of [
     "visible",
     "geometryId",
@@ -138,8 +141,6 @@ const omitInheritedVisualValues = (
     "lineJoin",
     "startMarkerId",
     "endMarkerId",
-    "startAnchorId",
-    "endAnchorId",
   ] as const) {
     if (next[key] === inherited[key]) delete next[key];
   }

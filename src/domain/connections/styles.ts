@@ -12,6 +12,7 @@ import type {
   ConnectionLineCap,
   ConnectionLineJoin,
   ConnectionMarkerId,
+  ConnectionSemanticTypeId,
   ConnectionStrokePatternId,
   ConnectionVisual,
   KnownConnectionSemanticTypeId,
@@ -97,11 +98,25 @@ export type ProjectConnectionStyles = Record<KnownConnectionSemanticTypeId, Reso
 
 export type ConnectionFocusMode = "all" | "selected-cell" | "selected-connections";
 export type ConnectionVisualScaleMode = "screen" | "canvas";
+export type ConnectionMotionPreference = "reduced" | "standard";
+
+export const CONNECTION_HIT_TOLERANCE_MIN_PX = 8;
+export const CONNECTION_HIT_TOLERANCE_MAX_PX = 32;
+export const CONNECTION_UNRELATED_FADE_MIN = 0.28;
+export const CONNECTION_UNRELATED_FADE_MAX = 1;
 
 export interface ConnectionViewSettings {
   visible: boolean;
   focusMode: ConnectionFocusMode;
   visualScaleMode: ConnectionVisualScaleMode;
+  defaultTypeId: ConnectionSemanticTypeId;
+  stayInMode: boolean;
+  selectNew: boolean;
+  edgeAutoPan: boolean;
+  /** Full practical screen-space corridor width; Canvas hit tests use half. */
+  hitTolerance: number;
+  unrelatedFade: number;
+  motion: ConnectionMotionPreference;
 }
 
 export const CONNECTION_STYLE_PACK_IDS = [
@@ -183,7 +198,10 @@ const makeStyle = (
 });
 
 const launchDefaults = (): ProjectConnectionStyles => ({
-  custom: makeStyle({ appearance: { width: 1, opacity: 0.76 } }),
+  custom: makeStyle({
+    geometryId: "curved",
+    appearance: { width: 3, opacity: 0.82, curve: 0.24 },
+  }),
   adjacency: makeStyle({ strokePatternId: "dashed", appearance: { width: 1, opacity: 0.76, dashScale: 0.9 } }),
   "direct-access": makeStyle({ lineCap: "square", endMarkerId: "open-arrow", appearance: { width: 1.75, opacity: 0.9, markerSize: 8.5 } }),
   "visual-access": makeStyle({ geometryId: "curved", strokePatternId: "dotted", lineCap: "round", lineJoin: "round", appearance: { width: 1, opacity: 0.72, curve: 0.3 } }),
@@ -576,7 +594,22 @@ export const createDefaultConnectionViewSettings = (): ConnectionViewSettings =>
   visible: true,
   focusMode: "all",
   visualScaleMode: "screen",
+  defaultTypeId: "custom",
+  stayInMode: true,
+  selectNew: true,
+  edgeAutoPan: true,
+  hitTolerance: 12,
+  unrelatedFade: 0.55,
+  motion: "standard",
 });
+
+const boundedNumber = (value: unknown, fallback: number, min: number, max: number): number =>
+  typeof value === "number" && Number.isFinite(value)
+    ? Math.min(max, Math.max(min, value))
+    : fallback;
+
+const normalizeConnectionTypePreference = (value: unknown): ConnectionSemanticTypeId =>
+  typeof value === "string" && value.trim() ? value.trim().slice(0, 160) : "custom";
 
 export const normalizeConnectionViewSettings = (value: unknown): ConnectionViewSettings => {
   if (!isRecord(value)) return createDefaultConnectionViewSettings();
@@ -584,5 +617,31 @@ export const normalizeConnectionViewSettings = (value: unknown): ConnectionViewS
     visible: typeof value.visible === "boolean" ? value.visible : true,
     focusMode: oneOf<ConnectionFocusMode>(value.focusMode, ["all", "selected-cell", "selected-connections"], "all"),
     visualScaleMode: oneOf<ConnectionVisualScaleMode>(value.visualScaleMode, ["screen", "canvas"], "screen"),
+    defaultTypeId: normalizeConnectionTypePreference(value.defaultTypeId),
+    stayInMode: typeof value.stayInMode === "boolean" ? value.stayInMode : true,
+    selectNew: typeof value.selectNew === "boolean" ? value.selectNew : true,
+    edgeAutoPan: typeof value.edgeAutoPan === "boolean" ? value.edgeAutoPan : true,
+    hitTolerance: boundedNumber(value.hitTolerance, 12, CONNECTION_HIT_TOLERANCE_MIN_PX, CONNECTION_HIT_TOLERANCE_MAX_PX),
+    unrelatedFade: boundedNumber(value.unrelatedFade, 0.55, CONNECTION_UNRELATED_FADE_MIN, CONNECTION_UNRELATED_FADE_MAX),
+    motion: oneOf<ConnectionMotionPreference>(value.motion, ["reduced", "standard"], "standard"),
   };
 };
+
+/** Reset only the R5 authoring/interaction preferences. Global visibility and
+ * the existing focus-mode owner are deliberately preserved. */
+export const resetConnectionSettings = (value: ConnectionViewSettings): ConnectionViewSettings => ({
+  ...createDefaultConnectionViewSettings(),
+  visible: value.visible,
+  focusMode: value.focusMode,
+});
+
+export const resolveConnectionFocusOpacity = (
+  emphasis: "normal" | "focused" | "related" | "faded",
+  unrelatedFade: number,
+): number => emphasis === "focused"
+  ? 1
+  : emphasis === "related"
+    ? 0.82
+    : emphasis === "faded"
+      ? boundedNumber(unrelatedFade, 0.55, CONNECTION_UNRELATED_FADE_MIN, CONNECTION_UNRELATED_FADE_MAX)
+      : 1;

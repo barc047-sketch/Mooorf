@@ -39,7 +39,13 @@ import {
   type ConnectionFilterMetadata,
   type ConnectionFilterState,
 } from "../../domain/connections/selectors";
-import { resolveConnectionStylePreview, resolveRelationshipTypeStylePreview, type ResolvedConnectionStyle } from "../../domain/connections/styles";
+import {
+  resetConnectionSettings,
+  resolveConnectionStylePreview,
+  resolveRelationshipTypeStylePreview,
+  type ConnectionViewSettings,
+  type ResolvedConnectionStyle,
+} from "../../domain/connections/styles";
 import { useLab } from "../../state/store";
 import {
   recordRelationshipTypeUse,
@@ -383,7 +389,9 @@ export default function ConnectionsWidget() {
   const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
   const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
-  const connectionVisualScaleMode = useLab((state) => state.settings.connectionView.visualScaleMode);
+  const connectionView = useLab((state) => state.settings.connectionView);
+  const connectionVisualScaleMode = connectionView.visualScaleMode;
+  const setSettings = useLab((state) => state.setSettings);
   const createProjectRelationshipType = useLab((state) => state.createProjectRelationshipType);
   const duplicateProjectRelationshipType = useLab((state) => state.duplicateProjectRelationshipType);
   const updateProjectRelationshipTypeMetadata = useLab((state) => state.updateProjectRelationshipTypeMetadata);
@@ -421,6 +429,19 @@ export default function ConnectionsWidget() {
       .filter((type) => type.id !== pending?.typeId),
     [connectionStylePreview, connectionStyles, pending?.typeId, projectRelationshipTypes],
   );
+  const authoringTypeOptions = useMemo(
+    () => getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles).map((type) => ({
+      ...type,
+      visualDefaults: resolveRelationshipTypeStylePreview(type.id, type.visualDefaults, connectionStylePreview),
+    })),
+    [connectionStylePreview, connectionStyles, projectRelationshipTypes],
+  );
+  const defaultTypeValue = authoringTypeOptions.some((type) => type.id === connectionView.defaultTypeId)
+    ? connectionView.defaultTypeId
+    : "custom";
+  const updateConnectionView = (patch: Partial<ConnectionViewSettings>) => setSettings({
+    connectionView: { ...connectionView, ...patch },
+  });
 
   const openCreate = () => {
     setEditor({ mode: "create", draft: { ...EMPTY_DRAFT } });
@@ -653,7 +674,7 @@ export default function ConnectionsWidget() {
           >
             <Settings2 size={14} strokeWidth={1.5} />
           </button>
-          {settingsOpen && <div className="relationship-manager-settings-menu">
+          {settingsOpen && <div className="relationship-manager-settings-menu" style={{ width: 304, maxHeight: "min(620px, 78vh)", overflowY: "auto" }}>
             <strong className="connection-settings-title">CONNECTION SETTINGS</strong>
             <section className="connection-visual-scale-setting" aria-labelledby="connection-visual-scale-label">
               <span id="connection-visual-scale-label">VISUAL SCALE</span>
@@ -682,6 +703,61 @@ export default function ConnectionsWidget() {
                 </button>
               </div>
             </section>
+            <section className="connection-visual-scale-setting" aria-labelledby="connection-authoring-label">
+              <span id="connection-authoring-label">AUTHORING</span>
+              <label style={{ display: "grid", gap: 4, color: "var(--fog)", fontSize: 8 }}>
+                <span>Default Type</span>
+                <RelationshipTypePicker
+                  direction="down"
+                  label="Default Relationship Type"
+                  options={authoringTypeOptions}
+                  value={defaultTypeValue}
+                  onChange={(defaultTypeId) => updateConnectionView({ defaultTypeId })}
+                />
+              </label>
+              {([
+                ["stayInMode", "Stay in mode"],
+                ["selectNew", "Select new"],
+                ["edgeAutoPan", "Edge auto-pan"],
+              ] as const).map(([key, label]) => <button
+                key={key}
+                type="button"
+                role="switch"
+                aria-checked={connectionView[key]}
+                onClick={() => updateConnectionView({ [key]: !connectionView[key] })}
+              >
+                <span style={{ flex: 1 }}>{label}</span>
+                <span aria-hidden="true">{connectionView[key] ? "ON" : "OFF"}</span>
+              </button>)}
+            </section>
+            <section className="connection-visual-scale-setting" aria-labelledby="connection-interaction-label">
+              <span id="connection-interaction-label">INTERACTION</span>
+              <label style={{ display: "grid", gap: 3, color: "var(--ink-soft)", fontSize: 8 }}>
+                <span>Hit tolerance <output>{connectionView.hitTolerance}px</output></span>
+                <input type="range" min="8" max="32" step="1" value={connectionView.hitTolerance} onChange={(event) => updateConnectionView({ hitTolerance: Number(event.target.value) })} />
+              </label>
+              <label style={{ display: "grid", gap: 3, color: "var(--ink-soft)", fontSize: 8 }}>
+                <span>Unrelated fade <output>{connectionView.unrelatedFade.toFixed(2)}</output></span>
+                <input type="range" min="0.28" max="1" step="0.01" value={connectionView.unrelatedFade} onChange={(event) => updateConnectionView({ unrelatedFade: Number(event.target.value) })} />
+              </label>
+            </section>
+            <section className="connection-visual-scale-setting" aria-labelledby="connection-motion-label">
+              <span id="connection-motion-label">MOTION</span>
+              <div className="connection-visual-scale-options" role="radiogroup" aria-label="Connection motion">
+                {(["reduced", "standard"] as const).map((value) => <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={connectionView.motion === value}
+                  data-active={connectionView.motion === value ? "true" : undefined}
+                  onClick={() => updateConnectionView({ motion: value })}
+                ><span>{value === "reduced" ? "Reduced" : "Standard"}</span></button>)}
+              </div>
+            </section>
+            <button type="button" onClick={() => {
+              setSettings({ connectionView: resetConnectionSettings(connectionView) });
+              setActionMessage("Connection Settings restored.");
+            }}><RotateCcw size={11} /> Reset Connection Settings</button>
             <button type="button" onClick={() => {
               const changed = resetFactoryRelationshipTypeDefaults();
               setActionMessage(changed ? "Factory Relationship Type defaults restored." : "Factory defaults are already current.");

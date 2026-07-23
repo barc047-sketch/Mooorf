@@ -149,6 +149,7 @@ test("Connection Studio remains registered once and owns the universal style dra
 
 test("the one production Inspector keeps Connection editing compact, dynamic, and annotation-led", () => {
   const inspector = source("../../ui/widgets/InspectorWidget.tsx");
+  const annotationControls = source("../../ui/widgets/ConnectionAnnotationControls.tsx");
   assert.match(inspector, /function ConnectionInspector/);
   assert.match(inspector, /primarySelectedConnectionId/);
   assert.match(inspector, /getPrimarySelectedConnection/);
@@ -160,8 +161,9 @@ test("the one production Inspector keeps Connection editing compact, dynamic, an
   assert.match(inspector, /updateConnectionAnnotation/);
   assert.match(inspector, /reverseConnection/);
   assert.match(inspector, /deleteConnection/);
-  assert.match(inspector, /Title/);
-  assert.match(inspector, /Body/);
+  assert.match(inspector, /ConnectionAnnotationContentControls/);
+  assert.match(annotationControls, /Title/);
+  assert.match(annotationControls, /Body/);
   assert.match(inspector, /RelationshipTypeStylePreview/);
   assert.match(inspector, /openConnectionStyleEditor/);
   assert.match(inspector, /Edit Style/);
@@ -250,8 +252,8 @@ test("Organism owns one batched base renderer and one shared interaction overlay
   assert.match(organism, /hitTestConnections/);
   assert.match(organism, /getConnectionIndex/);
   assert.match(organism, /selectConnection\(connectionHit, e\.shiftKey\)/);
-  assert.match(organism, /deriveConnectionPorts/);
-  assert.match(organism, /hitConnectionPort/);
+  assert.match(organism, /const connectionCell = [\s\S]{0,180}hitTestNuclei\(lastNuclei, sx, sy\)/);
+  assert.doesNotMatch(organism, /deriveConnectionPorts|hitConnectionPort|CONNECTION_PORT/);
   assert.match(organism, /resolveConnectionAutoPan/);
   assert.match(organism, /setPointerCapture/);
   assert.match(organism, /releasePointerCapture/);
@@ -263,7 +265,7 @@ test("Organism owns one batched base renderer and one shared interaction overlay
   assert.match(organism, /stateAtPress\.temporaryTool === "pan"/);
   assert.doesNotMatch(organism, /connectionTemporaryPan|onConnectionPanKeyDown/, "Canvas must consume the shared temporary pan tool instead of owning Space again");
   assert.match(organism, /connectionAuthoring\.sourceId && gesture\.mode === "none"/);
-  assert.match(organism, /target\?\.state === "valid-target"/, "Cell keyline must be restricted to a valid target state");
+  assert.match(organism, /connectionHoverValid && connectionHoverId/, "Cell keyline must be restricted to a valid target state");
   assert.match(organism, /screenR/, "valid targets receive a Cell keyline around the nucleus");
   assert.match(organism, /chooseConnectionSource/);
   assert.match(organism, /completeConnectionAuthoring/);
@@ -294,8 +296,9 @@ test("QuickToggleBar keeps the semantic Connections visibility switch outside co
   assert.doesNotMatch(quickToggle, /setConnectionEnabled|updateConnectionVisual|filterConnections/);
 });
 
-test("Organism gives primary port drag and transient line interaction deterministic ownership", () => {
+test("Organism gives whole-Cell authoring and transient line interaction deterministic ownership", () => {
   const organism = source("../../canvas/OrganismCanvasView.tsx");
+  const editing = source("../../canvas/connections/editing.ts");
   const directInteraction = organism.slice(
     organism.indexOf("if (isInlineEditorCommitPointer(e))"),
     organism.indexOf("const processMove"),
@@ -306,18 +309,15 @@ test("Organism gives primary port drag and transient line interaction determinis
   );
   assert.match(
     organism,
-    /const connectionPressIntent = e\.button === 0 && connectionPort\s*\? "connection"\s*: resolveConnectionPressIntent/,
-    "a primary press on a visible Connection port must win before temporary pan, Cell drag, or Canvas pan",
+    /const connectionCell = [\s\S]{0,180}hitTestNuclei\(lastNuclei, sx, sy\)/,
+    "a primary press uses the existing whole-Cell hit geometry",
   );
-  assert.match(organism, /const CONNECTION_PORT_VISIBLE_RADIUS_PX = 7\.25/);
-  assert.match(organism, /const CONNECTION_PORT_HIT_RADIUS_PX = 14/);
-  assert.match(
-    organism,
-    /hitConnectionPort\(connectionPorts, \{ x: sx, y: sy \}, CONNECTION_PORT_HIT_RADIUS_PX\)/,
-    "source, move, and release must share the practical port hit target",
-  );
-  assert.doesNotMatch(organism, /hitConnectionPort\(connectionPorts, \{ x: sx, y: sy \}\)/);
-  assert.match(organism, /arc\(port\.x, port\.y, CONNECTION_PORT_VISIBLE_RADIUS_PX/);
+  assert.match(organism, /hasCell: Boolean\(connectionCell && isValidConnectionEndpoint\(connectionEndpoint\)\)/);
+  assert.match(editing, /hasCell: boolean/);
+  assert.doesNotMatch(editing, /ConnectionPort|deriveConnectionPorts|hitConnectionPort|CONNECTION_PORT/);
+  assert.doesNotMatch(organism, /ConnectionPort|connectionPort|deriveConnectionPorts|hitConnectionPort|CONNECTION_PORT/);
+  assert.match(organism, /arc\(source\.sx, source\.sy/);
+  assert.match(organism, /arc\(validTarget\.sx, validTarget\.sy/);
   assert.match(organism, /let hoveredConnectionId: string \| null = null/);
   assert.match(organism, /const hoveredCommand = hoveredConnectionId[\s\S]{0,120}connectionProjection\.commands\.find/);
   assert.match(organism, /hoveredEndpointIds/);
@@ -353,7 +353,7 @@ test("Connection integration preserves hard-OFF, camera-shake, and production pr
   assert.match(organism, /projectMembraneField/);
   assert.match(organism, /pulseCameraShake/);
   assert.match(organism, /applyCameraShakeOffset/);
-  assert.match(organism, /recordPortProjection/);
+  assert.doesNotMatch(organism, /recordPortProjection|ConnectionPort|connectionPort/);
   assert.match(organism, /selectionOverlayDraws/);
   assert.match(organism, /anchorResolutions/);
 });

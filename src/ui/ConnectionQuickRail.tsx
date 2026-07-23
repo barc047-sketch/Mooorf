@@ -18,6 +18,7 @@ export default function ConnectionQuickRail() {
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
   const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
   const performanceQuality = useLab((state) => state.settings.performanceQuality);
+  const connectionMotion = useLab((state) => state.settings.connectionView.motion);
   const chooseConnectionQuickRailType = useLab((state) => state.chooseConnectionQuickRailType);
   const exitConnectionMode = useLab((state) => state.exitConnectionMode);
   const openWidget = useLab((state) => state.openWidget);
@@ -59,7 +60,7 @@ export default function ConnectionQuickRail() {
     };
   }, [modeActive]);
 
-  const suppressMotion = Boolean(reduceMotion) || performanceQuality === "fast";
+  const suppressMotion = Boolean(reduceMotion) || performanceQuality === "fast" || connectionMotion === "reduced";
 
   if (!modeActive) return null;
 

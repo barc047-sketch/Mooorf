@@ -59,6 +59,9 @@ const connection = (
 });
 
 const styles = createDefaultProjectConnectionStyles();
+// Geometry-focused fixtures opt into a straight Custom baseline explicitly;
+// the product-level default is curved and is covered by the R5 contracts.
+styles.custom.geometryId = "straight";
 const viewport = { x: 0, y: 0, width: 400, height: 300 };
 
 const projectionInput = (
@@ -319,8 +322,8 @@ test("Connection focus keeps selected, endpoint-related, and contextual lines vi
   });
   const alphaById = new Map(result.commands.map((command, index) => [command.id, context.strokes[index]?.alpha]));
   assert.equal(alphaById.get("ab"), 1);
-  assert.equal(alphaById.get("bc"), 0.76);
-  assert.equal(alphaById.get("de"), 0.44);
+  assert.equal(alphaById.get("bc"), 0.82);
+  assert.equal(alphaById.get("de"), 0.55);
 });
 
 test("selected-Cell focus fades unrelated commands without deleting semantic rows", () => {
@@ -769,13 +772,11 @@ test("OFF instrumentation preserves authored count and settles every visual-work
   instrumentation.recordDrawBatch({ commandCount: 2, strokeCalls: 4, fillCalls: 0, markerCalls: 0 }, "overlay");
   instrumentation.recordOverlayPrimitives(3, 2);
   instrumentation.recordOverlayClear();
-  instrumentation.recordPortProjection(96);
   instrumentation.recordHitTest();
   instrumentation.setSleeping(true);
   assert.equal(instrumentation.snapshot().drawCalls, 112);
   assert.equal(instrumentation.snapshot().batchPasses, 2);
   assert.equal(instrumentation.snapshot().hitTests, 1);
-  assert.equal(instrumentation.snapshot().portProjections, 96);
   assert.equal(instrumentation.snapshot().selectionOverlayDraws, 2);
   assert.equal(instrumentation.snapshot().sleeping, true);
   instrumentation.settleOff(300);
@@ -805,7 +806,6 @@ test("OFF instrumentation preserves authored count and settles every visual-work
     overlayDrawnCommands: 0,
     overlayClears: 0,
     hitTests: 0,
-    portProjections: 0,
     selectionOverlayDraws: 0,
     sleeping: true,
   });

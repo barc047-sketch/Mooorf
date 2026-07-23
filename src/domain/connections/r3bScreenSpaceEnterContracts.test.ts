@@ -144,6 +144,7 @@ test("Canvas wiring supplies live camera zoom to the screen-space resolver witho
   const resolveMetrics = await loadMetricsResolver();
   const styles = createDefaultProjectConnectionStyles();
   const authored = connection("zoomed", {
+    geometryId: "straight",
     strokePatternId: "dashed",
     appearance: { width: 64, dashScale: 2, markerSize: 10, markerOffset: 4 },
   });
@@ -177,7 +178,7 @@ test("Canvas wiring supplies live camera zoom to the screen-space resolver witho
   const rendererSource = source("../../canvas/connections/renderer.ts");
   assert.match(rendererSource, /resolveConnectionDrawMetrics\([\s\S]{0,140}?resolveConnectionVisualMetrics\(style, cameraZoom, visualScaleMode\)/);
   assert.match(rendererSource, /traceProceduralStroke\(context, command\.path, style, metrics\)/);
-  assert.match(rendererSource, /CONNECTION_FOCUS_OPACITY[\s\S]{0,180}?focused:\s*1[\s\S]{0,120}?related:\s*0\.76[\s\S]{0,120}?contextual:\s*0\.44/);
+  assert.match(rendererSource, /CONNECTION_FOCUS_OPACITY[\s\S]{0,180}?focused:\s*1[\s\S]{0,120}?related:\s*0\.82[\s\S]{0,120}?contextual:\s*0\.55/);
 });
 
 test("single, multi and Relationship Type live drafts resolve through unchanged screen metrics and retain history semantics", async () => {

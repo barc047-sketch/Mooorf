@@ -15,27 +15,6 @@ export interface ViewportRect {
   height: number;
 }
 
-export interface ConnectionPort {
-  id: string;
-  spaceId: string;
-  x: number;
-  y: number;
-  state: "idle" | "source" | "valid-target" | "invalid-target";
-}
-
-export interface ConnectionPortCandidate {
-  id: string;
-  spaceId: string;
-  x: number;
-  y: number;
-  visible: boolean;
-  inVisibleSubset: boolean;
-  kind?: string;
-  locked?: boolean;
-  hidden?: boolean;
-  deleted?: boolean;
-}
-
 export type ConnectionReleaseDecision =
   | { kind: "commit"; targetId: string }
   | { kind: "invalid"; targetId: string }
@@ -44,55 +23,8 @@ export type ConnectionReleaseDecision =
 
 export type ConnectionPressIntent = "connection" | "canvas";
 
-export const CONNECTION_PORT_VISIBLE_RADIUS_PX = 3;
-export const CONNECTION_PORT_HIT_RADIUS_PX = 10;
 export const CONNECTION_AUTO_PAN_EDGE_PX = 48;
 export const CONNECTION_AUTO_PAN_MAX_PX = 14;
-
-export function deriveConnectionPorts(
-  candidates: readonly ConnectionPortCandidate[],
-  sourceId: string | null = null,
-  targetId: string | null = null,
-  targetValid = true,
-): ConnectionPort[] {
-  return candidates.flatMap((candidate) => {
-    if (
-      !candidate.inVisibleSubset
-      || !isValidConnectionEndpoint(candidate)
-      || !Number.isFinite(candidate.x)
-      || !Number.isFinite(candidate.y)
-    ) return [];
-    const state: ConnectionPort["state"] = candidate.spaceId === sourceId
-      ? "source"
-      : candidate.spaceId === targetId
-        ? targetValid ? "valid-target" : "invalid-target"
-        : "idle";
-    return [{
-      id: candidate.id,
-      spaceId: candidate.spaceId,
-      x: candidate.x,
-      y: candidate.y,
-      state,
-    }];
-  });
-}
-
-export function hitConnectionPort(
-  ports: readonly ConnectionPort[],
-  point: ScreenPoint,
-  radiusPx = CONNECTION_PORT_HIT_RADIUS_PX,
-): ConnectionPort | null {
-  const radius = Math.max(0, radiusPx);
-  return ports
-    .flatMap((port) => {
-      const dx = port.x - point.x;
-      const dy = port.y - point.y;
-      const distanceSquared = dx * dx + dy * dy;
-      return distanceSquared <= radius * radius ? [{ port, distanceSquared }] : [];
-    })
-    .sort((left, right) => left.distanceSquared - right.distanceSquared || left.port.id.localeCompare(right.port.id))[0]
-    ?.port ?? null;
-}
 
 const edgeVelocity = (distance: number): number => {
   if (distance >= CONNECTION_AUTO_PAN_EDGE_PX) return 0;
@@ -100,7 +32,12 @@ const edgeVelocity = (distance: number): number => {
   return CONNECTION_AUTO_PAN_MAX_PX * progress * progress;
 };
 
-export function resolveConnectionAutoPan(point: ScreenPoint, viewport: ViewportRect): ScreenVector {
+export function resolveConnectionAutoPan(
+  point: ScreenPoint,
+  viewport: ViewportRect,
+  enabled = true,
+): ScreenVector {
+  if (!enabled) return { dx: 0, dy: 0 };
   const right = viewport.x + Math.max(0, viewport.width);
   const bottom = viewport.y + Math.max(0, viewport.height);
   const leftVelocity = edgeVelocity(point.x - viewport.x);
@@ -125,26 +62,25 @@ export function resolveConnectionAutoPanDelta(
 export function resolveConnectionPressIntent(input: {
   modeActive: boolean;
   layerVisible: boolean;
-  hasPort: boolean;
+  hasCell: boolean;
   sourceId: string | null;
   temporaryPan: boolean;
 }): ConnectionPressIntent {
   if (!input.modeActive || !input.layerVisible || input.temporaryPan) return "canvas";
-  return input.hasPort || Boolean(input.sourceId) ? "connection" : "canvas";
+  return input.hasCell || Boolean(input.sourceId) ? "connection" : "canvas";
 }
 
 export function resolveConnectionRelease(input: {
   sourceId: string | null;
-  port: ConnectionPort | null;
   nucleusId: string | null;
+  targetValid: boolean;
   moved: boolean;
 }): ConnectionReleaseDecision {
   if (!input.sourceId) return { kind: "cancel" };
-  if (input.port && input.port.spaceId !== input.sourceId) {
-    return { kind: "commit", targetId: input.port.spaceId };
+  if (input.nucleusId && input.nucleusId !== input.sourceId && input.targetValid) {
+    return { kind: "commit", targetId: input.nucleusId };
   }
-  if (input.port?.spaceId === input.sourceId && !input.moved) return { kind: "keep-source" };
+  if (input.nucleusId === input.sourceId && !input.moved) return { kind: "keep-source" };
   if (input.nucleusId) return { kind: "invalid", targetId: input.nucleusId };
   return { kind: "cancel" };
 }
-import { isValidConnectionEndpoint } from "../../domain/connections/model";

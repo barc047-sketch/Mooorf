@@ -528,5 +528,5 @@ test("annotation focus stays readable without changing accepted stroke focus", (
   const byId = new Map(result.annotations.map((item) => [item.connectionId, item.opacity]));
   assert.equal(byId.get("selected"), 1);
   assert.ok((byId.get("unrelated") ?? 0) >= 0.68);
-  assert.deepEqual(CONNECTION_FOCUS_OPACITY, { focused: 1, related: 0.76, contextual: 0.44 });
+  assert.deepEqual(CONNECTION_FOCUS_OPACITY, { focused: 1, related: 0.82, contextual: 0.55 });
 });

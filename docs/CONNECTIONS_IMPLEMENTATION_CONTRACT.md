@@ -29,7 +29,7 @@ Connections V1 extends the pushed P1/P2 lineage. It does not replace it.
 - One WidgetHost/WidgetFrame registry and lifecycle.
 - One live Organism composition and one detached Organism export path.
 - One pure visual projection shared by live drawing and detached export.
-- Preview, pointer capture, ports, selected handles, resolved anchors, lanes, culling, tessellation, hit geometry, and caches are runtime-only.
+- Preview, pointer capture, whole-Cell authoring hover, selected handles, resolved anchors, lanes, culling, tessellation, hit geometry, and caches are runtime-only.
 - Flag remains a presentation-only Cell callout. It never becomes a Connection record or endpoint.
 - Material Registry, Morph Bridge, Cell Behaviour, full Matrix/Table UIs, Classic, and SVG remain outside this run.
 
@@ -112,11 +112,11 @@ Known patterns: `solid`, `dashed`, `dotted`, `dash-dot`, `double`, `segmented-ba
 
 Known markers: `none`, `open-arrow`, `filled-arrow`, `open-triangle`, `filled-triangle`, `circle`, `filled-dot`, `square`, `diamond`, `bar`, `slash`, `cross`, `architectural-tick`, `chevron`.
 
-Known anchors: `auto`, `top`, `right`, `bottom`, `left`. Creation writes no redundant centre override; `auto` clips the visible line to each Cell boundary.
+Known anchors: `auto`, `top`, `right`, `bottom`, `left`. New V1 whole-Cell authoring writes explicit `auto` endpoints so project Type side anchors cannot displace the new Connection; the existing renderer then clips visible geometry safely against each Cell.
 
 Launch type defaults must remain distinguishable in monochrome and at low zoom:
 
-- Custom — straight, solid, thin, no marker;
+- Custom — gentle curved solid, approximately `3px`, authored opacity `0.82`, the clean canonical cap/join, no marker;
 - Adjacency — straight or soft curve, fine dashed, no marker;
 - Direct Access — straight, medium solid, direction-compatible marker;
 - Visual Link — soft curve, fine dotted, no marker;
@@ -137,7 +137,7 @@ Entering mode:
 1. makes the global visual layer visible;
 2. activates `custom`;
 3. opens the split contextual Quick Rail;
-4. exposes centre ports on every visible valid Cell;
+4. makes each complete visible valid Cell body an authoring target without visible ports;
 5. announces `Connections shown for editing`.
 
 One application-level shortcut owner handles `C`. It ignores repeats, modifiers, Table mode, `input`, `textarea`, `select`, search controls, contenteditable, notes, inline Cell editing, and modal text-edit sessions.
@@ -147,31 +147,30 @@ Exit rules:
 - `C` while mode is active exits mode;
 - Escape during a source/target drag cancels only that drag and keeps mode active;
 - Escape while mode is active without a drag exits mode;
-- exit removes ports, preview, handles, and Quick Rail without authoring a change;
+- exit removes preview, whole-Cell authoring feedback, handles, and Quick Rail without authoring a change;
 - permanent lines remain according to global visibility.
 
 Cell and Connection selection remain mutually exclusive. V1 mixed selection means multiple selected Connections only.
 
-## 7. Centre-port authoring
+## 7. Whole-Cell authoring
 
-Ports are drawn through one batched Canvas2D interaction overlay, never one React component per Cell.
+MOOORF V1 exposes no authoring ports. In Connection mode, the existing visible Cell-body hit geometry is the sole source and target interaction surface.
 
-- Visible diameter: approximately 6 px.
-- Hit diameter: 18–20 px.
-- Screen-stable stroke: approximately 1.25–1.5 px.
-- States: available, hovered, source, valid target, invalid.
-- Ports exist only for visible, non-Void, non-hidden, non-locked, non-deleted valid endpoints inside the current Organism subset.
-- Ports perform no store/history writes and do not own a continuous animation.
-- Hard OFF removes ports and all port hit testing.
+- Pointer-down anywhere inside a visible, non-Void, non-hidden, non-locked, non-deleted Cell begins authoring.
+- Hover and release anywhere inside another eligible Cell acquire that target.
+- Source and valid-target feedback use restrained whole-Cell outlines on the existing batched interaction overlay; invalid Cells never receive valid-target treatment.
+- New Connections persist explicit canonical `auto` start/end anchors, representing deterministic center intent without side or nearest-edge authoring inference.
+- Whole-Cell hover and preview perform no store/history writes and own no continuous animation.
+- Hard OFF removes authoring feedback and all Connection-mode Cell targeting.
 
 Primary interaction:
 
 ```text
-pointer down on source port
+pointer down anywhere in source Cell
 → pointer capture
 → local preview follows pointer
-→ indexed target detection
-→ release on valid target
+→ existing visible Cell hit detection
+→ release anywhere in valid target Cell
 → one canonical transaction
 → select result
 → remain in mode
@@ -210,7 +209,7 @@ OFF is a hard runtime gate. After transition settlement it performs:
 - zero anchor/path resolutions;
 - zero label layout work;
 - zero Connection hit-test work;
-- zero ports, previews, handles, or line animation.
+- zero authoring feedback, previews, handles, or line animation.
 
 The canonical collection and authored styles remain untouched. OFF may be captured by Saved Views. Export uses an explicit export option and never silently follows only this live toggle.
 
@@ -223,7 +222,7 @@ WebGL Organism field
 → grid
 → base Connection Canvas2D batch
 → existing Cell presentation overlay
-→ selected Connection / handles / ports batch
+→ selected Connection / handles / whole-Cell authoring feedback batch
 → existing Cell labels and symbols
 ```
 
@@ -243,7 +242,7 @@ canonical Connections
 → bounded hit index
 ```
 
-No stored Connection or port receives a React component or SVG element. The P2 SVG preview is replaced by the single batched interaction overlay. Static lines sleep after invalidation and use no independent scheduler.
+No stored Connection or authoring target receives a React component or SVG element. The P2 SVG preview is replaced by the single batched interaction overlay. Static lines sleep after invalidation and use no independent scheduler.
 
 Moving/resizing Cell A invalidates paths whose endpoint index contains A. A type-default edit invalidates inheriting records of that type. A local override invalidates only the edited records. Camera changes reproject visible paths without mutating authored geometry.
 
@@ -335,13 +334,13 @@ Export UI exposes `Include Connections` and scope:
 - all active Connections;
 - selected Connections.
 
-Preview, ports, selection overlays, handles, hover, onboarding, camera feedback, and runtime caches never enter authored exports. Organism SVG remains unavailable.
+Preview, authoring feedback, selection overlays, handles, hover, onboarding, camera feedback, and runtime caches never enter authored exports. Organism SVG remains unavailable.
 
 ## 17. Performance and instrumentation
 
 Non-negotiable:
 
-- no React component per Connection or port;
+- no React component per Connection or authoring target;
 - no store/history write per pointer frame;
 - no persisted path/hit/culling result;
 - no permanent static loop or second scheduler;
@@ -349,7 +348,7 @@ Non-negotiable:
 - cull before expensive draw/label work;
 - endpoint-dependent cache invalidation;
 - bounded hit index and Manager window;
-- ports only for visible valid Cells;
+- whole-Cell target detection reuses the current visible Organism subset and existing Cell hit geometry;
 - Table pauses Connections with Organism;
 - no Organism or label remount during mode/editing;
 - complete semantic data under every LOD fallback.
@@ -371,15 +370,15 @@ Required scenes:
 - Manager endpoint controls provide the non-Canvas creation fallback;
 - aria-live status for source, target, invalid, duplicate, commit, cancel, and mode visibility;
 - invalid states use text and shape, not colour alone;
-- practical 18–20 px port hit geometry and at least 24 px UI target geometry;
+- the complete visible Cell body is the practical Canvas source/target area; UI controls retain at least 24 px target geometry;
 - keyboard selection/deletion and Manager access to every record;
 - pattern/marker differences keep semantic types identifiable without colour;
 - reduced motion disables nonessential transitions;
 - the collapsible QuickToggleBar subtree is removed from the tab order while closed.
 
-First activation shows a lightweight contextual hint: `Press C to connect Cells` and `Drag a centre point to another Cell`. First success shows `Connection created · Press Esc to exit · C to toggle`. Dismissal is a local UI preference, never project semantic data.
+First activation shows a lightweight contextual hint: `Press C to connect Cells` and `Drag from one Cell to another`. First success shows `Connection created · Press Esc to exit · C to toggle`. Dismissal is a local UI preference, never project semantic data.
 
-Allowed motion is bounded Rail entry, port hover/target emphasis, new-line fade, selection emphasis, and Studio tab transition. There are no continuous flow animations, bouncing ports, glow loops, staggered ports, animated blur, or elastic overshoot.
+Allowed motion is bounded Rail entry, target emphasis, new-line fade, selection emphasis, and Studio tab transition. There are no continuous flow animations, pulsing targets, glow loops, animated blur, or elastic overshoot.
 
 ## 19. Task and commit gates
 
@@ -387,7 +386,7 @@ Allowed motion is bounded Rail entry, port hover/target emphasis, new-line fade,
 |---:|---|---|
 | 0 | durable contract, exact implementation plan, progress ledger; no product code | `docs(connections): freeze v1 interaction and renderer specification` |
 | 1 | Custom, style inheritance, style packs, shared filters/projection contracts; no Canvas renderer | `feat(connections): add custom type and style inheritance foundation` |
-| 2 | unified mode, shortcut, split Rail, batched ports/preview, drag/click authoring, onboarding, Manager role; no permanent stored-line renderer | `feat(connections): add rail-first drag authoring` |
+| 2 | unified mode, shortcut, split Rail, batched preview/whole-Cell feedback, drag/click authoring, onboarding, Manager role; no permanent stored-line renderer | `feat(connections): add rail-first drag authoring` |
 | 3 | batched stored-line renderer, clipping, paths, lanes, culling, hit testing, selection, hard OFF, LOD/counters | `feat(connections): add batched visual renderer` |
 | 4 | four geometries, six patterns, fourteen markers, five anchors, Studio, quick/mixed editing, reconnect/reverse | `feat(connections): add connection studio and visual grammar` |
 | 5 | labels, bounded Manager, filters/counts/bulk selection, Matrix/Table hooks | `feat(connections): complete manager labels and projections` |
@@ -414,8 +413,8 @@ At 1440×900, 1280×800, and constrained effective Canvas width, verify:
 
 1. `C` enters mode.
 2. Custom is active by default.
-3. All visible valid Cells display centre ports.
-4. Ports remain screen-stable during zoom.
+3. No visible authoring ports appear; every visible valid Cell body is a source target.
+4. Hovering anywhere inside a valid destination Cell shows restrained whole-Cell feedback.
 5. Drag creates a visible Connection.
 6. Repeated creation works.
 7. Empty release cancels only the drag.
@@ -436,7 +435,7 @@ At 1440×900, 1280×800, and constrained effective Canvas width, verify:
 22. Reclassification preserves local overrides.
 23. Manager search/filter/bulk actions work.
 24. Table activation pauses the Connection runtime.
-25. Exports exclude ports, preview, and selection overlays.
+25. Exports exclude authoring feedback, preview, and selection overlays.
 26. Organism and Cell labels do not remount.
 27. The browser console records zero errors.
 
@@ -456,7 +455,7 @@ Return:
 8. type-style defaults and inheritance;
 9. `C` shortcut and mode behaviour;
 10. split Rail structure and responsive behaviour;
-11. centre-port architecture;
+11. whole-Cell authoring architecture;
 12. drag and multi-Connection behaviour;
 13. renderer/layer architecture;
 14. path cache and invalidation behaviour;

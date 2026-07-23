@@ -561,6 +561,17 @@ const exitConnectionModePatch = (state: {
   };
 };
 
+const validConnectionAuthoringTypeId = (
+  requestedTypeId: Connection["semantic"]["typeId"] | undefined,
+  settings: Pick<LabSettings, "projectRelationshipTypes" | "connectionStyles" | "connectionView">,
+): Connection["semantic"]["typeId"] => {
+  const selectable = getSelectableRelationshipTypes(settings.projectRelationshipTypes, settings.connectionStyles);
+  const selectableIds = new Set(selectable.map((type) => type.id));
+  if (requestedTypeId && selectableIds.has(requestedTypeId)) return requestedTypeId;
+  if (selectableIds.has(settings.connectionView.defaultTypeId)) return settings.connectionView.defaultTypeId;
+  return "custom";
+};
+
 const closedContext = {
   contextSurface: null,
   contextPoint: null,
@@ -1468,23 +1479,26 @@ export const useLab = create<LabState>((set, get) => ({
     },
   })),
 
-  enterConnectionMode: (typeId = "custom") =>
-    set((s) => ({
-      connectionModeActive: true,
-      connectionModeTypeId: typeId,
-      connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
-        type: "enter-mode",
-        typeId,
-      }),
-      settings: {
-        ...s.settings,
-        connectionView: {
-          ...s.settings.connectionView,
-          visible: true,
+  enterConnectionMode: (typeId) =>
+    set((s) => {
+      const resolvedTypeId = validConnectionAuthoringTypeId(typeId, s.settings);
+      return {
+        connectionModeActive: true,
+        connectionModeTypeId: resolvedTypeId,
+        connectionAuthoring: reduceConnectionAuthoring(s.connectionAuthoring, {
+          type: "enter-mode",
+          typeId: resolvedTypeId,
+        }),
+        settings: {
+          ...s.settings,
+          connectionView: {
+            ...s.settings.connectionView,
+            visible: true,
+          },
         },
-      },
-      ...closedContext,
-    })),
+        ...closedContext,
+      };
+    }),
 
   exitConnectionMode: () => set((s) => exitConnectionModePatch(s)),
 
@@ -1497,17 +1511,20 @@ export const useLab = create<LabState>((set, get) => ({
   },
 
   setConnectionModeType: (typeId) =>
-    set((s) => ({
-      connectionModeTypeId: typeId,
-      connectionAuthoring: s.connectionModeActive
-        ? reduceConnectionAuthoring(s.connectionAuthoring, {
-            type: "ready",
-            typeId,
-            message: `Ready to create ${resolveRelationshipType(typeId, s.settings.projectRelationshipTypes, s.settings.connectionStyles).name} Connections.`,
-            retainPriorSelection: true,
-          })
-        : s.connectionAuthoring,
-    })),
+    set((s) => {
+      const resolvedTypeId = validConnectionAuthoringTypeId(typeId, s.settings);
+      return {
+        connectionModeTypeId: resolvedTypeId,
+        connectionAuthoring: s.connectionModeActive
+          ? reduceConnectionAuthoring(s.connectionAuthoring, {
+              type: "ready",
+              typeId: resolvedTypeId,
+              message: `Ready to create ${resolveRelationshipType(resolvedTypeId, s.settings.projectRelationshipTypes, s.settings.connectionStyles).name} Connections.`,
+              retainPriorSelection: true,
+            })
+          : s.connectionAuthoring,
+      };
+    }),
 
   cancelConnectionGesture: (message = "Connection gesture cancelled. Choose a source Cell.") =>
     set((s) => !s.connectionModeActive ? {} : ({
@@ -1613,6 +1630,7 @@ export const useLab = create<LabState>((set, get) => ({
       fromSpaceId: sourceId,
       toSpaceId: id,
       typeId: authoring.typeId,
+      visual: { startAnchorId: "auto", endAnchorId: "auto" },
     });
     if (!connectionId) {
       set((s) => ({
@@ -1624,13 +1642,19 @@ export const useLab = create<LabState>((set, get) => ({
       }));
       return { status: "invalid", connectionId: null };
     }
-    get().selectConnection(connectionId);
-    get().openWidget("inspector");
+    if (get().settings.connectionView.selectNew) {
+      get().selectConnection(connectionId);
+      get().openWidget("inspector");
+    }
     set((s) => {
       const committed = reduceConnectionAuthoring(s.connectionAuthoring, {
         type: "commit",
         targetId: id,
         connectionId,
+      });
+      if (!s.settings.connectionView.stayInMode) return exitConnectionModePatch({
+        spaces: s.spaces,
+        connectionAuthoring: committed,
       });
       return {
         connectionAuthoring: s.connectionModeActive
@@ -2966,7 +2990,13 @@ export const useLab = create<LabState>((set, get) => ({
       changed = true;
       return {
         connections: plan.connections,
-        settings: { ...s.settings, projectRelationshipTypes: plan.projectTypes },
+        settings: {
+          ...s.settings,
+          projectRelationshipTypes: plan.projectTypes,
+          connectionView: s.settings.connectionView.defaultTypeId === id
+            ? { ...s.settings.connectionView, defaultTypeId: "custom" }
+            : s.settings.connectionView,
+        },
         connectionModeTypeId: nextModeTypeId,
         connectionAuthoring: s.connectionModeActive && nextModeTypeId !== s.connectionModeTypeId
           ? reduceConnectionAuthoring(s.connectionAuthoring, {
@@ -3005,7 +3035,13 @@ export const useLab = create<LabState>((set, get) => ({
       changed = true;
       return {
         connections: plan.connections,
-        settings: { ...s.settings, projectRelationshipTypes: plan.projectTypes },
+        settings: {
+          ...s.settings,
+          projectRelationshipTypes: plan.projectTypes,
+          connectionView: s.settings.connectionView.defaultTypeId === id
+            ? { ...s.settings.connectionView, defaultTypeId: "custom" }
+            : s.settings.connectionView,
+        },
         connectionModeTypeId: nextModeTypeId,
         connectionAuthoring: s.connectionModeActive && nextModeTypeId !== s.connectionModeTypeId
           ? reduceConnectionAuthoring(s.connectionAuthoring, {
