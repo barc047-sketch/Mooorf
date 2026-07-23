@@ -272,7 +272,7 @@ test("annotations reuse the one canonical Connection Visual Scale setting withou
   const projection = source("../../canvas/connections/annotationProjection.ts");
 
   assert.match(store, /setConnectionVisualScaleMode:[\s\S]*visualScaleMode:\s*mode === "canvas" \? "canvas" : "screen"/);
-  assert.match(manager, /settings\.connectionView\.visualScaleMode/);
+  assert.match(manager, /connectionView\.visualScaleMode/);
   assert.match(organism, /visualScaleMode:\s*connectionVisualScaleMode[\s\S]*annotationMeasureText/);
   assert.match(projection, /resolveConnectionAnnotationVisualScale/);
   for (const owner of [store, graph, manager, organism, projection]) {

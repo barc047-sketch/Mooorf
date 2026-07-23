@@ -1,31 +1,26 @@
 # Active Task
 
-## R5.5 FINAL EDITORIAL LEGEND SETTINGS UX PASS
+## R6 EXPORT PARITY + TABLE/MATRIX PROJECTION HOOKS
 
-Status: LOCAL UNCOMMITTED / FINAL SETTINGS UX PASS APPLIED / AUTOMATED CHECKS PASSED / PREVIEW AVAILABLE / WAITING OWNER QA
+Status: LOCAL UNCOMMITTED / AUTOMATED CHECKS PASSED / PREVIEW AVAILABLE / WAITING OWNER QA
 
 - branch: `work/next-feature`;
-- starting Owner-accepted R5 checkpoint: `833ca108b14bdaa474be39fead710136bf211ab5`; remote feature HEAD intentionally remains `e9f9219524e2f4721670151340456a7e92bfab77`;
-- Relationship Manager owns one `LEGEND` action beside Settings; it opens or focuses one independent registry-hosted `RELATIONSHIPS` frame and never replaces the Manager's `TYPES` or `CONNECTIONS` content;
-- the Manager retains its accepted `40vw × 78vh`, `44vw × 85vh` bounded geometry and remains usable while the detached Legend is open;
-- the Legend is frameless and independently movable, minimizable, closable and resizable on both axes from thin vertical to wide shallow compositions; only tiny vertically stacked top-right controls remain and the invisible outer-shell drag region reuses WidgetFrame;
-- the Legend’s vertical resize floor derives from a shallow current-width projection plus actual frame border/control clearance, so the historical workspace `180px` minimum, prior growth and empty-state content never reserve obsolete height; no-scroll growth remains bounded and one-way only;
-- `src/domain/connections/relationshipLegend.ts` is the React-free export-ready projector from canonical Types, canonical Connection usage, resolved styles, semantic config and width/height into items, grid placement and bounds;
-- `settings.connectionView.legend` is the single normalized config owner for layout mode, rows, density, specimen length/weight, Text Width `80–320px`, text alignment, semantic text X/Y placement, scope and content toggles; all controls live in compact `LEGEND SETTINGS` inside Manager Settings, while the detached output contains no toolbar;
-- the floating frame's x/y/width/height are session-only workspace UI state outside project persistence, Relationship Type data and history;
-- Auto, Horizontal and Vertical are the exact layout modes; Horizontal fills down with four rows by default, Vertical fills across, and Auto responds deterministically to available width and height;
-- All Active is default, archived Types are excluded, Used Only derives from canonical Connections, and stable Manager order remains independent of authoring MRU;
-- Compact/Standard/Large density now creates materially tighter technical-drawing rhythm; Short/Standard/Long controls specimen extent independently, and Style/Name/Code/Description allocates no disabled secondary baseline;
-- Legible weight applies only a preview minimum to thin Legend samples, while True preserves authored width; canonical Type/Connection style, Canvas rendering, clipboard and history remain unchanged;
-- Long Dash, Dash-Dot-Dot, Sparse Dot and Centerline extend the one registry as parameter-driven base families; Pattern Scale controls spacing/repetition and no loose/dense duplicate families were added;
-- the shared adaptive style specimen renders resolved advanced patterns, Hash/Hatch distinction, markers, width, color and opacity without X-stretching or Canvas-camera coupling;
-- `LEGEND SETTINGS` now uses the actual shared `.glass` Morph-glass primitive rather than a local background approximation; icon-first segments, visual specimen-length marks, a numeric Text Width field and compact content toggles preserve the existing control language; Relationship Manager ranges continue to reuse `SliderRow`/`org-slider` rather than native browser styling;
-- Text Width participates in the pure Legend grid's readable width/reflow; Text Align, X and Y placement update the detached output immediately through semantic config without per-Type coordinates, item dragging, extra row height or history;
-- the pure projection is ready for future Sheet and authored export consumers, but no Sheet placement, PNG/SVG/PDF/presentation export, Matrix or DOM-scraping path was added;
-- 23 affected final-settings contracts pass, covering shared Morph glass, visual controls, semantic Text Width/alignment/placement normalization and reflow, no phantom height, no-scroll growth, frameless controls and shared slider reuse; exact TypeScript, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check pass;
-- `http://127.0.0.1:5173/` serves the current worktree for Owner QA;
-- no browser automation, production build, commit, push, merge, actual export, Sheet placement, Matrix, Classic, renderer rewrite or dependency work occurred.
+- starting remote-backed R5.5 checkpoint: `4154bd5dda986db7c8ec7d63c6df90b1ffd180d1`; local HEAD and `origin/work/next-feature` matched and the worktree was clean before R6;
+- `src/export/connectionExport.ts` owns one React/DOM-independent authored export projection from canonical Connections, current Relationship Types, resolved sparse styles, explicit output-space endpoints/bounds and document scale into paths, motifs, markers, annotations and bounds;
+- detached export reuses the existing geometry, lane, style, stroke-pattern and annotation projectors; export mode removes live LOD/focus/collision budgets while retaining canonical full Body text and bounds-aware wrapping;
+- detached Organism PNG capture draws Connections after the WebGL field and before Cell presentation/labels; PDF and presentation ZIP inherit that same capture; the existing raster PDF architecture was not rewritten and Organism SVG remains explicitly unavailable;
+- global `settings.connectionView.visible` omits normal visual export while per-Connection `enabled` and sparse `visual.visible` remain separate canonical gates;
+- `relationshipLegend` is an optional explicit capture target with caller-owned x/y/width/height; it recomputes `projectRelationshipLegend(...)` from canonical Types/config and renders through the shared Connection style/motif path without Widget geometry or DOM capture;
+- the same Legend render target is the bounded future Sheet object seam; no Sheet editor or stored per-item coordinates were added;
+- `projectRelationshipRows(...)` and `projectRelationshipMatrix(...)` resolve current dynamic Type metadata and annotations while retaining canonical Connection references/IDs, disabled records and multiple records per endpoint pair; no Table redesign or Matrix UI was added;
+- presentation packs include a separate `relationships.csv` with Connection ID, Source, Target, Type, Type Code, Enabled, Title and Body; JSON remains the existing canonical project snapshot without path samples, wrapped lines or Widget geometry;
+- the export projector has no live camera, WidgetHost, Manager, React-per-Connection or DOM-measurement dependency and projected 2,400 deterministic records without the live 1,024-command cap;
+- RED was recorded against the missing R6 module/wiring; 106/106 focused and affected contracts then passed, including export, annotation, renderer, advanced styles, Legend, selectors, JSON/import and 2,400-record coverage;
+- `npx --no-install tsc -b --pretty false` passed;
+- tracked/untracked whitespace and scope checks passed;
+- `http://127.0.0.1:4173/` serves the current worktree with HTTP 200 and title `ZONUERT Canvas Lab`;
+- no browser automation, production build, full Matrix UI, Table redesign, screenshot/DOM export, Classic/Organism SVG rewrite, commit, push or merge occurred.
 
 Next safe action:
 
-Owner visual, resize and interaction QA for the final R5.5 Legend Settings pass. Finalization, commit, push, merge and branch cleanup each require separate explicit authority.
+Owner manual export/data inspection and Table/Matrix projection review for R6. Commit, push, R7 hardening, production build, browser QA and merge each require separate explicit authority.

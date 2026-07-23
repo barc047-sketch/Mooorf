@@ -12,7 +12,7 @@
 | PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains pushed accepted R3B, local R4A checkpoint `19e9474`, R4B checkpoint `5cf601b`, Owner-accepted R5 checkpoint `833ca10`, and local-uncommitted R5.5 Relationship Legend work; no merge is authorized. |
+| ACTIVE FINALIZATION BRANCH | `work/next-feature` is remote-backed at accepted R5.5 checkpoint `4154bd5` and carries local-uncommitted R6 export/projection work; no merge is authorized. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
@@ -28,11 +28,12 @@
 | CONNECTIONS R2B.2 STATUS | LOCAL UNCOMMITTED / FINAL VISUAL CORRECTIONS APPLIED / PREVIEW AVAILABLE / WAITING OWNER QA. |
 | CONNECTIONS R3A STATUS | OWNER QA PASSED / LOCAL CHECKPOINT `5f5e178` / NOT PUSHED. |
 | CONNECTIONS R3B STATUS | OWNER ACCEPTED / PUSHED at `e9f9219`; no merge is authorized. |
-| CONNECTIONS R4A STATUS | OWNER ACCEPTED / LOCAL CHECKPOINT `19e9474` / NOT PUSHED. |
-| CONNECTIONS R4B STATUS | LOCAL CHECKPOINT `5cf601b` / NOT PUSHED. |
-| CONNECTIONS R5 STATUS | OWNER ACCEPTED / LOCAL CHECKPOINT `833ca10` / NOT PUSHED. |
-| CONNECTIONS R5.5 STATUS | LOCAL UNCOMMITTED / FINAL EDITORIAL LEGEND SETTINGS UX PASS APPLIED / AUTOMATED CHECKS PASSED / WAITING OWNER QA. |
-| NEXT AUTHORITY | Owner visual and interaction QA for R5.5 only. Commit, push, merge and branch cleanup each require separate explicit authority. |
+| CONNECTIONS R4A STATUS | CHECKPOINT `19e9474` / INCLUDED AS ANCESTOR OF REMOTE-BACKED `4154bd5`. |
+| CONNECTIONS R4B STATUS | CHECKPOINT `5cf601b` / INCLUDED AS ANCESTOR OF REMOTE-BACKED `4154bd5`. |
+| CONNECTIONS R5 STATUS | OWNER ACCEPTED CHECKPOINT `833ca10` / INCLUDED AS ANCESTOR OF REMOTE-BACKED `4154bd5`. |
+| CONNECTIONS R5.5 STATUS | PUSHED / REMOTE-BACKED at `4154bd5`; no merge is authorized. |
+| CONNECTIONS R6 STATUS | LOCAL UNCOMMITTED / EXPORT PARITY + PROJECTION HOOKS APPLIED / AUTOMATED CHECKS PASSED / WAITING OWNER QA. |
+| NEXT AUTHORITY | Owner manual R6 export/data and projection QA only. Commit, push, R7, production build, browser QA, merge and branch cleanup each require separate explicit authority. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -182,7 +183,7 @@
 - Custom now defaults to a gentle curved `3px` solid at authored opacity `0.82`; factory/project Type styles remain intentional and explicit `0.5–64px` styles remain valid;
 - edge auto-pan reuses the current camera/demand-frame owner only during active drag; hit tolerance changes only existing-line selection, unrelated fade clamps at `0.28`, focus defaults are selected `1.00`, related `0.82`, unrelated `0.55`, and Reduced motion still yields to OS reduced-motion policy.
 
-### Connections R5.5 — LOCAL UNCOMMITTED / WAITING OWNER QA
+### Connections R5.5 — PUSHED / REMOTE-BACKED
 
 - Relationship Manager exposes a `LEGEND` action beside Settings that opens or focuses one independent frameless window through the existing WidgetHost/WidgetFrame lifecycle; the Manager's `TYPES` and `CONNECTIONS` content remains uninterrupted and closing Manager leaves Legend open;
 - the Legend has no visible title/header, uses only tiny vertically stacked top-right minimize/close controls and remains movable through an invisible outer-shell drag region; it remains two-axis resizable and viewport bounded;
@@ -197,6 +198,17 @@
 - the frameless Legend overrides only its old workspace minimum with a live current-width shallow projection plus actual border/control clearance; auto-growth never becomes a future resize floor, the empty state has no historical height reservation, and no-scroll bounded growth remains intact.
 - Manager `LEGEND SETTINGS` now uses the existing Morph-glass surface tokens and blur/border language; Hit tolerance and Unrelated fade reuse the shared `SliderRow`/`org-slider` primitive, eliminating native range styling without a Legend-specific slider path.
 - `LEGEND SETTINGS` now uses the shared `.glass` primitive itself, with compact icon-first layout/density/alignment/placement controls, visual specimen-length marks, bounded numeric Text Width and compact Content toggles. Text Width participates in the pure width/reflow calculation; alignment and placement remain separate semantic output values and Y placement reserves no additional height.
+
+### Connections R6 — LOCAL UNCOMMITTED / WAITING OWNER QA
+
+- one detached, React/DOM-independent Connection export projection consumes canonical Connections, current Relationship Types, resolved sparse styles, shared lanes/geometry/motifs, shared annotation content/presentation and explicit output bounds/document scale;
+- PNG, PDF and presentation ZIP now receive the same detached Organism Connection composition; the existing raster PDF sheet architecture remains unchanged and Organism SVG stays explicitly unavailable;
+- export annotations ignore live Canvas LOD/focus/collision budgets, keep authored visible Title/Body content and full canonical Body text, and resolve Relationship-Type titles from the current dynamic library;
+- global Connections visibility, per-record enabled and sparse local visibility remain distinct; semantic row/Matrix/JSON/CSV projections retain canonical records and status;
+- the pure Legend projection now has a caller-owned Canvas/Sheet render target using semantic config and resolved Type specimens, never floating Widget geometry, Manager state, DOM scraping or per-item coordinates;
+- pure Table rows and sparse Matrix cells retain canonical Connection references/IDs, resolve current Type metadata, and preserve multiple records between a pair without a Table redesign or Matrix UI;
+- presentation packs add `relationships.csv`; canonical JSON remains free of sampled paths, wrapped text and window geometry;
+- 2,400-record export projection is deterministic and uncapped by live viewport limits; no React-per-Connection, camera-store, WidgetHost or DOM-measurement dependency was introduced.
 
 ## Verification disposition
 
@@ -232,8 +244,10 @@ R5.5 Owner-QA Legend height and settings visual-consistency correction passed 22
 
 R5.5 final editorial Legend Settings UX pass passed 23 focused Legend projection, Manager settings, widget lifecycle and registry contracts. The shared `.glass` primitive replaces the transparent local Legend surface; semantic Text Width, alignment and X/Y placement normalize through the one existing config, alter the pure width/reflow projection where applicable, and update the detached output live without item coordinates or history. Exact TypeScript, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check passed. No browser automation, production build, commit or push occurred.
 
+Connections R6 recorded RED against the missing export/projection seams, then passed 106/106 focused and affected export, annotation, renderer, advanced-stroke, Legend, selector, JSON/import and 2,400-record contracts. `npx --no-install tsc -b --pretty false`, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check passed at `http://127.0.0.1:4173/`. Per task boundary, no browser automation, production build, full Matrix UI, Table redesign, screenshot/DOM export, Classic/Organism SVG rewrite, commit, push or merge occurred; Owner manual artifact/data QA remains the gate.
+
 ## Current gate
 
-R5.5 EDITORIAL LEGEND SETTINGS COMPLETE — WAITING OWNER QA
+R6 EXPORT PARITY + PROJECTION HOOKS COMPLETE — WAITING OWNER QA
 
-`main` remains untouched. R5.5 commit, push, merge and branch cleanup are not authorized.
+`main` remains untouched. R6 commit, push, R7, production build, browser QA, merge and branch cleanup are not authorized.

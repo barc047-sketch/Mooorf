@@ -1,5 +1,11 @@
 import type { Connection } from "../graph/types";
+import { resolveConnectionAnnotation } from "./annotations";
 import { resolveConnectionSemanticType } from "./registry";
+import {
+  resolveRelationshipType,
+  type ProjectRelationshipType,
+} from "./relationshipTypes";
+import type { ProjectConnectionStyles } from "./styles";
 
 export type ConnectionOverrideMode = "all" | "inherited" | "visual" | "annotation";
 
@@ -200,6 +206,122 @@ export const projectConnectionPairs = (
     rows.set(key, row);
   }
   return [...rows.values()];
+};
+
+export interface RelationshipProjectionSpace {
+  id: string;
+  name: string;
+}
+
+export interface RelationshipProjectionInput {
+  connections: readonly Connection[];
+  spaces: readonly RelationshipProjectionSpace[];
+  styles: ProjectConnectionStyles;
+  projectRelationshipTypes: readonly ProjectRelationshipType[];
+}
+
+export interface RelationshipProjectionRow {
+  /** Direct canonical reference: projections never clone or own Connection data. */
+  connection: Connection;
+  connectionId: string;
+  sourceSpaceId: string;
+  sourceDisplayName: string;
+  targetSpaceId: string;
+  targetDisplayName: string;
+  relationshipTypeId: string;
+  typeName: string;
+  typeCode: string;
+  enabled: boolean;
+  title: string;
+  body: string;
+  visualOverride: boolean;
+  annotationOverride: boolean;
+}
+
+const hasProperties = (value: object | undefined): boolean =>
+  Boolean(value && Object.keys(value).length > 0);
+
+/**
+ * Canonical relationship rows for Table, Matrix and semantic export consumers.
+ * Values are resolved on demand from the current Type library and every row
+ * retains the original Connection object/ID for shared selection.
+ */
+export const projectRelationshipRows = ({
+  connections,
+  spaces,
+  styles,
+  projectRelationshipTypes,
+}: RelationshipProjectionInput): RelationshipProjectionRow[] => {
+  const spacesById = new Map(spaces.map((space) => [space.id, space]));
+  return connections.map((connection) => {
+    const type = resolveRelationshipType(
+      connection.semantic.typeId,
+      projectRelationshipTypes,
+      styles,
+    );
+    const annotation = resolveConnectionAnnotation(connection, type);
+    return {
+      connection,
+      connectionId: connection.id,
+      sourceSpaceId: connection.fromSpaceId,
+      sourceDisplayName: spacesById.get(connection.fromSpaceId)?.name ?? connection.fromSpaceId,
+      targetSpaceId: connection.toSpaceId,
+      targetDisplayName: spacesById.get(connection.toSpaceId)?.name ?? connection.toSpaceId,
+      relationshipTypeId: connection.semantic.typeId,
+      typeName: type.name,
+      typeCode: type.shortCode,
+      enabled: connection.enabled,
+      title: annotation.title.visible ? annotation.title.text : "",
+      body: annotation.body.visible ? annotation.body.text : "",
+      visualOverride: hasProperties(connection.visual),
+      annotationOverride: hasProperties(connection.annotation)
+        || hasProperties(connection.annotationPresentation),
+    };
+  });
+};
+
+export interface RelationshipMatrixCell {
+  rowSpaceId: string;
+  columnSpaceId: string;
+  connectionIds: string[];
+  relationships: RelationshipProjectionRow[];
+}
+
+export interface RelationshipMatrixProjection {
+  rows: readonly RelationshipProjectionSpace[];
+  columns: readonly RelationshipProjectionSpace[];
+  cells: RelationshipMatrixCell[];
+}
+
+/**
+ * Sparse future-Matrix projection. Multiple canonical Connections between the
+ * same ordered endpoint pair remain separate row references in one cell.
+ */
+export const projectRelationshipMatrix = (
+  input: RelationshipProjectionInput,
+): RelationshipMatrixProjection => {
+  const relationships = projectRelationshipRows(input);
+  const cellsByPair = new Map<string, RelationshipMatrixCell>();
+  for (const relationship of relationships) {
+    const key = JSON.stringify([
+      relationship.sourceSpaceId,
+      relationship.targetSpaceId,
+    ]);
+    const cell = cellsByPair.get(key) ?? {
+      rowSpaceId: relationship.sourceSpaceId,
+      columnSpaceId: relationship.targetSpaceId,
+      connectionIds: [],
+      relationships: [],
+    };
+    cell.connectionIds.push(relationship.connectionId);
+    cell.relationships.push(relationship);
+    cellsByPair.set(key, cell);
+  }
+  return {
+    rows: input.spaces,
+    columns: input.spaces,
+    cells: [...cellsByPair.values()],
+  };
 };
 
 export const selectConnectionIdsForPair = (

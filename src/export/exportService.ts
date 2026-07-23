@@ -23,6 +23,10 @@ import {
   normalizeConnectionViewSettings,
 } from "../domain/connections/styles";
 import { cloneProjectRelationshipTypes } from "../domain/connections/relationshipTypes";
+import {
+  projectRelationshipRows,
+} from "../domain/connections/selectors";
+import { relationshipsToCsv } from "./connectionExport";
 
 export type PackProgressStage =
   | "RENDERING"
@@ -241,6 +245,12 @@ export const buildPresentationPack = async (
   });
 
   const csv = spacesToCsv(state.spaces);
+  const relationshipCsv = relationshipsToCsv(projectRelationshipRows({
+    connections: state.connections,
+    spaces: state.spaces,
+    styles: state.settings.connectionStyles,
+    projectRelationshipTypes: state.settings.projectRelationshipTypes,
+  }));
   const snapshot = buildProjectSnapshot(
     { spaces: state.spaces, connections: state.connections, camera: state.camera, theme: state.theme, settings: currentSettingsForSnapshot() },
     project
@@ -251,6 +261,7 @@ export const buildPresentationPack = async (
   if (pngBlob.size > 0) files.push({ name: "canvas.png", data: pngBlob });
   if (pdfBytes.byteLength > 0) files.push({ name: "presentation.pdf", data: new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" }) });
   if (csv.trim().length > 0) files.push({ name: "spaces.csv", data: csv });
+  if (relationshipCsv.trim().length > 0) files.push({ name: "relationships.csv", data: relationshipCsv });
   if (jsonText.length > 0) files.push({ name: "project.json", data: jsonText });
 
   const manifest = buildManifest({

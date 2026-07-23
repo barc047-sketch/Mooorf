@@ -106,6 +106,9 @@ export interface ConnectionAnnotationProjectionOptions {
   maximumCandidates?: number;
   maximumFull?: number;
   maximumTitleOnly?: number;
+  /** Detached authored export keeps visible content independent of live LOD,
+   * focus opacity, and interactive collision budgets. */
+  mode?: "interactive" | "export";
 }
 
 export interface ConnectionPathMidpoint {
@@ -357,6 +360,7 @@ const projectionForSide = (
   lod: Exclude<ConnectionAnnotationLod, "none">,
   side: "preferred" | "opposite",
   measure: ConnectionAnnotationMeasureText,
+  opacity = opacityFor(input.priority),
 ): ProjectedConnectionAnnotation | null => {
   const frame = resolveConnectionPathPosition(input.path, input.presentation.placement.pathPosition);
   const visualScale = resolveConnectionAnnotationVisualScale(input.cameraZoom, input.visualScaleMode);
@@ -402,7 +406,7 @@ const projectionForSide = (
     textAlign: input.presentation.placement.alignment,
     side,
     rotation: 0,
-    opacity: opacityFor(input.priority),
+    opacity,
     visualScale,
     typography,
     presentation: {
@@ -443,9 +447,19 @@ export const projectConnectionAnnotations = (
 ): ConnectionAnnotationProjectionResult => {
   const metrics = emptyMetrics();
   const measure = options.measureText ?? estimateText;
-  const maximumCandidates = boundedInteger(options.maximumCandidates, CONNECTION_ANNOTATION_CANDIDATE_BUDGET);
-  const maximumFull = boundedInteger(options.maximumFull, CONNECTION_ANNOTATION_FULL_BUDGET);
-  const maximumAnnotations = boundedInteger(options.maximumTitleOnly, CONNECTION_ANNOTATION_TITLE_BUDGET);
+  const exportMode = options.mode === "export";
+  const maximumCandidates = boundedInteger(
+    options.maximumCandidates,
+    exportMode ? inputs.length : CONNECTION_ANNOTATION_CANDIDATE_BUDGET,
+  );
+  const maximumFull = boundedInteger(
+    options.maximumFull,
+    exportMode ? inputs.length : CONNECTION_ANNOTATION_FULL_BUDGET,
+  );
+  const maximumAnnotations = boundedInteger(
+    options.maximumTitleOnly,
+    exportMode ? inputs.length : CONNECTION_ANNOTATION_TITLE_BUDGET,
+  );
   const prioritized = [...inputs]
     .filter((input) => input.annotation.title.visible || input.annotation.body.visible)
     .sort((left, right) => priorityRank(left.priority) - priorityRank(right.priority)
@@ -468,8 +482,9 @@ export const projectConnectionAnnotations = (
         ? ["opposite"] as const
         : ["preferred", "opposite"] as const;
     for (const side of sides) {
-      const projection = projectionForSide(input, lod, side, measure);
+      const projection = projectionForSide(input, lod, side, measure, exportMode ? 1 : undefined);
       if (!projection || !rectInsideViewport(projection.bounds, viewport)) continue;
+      if (exportMode) return projection;
       let collision = false;
       for (const bounds of occupied) {
         metrics.annotationCollisionChecks += 1;
@@ -487,28 +502,36 @@ export const projectConnectionAnnotations = (
     if (annotations.length >= maximumAnnotations) break;
     const viewport = options.viewport ?? input.viewport;
     const frame = resolveConnectionPathPosition(input.path, input.presentation.placement.pathPosition);
-    let lod = resolveConnectionAnnotationLod({
-      projectedPathLength: frame.length,
-      titleVisible: input.annotation.title.visible,
-      bodyVisible: input.annotation.body.visible,
-      selected: input.priority === "selected",
-      priority: input.priority === "related" ? "related" : "normal",
-    });
+    let lod: ConnectionAnnotationLod = exportMode
+      ? input.annotation.body.visible
+        ? "full"
+        : input.annotation.title.visible ? "title" : "none"
+      : resolveConnectionAnnotationLod({
+        projectedPathLength: frame.length,
+        titleVisible: input.annotation.title.visible,
+        bodyVisible: input.annotation.body.visible,
+        selected: input.priority === "selected",
+        priority: input.priority === "related" ? "related" : "normal",
+      });
     if (lod === "none") continue;
-    if (lod === "full" && fullCount >= maximumFull) lod = input.annotation.title.visible ? "title" : "none";
+    if (!exportMode && lod === "full" && fullCount >= maximumFull) {
+      lod = input.annotation.title.visible ? "title" : "none";
+    }
     if (lod === "none") continue;
-    let projection = place(input, lod, viewport, false);
-    if (!projection && lod === "full" && input.annotation.title.visible) {
+    let projection = place(input, lod, viewport, exportMode);
+    if (!exportMode && !projection && lod === "full" && input.annotation.title.visible) {
       lod = "title";
       projection = place(input, lod, viewport, false);
     }
-    if (!projection && input.priority === "selected") projection = place(input, lod, viewport, true);
+    if (!projection && input.priority === "selected") {
+      projection = place(input, lod, viewport, true);
+    }
     if (!projection) {
       metrics.annotationCollisionRejected += 1;
       continue;
     }
     annotations.push(projection);
-    occupied.push(projection.bounds);
+    if (!exportMode) occupied.push(projection.bounds);
     if (projection.lod === "full") fullCount += 1;
   }
 

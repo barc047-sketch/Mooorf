@@ -25,6 +25,13 @@ import {
 } from "../canvas/cellLabelDraw";
 import { textStylePreset } from "../domain/presentation/editing";
 import { resolveFlagAutoDirection } from "../domain/labels/resolveLayout";
+import {
+  drawConnectionsForExport,
+  projectConnectionsForExport,
+  renderRelationshipLegendForExport,
+} from "./connectionExport";
+import { projectRelationshipLegend } from "../domain/connections/relationshipLegend";
+import { getAllRelationshipTypes } from "../domain/connections/relationshipTypes";
 
 const rgb01ToHex = (rgb: readonly number[]): string =>
   `#${rgb
@@ -203,6 +210,23 @@ export const renderDetachedOrganismExport = async (
       options.includeLabels &&
       settings.organism.showLabels &&
       settings.annotationMode !== "hidden";
+    const connectionProjection = projectConnectionsForExport({
+      connections: snapshot.connections,
+      endpoints: new Map(nuclei.map((nucleus) => [
+        nucleus.id,
+        {
+          id: nucleus.id,
+          x: nucleus.sx,
+          y: nucleus.sy,
+          radius: nucleus.screenR,
+        },
+      ])),
+      styles: settings.connectionStyles,
+      projectRelationshipTypes: settings.projectRelationshipTypes,
+      bounds: { x: 0, y: 0, width, height },
+      globalVisible: settings.connectionView.visible,
+    });
+    drawConnectionsForExport(outputContext, connectionProjection, snapshot.theme);
 
     for (const nucleus of nuclei) {
       const space = spacesById.get(nucleus.id);
@@ -294,6 +318,24 @@ export const renderDetachedOrganismExport = async (
         surfaceColor: tokens.surface,
         hairlineColor: tokens.hairline,
         frame: { width, height },
+      });
+    }
+    if (options.relationshipLegend) {
+      const target = options.relationshipLegend;
+      const legendProjection = projectRelationshipLegend({
+        types: getAllRelationshipTypes(
+          settings.projectRelationshipTypes,
+          settings.connectionStyles,
+        ),
+        connections: snapshot.connections,
+        config: settings.connectionView.legend,
+        bounds: { width: target.width, height: target.height },
+      });
+      renderRelationshipLegendForExport(legendProjection, {
+        context: outputContext,
+        config: settings.connectionView.legend,
+        ...target,
+        theme: snapshot.theme,
       });
     }
     outputContext.restore();

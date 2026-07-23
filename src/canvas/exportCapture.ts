@@ -7,13 +7,23 @@ export interface CaptureRequestOptions {
   scale: 1 | 2 | 4;
   includeLabels: boolean;
   includeSelection: boolean;
+  /** Explicit authored composition target. Floating Widget geometry is never
+   * consulted; callers provide document/sheet coordinates when included. */
+  relationshipLegend?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 import type { Camera, SpaceCell, Theme } from "../types";
 import type { LabSettings } from "../state/store";
+import type { Connection } from "../domain/graph/types";
 
 export interface CanvasExportSnapshot {
   spaces: SpaceCell[];
+  connections: Connection[];
   camera: Camera;
   theme: Theme;
   settings: LabSettings;
@@ -23,6 +33,9 @@ export interface CanvasExportSnapshot {
 
 export interface CanvasExportSnapshotSource {
   spaces: SpaceCell[];
+  /** Optional only for legacy/tests at the capture boundary; current store
+   * snapshots always supply the canonical collection. */
+  connections?: Connection[];
   camera: Camera;
   theme: Theme;
   settings: LabSettings;
@@ -36,6 +49,7 @@ export const createCanvasExportSnapshot = (
   source: CanvasExportSnapshotSource,
 ): CanvasExportSnapshot => structuredClone({
   spaces: source.spaces,
+  connections: source.connections ?? [],
   camera: source.camera,
   theme: source.theme,
   settings: source.settings,
