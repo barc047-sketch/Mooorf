@@ -90,11 +90,16 @@ import {
 import type {
   Connection,
   ConnectionAnnotationOverride,
+  ConnectionAnnotationPresentationOverride,
   ConnectionSemantic,
   ConnectionVisual,
   CreateConnectionInput,
 } from "../domain/graph/types";
-import { normalizeConnectionAnnotationOverride } from "../domain/connections/annotations";
+import {
+  cloneConnectionAnnotationPresentationOverride,
+  normalizeConnectionAnnotationOverride,
+  normalizeConnectionAnnotationPresentationOverride,
+} from "../domain/connections/annotations";
 import {
   cloneConnection,
   cloneConnections,
@@ -134,6 +139,7 @@ import {
 import {
   applyConnectionStylePack as createConnectionStylePack,
   applyConnectionStylePatch,
+  cloneResolvedConnectionStyle,
   cloneProjectConnectionStyles,
   connectionTypeStyle,
   copyResolvedConnectionStyle,
@@ -142,6 +148,7 @@ import {
   normalizeConnectionViewSettings,
   normalizeProjectConnectionStyles,
   pasteConnectionStyleVisual,
+  pasteConnectionStyleAnnotationPresentation,
   pasteConnectionStyleToResolvedStyle,
   copyResolvedStyle,
   resolveConnectionStyle,
@@ -449,6 +456,7 @@ interface LabState {
   updateSelectedConnectionTypes: (typeId: ConnectionSemantic["typeId"]) => number;
   chooseConnectionQuickRailType: (typeId: ConnectionSemantic["typeId"]) => number;
   updateConnectionAnnotation: (id: string, annotation: ConnectionAnnotationOverride | null) => boolean;
+  updateConnectionAnnotationPresentation: (id: string, presentation: ConnectionAnnotationPresentationOverride | null) => boolean;
   updateConnectionVisual: (id: string, visual: ConnectionVisual | null) => boolean;
   reverseConnection: (id: string) => boolean;
   setConnectionEnabled: (id: string, enabled: boolean) => boolean;
@@ -463,6 +471,8 @@ interface LabState {
   setConnectionVisualScaleMode: (mode: ConnectionVisualScaleMode) => void;
   openConnectionStyleEditor: (target: ConnectionStyleEditorTarget) => boolean;
   previewConnectionStyleEditor: (patch: ConnectionStylePatch) => boolean;
+  previewConnectionStyleEditorAnnotationContent: (patch: ConnectionAnnotationOverride | undefined) => boolean;
+  previewConnectionStyleEditorAnnotationPresentation: (patch: ConnectionAnnotationPresentationOverride) => boolean;
   cancelConnectionStyleEditor: () => void;
   commitConnectionStyleEditor: (style?: ResolvedConnectionStyle | null) => boolean;
   copySelectedConnectionStyle: () => boolean;
@@ -732,11 +742,7 @@ const applyConnectionStyleHistoryEntry = (
   if (entry.kind !== "connection-styles") return styles;
   const next = cloneProjectConnectionStyles(styles);
   for (const patch of entry.patches) {
-    next[patch.typeId] = {
-      ...patch[direction],
-      label: { ...patch[direction].label },
-      appearance: { ...patch[direction].appearance },
-    };
+    next[patch.typeId] = cloneResolvedConnectionStyle(patch[direction]);
   }
   return next;
 };
@@ -759,8 +765,8 @@ const changedConnectionStylePatches = (
   if (JSON.stringify(before[id]) === JSON.stringify(after[id])) return [];
   return [{
     typeId: id,
-    before: { ...before[id], label: { ...before[id].label }, appearance: { ...before[id].appearance } },
-    after: { ...after[id], label: { ...after[id].label }, appearance: { ...after[id].appearance } },
+    before: cloneResolvedConnectionStyle(before[id]),
+    after: cloneResolvedConnectionStyle(after[id]),
   }];
 });
 
@@ -774,6 +780,16 @@ const mergeConnectionStylePatch = (
   ...(current.appearance || patch.appearance
     ? { appearance: { ...current.appearance, ...patch.appearance } }
     : {}),
+  ...(current.annotationPresentation || patch.annotationPresentation ? {
+    annotationPresentation: {
+      ...current.annotationPresentation,
+      ...patch.annotationPresentation,
+      title: { ...current.annotationPresentation?.title, ...patch.annotationPresentation?.title },
+      body: { ...current.annotationPresentation?.body, ...patch.annotationPresentation?.body },
+      placement: { ...current.annotationPresentation?.placement, ...patch.annotationPresentation?.placement },
+      plate: { ...current.annotationPresentation?.plate, ...patch.annotationPresentation?.plate },
+    },
+  } : {}),
 });
 
 const hasOwn = (value: object, key: PropertyKey): boolean =>
@@ -846,6 +862,35 @@ const applyTouchedConnectionStylePatch = (
     else delete visual.label;
   }
   return Object.keys(visual).length ? visual : undefined;
+};
+
+const applyTouchedConnectionAnnotationPresentationPatch = (
+  connection: Connection,
+  patch: ConnectionAnnotationPresentationOverride | undefined,
+  styles: ProjectConnectionStyles,
+  projectTypes: readonly ProjectRelationshipType[],
+): ConnectionAnnotationPresentationOverride | undefined => {
+  if (!patch) return cloneConnectionAnnotationPresentationOverride(connection.annotationPresentation);
+  const inherited = connectionTypeStyle(connection.semantic.typeId, styles, projectTypes).annotationPresentation;
+  const resolved = applyConnectionStylePatch(
+    resolveConnectionStyle(connection, styles, projectTypes),
+    { annotationPresentation: patch },
+  ).annotationPresentation;
+  const next = cloneConnectionAnnotationPresentationOverride(connection.annotationPresentation) ?? {};
+  for (const section of ["title", "body", "placement", "plate"] as const) {
+    const touched = patch[section];
+    if (!touched) continue;
+    const local = { ...next[section] } as Record<string, unknown>;
+    for (const key of Object.keys(touched)) {
+      const resolvedValue = resolved[section][key as keyof typeof resolved[typeof section]];
+      const inheritedValue = inherited[section][key as keyof typeof inherited[typeof section]];
+      if (resolvedValue === inheritedValue) delete local[key];
+      else local[key] = resolvedValue;
+    }
+    if (Object.keys(local).length) next[section] = local as never;
+    else delete next[section];
+  }
+  return normalizeConnectionAnnotationPresentationOverride(next);
 };
 
 const planProjectRelationshipTypeRetirement = ({
@@ -2626,6 +2671,34 @@ export const useLab = create<LabState>((set, get) => ({
     return changed;
   },
 
+  updateConnectionAnnotationPresentation: (id, presentation) => {
+    let changed = false;
+    set((s) => {
+      const current = selectConnectionById(getConnectionIndex(s.connections), id);
+      if (!current) return {};
+      const normalized = normalizeConnectionAnnotationPresentationOverride(presentation);
+      if (JSON.stringify(current.annotationPresentation) === JSON.stringify(normalized)) return {};
+      const currentIndex = s.connections.findIndex((connection) => connection.id === id);
+      const candidate = cloneConnection(current);
+      if (normalized) candidate.annotationPresentation = normalized;
+      else delete candidate.annotationPresentation;
+      changed = true;
+      return {
+        connections: s.connections.map((connection) => connection.id === id ? candidate : connection),
+        transformUndoStack: pushHistory(s.transformUndoStack, {
+          kind: "connections",
+          patches: [connectionRecordPatch(
+            id,
+            { index: currentIndex, connection: current },
+            { index: currentIndex, connection: candidate },
+          )],
+        }),
+        transformRedoStack: [],
+      };
+    });
+    return changed;
+  },
+
   updateConnectionVisual: (id, visual) => {
     let changed = false;
     set((s) => {
@@ -2985,6 +3058,7 @@ export const useLab = create<LabState>((set, get) => ({
           context: "connection-override",
           connectionIds,
           patch: {},
+          annotationContentPatch: {},
         },
       });
     } else {
@@ -3029,6 +3103,29 @@ export const useLab = create<LabState>((set, get) => ({
     return changed;
   },
 
+  previewConnectionStyleEditorAnnotationContent: (patch) => {
+    let changed = false;
+    set((s) => {
+      const preview = s.connectionStyleEditorPreview;
+      if (preview?.context !== "connection-override" || !patch) return {};
+      changed = true;
+      return {
+        connectionStyleEditorPreview: {
+          ...preview,
+          annotationContentPatch: {
+            ...preview.annotationContentPatch,
+            ...patch,
+          },
+        },
+      };
+    });
+    return changed;
+  },
+
+  previewConnectionStyleEditorAnnotationPresentation: (patch) => get().previewConnectionStyleEditor({
+    annotationPresentation: patch,
+  }),
+
   cancelConnectionStyleEditor: () => get().closeWidget("connection-studio"),
 
   commitConnectionStyleEditor: (style) => {
@@ -3048,8 +3145,16 @@ export const useLab = create<LabState>((set, get) => ({
           startMarkerId: style.startMarkerId,
           endMarkerId: style.endMarkerId,
           appearance: { ...style.appearance },
+          annotationPresentation: {
+            title: { ...style.annotationPresentation.title },
+            body: { ...style.annotationPresentation.body },
+            placement: { ...style.annotationPresentation.placement },
+            plate: { ...style.annotationPresentation.plate },
+          },
         } : null;
         const patch = legacyPatch ?? preview?.patch ?? {};
+        const annotationContentPatch = preview?.annotationContentPatch ?? {};
+        const { annotationPresentation: annotationPresentationPatch, ...visualPatch } = patch;
         const targetIds = new Set(target.connectionIds);
         const patches: ConnectionRecordPatch[] = [];
         const connections = s.connections.map((current, index) => {
@@ -3058,14 +3163,34 @@ export const useLab = create<LabState>((set, get) => ({
             ? undefined
             : applyTouchedConnectionStylePatch(
                 current,
-                patch,
+                visualPatch,
                 s.settings.connectionStyles,
                 s.settings.projectRelationshipTypes,
               );
-          if (JSON.stringify(current.visual) === JSON.stringify(visual)) return current;
+          const annotationPresentation = style === null
+            ? undefined
+            : applyTouchedConnectionAnnotationPresentationPatch(
+                current,
+                annotationPresentationPatch,
+                s.settings.connectionStyles,
+                s.settings.projectRelationshipTypes,
+              );
+          const annotation = normalizeConnectionAnnotationOverride({
+            ...current.annotation,
+            ...annotationContentPatch,
+          });
+          if (
+            JSON.stringify(current.visual) === JSON.stringify(visual)
+            && JSON.stringify(current.annotationPresentation) === JSON.stringify(annotationPresentation)
+            && JSON.stringify(current.annotation) === JSON.stringify(annotation)
+          ) return current;
           const candidate = cloneConnection(current);
           if (visual) candidate.visual = visual;
           else delete candidate.visual;
+          if (annotationPresentation) candidate.annotationPresentation = annotationPresentation;
+          else delete candidate.annotationPresentation;
+          if (annotation) candidate.annotation = annotation;
+          else delete candidate.annotation;
           patches.push(connectionRecordPatch(
             current.id,
             { index, connection: current },
@@ -3180,10 +3305,21 @@ export const useLab = create<LabState>((set, get) => ({
           s.settings.connectionStyles,
           s.settings.projectRelationshipTypes,
         );
-        if (JSON.stringify(current.visual) === JSON.stringify(visual)) return current;
+        const annotationPresentation = pasteConnectionStyleAnnotationPresentation(
+          s.connectionStyleClipboard!,
+          current,
+          s.settings.connectionStyles,
+          s.settings.projectRelationshipTypes,
+        );
+        if (
+          JSON.stringify(current.visual) === JSON.stringify(visual)
+          && JSON.stringify(current.annotationPresentation) === JSON.stringify(annotationPresentation)
+        ) return current;
         const candidate = cloneConnection(current);
         if (visual) candidate.visual = visual;
         else delete candidate.visual;
+        if (annotationPresentation) candidate.annotationPresentation = annotationPresentation;
+        else delete candidate.annotationPresentation;
         patches.push(connectionRecordPatch(
           current.id,
           { index, connection: current },

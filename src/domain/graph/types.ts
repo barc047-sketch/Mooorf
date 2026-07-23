@@ -284,6 +284,56 @@ export interface ResolvedConnectionAnnotation {
   };
 }
 
+export type ConnectionAnnotationSide = "auto" | "a" | "b";
+export type ConnectionAnnotationAlignment = "left" | "center" | "right";
+
+export interface ConnectionAnnotationTitlePresentation {
+  fontSize: number;
+  fontWeight: number;
+  color: string;
+  opacity: number;
+}
+
+export interface ConnectionAnnotationBodyPresentation extends ConnectionAnnotationTitlePresentation {
+  lineHeight: number;
+}
+
+export interface ConnectionAnnotationPlacement {
+  /** Normalized position along canonical path length. */
+  pathPosition: number;
+  side: ConnectionAnnotationSide;
+  /** Screen-space perpendicular distance from the canonical centerline. */
+  offset: number;
+  alignment: ConnectionAnnotationAlignment;
+  /** Screen-space wrapping width. */
+  maxWidth: number;
+}
+
+export interface ConnectionAnnotationPlatePresentation {
+  backgroundColor: string;
+  backgroundOpacity: number;
+  cornerRadius: number;
+  paddingX: number;
+  paddingY: number;
+}
+
+/** Fully resolved screen-space annotation presentation. Runtime bounds, wrapped
+ * lines and Canvas coordinates are deliberately excluded. */
+export interface ResolvedConnectionAnnotationPresentation {
+  title: ConnectionAnnotationTitlePresentation;
+  body: ConnectionAnnotationBodyPresentation;
+  placement: ConnectionAnnotationPlacement;
+  plate: ConnectionAnnotationPlatePresentation;
+}
+
+/** Sparse per-Connection presentation override. */
+export interface ConnectionAnnotationPresentationOverride {
+  title?: Partial<ConnectionAnnotationTitlePresentation>;
+  body?: Partial<ConnectionAnnotationBodyPresentation>;
+  placement?: Partial<ConnectionAnnotationPlacement>;
+  plate?: Partial<ConnectionAnnotationPlatePresentation>;
+}
+
 export interface Connection {
   id: string;
   fromSpaceId: string;
@@ -293,6 +343,8 @@ export interface Connection {
   visual?: ConnectionVisual;
   /** Sparse local Title/Body override; omitted records inherit their Relationship Type defaults. */
   annotation?: ConnectionAnnotationOverride;
+  /** Sparse local presentation override; rendered geometry remains derived. */
+  annotationPresentation?: ConnectionAnnotationPresentationOverride;
 }
 
 export interface CreateConnectionInput {

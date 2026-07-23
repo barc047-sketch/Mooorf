@@ -15,7 +15,9 @@ import type {
 import type { ProjectConnectionStyles, ResolvedConnectionStyle } from "./styles";
 import {
   cloneConnectionAnnotationOverride,
+  cloneConnectionAnnotationPresentationOverride,
   normalizeConnectionAnnotationOverride,
+  normalizeConnectionAnnotationPresentationOverride,
 } from "./annotations";
 import { resolveRelationshipType, type ProjectRelationshipType } from "./relationshipTypes";
 import {
@@ -84,6 +86,9 @@ export const cloneConnection = (connection: Connection): Connection => ({
   semantic: { ...connection.semantic },
   visual: connection.visual ? cloneConnectionVisual(connection.visual) : undefined,
   annotation: cloneConnectionAnnotationOverride(connection.annotation),
+  ...(connection.annotationPresentation ? {
+    annotationPresentation: cloneConnectionAnnotationPresentationOverride(connection.annotationPresentation),
+  } : {}),
 });
 
 export const cloneConnections = (connections: readonly Connection[]): Connection[] =>
@@ -235,6 +240,7 @@ export const normalizeConnection = (
     semantic,
     visual: normalizeConnectionVisual(value.visual, connectionTypeStyle(semantic.typeId, styles, projectRelationshipTypes)),
     annotation: normalizeConnectionAnnotationOverride(value.annotation),
+    annotationPresentation: normalizeConnectionAnnotationPresentationOverride(value.annotationPresentation),
   };
 };
 

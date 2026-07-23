@@ -262,6 +262,31 @@ test("projection resolves inherited styles, clips boundaries, culls, and draws s
   }
 });
 
+test("annotation projection resolves authored Canvas text only after Connection culling", () => {
+  const visible = connection("visible-note", "a", "b", {
+    annotation: {
+      title: { source: "custom", text: "Kitchen to dining" },
+      body: { source: "custom", text: "Shared service circulation between public and staff zones." },
+    },
+  });
+  const offscreen = connection("offscreen-note", "x", "y", {
+    annotation: { title: { source: "custom", text: "Must never be laid out" } },
+  });
+  const result = projectConnections(projectionInput([visible, offscreen], new Map([
+    ["a", endpoint("a", 40, 150)],
+    ["b", endpoint("b", 360, 150)],
+    ["x", endpoint("x", -900, -700)],
+    ["y", endpoint("y", -760, -620)],
+  ])), createConnectionPathCache());
+  const annotations = result.annotations;
+
+  assert.equal(annotations?.length, 1);
+  assert.equal(annotations?.[0]?.connectionId, visible.id);
+  assert.equal(annotations?.[0]?.lod, "full");
+  assert.equal(annotations?.[0]?.title?.text, "Kitchen to dining");
+  assert.equal(annotations?.[0]?.body?.text, visible.annotation?.body?.text);
+});
+
 test("Connection focus keeps selected, endpoint-related, and contextual lines visibly ordered", () => {
   const rows = [
     connection("ab", "a", "b"),
@@ -401,6 +426,50 @@ test("bounded density fixtures project only the supported visible subset and reu
     assert.equal(warm.metrics.cacheHits, scene.visibleConnections);
     assert.ok(cache.size <= 2_048);
   }
+});
+
+test("2,400 canonical Connections keep annotation work bounded after visible-path culling", () => {
+  const visibleCount = 800;
+  const authoredCount = 2_400;
+  const visibleCells = 96;
+  const columns = 12;
+  const endpoints = new Map(Array.from({ length: visibleCells }, (_, index) => {
+    const id = `annotation-cell-${index}`;
+    return [id, endpoint(id, 20 + (index % columns) * 30, 20 + Math.floor(index / columns) * 34, 6)] as const;
+  }));
+  const rows = Array.from({ length: authoredCount }, (_, index) => {
+    if (index >= visibleCount) {
+      return connection(`authored-only-${index}`, `missing-${index}`, `missing-${index + 1}`, {
+        annotation: { body: { source: "custom", text: "Must not enter annotation layout." } },
+      });
+    }
+    const fromIndex = index % visibleCells;
+    let toIndex = (index * 31 + 7 + Math.floor(index / visibleCells)) % visibleCells;
+    if (toIndex === fromIndex) toIndex = (toIndex + 1) % visibleCells;
+    return connection(
+      `visible-annotation-${String(index).padStart(4, "0")}`,
+      `annotation-cell-${fromIndex}`,
+      `annotation-cell-${toIndex}`,
+      {
+        annotation: {
+          title: { source: "custom", text: `Connection ${index}` },
+          body: { source: "custom", text: "Bounded professional relationship annotation." },
+        },
+      },
+    );
+  });
+  const result = projectConnections(projectionInput(rows, endpoints, {
+    authoredCount,
+    lod: "critical",
+  }), createConnectionPathCache());
+  const metrics = result.metrics;
+
+  assert.equal(result.commands.length, visibleCount);
+  assert.ok(metrics.annotationCandidates <= 96);
+  assert.ok(metrics.annotationFull <= 24);
+  assert.ok(metrics.annotationTitleOnly + metrics.annotationFull <= 96);
+  assert.ok(metrics.labelLayouts <= 96);
+  assert.ok(metrics.annotationCollisionChecks < visibleCount * visibleCount);
 });
 
 test("adversarial visible density stays within one deterministic command and hit budget", () => {
@@ -690,6 +759,11 @@ test("OFF instrumentation preserves authored count and settles every visual-work
     endpointInvalidations: 3,
     hitIndexEntries: 96,
     labelLayouts: 0,
+    annotationCandidates: 0,
+    annotationFull: 0,
+    annotationTitleOnly: 0,
+    annotationCollisionRejected: 0,
+    annotationCollisionChecks: 0,
   });
   instrumentation.recordDrawBatch({ commandCount: 96, strokeCalls: 100, fillCalls: 4, markerCalls: 4 }, "base");
   instrumentation.recordDrawBatch({ commandCount: 2, strokeCalls: 4, fillCalls: 0, markerCalls: 0 }, "overlay");
@@ -716,6 +790,13 @@ test("OFF instrumentation preserves authored count and settles every visual-work
     endpointInvalidations: 0,
     hitIndexEntries: 0,
     labelLayouts: 0,
+    annotationCandidates: 0,
+    annotationFull: 0,
+    annotationTitleOnly: 0,
+    annotationCollisionRejected: 0,
+    annotationCollisionChecks: 0,
+    annotationDrawn: 0,
+    annotationDrawCalls: 0,
     batchPasses: 0,
     drawCalls: 0,
     drawnCommands: 0,
@@ -728,6 +809,46 @@ test("OFF instrumentation preserves authored count and settles every visual-work
     selectionOverlayDraws: 0,
     sleeping: true,
   });
+});
+
+test("Table sleep clears annotation projection, collision, and draw work without erasing authored lines", () => {
+  const instrumentation = createConnectionInstrumentation();
+  assert.equal(typeof instrumentation.recordAnnotationDraw, "function");
+  assert.equal(typeof instrumentation.settleAnnotations, "function");
+  instrumentation.beginFrame(2_400);
+  instrumentation.recordProjection({
+    authoredCount: 2_400,
+    eligibleCount: 800,
+    visibleCount: 800,
+    anchorResolutions: 1_600,
+    pathResolutions: 800,
+    cacheHits: 0,
+    cacheMisses: 800,
+    endpointInvalidations: 0,
+    hitIndexEntries: 800,
+    labelLayouts: 20,
+    annotationCandidates: 96,
+    annotationFull: 12,
+    annotationTitleOnly: 8,
+    annotationCollisionRejected: 76,
+    annotationCollisionChecks: 500,
+  });
+  instrumentation.recordAnnotationDraw({ annotationDrawn: 20, fillCalls: 20, strokeCalls: 20, textCalls: 36 });
+  instrumentation.settleAnnotations();
+  instrumentation.setSleeping(true);
+  const snapshot = instrumentation.snapshot();
+
+  assert.equal(snapshot.authoredCount, 2_400);
+  assert.equal(snapshot.visibleCount, 800);
+  assert.equal(snapshot.annotationCandidates, 0);
+  assert.equal(snapshot.annotationFull, 0);
+  assert.equal(snapshot.annotationTitleOnly, 0);
+  assert.equal(snapshot.annotationCollisionRejected, 0);
+  assert.equal(snapshot.annotationCollisionChecks, 0);
+  assert.equal(snapshot.annotationDrawn, 0);
+  assert.equal(snapshot.annotationDrawCalls, 0);
+  assert.equal(snapshot.labelLayouts, 0);
+  assert.equal(snapshot.sleeping, true);
 });
 
 test("synchronous overlay accounting never invents scheduler wakefulness", () => {

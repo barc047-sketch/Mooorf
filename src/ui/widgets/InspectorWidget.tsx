@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { Copy, RotateCcw, SlidersHorizontal, Sparkles, Trash2 } from "lucide-react";
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  ArrowDown,
+  ArrowUp,
+  Copy,
+  RotateCcw,
+  SlidersHorizontal,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import {
   type TextAppearanceOverride,
   type TextStylePresetId,
@@ -28,19 +39,27 @@ import {
 import SymbolInspectorPane from "./SymbolInspectorPane";
 import LabelLayoutPane from "./LabelLayoutPane";
 import { mergeCellLabelConfig } from "../../domain/labels/layoutContract";
-import { resolveConnectionAnnotation } from "../../domain/connections/annotations";
+import {
+  clearConnectionAnnotationPlacementOverrides,
+  mergeConnectionAnnotationPresentationOverride,
+  resolveConnectionAnnotation,
+} from "../../domain/connections/annotations";
 import { getSelectableRelationshipTypes, resolveRelationshipType } from "../../domain/connections/relationshipTypes";
 import { getPrimarySelectedConnection } from "../../domain/connections/selectors";
 import {
   resolveConnectionStylePreview,
   resolveRelationshipTypeStylePreview,
 } from "../../domain/connections/styles";
-import type { ConnectionAnnotationOverride } from "../../domain/graph/types";
+import type {
+  ConnectionAnnotationOverride,
+  ConnectionAnnotationPresentationOverride,
+} from "../../domain/graph/types";
 import {
   recordRelationshipTypeUse,
   RelationshipTypePicker,
   RelationshipTypeStylePreview,
 } from "../RelationshipTypePicker";
+import { ConnectionAnnotationContentControls } from "./ConnectionAnnotationControls";
 
 type TabId = "content" | "appearance" | "symbol";
 
@@ -114,116 +133,57 @@ function ContentField({ label, field, spaces }: {
   );
 }
 
-function ConnectionAnnotationTextField({
+function ConnectionPresentationNumberField({
   label,
   value,
-  multiline,
-  placeholder,
+  min,
+  max,
+  step = 1,
+  suffix,
   onCommit,
 }: {
   label: string;
-  value: string;
-  multiline: boolean;
-  placeholder: string;
-  onCommit: (value: string) => void;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  suffix?: string;
+  onCommit: (value: number) => void;
 }) {
-  const [draft, setDraft] = useState(value);
-  const session = useRef(beginContentEdit(value));
-  useEffect(() => {
-    session.current = beginContentEdit(value);
-    setDraft(value);
-  }, [value]);
-
-  const apply = (result: ContentEditResolution) => {
-    session.current = result.session;
-    if (result.action.kind === "cancel") setDraft(result.action.value);
-    if (result.action.kind === "commit") onCommit(result.action.value);
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const parsed = Number.parseFloat(draft);
+    if (!Number.isFinite(parsed)) {
+      setDraft(String(value));
+      return;
+    }
+    onCommit(Math.min(max, Math.max(min, parsed)));
   };
-
-  return (
-    <label className="m1-field">
-      <span>{label}</span>
-      {multiline
-        ? <textarea
-            rows={3}
-            value={draft}
-            aria-label={label}
-            placeholder={placeholder}
-            onChange={(event) => {
-              session.current = changeContentEdit(session.current, event.target.value);
-              setDraft(session.current.draft);
-            }}
-            onBlur={() => apply(resolveContentEditBlur(session.current))}
-            onKeyDown={(event) => {
-              const result = resolveContentEditKey(session.current, {
-                key: event.key,
-                shiftKey: event.shiftKey,
-                multiline: true,
-              });
-              if (result.action.kind !== "none") event.preventDefault();
-              apply(result);
-              if (result.blur) event.currentTarget.blur();
-            }}
-          />
-        : <input
-            type="text"
-            value={draft}
-            aria-label={label}
-            placeholder={placeholder}
-            onChange={(event) => {
-              session.current = changeContentEdit(session.current, event.target.value);
-              setDraft(session.current.draft);
-            }}
-            onBlur={() => apply(resolveContentEditBlur(session.current))}
-            onKeyDown={(event) => {
-              const result = resolveContentEditKey(session.current, {
-                key: event.key,
-                shiftKey: event.shiftKey,
-                multiline: false,
-              });
-              if (result.action.kind !== "none") event.preventDefault();
-              apply(result);
-              if (result.blur) event.currentTarget.blur();
-            }}
-          />}
-    </label>
-  );
-}
-
-function ConnectionBodyControls({
-  source,
-  value,
-  onCommit,
-}: {
-  source: "hidden" | "custom";
-  value: string;
-  onCommit: (patch: ConnectionAnnotationOverride) => void;
-}) {
-  const [opened, setOpened] = useState(source !== "hidden");
-  useEffect(() => setOpened(source !== "hidden"), [source]);
-  const visible = opened || source !== "hidden";
-
-  return <>
-    <SwitchRow
-      label="Body"
-      on={visible}
-      onToggle={() => {
-        if (visible) {
-          setOpened(false);
-          onCommit({ body: { source: "hidden" } });
-        } else {
-          setOpened(true);
+  return <label className="m1-field connection-placement-number">
+    <span>{label}{suffix && <i>{suffix}</i>}</span>
+    <input
+      type="number"
+      aria-label={label}
+      value={draft}
+      min={min}
+      max={max}
+      step={step}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setDraft(String(value));
+          event.currentTarget.blur();
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          commit();
+          event.currentTarget.blur();
         }
       }}
     />
-    {visible && <ConnectionAnnotationTextField
-      label="Body text"
-      value={value}
-      multiline
-      placeholder="Add relationship details"
-      onCommit={(text) => onCommit({ body: { source: "custom", text } })}
-    />}
-  </>;
+  </label>;
 }
 
 function ConnectionInspector({ connectionId }: { connectionId: string }) {
@@ -232,12 +192,14 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
   const target = useLab((state) => state.spaces.find((space) => space.id === connection?.toSpaceId));
   const updateConnectionSemantic = useLab((state) => state.updateConnectionSemantic);
   const updateConnectionAnnotation = useLab((state) => state.updateConnectionAnnotation);
+  const updateConnectionAnnotationPresentation = useLab((state) => state.updateConnectionAnnotationPresentation);
   const reverseConnection = useLab((state) => state.reverseConnection);
   const deleteConnection = useLab((state) => state.deleteConnection);
   const openConnectionStyleEditor = useLab((state) => state.openConnectionStyleEditor);
   const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
   const connectionStylePreview = useLab((state) => state.connectionStyleEditorPreview);
+  const theme = useLab((state) => state.theme);
   if (!connection) return <CellInspector />;
 
   const typeOptions = getSelectableRelationshipTypes(projectRelationshipTypes, connectionStyles).map((type) => ({
@@ -255,9 +217,15 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
     projectRelationshipTypes,
     connectionStylePreview,
   );
-  const titleOn = annotation.title.source !== "hidden";
   const commitAnnotation = (patch: ConnectionAnnotationOverride) => {
     updateConnectionAnnotation(connection.id, { ...connection.annotation, ...patch });
+  };
+  const presentation = style.annotationPresentation;
+  const commitPresentation = (patch: ConnectionAnnotationPresentationOverride) => {
+    updateConnectionAnnotationPresentation(
+      connection.id,
+      mergeConnectionAnnotationPresentationOverride(connection.annotationPresentation, patch) ?? null,
+    );
   };
 
   return (
@@ -291,45 +259,123 @@ function ConnectionInspector({ connectionId }: { connectionId: string }) {
 
         <section className="m1-section">
           <h3>TEXT</h3>
-          <SwitchRow
-            label="Title"
-            on={titleOn}
-            onToggle={() => commitAnnotation({
-              title: titleOn
-                ? { source: "hidden" }
-                : { source: "relationship-type" },
-            })}
-          />
-          {titleOn && <>
-            <label className="m1-field">
-              <span>Source</span>
-              <select
-                aria-label="Title source"
-                value={annotation.title.source === "custom" ? "custom" : "relationship-type"}
-                onChange={(event) => commitAnnotation({
-                  title: event.target.value === "custom"
-                    ? { source: "custom", text: annotation.title.text || relationshipType.name }
-                    : { source: "relationship-type" },
-                })}
-              >
-                <option value="relationship-type">Relationship Type</option>
-                <option value="custom">Custom</option>
-              </select>
-            </label>
-            {annotation.title.source === "custom" && <ConnectionAnnotationTextField
-              label="Custom title"
-              value={annotation.title.text}
-              multiline={false}
-              placeholder="Add a custom title"
-              onCommit={(text) => commitAnnotation({ title: { source: "custom", text } })}
-            />}
-          </>}
-          <ConnectionBodyControls
-            source={annotation.body.source}
-            value={annotation.body.text}
-            onCommit={commitAnnotation}
+          <ConnectionAnnotationContentControls
+            annotation={annotation}
+            relationshipTypeName={relationshipType.name}
+            onChange={commitAnnotation}
           />
         </section>
+
+        <details className="m1-section connection-placement-section">
+          <summary><span>PLACEMENT</span><i>{connection.annotationPresentation ? "Local" : "Inherited"}</i></summary>
+          <div className="connection-placement-body">
+            <div className="connection-placement-control">
+              <span>Path Position</span>
+              <div className="connection-segmented-control" role="group" aria-label="Annotation path position">
+                {([
+                  ["Start", 0.25],
+                  ["Center", 0.5],
+                  ["End", 0.75],
+                ] as const).map(([label, value]) => <button
+                  key={label}
+                  type="button"
+                  data-active={Math.abs(presentation.placement.pathPosition - value) < 0.001 ? "true" : undefined}
+                  aria-pressed={Math.abs(presentation.placement.pathPosition - value) < 0.001}
+                  onClick={() => commitPresentation({ placement: { pathPosition: value } })}
+                >{label}</button>)}
+              </div>
+            </div>
+            <div className="connection-placement-control">
+              <span>Side</span>
+              <div className="connection-segmented-control" role="group" aria-label="Annotation side">
+                {([
+                  ["Auto", "auto"],
+                  ["Side A", "a"],
+                  ["Side B", "b"],
+                ] as const).map(([label, value]) => <button
+                  key={value}
+                  type="button"
+                  title={label}
+                  data-active={presentation.placement.side === value ? "true" : undefined}
+                  aria-pressed={presentation.placement.side === value}
+                  onClick={() => commitPresentation({ placement: { side: value } })}
+                >{value === "auto" ? <Sparkles size={10} /> : value === "a" ? <ArrowUp size={10} /> : <ArrowDown size={10} />}<span>{label}</span></button>)}
+              </div>
+            </div>
+            <ConnectionPresentationNumberField
+              label="Offset"
+              value={presentation.placement.offset}
+              min={0}
+              max={120}
+              suffix="px"
+              onCommit={(offset) => commitPresentation({ placement: { offset } })}
+            />
+            <ConnectionPresentationNumberField
+              label="Max Width"
+              value={presentation.placement.maxWidth}
+              min={100}
+              max={360}
+              suffix="px"
+              onCommit={(maxWidth) => commitPresentation({ placement: { maxWidth } })}
+            />
+            <div className="connection-placement-control">
+              <span>Alignment</span>
+              <div className="connection-segmented-control" role="group" aria-label="Annotation alignment">
+                {(["left", "center", "right"] as const).map((alignment) => <button
+                  key={alignment}
+                  type="button"
+                  data-active={presentation.placement.alignment === alignment ? "true" : undefined}
+                  aria-pressed={presentation.placement.alignment === alignment}
+                  onClick={() => commitPresentation({ placement: { alignment } })}
+                >{alignment === "left" ? <AlignLeft size={11} /> : alignment === "center" ? <AlignCenter size={11} /> : <AlignRight size={11} />}<span>{alignment === "left" ? "Left" : alignment === "center" ? "Center" : "Right"}</span></button>)}
+              </div>
+            </div>
+            <div className="connection-placement-box-heading">BOX</div>
+            <label className="m1-colour-row">
+              <span>Background color</span>
+              <input
+                type="color"
+                aria-label="Annotation background color"
+                value={presentation.plate.backgroundColor === "auto"
+                  ? theme === "night" ? "#16181b" : "#faf9f6"
+                  : presentation.plate.backgroundColor}
+                onChange={(event) => commitPresentation({ plate: { backgroundColor: event.target.value } })}
+              />
+            </label>
+            <ConnectionPresentationNumberField
+              label="Background opacity"
+              value={Math.round(presentation.plate.backgroundOpacity * 100)}
+              min={0}
+              max={100}
+              suffix="%"
+              onCommit={(backgroundOpacity) => commitPresentation({ plate: { backgroundOpacity: backgroundOpacity / 100 } })}
+            />
+            <ConnectionPresentationNumberField
+              label="Corner radius"
+              value={presentation.plate.cornerRadius}
+              min={0}
+              max={24}
+              suffix="px"
+              onCommit={(cornerRadius) => commitPresentation({ plate: { cornerRadius } })}
+            />
+            <ConnectionPresentationNumberField
+              label="Padding"
+              value={(presentation.plate.paddingX + presentation.plate.paddingY) / 2}
+              min={0}
+              max={24}
+              suffix="px"
+              onCommit={(padding) => commitPresentation({ plate: { paddingX: padding, paddingY: padding } })}
+            />
+            <button
+              type="button"
+              className="m1-btn"
+              onClick={() => updateConnectionAnnotationPresentation(
+                connection.id,
+                clearConnectionAnnotationPlacementOverrides(connection.annotationPresentation) ?? null,
+              )}
+            ><RotateCcw size={11} /> Reset Placement</button>
+          </div>
+        </details>
 
         <section className="m1-section">
           <h3>STYLE</h3>

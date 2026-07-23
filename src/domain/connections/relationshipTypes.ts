@@ -22,6 +22,7 @@ import {
 } from "./registry";
 import type { ConnectionIndex } from "./selectors";
 import {
+  cloneResolvedConnectionStyle,
   connectionTypeStyle,
   resolveConnectionStyle,
   type ConnectionStylePatch,
@@ -286,11 +287,7 @@ export const cloneProjectRelationshipTypes = (
 ): ProjectRelationshipType[] => types.map((type) => ({
   ...type,
   semanticDefaults: { ...type.semanticDefaults },
-  visualDefaults: {
-    ...type.visualDefaults,
-    label: { ...type.visualDefaults.label },
-    appearance: { ...type.visualDefaults.appearance },
-  },
+  visualDefaults: cloneResolvedConnectionStyle(type.visualDefaults),
   annotationDefaults: { ...type.annotationDefaults },
 }));
 

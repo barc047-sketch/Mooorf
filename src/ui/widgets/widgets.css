@@ -426,6 +426,19 @@
 .connection-style-preview-line { flex: 1; min-width: 0; border-top: 1px solid var(--fog); }
 .connection-style-preview-marker { font-size: 17px; line-height: 1; }
 .connection-style-origin { margin: -2px 0 0; color: var(--fog); font-size: 8px; }
+.connection-annotation-content-controls { display: grid; gap: 6px; }
+.connection-placement-section { padding: 0; overflow: hidden; }
+.connection-placement-section > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; color: var(--fog); font-size: 8px; font-weight: 680; letter-spacing: .08em; list-style: none; cursor: pointer; }
+.connection-placement-section > summary::-webkit-details-marker { display: none; }
+.connection-placement-section > summary i { font-size: 7px; font-style: normal; font-weight: 560; letter-spacing: .02em; text-transform: none; }
+.connection-placement-body { display: grid; gap: 7px; padding: 0 10px 10px; }
+.connection-placement-control { display: grid; gap: 4px; color: var(--fog); font-size: 8px; }
+.connection-segmented-control { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+.connection-segmented-control button { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 3px; padding: 5px 3px; border: 1px solid color-mix(in srgb, var(--hairline) 58%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--glass-light) 25%, transparent); color: var(--ink-soft); font: inherit; font-size: 7.5px; cursor: pointer; }
+.connection-segmented-control button[data-active="true"] { border-color: color-mix(in srgb, var(--ink) 48%, var(--hairline)); background: color-mix(in srgb, var(--glass-light) 68%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 9%, transparent); }
+.connection-placement-number > span { display: flex; align-items: center; justify-content: space-between; }
+.connection-placement-number > span i { color: var(--fog); font-size: 7px; font-style: normal; }
+.connection-placement-box-heading { margin-top: 2px; color: var(--fog); font-size: 7px; font-weight: 680; letter-spacing: .09em; }
 
 @media (min-width: 1360px) {
   .wframe[data-widget="inspector"] { right: 18px; }

@@ -1,5 +1,7 @@
 import type {
   Connection,
+  ConnectionAnnotationPresentationOverride,
+  ConnectionAnnotationOverride,
   ConnectionAnchorId,
   ConnectionGeometryId,
   ConnectionLabelContent,
@@ -13,9 +15,17 @@ import type {
   ConnectionStrokePatternId,
   ConnectionVisual,
   KnownConnectionSemanticTypeId,
+  ResolvedConnectionAnnotation,
+  ResolvedConnectionAnnotationPresentation,
 } from "../graph/types";
 import { CONNECTION_SEMANTIC_TYPE_IDS } from "./registry";
-import type { ProjectRelationshipType } from "./relationshipTypes";
+import type { ProjectRelationshipType, RelationshipTypeDefinition } from "./relationshipTypes";
+import {
+  normalizeConnectionAnnotationPresentation,
+  normalizeConnectionAnnotationPresentationOverride,
+  resolveConnectionAnnotation,
+  resolveConnectionAnnotationPresentation,
+} from "./annotations";
 
 export interface ResolvedConnectionAppearance {
   color: string;
@@ -40,10 +50,17 @@ export interface ResolvedConnectionStyle {
   endAnchorId: ConnectionAnchorId;
   label: ConnectionLabelStyle;
   appearance: ResolvedConnectionAppearance;
+  annotationPresentation: ResolvedConnectionAnnotationPresentation;
 }
 
-/** Transient style-only clipboard payload. Identity, meaning, labels, anchors,
- * visibility, selection, and runtime geometry are deliberately excluded. */
+export interface ConnectionAnnotationAppearanceClipboard {
+  title: ResolvedConnectionAnnotationPresentation["title"];
+  body: ResolvedConnectionAnnotationPresentation["body"];
+  plate: ResolvedConnectionAnnotationPresentation["plate"];
+}
+
+/** Transient appearance-only clipboard payload. Identity, meaning, content,
+ * anchors, placement, visibility, selection, and runtime geometry are excluded. */
 export interface ConnectionStyleClipboard {
   geometryId: ConnectionGeometryId;
   strokePatternId: ConnectionStrokePatternId;
@@ -52,11 +69,13 @@ export interface ConnectionStyleClipboard {
   startMarkerId: ConnectionMarkerId;
   endMarkerId: ConnectionMarkerId;
   appearance: ResolvedConnectionAppearance;
+  annotationAppearance: ConnectionAnnotationAppearanceClipboard;
 }
 
-export type ConnectionStylePatch = Partial<Omit<ResolvedConnectionStyle, "label" | "appearance">> & {
+export type ConnectionStylePatch = Partial<Omit<ResolvedConnectionStyle, "label" | "appearance" | "annotationPresentation">> & {
   label?: Partial<ConnectionLabelStyle>;
   appearance?: Partial<ResolvedConnectionAppearance>;
+  annotationPresentation?: ConnectionAnnotationPresentationOverride;
 };
 
 /** One transient, runtime-only style draft shared by the panel and every
@@ -71,6 +90,7 @@ export type ConnectionStylePreview =
       context: "connection-override";
       connectionIds: readonly string[];
       patch: ConnectionStylePatch;
+      annotationContentPatch?: ConnectionAnnotationOverride;
     };
 
 export type ProjectConnectionStyles = Record<KnownConnectionSemanticTypeId, ResolvedConnectionStyle>;
@@ -139,6 +159,7 @@ export const cloneResolvedConnectionStyle = (style: ResolvedConnectionStyle): Re
   ...style,
   label: cloneLabel(style.label),
   appearance: cloneAppearance(style.appearance),
+  annotationPresentation: normalizeConnectionAnnotationPresentation(style.annotationPresentation),
 });
 
 const makeStyle = (
@@ -158,6 +179,7 @@ const makeStyle = (
   endAnchorId: patch.endAnchorId ?? "auto",
   label: { ...HIDDEN_LABEL, ...patch.label },
   appearance: { ...BASE_APPEARANCE, ...patch.appearance },
+  annotationPresentation: normalizeConnectionAnnotationPresentation(patch.annotationPresentation),
 });
 
 const launchDefaults = (): ProjectConnectionStyles => ({
@@ -226,6 +248,10 @@ const normalizeResolvedStyle = (value: unknown, fallback: ResolvedConnectionStyl
     endAnchorId: registryId<ConnectionAnchorId>(value.endAnchorId, fallback.endAnchorId),
     label: normalizeLabel(value.label, fallback.label),
     appearance: normalizeAppearance(value.appearance, fallback.appearance),
+    annotationPresentation: normalizeConnectionAnnotationPresentation(
+      value.annotationPresentation,
+      fallback.annotationPresentation,
+    ),
   };
 };
 
@@ -255,6 +281,14 @@ export const updateProjectConnectionStyle = (
     ...patch,
     label: { ...current.label, ...patch.label },
     appearance: { ...current.appearance, ...patch.appearance },
+    annotationPresentation: {
+      ...current.annotationPresentation,
+      ...patch.annotationPresentation,
+      title: { ...current.annotationPresentation.title, ...patch.annotationPresentation?.title },
+      body: { ...current.annotationPresentation.body, ...patch.annotationPresentation?.body },
+      placement: { ...current.annotationPresentation.placement, ...patch.annotationPresentation?.placement },
+      plate: { ...current.annotationPresentation.plate, ...patch.annotationPresentation?.plate },
+    },
   }, current);
   return normalized;
 };
@@ -272,20 +306,28 @@ export const connectionTypeStyle = (
   return cloneResolvedConnectionStyle(projectType?.visualDefaults ?? styles.custom);
 };
 
-const mergeLocalVisual = (base: ResolvedConnectionStyle, visual: ConnectionVisual | undefined): ResolvedConnectionStyle => {
-  if (!visual) return cloneResolvedConnectionStyle(base);
+const mergeLocalVisual = (
+  base: ResolvedConnectionStyle,
+  visual: ConnectionVisual | undefined,
+  annotationPresentation?: ConnectionAnnotationPresentationOverride,
+): ResolvedConnectionStyle => {
+  if (!visual && !annotationPresentation) return cloneResolvedConnectionStyle(base);
   return {
-    visible: visual.visible ?? base.visible,
-    geometryId: visual.geometryId ?? base.geometryId,
-    strokePatternId: visual.strokePatternId ?? base.strokePatternId,
-    lineCap: visual.lineCap ?? base.lineCap,
-    lineJoin: visual.lineJoin ?? base.lineJoin,
-    startMarkerId: visual.startMarkerId ?? base.startMarkerId,
-    endMarkerId: visual.endMarkerId ?? base.endMarkerId,
-    startAnchorId: visual.startAnchorId ?? base.startAnchorId,
-    endAnchorId: visual.endAnchorId ?? base.endAnchorId,
-    label: normalizeLabel(visual.label, base.label),
-    appearance: normalizeAppearance(visual.appearance, base.appearance),
+    visible: visual?.visible ?? base.visible,
+    geometryId: visual?.geometryId ?? base.geometryId,
+    strokePatternId: visual?.strokePatternId ?? base.strokePatternId,
+    lineCap: visual?.lineCap ?? base.lineCap,
+    lineJoin: visual?.lineJoin ?? base.lineJoin,
+    startMarkerId: visual?.startMarkerId ?? base.startMarkerId,
+    endMarkerId: visual?.endMarkerId ?? base.endMarkerId,
+    startAnchorId: visual?.startAnchorId ?? base.startAnchorId,
+    endAnchorId: visual?.endAnchorId ?? base.endAnchorId,
+    label: normalizeLabel(visual?.label, base.label),
+    appearance: normalizeAppearance(visual?.appearance, base.appearance),
+    annotationPresentation: resolveConnectionAnnotationPresentation(
+      base.annotationPresentation,
+      annotationPresentation,
+    ),
   };
 };
 
@@ -297,6 +339,14 @@ export const applyConnectionStylePatch = (
   ...patch,
   label: { ...style.label, ...patch.label },
   appearance: { ...style.appearance, ...patch.appearance },
+  annotationPresentation: {
+    ...style.annotationPresentation,
+    ...patch.annotationPresentation,
+    title: { ...style.annotationPresentation.title, ...patch.annotationPresentation?.title },
+    body: { ...style.annotationPresentation.body, ...patch.annotationPresentation?.body },
+    placement: { ...style.annotationPresentation.placement, ...patch.annotationPresentation?.placement },
+    plate: { ...style.annotationPresentation.plate, ...patch.annotationPresentation?.plate },
+  },
 }, style);
 
 export const resolveRelationshipTypeStylePreview = (
@@ -325,7 +375,7 @@ export const resolveConnectionStylePreview = (
   const base = preview?.context === "relationship-type" && preview.typeId === connection.semantic.typeId
     ? preview.style
     : canonicalBase;
-  const resolved = mergeLocalVisual(base, connection.visual);
+  const resolved = mergeLocalVisual(base, connection.visual, connection.annotationPresentation);
   return preview?.context === "connection-override" && preview.connectionIds.includes(connection.id)
     ? applyConnectionStylePatch(resolved, preview.patch)
     : resolved;
@@ -338,7 +388,25 @@ export const resolveConnectionStyle = (
 ): ResolvedConnectionStyle => mergeLocalVisual(
   connectionTypeStyle(connection.semantic.typeId, styles, projectRelationshipTypes),
   connection.visual,
+  connection.annotationPresentation,
 );
+
+export const resolveConnectionAnnotationPreview = (
+  connection: Connection,
+  relationshipType: Pick<RelationshipTypeDefinition, "name" | "annotationDefaults"> | null | undefined,
+  preview?: ConnectionStylePreview | null,
+): ResolvedConnectionAnnotation => {
+  if (preview?.context !== "connection-override" || !preview.connectionIds.includes(connection.id)) {
+    return resolveConnectionAnnotation(connection, relationshipType);
+  }
+  return resolveConnectionAnnotation({
+    ...connection,
+    annotation: {
+      ...connection.annotation,
+      ...preview.annotationContentPatch,
+    },
+  }, relationshipType);
+};
 
 export const copyResolvedConnectionStyle = (
   connection: Connection,
@@ -360,6 +428,11 @@ export const copyResolvedStyle = (
     startMarkerId: resolved.startMarkerId,
     endMarkerId: resolved.endMarkerId,
     appearance: cloneAppearance(resolved.appearance),
+    annotationAppearance: {
+      title: { ...resolved.annotationPresentation.title },
+      body: { ...resolved.annotationPresentation.body },
+      plate: { ...resolved.annotationPresentation.plate },
+    },
   };
 };
 
@@ -377,7 +450,47 @@ export const pasteConnectionStyleToResolvedStyle = (
   startMarkerId: clipboard.startMarkerId,
   endMarkerId: clipboard.endMarkerId,
   appearance: { ...target.appearance, ...clipboard.appearance },
+  annotationPresentation: {
+    ...target.annotationPresentation,
+    title: { ...clipboard.annotationAppearance.title },
+    body: { ...clipboard.annotationAppearance.body },
+    placement: { ...target.annotationPresentation.placement },
+    plate: { ...clipboard.annotationAppearance.plate },
+  },
 });
+
+const sparseSection = <T extends object>(
+  copied: T,
+  inherited: T,
+): Partial<T> => {
+  const copiedRecord = copied as Record<string, unknown>;
+  const inheritedRecord = inherited as Record<string, unknown>;
+  return Object.fromEntries(
+    Object.keys(copiedRecord)
+      .filter((key) => copiedRecord[key] !== inheritedRecord[key])
+      .map((key) => [key, copiedRecord[key]]),
+  ) as Partial<T>;
+};
+
+/** Rebase copied annotation appearance while retaining target-local placement.
+ * Content and path placement never enter the clipboard. */
+export const pasteConnectionStyleAnnotationPresentation = (
+  clipboard: ConnectionStyleClipboard,
+  target: Connection,
+  styles: ProjectConnectionStyles,
+  projectRelationshipTypes: readonly ProjectRelationshipType[] = [],
+): ConnectionAnnotationPresentationOverride | undefined => {
+  const inherited = connectionTypeStyle(target.semantic.typeId, styles, projectRelationshipTypes)
+    .annotationPresentation;
+  return normalizeConnectionAnnotationPresentationOverride({
+    ...(target.annotationPresentation?.placement
+      ? { placement: { ...target.annotationPresentation.placement } }
+      : {}),
+    title: sparseSection(clipboard.annotationAppearance.title, inherited.title),
+    body: sparseSection(clipboard.annotationAppearance.body, inherited.body),
+    plate: sparseSection(clipboard.annotationAppearance.plate, inherited.plate),
+  });
+};
 
 /** Rebase a copied resolved appearance onto the target Relationship Type.
  * Only differing appearance values become local overrides; excluded target

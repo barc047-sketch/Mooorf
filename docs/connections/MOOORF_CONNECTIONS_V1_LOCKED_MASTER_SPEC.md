@@ -2381,3 +2381,17 @@ Ordered MOOORF list, table, and tree surfaces use established desktop convention
 **Amendment — Relationship Type Duplication and Universal Visual Clipboard**
 
 The Relationship Manager TYPES surface may duplicate one factory or project Relationship Type into a new project type with a generated stable project ID and unique name/code. Duplication copies safe semantic defaults, resolved visual defaults, description and annotation defaults, begins at zero usage, and never copies Connection records, usage, archived/deleted state or immutable factory identity; Custom remains the unique fallback while a Custom duplicate is ordinary project data. The existing source-agnostic visual Connection clipboard is the one shared clipboard for resolved Connection or Relationship Type appearance. Type Copy writes only visual fields; Type Paste updates one project Type default or the established project-level factory override layer in one history transaction, immediately updating inheritors while Connection-local overrides remain authoritative. Clipboard copy is history-free, excludes semantic/type/annotation/topology data, and native editable-field Cmd/Ctrl+C/V precedence is retained.
+
+## Amendment 10 — 2026-07-22
+
+### Annotation Authoring in Universal Style Panel
+
+The universal Connection Style Panel may expose the same canonical Title and Body annotation authoring controls already available in Inspector. There remains exactly one canonical annotation content state; a Style Panel draft is transient and Apply or Cancel resolves back to that owner.
+
+### Annotation Presentation
+
+Annotation content and annotation presentation are distinct. Relationship Types may define default annotation appearance, while Connections carry only sparse annotation-presentation overrides. The per-Connection Inspector owns local placement and box adjustments. The visual Style clipboard may include Title typography, Body typography and plate appearance, but excludes Title/Body content and per-Connection path position, side and offset; this presentation-only inclusion narrows Amendment 9's broad annotation exclusion.
+
+### Horizontal Annotation and Shared Visual Scale Rule
+
+Annotations remain horizontal, but their complete visual unit follows the same project-global Connection Settings → Visual Scale owner as Connection graphics. In Fixed on Screen mode, typography, line height, plate dimensions, padding, corner radius, border width, wrapping width, internal spacing and path offset remain stable in final CSS pixels across camera zoom. In Scale with Canvas mode, text and plate metrics scale together with normalized Canvas zoom. LOD remains independently bounded by projected screen-space conditions, and canonical annotation presentation stores authored values only—never zoom-compensated values. No separate Annotation Scale setting exists.

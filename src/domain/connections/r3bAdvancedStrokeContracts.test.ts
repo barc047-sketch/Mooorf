@@ -263,7 +263,7 @@ test("advanced fields participate in live fixed-target multi preview and remain 
   assert.equal((useLab.getState().connections[1]?.visual as any)?.lineCap, "round", "untouched mixed cap stays local");
 });
 
-test("style clipboard carries advanced visual language while excluding topology and annotations", () => {
+test("style clipboard carries advanced visual and annotation appearance while excluding topology, content, and placement", () => {
   const styles = createDefaultProjectConnectionStyles();
   const authored = connection("source", {
     geometryId: "curved",
@@ -279,6 +279,11 @@ test("style clipboard carries advanced visual language while excluding topology 
   assert.equal(clipboard.appearance.width, 40);
   assert.equal(clipboard.appearance.dashScale, 1.8);
   assert.equal(clipboard.appearance.patternAmplitude, 11);
+  assert.ok(clipboard.annotationAppearance.title);
+  assert.ok(clipboard.annotationAppearance.body);
+  assert.ok(clipboard.annotationAppearance.plate);
+  assert.equal("annotation" in clipboard, false);
+  assert.equal("placement" in clipboard.annotationAppearance, false);
 
   const target = connection("target", { startAnchorId: "left" });
   const visual = pasteConnectionStyleVisual(clipboard, target, styles) as any;

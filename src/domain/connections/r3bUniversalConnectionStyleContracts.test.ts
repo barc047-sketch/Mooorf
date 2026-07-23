@@ -131,7 +131,8 @@ test("one registry-owned universal panel exposes the full canonical visual gramm
   assert.match(studio, /Apply/);
   assert.match(studio, /Cancel/);
   assert.match(studio, /Use Relationship Type Style/);
-  assert.match(studio, /Annotation appearance[^<]*(deferred|later)/i);
+  assert.match(studio, /ANNOTATION/);
+  assert.match(studio, /ConnectionAnnotationContentControls/);
   assert.match(manager, /Edit Style/);
   assert.match(inspector, /Edit Style/);
   assert.match(inspector, /RelationshipTypeStylePreview/);
@@ -202,6 +203,11 @@ test("Connection Apply derives one minimal sparse override, preserves authored m
     startMarkerId: initial.startMarkerId,
     endMarkerId: "filled-arrow",
     appearance: { ...draft.appearance, width: 64, opacity: 0 },
+    annotationAppearance: {
+      title: { ...draft.annotationPresentation.title },
+      body: { ...draft.annotationPresentation.body },
+      plate: { ...draft.annotationPresentation.plate },
+    },
   });
 
   assert.equal(state().commitConnectionStyleEditor(null), true);

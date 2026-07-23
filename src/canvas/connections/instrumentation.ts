@@ -9,6 +9,11 @@ export interface ConnectionProjectionMetrics {
   endpointInvalidations: number;
   hitIndexEntries: number;
   labelLayouts: number;
+  annotationCandidates: number;
+  annotationFull: number;
+  annotationTitleOnly: number;
+  annotationCollisionRejected: number;
+  annotationCollisionChecks: number;
 }
 
 export interface ConnectionDrawWork {
@@ -31,6 +36,8 @@ export interface ConnectionDrawWork {
 }
 
 export interface ConnectionInstrumentationSnapshot extends ConnectionProjectionMetrics {
+  annotationDrawn: number;
+  annotationDrawCalls: number;
   batchPasses: number;
   drawCalls: number;
   drawnCommands: number;
@@ -55,6 +62,13 @@ const emptySnapshot = (authoredCount = 0): ConnectionInstrumentationSnapshot => 
   endpointInvalidations: 0,
   hitIndexEntries: 0,
   labelLayouts: 0,
+  annotationCandidates: 0,
+  annotationFull: 0,
+  annotationTitleOnly: 0,
+  annotationCollisionRejected: 0,
+  annotationCollisionChecks: 0,
+  annotationDrawn: 0,
+  annotationDrawCalls: 0,
   batchPasses: 0,
   drawCalls: 0,
   drawnCommands: 0,
@@ -72,12 +86,19 @@ export interface ConnectionInstrumentation {
   beginFrame(authoredCount: number): void;
   recordProjection(metrics: ConnectionProjectionMetrics): void;
   recordDrawBatch(work: ConnectionDrawWork, surface: "base" | "overlay"): void;
+  recordAnnotationDraw(work: {
+    annotationDrawn: number;
+    fillCalls: number;
+    strokeCalls: number;
+    textCalls: number;
+  }): void;
   recordOverlayPrimitives(drawCalls: number, selectionOverlayDraws?: number): void;
   recordOverlayClear(): void;
   recordHitTest(): void;
   recordPortProjection(portCount: number): void;
   setSleeping(sleeping: boolean): void;
   settleOff(authoredCount: number): void;
+  settleAnnotations(): void;
   snapshot(): ConnectionInstrumentationSnapshot;
 }
 
@@ -101,6 +122,19 @@ export const createConnectionInstrumentation = (): ConnectionInstrumentation => 
         baseDrawCalls: current.baseDrawCalls + (surface === "base" ? drawCalls : 0),
         overlayDrawCalls: current.overlayDrawCalls + (surface === "overlay" ? drawCalls : 0),
         overlayDrawnCommands: current.overlayDrawnCommands + (surface === "overlay" ? commandCount : 0),
+      };
+    },
+    recordAnnotationDraw(work) {
+      const drawCalls = Math.max(0, work.fillCalls)
+        + Math.max(0, work.strokeCalls)
+        + Math.max(0, work.textCalls);
+      current = {
+        ...current,
+        batchPasses: current.batchPasses + (work.annotationDrawn > 0 ? 1 : 0),
+        drawCalls: current.drawCalls + drawCalls,
+        baseDrawCalls: current.baseDrawCalls + drawCalls,
+        annotationDrawn: current.annotationDrawn + Math.max(0, work.annotationDrawn),
+        annotationDrawCalls: current.annotationDrawCalls + drawCalls,
       };
     },
     recordOverlayPrimitives(drawCalls, selectionOverlayDraws = 0) {
@@ -131,6 +165,19 @@ export const createConnectionInstrumentation = (): ConnectionInstrumentation => 
     },
     settleOff(authoredCount) {
       current = emptySnapshot(authoredCount);
+    },
+    settleAnnotations() {
+      current = {
+        ...current,
+        labelLayouts: 0,
+        annotationCandidates: 0,
+        annotationFull: 0,
+        annotationTitleOnly: 0,
+        annotationCollisionRejected: 0,
+        annotationCollisionChecks: 0,
+        annotationDrawn: 0,
+        annotationDrawCalls: 0,
+      };
     },
     snapshot() {
       return { ...current };

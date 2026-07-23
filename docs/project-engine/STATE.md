@@ -1,6 +1,6 @@
 # Current Project State
 
-**Last updated:** 2026-07-22
+**Last updated:** 2026-07-23
 
 **Repository:** `barc047-sketch/Mooorf`
 
@@ -12,7 +12,7 @@
 | PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains pushed accepted R3B plus local-uncommitted R4A Relationship Manager Connections work; no merge is authorized. |
+| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains pushed accepted R3B, Owner-accepted local R4A checkpoint `19e9474`, and local-uncommitted R4B Connection annotation work; no merge is authorized. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
@@ -28,8 +28,9 @@
 | CONNECTIONS R2B.2 STATUS | LOCAL UNCOMMITTED / FINAL VISUAL CORRECTIONS APPLIED / PREVIEW AVAILABLE / WAITING OWNER QA. |
 | CONNECTIONS R3A STATUS | OWNER QA PASSED / LOCAL CHECKPOINT `5f5e178` / NOT PUSHED. |
 | CONNECTIONS R3B STATUS | OWNER ACCEPTED / PUSHED at `e9f9219`; no merge is authorized. |
-| CONNECTIONS R4A STATUS | LOCAL UNCOMMITTED / CONNECTIONS TAB COMPLETE / PREVIEW AVAILABLE / WAITING OWNER QA. |
-| NEXT AUTHORITY | Owner visual and interaction QA for R4A only. Commit, push, merge and branch cleanup each require separate explicit authority. |
+| CONNECTIONS R4A STATUS | OWNER ACCEPTED / LOCAL CHECKPOINT `19e9474` / NOT PUSHED. |
+| CONNECTIONS R4B STATUS | LOCAL UNCOMMITTED / ANNOTATION AUTHORING, PRESENTATION AND CANVAS PROJECTION COMPLETE / WAITING OWNER QA. |
+| NEXT AUTHORITY | Owner visual and interaction QA for R4B only. Commit, push, merge and branch cleanup each require separate explicit authority. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -147,7 +148,7 @@
 - eligible Style Panel Enter applies through the same one-transaction command as the button after pending range values flush; menus/options, buttons, multiline/contenteditable surfaces, repeats, modifiers, prevented events and IME composition retain native ownership, with a compact `↵` Apply hint;
 - annotation appearance remains visibly deferred until its later canonical schema; R5 retains Auto/Center, Cardinal 4, Horizontal 2 and Vertical 2 port layouts plus the other listed Connection settings; no Canvas annotation, CONNECTIONS-tab, advanced-port, export, Matrix, Table, Classic or production-build work occurred.
 
-### Connections R4A — OWNER-PASSED / CORRECTION WAITING OWNER QA
+### Connections R4A — OWNER ACCEPTED / LOCAL CHECKPOINT
 
 - the existing registry-owned Relationship Manager now replaces its CONNECTIONS placeholder with a canonical Connection projection; TYPES remains the accepted R3A library and settings/style owners;
 - `src/domain/connections/selectors.ts` owns a pure reusable filter model for normalized query, dynamic Relationship Type, Active/Inactive and inherited/visual/annotation override modes, preserving canonical order and hidden selected IDs;
@@ -158,6 +159,15 @@
 - icon-focused plain Enter now reaches the same canonical Connection Studio Apply command, latest field values settle before the queued Apply, and open listboxes select without prematurely applying the Studio session;
 - Inspector presentation now prioritizes selected Connection(s), then the existing canonical Connection mode, then normal Cell selection; a no-selection mode state shows the current authoring Relationship Type without adding another mode or selection owner;
 - focused R4A/Manager/shared-selection/lifecycle contracts passed 38/38, `npx --no-install tsc -b --pretty false` passed, and `git diff --check` passed. No browser automation, production build, commit or R4A push occurred.
+
+### Connections R4B — LOCAL UNCOMMITTED / WAITING OWNER QA
+
+- the universal Connection Style Panel edits canonical Title/Body content and annotation appearance through its existing transient draft; Apply creates one history transaction and Cancel creates none;
+- Relationship Types own annotation appearance defaults while Connections retain sparse local presentation overrides; Inspector owns per-Connection path position, side, offset, alignment, width and plate placement controls;
+- one batched Canvas annotation projection resolves canonical Connection paths, horizontal text, deterministic collision handling, bounded screen-space LOD and instrumentation without per-record React surfaces;
+- `settings.connectionView.visualScaleMode` remains the only scale owner for Connection graphics and annotations: Fixed mode keeps the complete annotation unit stable in final CSS pixels, while Canvas mode scales text, plate, spacing, wrapping width and offset together through normalized camera zoom;
+- authored annotation values remain zoom-independent; live Style/Inspector drafts use the same renderer path and mode switching invalidates Canvas presentation immediately;
+- the visual Style clipboard includes annotation typography and plate appearance but excludes Title/Body content and per-Connection placement.
 
 ## Verification disposition
 
@@ -181,8 +191,10 @@ Connections R4A Type duplication/clipboard correction passed 63/63 focused Manag
 
 Connections R4A Enter/Inspector correction passed 46/46 focused Style Panel, picker, Inspector, authoring, Manager and lifecycle contracts. Development-browser QA at `http://127.0.0.1:5173/` verified icon-focused Enter Apply persistence, listbox Enter select-only ownership, one-step Undo, C-mode suppression of Cell Inspector, selected-Connection priority and Cell restoration after mode exit. No production build, commit or push occurred.
 
+Connections R4B and its shared Visual Scale addendum passed 73/73 focused annotation projection, renderer, scale-setting, Style Panel, clipboard, registry and history contracts. `npx --no-install tsc -b --pretty false`, tracked and untracked whitespace checks passed. Per task boundary, no browser automation, production build, commit or push occurred; visual and interaction judgement remains Owner QA.
+
 ## Current gate
 
-R4A OWNER-PASSED — ENTER APPLY + CONNECTION MODE INSPECTOR CORRECTION WAITING OWNER QA
+R4B CONNECTION ANNOTATION AUTHORING + SHARED VISUAL SCALE COMPLETE — WAITING OWNER QA
 
-`main` remains untouched. R4A commit, push, merge and branch cleanup are not authorized.
+`main` remains untouched. R4B commit, push, merge and branch cleanup are not authorized.

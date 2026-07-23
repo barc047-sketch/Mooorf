@@ -135,6 +135,11 @@ import {
   type ConnectionProjectionResult,
 } from "./connections/renderer";
 import { createConnectionInstrumentation } from "./connections/instrumentation";
+import {
+  connectionAnnotationFontCss,
+  drawConnectionAnnotations,
+  type ConnectionAnnotationMeasureText,
+} from "./connections/annotationProjection";
 import "./organismCanvas.css";
 
 const THEME_TRANSITION_MS = 200;
@@ -320,6 +325,10 @@ export default function OrganismCanvasView({
     presentationBackCanvas.style.visibility = "hidden";
     let connectionEditingSurfaceCleared = false;
     const connectionInstrumentation = createConnectionInstrumentation();
+    const measureConnectionAnnotationText: ConnectionAnnotationMeasureText = (text, role, presentation) => {
+      connectionContext.font = connectionAnnotationFontCss(role, presentation);
+      return connectionContext.measureText(text).width;
+    };
     const hideConnectionPreview = () => {
       if (connectionEditingSurfaceCleared) return;
       connectionEditingContext.setTransform(1, 0, 0, 1, 0, 0);
@@ -395,6 +404,7 @@ export default function OrganismCanvasView({
     const connectionPathCache = createConnectionPathCache();
     let connectionProjection: ConnectionProjectionResult = {
       commands: [],
+      annotations: [],
       hitIndex: { entries: [] },
       metrics: {
         authoredCount: connections.length,
@@ -407,6 +417,11 @@ export default function OrganismCanvasView({
         endpointInvalidations: 0,
         hitIndexEntries: 0,
         labelLayouts: 0,
+        annotationCandidates: 0,
+        annotationFull: 0,
+        annotationTitleOnly: 0,
+        annotationCollisionRejected: 0,
+        annotationCollisionChecks: 0,
       },
     };
     let pendingChangedConnectionEndpointIds = new Set<string>();
@@ -956,6 +971,13 @@ export default function OrganismCanvasView({
       connectionCanvas.dataset.endpointInvalidations = String(snapshot.endpointInvalidations);
       connectionCanvas.dataset.hitIndexEntries = String(snapshot.hitIndexEntries);
       connectionCanvas.dataset.labelLayouts = String(snapshot.labelLayouts);
+      connectionCanvas.dataset.annotationCandidates = String(snapshot.annotationCandidates);
+      connectionCanvas.dataset.annotationFull = String(snapshot.annotationFull);
+      connectionCanvas.dataset.annotationTitleOnly = String(snapshot.annotationTitleOnly);
+      connectionCanvas.dataset.annotationCollisionRejected = String(snapshot.annotationCollisionRejected);
+      connectionCanvas.dataset.annotationCollisionChecks = String(snapshot.annotationCollisionChecks);
+      connectionCanvas.dataset.annotationDrawn = String(snapshot.annotationDrawn);
+      connectionCanvas.dataset.annotationDrawCalls = String(snapshot.annotationDrawCalls);
       connectionCanvas.dataset.batchPasses = String(snapshot.batchPasses);
       connectionCanvas.dataset.drawCalls = String(snapshot.drawCalls);
       connectionCanvas.dataset.drawnCommands = String(snapshot.drawnCommands);
@@ -992,6 +1014,7 @@ export default function OrganismCanvasView({
         if (shouldSettleConnectionOff) {
           connectionProjection = {
             commands: [],
+            annotations: [],
             hitIndex: { entries: [] },
             metrics: {
               authoredCount: connections.length,
@@ -1004,6 +1027,11 @@ export default function OrganismCanvasView({
               endpointInvalidations: 0,
               hitIndexEntries: 0,
               labelLayouts: 0,
+              annotationCandidates: 0,
+              annotationFull: 0,
+              annotationTitleOnly: 0,
+              annotationCollisionRejected: 0,
+              annotationCollisionChecks: 0,
             },
           };
           connectionInstrumentation.settleOff(connections.length);
@@ -1067,6 +1095,7 @@ export default function OrganismCanvasView({
         focusMode: effectiveConnectionFocusMode,
         cameraZoom: cam.zoom,
         visualScaleMode: connectionVisualScaleMode,
+        annotationMeasureText: measureConnectionAnnotationText,
       }, connectionPathCache);
       connectionInstrumentation.recordProjection(connectionProjection.metrics);
       clearConnectionBase();
@@ -1082,6 +1111,11 @@ export default function OrganismCanvasView({
         patternFallback: lod === "critical",
       });
       connectionInstrumentation.recordDrawBatch(drawWork, "base");
+      const annotationWork = drawConnectionAnnotations(connectionContext, connectionProjection.annotations, {
+        theme,
+        outputScale: connectionCanvasOutputScale,
+      });
+      connectionInstrumentation.recordAnnotationDraw(annotationWork);
       const finalRender = drawWork.finalRender;
       connectionCanvas.dataset.visualScaleMode = connectionVisualScaleMode;
       connectionCanvas.dataset.cameraZoom = String(cam.zoom);
@@ -2382,6 +2416,7 @@ export default function OrganismCanvasView({
         resetCameraShake(cameraShake);
         applyCameraShakeOffset();
         performanceGovernor.endInteraction();
+        connectionInstrumentation.settleAnnotations();
         connectionInstrumentation.setSleeping(true);
         publishConnectionMetrics();
         return;

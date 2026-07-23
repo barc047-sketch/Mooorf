@@ -14,8 +14,9 @@ import {
   CONNECTION_STROKE_PATTERNS,
   resolveConnectionStrokePattern,
 } from "../../domain/connections/strokePatterns";
-import { getAllRelationshipTypes } from "../../domain/connections/relationshipTypes";
+import { getAllRelationshipTypes, resolveRelationshipType } from "../../domain/connections/relationshipTypes";
 import {
+  resolveConnectionAnnotationPreview,
   resolveConnectionStylePreview,
   type ConnectionStylePatch,
 } from "../../domain/connections/styles";
@@ -33,6 +34,7 @@ import {
   RelationshipTypeStylePreview,
 } from "../RelationshipTypePicker";
 import { SliderRow, WidgetSection } from "./controls";
+import { ConnectionAnnotationContentControls } from "./ConnectionAnnotationControls";
 
 const titleCase = (value: string): string => value
   .split("-")
@@ -120,6 +122,49 @@ function VisualOption<T extends string>({
   </button>;
 }
 
+function MixedColor({
+  label,
+  values,
+  fallback,
+  onChange,
+}: {
+  label: string;
+  values: readonly string[];
+  fallback: string;
+  onChange: (value: string) => void;
+}) {
+  const shared = common(values);
+  if (shared.mixed) {
+    return <label className="m1-field connection-mixed-colour">
+      <span>{label}<i>Mixed</i></span>
+      <input
+        type="text"
+        defaultValue=""
+        placeholder="Mixed — enter #RRGGBB"
+        aria-label={`${label}, mixed values`}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          const value = event.currentTarget.value.trim();
+          if (/^#[0-9a-f]{6}$/i.test(value)) onChange(value);
+        }}
+        onBlur={(event) => {
+          const value = event.currentTarget.value.trim();
+          if (/^#[0-9a-f]{6}$/i.test(value)) onChange(value);
+        }}
+      />
+    </label>;
+  }
+  return <label className="m1-colour-row">
+    <span>{label}</span>
+    <input
+      type="color"
+      aria-label={label}
+      value={shared.value === "auto" ? fallback : shared.value ?? fallback}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  </label>;
+}
+
 export default function ConnectionStudioWidget() {
   const target = useLab((state) => state.connectionStyleEditorTarget);
   const preview = useLab((state) => state.connectionStyleEditorPreview);
@@ -127,7 +172,9 @@ export default function ConnectionStudioWidget() {
   const spaces = useLab((state) => state.spaces);
   const connectionStyles = useLab((state) => state.settings.connectionStyles);
   const projectRelationshipTypes = useLab((state) => state.settings.projectRelationshipTypes);
+  const theme = useLab((state) => state.theme);
   const previewConnectionStyleEditor = useLab((state) => state.previewConnectionStyleEditor);
+  const previewConnectionStyleEditorAnnotationContent = useLab((state) => state.previewConnectionStyleEditorAnnotationContent);
   const commitConnectionStyleEditor = useLab((state) => state.commitConnectionStyleEditor);
   const cancelConnectionStyleEditor = useLab((state) => state.cancelConnectionStyleEditor);
   const closeWidget = useLab((state) => state.closeWidget);
@@ -143,6 +190,8 @@ export default function ConnectionStudioWidget() {
         name: type.name,
         scope: "Relationship Type defaults",
         styles: [preview.style],
+        annotation: null,
+        relationshipTypeName: type.name,
       };
     }
     if (preview.context !== "connection-override") return null;
@@ -153,6 +202,11 @@ export default function ConnectionStudioWidget() {
     const first = targets[0]!;
     const source = spaces.find((space) => space.id === first.fromSpaceId);
     const destination = spaces.find((space) => space.id === first.toSpaceId);
+    const relationshipType = resolveRelationshipType(
+      first.semantic.typeId,
+      projectRelationshipTypes,
+      connectionStyles,
+    );
     return {
       key: `connection-override:${target.connectionIds.join(":")}`,
       name: targets.length === 1
@@ -165,6 +219,10 @@ export default function ConnectionStudioWidget() {
         projectRelationshipTypes,
         preview,
       )),
+      annotation: targets.length === 1
+        ? resolveConnectionAnnotationPreview(first, relationshipType, preview)
+        : null,
+      relationshipTypeName: relationshipType.name,
     };
   }, [connectionStyles, connections, preview, projectRelationshipTypes, spaces, target]);
 
@@ -192,6 +250,7 @@ export default function ConnectionStudioWidget() {
     && resolveConnectionStrokePattern(stroke.value).capabilities.amplitude;
   const markersEnabled = styles.some((style) => style.startMarkerId !== "none" || style.endMarkerId !== "none");
   const update = (patch: ConnectionStylePatch) => previewConnectionStyleEditor(patch);
+  const updateAnnotationContent = previewConnectionStyleEditorAnnotationContent;
   const apply = () => {
     commitConnectionStyleEditor();
     closeWidget("connection-studio");
@@ -409,8 +468,137 @@ export default function ConnectionStudioWidget() {
       </WidgetSection>}
     </section>
 
+    <section className="m1-section connection-studio-annotation">
+      <div className="connection-control-heading"><h3>ANNOTATION</h3></div>
+      {active.annotation ? <WidgetSection title="Title + Body" hint="Canonical content">
+        <ConnectionAnnotationContentControls
+          annotation={active.annotation}
+          relationshipTypeName={active.relationshipTypeName}
+          enterApplies
+          onChange={updateAnnotationContent}
+        />
+      </WidgetSection> : <p className="m1-empty-note">
+        Relationship Type annotation appearance defaults update inheriting Connections. Title and Body content remain canonical per Connection.
+      </p>}
+      <WidgetSection title="Title typography" hint="Screen-space">
+        <MixedSlider
+          label="Title size"
+          values={styles.map((style) => style.annotationPresentation.title.fontSize)}
+          min={9}
+          max={28}
+          step={0.5}
+          fmt={(value) => `${value.toFixed(1)} px`}
+          onChange={(fontSize) => update({ annotationPresentation: { title: { fontSize } } })}
+        />
+        <MixedSlider
+          label="Title weight"
+          values={styles.map((style) => style.annotationPresentation.title.fontWeight)}
+          min={300}
+          max={800}
+          step={100}
+          fmt={(value) => String(Math.round(value))}
+          onChange={(fontWeight) => update({ annotationPresentation: { title: { fontWeight } } })}
+        />
+        <MixedColor
+          label="Title color"
+          values={styles.map((style) => style.annotationPresentation.title.color)}
+          fallback={theme === "night" ? "#f8f8f6" : "#191b1e"}
+          onChange={(color) => update({ annotationPresentation: { title: { color } } })}
+        />
+        <MixedSlider
+          label="Title opacity"
+          values={styles.map((style) => style.annotationPresentation.title.opacity)}
+          min={0}
+          max={1}
+          step={0.01}
+          fmt={(value) => `${Math.round(value * 100)}%`}
+          onChange={(opacity) => update({ annotationPresentation: { title: { opacity } } })}
+        />
+      </WidgetSection>
+      <WidgetSection title="Body typography" hint="Screen-space">
+        <MixedSlider
+          label="Body size"
+          values={styles.map((style) => style.annotationPresentation.body.fontSize)}
+          min={8}
+          max={22}
+          step={0.5}
+          fmt={(value) => `${value.toFixed(1)} px`}
+          onChange={(fontSize) => update({ annotationPresentation: { body: { fontSize } } })}
+        />
+        <MixedSlider
+          label="Body weight"
+          values={styles.map((style) => style.annotationPresentation.body.fontWeight)}
+          min={300}
+          max={800}
+          step={100}
+          fmt={(value) => String(Math.round(value))}
+          onChange={(fontWeight) => update({ annotationPresentation: { body: { fontWeight } } })}
+        />
+        <MixedColor
+          label="Body color"
+          values={styles.map((style) => style.annotationPresentation.body.color)}
+          fallback={theme === "night" ? "#e6e7e5" : "#373a3e"}
+          onChange={(color) => update({ annotationPresentation: { body: { color } } })}
+        />
+        <MixedSlider
+          label="Body opacity"
+          values={styles.map((style) => style.annotationPresentation.body.opacity)}
+          min={0}
+          max={1}
+          step={0.01}
+          fmt={(value) => `${Math.round(value * 100)}%`}
+          onChange={(opacity) => update({ annotationPresentation: { body: { opacity } } })}
+        />
+        <MixedSlider
+          label="Line height"
+          values={styles.map((style) => style.annotationPresentation.body.lineHeight)}
+          min={8}
+          max={40}
+          step={0.5}
+          fmt={(value) => `${value.toFixed(1)} px`}
+          onChange={(lineHeight) => update({ annotationPresentation: { body: { lineHeight } } })}
+        />
+      </WidgetSection>
+      <WidgetSection title="Box" hint="Shared plate">
+        <MixedColor
+          label="Background color"
+          values={styles.map((style) => style.annotationPresentation.plate.backgroundColor)}
+          fallback={theme === "night" ? "#16181b" : "#faf9f6"}
+          onChange={(backgroundColor) => update({ annotationPresentation: { plate: { backgroundColor } } })}
+        />
+        <MixedSlider
+          label="Background opacity"
+          values={styles.map((style) => style.annotationPresentation.plate.backgroundOpacity)}
+          min={0}
+          max={1}
+          step={0.01}
+          fmt={(value) => `${Math.round(value * 100)}%`}
+          onChange={(backgroundOpacity) => update({ annotationPresentation: { plate: { backgroundOpacity } } })}
+        />
+        <MixedSlider
+          label="Corner radius"
+          values={styles.map((style) => style.annotationPresentation.plate.cornerRadius)}
+          min={0}
+          max={24}
+          step={1}
+          fmt={(value) => `${Math.round(value)} px`}
+          onChange={(cornerRadius) => update({ annotationPresentation: { plate: { cornerRadius } } })}
+        />
+        <MixedSlider
+          label="Padding"
+          values={styles.map((style) => (
+            style.annotationPresentation.plate.paddingX + style.annotationPresentation.plate.paddingY
+          ) / 2)}
+          min={0}
+          max={24}
+          step={1}
+          fmt={(value) => `${Math.round(value)} px`}
+          onChange={(padding) => update({ annotationPresentation: { plate: { paddingX: padding, paddingY: padding } } })}
+        />
+      </WidgetSection>
+    </section>
+
     <section className="m1-section">
-      <p className="m1-empty-note">Annotation appearance is deferred until the R4 annotation schema; this panel does not author Canvas annotations.</p>
       {target.context === "connection-override" && <button
         type="button"
         className="m1-btn"

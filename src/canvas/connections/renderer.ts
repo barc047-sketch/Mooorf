@@ -7,6 +7,7 @@ import {
 } from "../../domain/connections/filters";
 import {
   cloneResolvedConnectionStyle,
+  resolveConnectionAnnotationPreview,
   resolveConnectionStylePreview,
   type ConnectionFocusMode,
   type ConnectionStylePreview,
@@ -35,6 +36,12 @@ import {
   type ConnectionPoint,
 } from "./geometry";
 import type { ConnectionDrawWork, ConnectionProjectionMetrics } from "./instrumentation";
+import { resolveRelationshipType } from "../../domain/connections/relationshipTypes";
+import {
+  projectConnectionAnnotations,
+  type ConnectionAnnotationMeasureText,
+  type ProjectedConnectionAnnotation,
+} from "./annotationProjection";
 
 export type ConnectionLod = "full" | "dense" | "critical";
 export type ConnectionEmphasis = "normal" | "focused" | "related" | "faded";
@@ -211,10 +218,12 @@ export interface ConnectionProjectionInput {
   focusMode: ConnectionFocusMode;
   cameraZoom?: number;
   visualScaleMode?: ConnectionVisualScaleMode;
+  annotationMeasureText?: ConnectionAnnotationMeasureText;
 }
 
 export interface ConnectionProjectionResult {
   commands: ConnectionDrawCommand[];
+  annotations: ProjectedConnectionAnnotation[];
   hitIndex: ConnectionHitIndex;
   metrics: ConnectionProjectionMetrics;
 }
@@ -396,6 +405,11 @@ export const projectConnections = (
     endpointInvalidations: cache.invalidateEndpoints(input.changedEndpointIds),
     hitIndexEntries: 0,
     labelLayouts: 0,
+    annotationCandidates: 0,
+    annotationFull: 0,
+    annotationTitleOnly: 0,
+    annotationCollisionRejected: 0,
+    annotationCollisionChecks: 0,
   };
   const filtered = filterConnections({
     connections: input.connections,
@@ -452,6 +466,7 @@ export const projectConnections = (
         || left.connection.id.localeCompare(right.connection.id);
     });
   const commands: ConnectionDrawCommand[] = [];
+  const retainedConnectionById = new Map<string, Connection>();
   let projectionAttempts = 0;
 
   for (const { connection, source, target, style, lane } of candidates) {
@@ -506,6 +521,7 @@ export const projectConnections = (
     }
     if (!connectionBoundsIntersectViewport(cached.bounds, input.viewport)) continue;
     const selected = input.selectedIds.has(connection.id);
+    retainedConnectionById.set(connection.id, connection);
     commands.push({
       id: connection.id,
       fromSpaceId: connection.fromSpaceId,
@@ -529,7 +545,36 @@ export const projectConnections = (
   }));
   metrics.visibleCount = commands.length;
   metrics.hitIndexEntries = entries.length;
-  return { commands, hitIndex: { entries }, metrics };
+  const annotationProjection = projectConnectionAnnotations(commands.flatMap((command) => {
+    const connection = retainedConnectionById.get(command.id);
+    if (!connection) return [];
+    const relationshipType = resolveRelationshipType(
+      connection.semantic.typeId,
+      input.projectRelationshipTypes ?? [],
+      input.styles,
+    );
+    return [{
+      connectionId: command.id,
+      annotation: resolveConnectionAnnotationPreview(connection, relationshipType, input.stylePreview),
+      presentation: command.style.annotationPresentation,
+      path: command.path,
+      viewport: input.viewport,
+      cameraZoom: input.cameraZoom ?? 1,
+      visualScaleMode: input.visualScaleMode ?? CONNECTION_VISUAL_SCALE_MODE_DEFAULT,
+      priority: command.selected
+        ? "selected" as const
+        : command.emphasis === "related" || command.emphasis === "focused"
+          ? "related" as const
+          : "normal" as const,
+    }];
+  }), { measureText: input.annotationMeasureText });
+  metrics.labelLayouts = annotationProjection.metrics.annotationLayouts;
+  metrics.annotationCandidates = annotationProjection.metrics.annotationCandidates;
+  metrics.annotationFull = annotationProjection.metrics.annotationFull;
+  metrics.annotationTitleOnly = annotationProjection.metrics.annotationTitleOnly;
+  metrics.annotationCollisionRejected = annotationProjection.metrics.annotationCollisionRejected;
+  metrics.annotationCollisionChecks = annotationProjection.metrics.annotationCollisionChecks;
+  return { commands, annotations: annotationProjection.annotations, hitIndex: { entries }, metrics };
 };
 
 export const hitTestConnections = (
