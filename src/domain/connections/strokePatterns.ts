@@ -24,6 +24,7 @@ export interface ConnectionStrokePatternDefinition {
     amplitude: boolean;
     scale: boolean;
   };
+  showCenterline?: boolean;
   motif: {
     baseAmplitude: number;
     baseWavelength: number;
@@ -215,8 +216,9 @@ export const buildConnectionStrokeMotif = (
       marks.push({ from: topArm, to: tip });
       marks.push({ from: botArm, to: tip });
     }
+    const showCenterline = definition.showCenterline !== false;
     return {
-      paths: [measure.points],
+      paths: showCenterline ? [measure.points] : [],
       marks,
       metrics: baseMetrics,
     };

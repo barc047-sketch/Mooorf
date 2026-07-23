@@ -118,7 +118,7 @@ export interface VisualPresetDefinition {
 
 export type MarkupKind = "symbol" | "flow" | "area" | "drafting" | "annotation";
 
-export interface MarkupItem {
+export interface BaseMarkupItem {
   readonly id: string;
   readonly kind: MarkupKind;
   readonly registryId: string;
@@ -131,7 +131,6 @@ export interface MarkupItem {
     readonly scaleY: number;
     readonly rotation: number;
   };
-  readonly parameters?: Record<string, unknown>;
   readonly presentation: {
     readonly visualMode: VisualModeId;
     readonly colorMode: "monochrome" | "semantic-theme" | "custom-tint";
@@ -146,3 +145,49 @@ export interface MarkupItem {
     readonly exportable: boolean;
   };
 }
+
+export interface MarkupSymbol extends BaseMarkupItem {
+  readonly kind: "symbol";
+  readonly parameters?: {
+    readonly canopyShape?: string;
+    readonly density?: number;
+    readonly scale?: number;
+  };
+}
+
+export interface MarkupFlow extends BaseMarkupItem {
+  readonly kind: "flow";
+  readonly parameters?: {
+    readonly speedClass?: string;
+    readonly streamCount?: number;
+  };
+}
+
+export interface MarkupArea extends BaseMarkupItem {
+  readonly kind: "area";
+  readonly parameters?: {
+    readonly hatchAngle?: number;
+  };
+}
+
+export interface MarkupDrafting extends BaseMarkupItem {
+  readonly kind: "drafting";
+  readonly parameters?: {
+    readonly style?: string;
+    readonly metricScale?: string;
+  };
+}
+
+export interface MarkupAnnotation extends BaseMarkupItem {
+  readonly kind: "annotation";
+  readonly parameters?: {
+    readonly calloutText?: string;
+  };
+}
+
+export type MarkupItem =
+  | MarkupSymbol
+  | MarkupFlow
+  | MarkupArea
+  | MarkupDrafting
+  | MarkupAnnotation;
