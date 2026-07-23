@@ -1,18 +1,28 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   Archive,
+  ArrowDown,
+  ArrowUp,
   Clipboard,
   ChevronDown,
   ChevronRight,
+  Columns3,
   Copy,
   Crosshair,
   EyeOff,
   FileText,
+  ListTree,
+  LayoutGrid,
   Maximize2,
+  Minus,
   Monitor,
   Pencil,
   Plus,
   RotateCcw,
+  Rows3,
   Search,
   Settings2,
   SlidersHorizontal,
@@ -31,6 +41,7 @@ import {
   type RelationshipTypeMetadataInput,
 } from "../../domain/connections/relationshipTypes";
 import { resolveConnectionAnnotation } from "../../domain/connections/annotations";
+import type { RelationshipLegendConfig } from "../../domain/connections/relationshipLegend";
 import {
   defaultConnectionFilterState,
   filterConnections,
@@ -52,6 +63,7 @@ import {
   RelationshipTypePicker,
   RelationshipTypeStylePreview,
 } from "../RelationshipTypePicker";
+import { SliderRow } from "./controls";
 
 type ManagerTab = "types" | "connections";
 type RelationshipTypeOperation = "archive" | "delete";
@@ -373,6 +385,215 @@ function ConnectionManagementTab() {
   );
 }
 
+function RelationshipLegendSettings({
+  config,
+  onConfigChange,
+}: {
+  config: RelationshipLegendConfig;
+  onConfigChange: (patch: Partial<RelationshipLegendConfig>) => void;
+}) {
+  const hasIdentity = config.showName || config.showCode;
+  const setTextWidth = (value: string) => {
+    const next = Number(value);
+    if (!Number.isFinite(next)) return;
+    onConfigChange({ textWidth: Math.min(320, Math.max(80, Math.round(next))) });
+  };
+
+  return (
+    <section className="connection-visual-scale-setting relationship-legend-settings glass" aria-labelledby="relationship-legend-settings-label">
+      <span id="relationship-legend-settings-label">LEGEND SETTINGS</span>
+      <div className="relationship-legend-setting-grid">
+        <fieldset className="relationship-legend-setting-scope">
+          <legend>Scope</legend>
+          <div className="relationship-legend-text-segments" role="radiogroup" aria-label="Legend Relationship Type scope">
+            {([
+              ["all-active", "All Active", "All"],
+              ["used-only", "Used Only", "Used"],
+            ] as const).map(([value, label, compact]) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.scope === value}
+              data-active={config.scope === value ? "true" : undefined}
+              title={label}
+              onClick={() => onConfigChange({ scope: value })}
+            >{compact}</button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-layout">
+          <legend>Layout</legend>
+          <div className="relationship-legend-icon-segments" role="radiogroup" aria-label="Legend layout mode">
+            {([
+              ["auto", "Auto", LayoutGrid],
+              ["horizontal", "Horizontal", Rows3],
+              ["vertical", "Vertical", Columns3],
+            ] as const).map(([value, label, Icon]) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.layoutMode === value}
+              data-active={config.layoutMode === value ? "true" : undefined}
+              title={label}
+              onClick={() => onConfigChange({ layoutMode: value })}
+            ><Icon size={12} strokeWidth={1.5} /></button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-density">
+          <legend>Density</legend>
+          <div className="relationship-legend-density-segments" role="radiogroup" aria-label="Legend density">
+            {(["compact", "standard", "large"] as const).map((value) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.density === value}
+              data-active={config.density === value ? "true" : undefined}
+              title={`${value[0]?.toUpperCase()}${value.slice(1)} density`}
+              onClick={() => onConfigChange({ density: value })}
+            ><span className="relationship-legend-density-icon" data-density={value} aria-hidden="true"><i /><i /><i /></span></button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-length">
+          <legend>Specimen Length</legend>
+          <div className="relationship-legend-length-segments" role="radiogroup" aria-label="Legend specimen length">
+            {(["short", "standard", "long"] as const).map((value) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.specimenLength === value}
+              data-active={config.specimenLength === value ? "true" : undefined}
+              title={`${value[0]?.toUpperCase()}${value.slice(1)} specimen length`}
+              onClick={() => onConfigChange({ specimenLength: value })}
+            ><span className="relationship-legend-length-sample" data-length={value} aria-hidden="true" /></button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-weight">
+          <legend>Specimen Weight</legend>
+          <div className="relationship-legend-text-segments" role="radiogroup" aria-label="Legend specimen weight">
+            {([
+              ["legible", "Legible"],
+              ["true", "True"],
+            ] as const).map(([value, label]) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.specimenWeight === value}
+              data-active={config.specimenWeight === value ? "true" : undefined}
+              onClick={() => onConfigChange({ specimenWeight: value })}
+            >{label}</button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-text-width">
+          <legend>Text Width</legend>
+          <label className="relationship-legend-text-width-field" title="Text Width">
+            <Type size={12} strokeWidth={1.5} aria-hidden="true" />
+            <input
+              type="number"
+              min={80}
+              max={320}
+              step={10}
+              value={config.textWidth}
+              aria-label="Legend Text Width"
+              onChange={(event) => setTextWidth(event.target.value)}
+            />
+            <span>px</span>
+          </label>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-text-align">
+          <legend>Text Align</legend>
+          <div className="relationship-legend-icon-segments" role="radiogroup" aria-label="Legend text alignment">
+            {([
+              ["left", "Align text left", AlignLeft],
+              ["center", "Align text center", AlignCenter],
+              ["right", "Align text right", AlignRight],
+            ] as const).map(([value, label, Icon]) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.textAlign === value}
+              data-active={config.textAlign === value ? "true" : undefined}
+              title={label}
+              onClick={() => onConfigChange({ textAlign: value })}
+            ><Icon size={12} strokeWidth={1.5} /></button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-placement-x">
+          <legend>Text X</legend>
+          <div className="relationship-legend-icon-segments" role="radiogroup" aria-label="Legend text horizontal placement">
+            {([
+              ["left", "Place text left", AlignLeft],
+              ["center", "Place text center", AlignCenter],
+              ["right", "Place text right", AlignRight],
+            ] as const).map(([value, label, Icon]) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.textPlacementX === value}
+              data-active={config.textPlacementX === value ? "true" : undefined}
+              title={label}
+              onClick={() => onConfigChange({ textPlacementX: value })}
+            ><Icon size={12} strokeWidth={1.5} /></button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-setting-placement-y">
+          <legend>Text Y</legend>
+          <div className="relationship-legend-icon-segments" role="radiogroup" aria-label="Legend text vertical placement">
+            {([
+              ["top", "Place text top", ArrowUp],
+              ["middle", "Place text middle", Minus],
+              ["bottom", "Place text bottom", ArrowDown],
+            ] as const).map(([value, label, Icon]) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.textPlacementY === value}
+              data-active={config.textPlacementY === value ? "true" : undefined}
+              title={label}
+              onClick={() => onConfigChange({ textPlacementY: value })}
+            ><Icon size={12} strokeWidth={1.5} /></button>)}
+          </div>
+        </fieldset>
+        <fieldset className="relationship-legend-content-controls relationship-legend-setting-content">
+          <legend>Content</legend>
+          <div className="relationship-legend-text-segments" role="group" aria-label="Legend content">
+            {([
+              ["showStyle", "Style"],
+              ["showName", "Name"],
+              ["showCode", "Code"],
+              ["showDescription", "Description"],
+            ] as const).map(([key, label]) => {
+              const identifying = key === "showName" || key === "showCode";
+              const disabled = identifying && config[key] && hasIdentity
+                && (key === "showName" ? !config.showCode : !config.showName);
+              return <button
+                key={key}
+                type="button"
+                aria-pressed={config[key]}
+                data-active={config[key] ? "true" : undefined}
+                disabled={disabled}
+                title={`${config[key] ? "Hide" : "Show"} ${label}`}
+                onClick={() => onConfigChange({ [key]: !config[key] })}
+              >{label}</button>;
+            })}
+          </div>
+        </fieldset>
+        {config.layoutMode === "horizontal" && <fieldset className="relationship-legend-setting-rows">
+          <legend>Horizontal rows</legend>
+          <div className="relationship-legend-text-segments" role="radiogroup" aria-label="Maximum horizontal Legend rows">
+            {[2, 3, 4, 5, 6].map((value) => <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={config.horizontalRows === value}
+              data-active={config.horizontalRows === value ? "true" : undefined}
+              onClick={() => onConfigChange({ horizontalRows: value })}
+            >{value}</button>)}
+          </div>
+        </fieldset>}
+      </div>
+    </section>
+  );
+}
+
 export default function ConnectionsWidget() {
   const [tab, setTab] = useState<ManagerTab>("types");
   const [query, setQuery] = useState("");
@@ -392,6 +613,8 @@ export default function ConnectionsWidget() {
   const connectionView = useLab((state) => state.settings.connectionView);
   const connectionVisualScaleMode = connectionView.visualScaleMode;
   const setSettings = useLab((state) => state.setSettings);
+  const openWidget = useLab((state) => state.openWidget);
+  const relationshipLegendOpen = useLab((state) => state.openWidgets.includes("relationship-legend"));
   const createProjectRelationshipType = useLab((state) => state.createProjectRelationshipType);
   const duplicateProjectRelationshipType = useLab((state) => state.duplicateProjectRelationshipType);
   const updateProjectRelationshipTypeMetadata = useLab((state) => state.updateProjectRelationshipTypeMetadata);
@@ -441,6 +664,9 @@ export default function ConnectionsWidget() {
     : "custom";
   const updateConnectionView = (patch: Partial<ConnectionViewSettings>) => setSettings({
     connectionView: { ...connectionView, ...patch },
+  });
+  const updateLegendConfig = (patch: Partial<RelationshipLegendConfig>) => updateConnectionView({
+    legend: { ...connectionView.legend, ...patch },
   });
 
   const openCreate = () => {
@@ -663,7 +889,22 @@ export default function ConnectionsWidget() {
           <button type="button" role="tab" aria-selected={tab === "types"} data-active={tab === "types"} onClick={() => setTab("types")}>TYPES</button>
           <button type="button" role="tab" aria-selected={tab === "connections"} data-active={tab === "connections"} onClick={() => setTab("connections")}>CONNECTIONS</button>
         </div>
-        <div className="relationship-manager-settings">
+        <div className="relationship-manager-actions">
+          <button
+            type="button"
+            className="relationship-manager-legend-trigger"
+            aria-label="Open Relationship Legend"
+            aria-pressed={relationshipLegendOpen}
+            title="Relationship Legend"
+            onClick={() => {
+              openWidget("relationship-legend");
+              setSettingsOpen(false);
+            }}
+          >
+            <ListTree size={13} strokeWidth={1.5} />
+            <span>LEGEND</span>
+          </button>
+          <div className="relationship-manager-settings">
           <button
             type="button"
             className="relationship-manager-settings-trigger"
@@ -732,14 +973,24 @@ export default function ConnectionsWidget() {
             </section>
             <section className="connection-visual-scale-setting" aria-labelledby="connection-interaction-label">
               <span id="connection-interaction-label">INTERACTION</span>
-              <label style={{ display: "grid", gap: 3, color: "var(--ink-soft)", fontSize: 8 }}>
-                <span>Hit tolerance <output>{connectionView.hitTolerance}px</output></span>
-                <input type="range" min="8" max="32" step="1" value={connectionView.hitTolerance} onChange={(event) => updateConnectionView({ hitTolerance: Number(event.target.value) })} />
-              </label>
-              <label style={{ display: "grid", gap: 3, color: "var(--ink-soft)", fontSize: 8 }}>
-                <span>Unrelated fade <output>{connectionView.unrelatedFade.toFixed(2)}</output></span>
-                <input type="range" min="0.28" max="1" step="0.01" value={connectionView.unrelatedFade} onChange={(event) => updateConnectionView({ unrelatedFade: Number(event.target.value) })} />
-              </label>
+              <SliderRow
+                label="Hit tolerance"
+                value={connectionView.hitTolerance}
+                min={8}
+                max={32}
+                step={1}
+                fmt={(value) => `${value}px`}
+                onChange={(hitTolerance) => updateConnectionView({ hitTolerance })}
+              />
+              <SliderRow
+                label="Unrelated fade"
+                value={connectionView.unrelatedFade}
+                min={0.28}
+                max={1}
+                step={0.01}
+                fmt={(value) => value.toFixed(2)}
+                onChange={(unrelatedFade) => updateConnectionView({ unrelatedFade })}
+              />
             </section>
             <section className="connection-visual-scale-setting" aria-labelledby="connection-motion-label">
               <span id="connection-motion-label">MOTION</span>
@@ -754,6 +1005,10 @@ export default function ConnectionsWidget() {
                 ><span>{value === "reduced" ? "Reduced" : "Standard"}</span></button>)}
               </div>
             </section>
+            <RelationshipLegendSettings
+              config={connectionView.legend}
+              onConfigChange={updateLegendConfig}
+            />
             <button type="button" onClick={() => {
               setSettings({ connectionView: resetConnectionSettings(connectionView) });
               setActionMessage("Connection Settings restored.");
@@ -764,6 +1019,7 @@ export default function ConnectionsWidget() {
               setSettingsOpen(false);
             }}><RotateCcw size={11} /> Reset Factory Defaults</button>
           </div>}
+          </div>
         </div>
       </div>
 

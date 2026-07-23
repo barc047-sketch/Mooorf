@@ -14,6 +14,7 @@ import {
   resolveConnectionStyle,
 } from "./styles";
 import { normalizeConnectionCollection } from "./model";
+import { createDefaultRelationshipLegendConfig } from "./relationshipLegend";
 import { useLab } from "../../state/store";
 
 const sourceText = (relativePath: string): string => readFileSync(new URL(relativePath, import.meta.url), "utf8");
@@ -38,6 +39,7 @@ test("Connection settings omit the retired port-layout state and reset to the st
     visible: true,
     focusMode: "all",
     visualScaleMode: "screen",
+    legend: createDefaultRelationshipLegendConfig(),
     defaultTypeId: "custom",
     stayInMode: true,
     selectNew: true,
@@ -64,10 +66,17 @@ test("Connection settings omit the retired port-layout state and reset to the st
   assert.equal(normalized.hitTolerance, CONNECTION_HIT_TOLERANCE_MAX_PX);
   assert.equal(normalized.unrelatedFade, CONNECTION_UNRELATED_FADE_MIN);
   assert.equal(CONNECTION_HIT_TOLERANCE_MIN_PX, 8);
-  assert.deepEqual(resetConnectionSettings({ ...defaults, visible: false, focusMode: "selected-cell" }), {
+  const legend = { ...defaults.legend, density: "large" as const, showCode: true };
+  assert.deepEqual(resetConnectionSettings({
     ...defaults,
     visible: false,
     focusMode: "selected-cell",
+    legend,
+  }), {
+    ...defaults,
+    visible: false,
+    focusMode: "selected-cell",
+    legend,
   });
   assert.equal(resolveConnectionFocusOpacity("focused", 0.28), 1);
   assert.equal(resolveConnectionFocusOpacity("related", 0.28), 0.82);

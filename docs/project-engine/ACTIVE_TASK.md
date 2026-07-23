@@ -1,22 +1,31 @@
 # Active Task
 
-## R5 WHOLE-CELL CONNECTION AUTHORING
+## R5.5 FINAL EDITORIAL LEGEND SETTINGS UX PASS
 
-Status: LOCAL UNCOMMITTED / AUTOMATED CHECKS PASSED / PREVIEW AVAILABLE / WAITING OWNER QA
+Status: LOCAL UNCOMMITTED / FINAL SETTINGS UX PASS APPLIED / AUTOMATED CHECKS PASSED / PREVIEW AVAILABLE / WAITING OWNER QA
 
 - branch: `work/next-feature`;
-- starting R4B checkpoint: `5cf601b97eefb4201617299c68c27f7da6190f5f`; remote feature HEAD intentionally remains `e9f9219524e2f4721670151340456a7e92bfab77`;
-- visible V1 authoring ports and the project `portLayout` setting are removed;
-- the complete existing visible Cell hit body is the source and target surface during `C` mode, with restrained source/valid-target outlines and no valid highlight for invalid Cells;
-- every newly authored Connection writes canonical `auto` start/end anchors, while legacy explicit side anchors remain readable and editable;
-- the sole Connection Settings surface retains Visual Scale, dynamic Default Type, Stay in mode, Select new, Edge auto-pan, hit tolerance, unrelated fade, Reduced/Standard motion and bounded reset;
-- Custom now defaults to a gentle curved `3px` solid at authored opacity `0.82`; explicit `0.5–64px` styles and all factory/project Type styles remain independent;
-- focus defaults are selected `1.00`, related `0.82`, unrelated `0.55`, with unrelated fade still adjustable down to `0.28`;
-- authoring retains one creation transaction, current Inspector priority and the existing bounded camera scheduler;
-- 144/144 affected contracts, TypeScript and tracked/untracked whitespace checks pass;
+- starting Owner-accepted R5 checkpoint: `833ca108b14bdaa474be39fead710136bf211ab5`; remote feature HEAD intentionally remains `e9f9219524e2f4721670151340456a7e92bfab77`;
+- Relationship Manager owns one `LEGEND` action beside Settings; it opens or focuses one independent registry-hosted `RELATIONSHIPS` frame and never replaces the Manager's `TYPES` or `CONNECTIONS` content;
+- the Manager retains its accepted `40vw × 78vh`, `44vw × 85vh` bounded geometry and remains usable while the detached Legend is open;
+- the Legend is frameless and independently movable, minimizable, closable and resizable on both axes from thin vertical to wide shallow compositions; only tiny vertically stacked top-right controls remain and the invisible outer-shell drag region reuses WidgetFrame;
+- the Legend’s vertical resize floor derives from a shallow current-width projection plus actual frame border/control clearance, so the historical workspace `180px` minimum, prior growth and empty-state content never reserve obsolete height; no-scroll growth remains bounded and one-way only;
+- `src/domain/connections/relationshipLegend.ts` is the React-free export-ready projector from canonical Types, canonical Connection usage, resolved styles, semantic config and width/height into items, grid placement and bounds;
+- `settings.connectionView.legend` is the single normalized config owner for layout mode, rows, density, specimen length/weight, Text Width `80–320px`, text alignment, semantic text X/Y placement, scope and content toggles; all controls live in compact `LEGEND SETTINGS` inside Manager Settings, while the detached output contains no toolbar;
+- the floating frame's x/y/width/height are session-only workspace UI state outside project persistence, Relationship Type data and history;
+- Auto, Horizontal and Vertical are the exact layout modes; Horizontal fills down with four rows by default, Vertical fills across, and Auto responds deterministically to available width and height;
+- All Active is default, archived Types are excluded, Used Only derives from canonical Connections, and stable Manager order remains independent of authoring MRU;
+- Compact/Standard/Large density now creates materially tighter technical-drawing rhythm; Short/Standard/Long controls specimen extent independently, and Style/Name/Code/Description allocates no disabled secondary baseline;
+- Legible weight applies only a preview minimum to thin Legend samples, while True preserves authored width; canonical Type/Connection style, Canvas rendering, clipboard and history remain unchanged;
+- Long Dash, Dash-Dot-Dot, Sparse Dot and Centerline extend the one registry as parameter-driven base families; Pattern Scale controls spacing/repetition and no loose/dense duplicate families were added;
+- the shared adaptive style specimen renders resolved advanced patterns, Hash/Hatch distinction, markers, width, color and opacity without X-stretching or Canvas-camera coupling;
+- `LEGEND SETTINGS` now uses the actual shared `.glass` Morph-glass primitive rather than a local background approximation; icon-first segments, visual specimen-length marks, a numeric Text Width field and compact content toggles preserve the existing control language; Relationship Manager ranges continue to reuse `SliderRow`/`org-slider` rather than native browser styling;
+- Text Width participates in the pure Legend grid's readable width/reflow; Text Align, X and Y placement update the detached output immediately through semantic config without per-Type coordinates, item dragging, extra row height or history;
+- the pure projection is ready for future Sheet and authored export consumers, but no Sheet placement, PNG/SVG/PDF/presentation export, Matrix or DOM-scraping path was added;
+- 23 affected final-settings contracts pass, covering shared Morph glass, visual controls, semantic Text Width/alignment/placement normalization and reflow, no phantom height, no-scroll growth, frameless controls and shared slider reuse; exact TypeScript, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check pass;
 - `http://127.0.0.1:5173/` serves the current worktree for Owner QA;
-- no browser automation, production build, commit, push, merge, export, Matrix/Table projection, Classic, renderer rewrite or dependency work occurred.
+- no browser automation, production build, commit, push, merge, actual export, Sheet placement, Matrix, Classic, renderer rewrite or dependency work occurred.
 
 Next safe action:
 
-Owner visual and interaction QA for revised R5. Finalization, commit, push, merge and branch cleanup each require separate explicit authority.
+Owner visual, resize and interaction QA for the final R5.5 Legend Settings pass. Finalization, commit, push, merge and branch cleanup each require separate explicit authority.

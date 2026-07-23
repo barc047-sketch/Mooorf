@@ -11,7 +11,11 @@ import { Minus, X, type LucideIcon } from "lucide-react";
 import { useLab } from "../../state/store";
 import type { WidgetId } from "../../types";
 import { resolveWidgetGeometryStyle, type WidgetGeometry } from "../panels/widgetRegistry";
-import { clampWidgetOffset } from "./widgetLifecycle";
+import {
+  clampWidgetOffset,
+  getRememberedWidgetFrameSize,
+  rememberWidgetFrameSize,
+} from "./widgetLifecycle";
 import "./widgets.css";
 
 const SNAP_PX = 22; // magnetic: near-home drops tidy back into the stack
@@ -68,9 +72,11 @@ export default function WidgetFrame({
   const frameRef = useRef<HTMLElement>(null);
   const drag = useRef({ on: false, sx: 0, sy: 0, bx: 0, by: 0 });
   const offset = useRef(offsetMemory.get(id) ?? { dx: 0, dy: 0 });
+  const rememberedSize = useRef(getRememberedWidgetFrameSize(id));
   const mountedScale = useRef(scale);
   const geometryStyle = resolveWidgetGeometryStyle(geometry, scale);
   const frameTop = 72 + index * 42;
+  const frameless = id === "relationship-legend";
 
   const applyOffset = (dx: number, dy: number, animate = false) => {
     const el = frameRef.current;
@@ -161,6 +167,29 @@ export default function WidgetFrame({
     if (dx !== offset.current.dx || dy !== offset.current.dy) applyOffset(dx, dy, true);
   }, [launchRevision, minimized]);
 
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el || minimized || geometry.variant !== "workspace" || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      const rect = el.getBoundingClientRect();
+      rememberWidgetFrameSize(id, el.offsetWidth, el.offsetHeight);
+      const visible = clampWidgetOffset({
+        x: rect.left,
+        y: rect.top,
+        frameWidth: rect.width,
+        frameHeight: rect.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        margin: 12,
+      });
+      const dx = offset.current.dx + visible.x - rect.left;
+      const dy = offset.current.dy + visible.y - rect.top;
+      if (dx !== offset.current.dx || dy !== offset.current.dy) applyOffset(dx, dy);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [geometry.variant, id, minimized]);
+
   return (
     <motion.section
       ref={frameRef}
@@ -173,10 +202,11 @@ export default function WidgetFrame({
       data-depth={focused ? "front" : "back"}
       data-glass-ready="true"
       data-min={minimized ? "true" : undefined}
+      data-frameless={frameless ? "true" : undefined}
       style={{
-        width: geometryStyle.width,
+        width: rememberedSize.current?.width ?? geometryStyle.width,
         minWidth: geometryStyle.minWidth,
-        height: geometryStyle.height,
+        height: rememberedSize.current?.height ?? geometryStyle.height,
         minHeight: geometryStyle.minHeight,
         "--wframe-authored-max-height": geometryStyle.authoredMaxHeight,
         "--wframe-workspace-min-height": geometryStyle.workspaceMinHeight,
@@ -193,7 +223,35 @@ export default function WidgetFrame({
       transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
       onPointerDownCapture={() => focusWidget(id)}
     >
-      <header
+      {frameless ? <>
+        <div
+          className="wframe-frameless-drag-region"
+          aria-hidden="true"
+          onPointerDown={onHeadDown}
+          onPointerMove={onHeadMove}
+          onPointerUp={onHeadUp}
+          onPointerCancel={onHeadUp}
+        />
+        <div className="wframe-frameless-controls" data-widget-no-drag="true">
+          <button
+            type="button"
+            className="wframe-btn"
+            aria-label={minimized ? `Expand ${title}` : `Minimize ${title}`}
+            aria-expanded={!minimized}
+            onClick={() => setWidgetMinimized(id, !minimized)}
+          >
+            <Minus size={10} strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
+            className="wframe-btn"
+            aria-label={`Close ${title}`}
+            onClick={() => closeWidget(id)}
+          >
+            <X size={10} strokeWidth={1.5} />
+          </button>
+        </div>
+      </> : <header
         className="wframe-head"
         onPointerDown={onHeadDown}
         onPointerMove={onHeadMove}
@@ -229,8 +287,8 @@ export default function WidgetFrame({
         >
           <X size={12} strokeWidth={1.6} />
         </button>
-      </header>
-      {!minimized && <div className="wframe-body">{children}</div>}
+      </header>}
+      {!minimized && <div className="wframe-body" data-widget-no-drag="true">{children}</div>}
       {!minimized && footer && <footer className="wframe-foot">{footer}</footer>}
     </motion.section>
   );

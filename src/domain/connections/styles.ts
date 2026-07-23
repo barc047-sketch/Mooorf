@@ -27,6 +27,11 @@ import {
   resolveConnectionAnnotation,
   resolveConnectionAnnotationPresentation,
 } from "./annotations";
+import {
+  createDefaultRelationshipLegendConfig,
+  normalizeRelationshipLegendConfig,
+  type RelationshipLegendConfig,
+} from "./relationshipLegend";
 
 export interface ResolvedConnectionAppearance {
   color: string;
@@ -109,6 +114,8 @@ export interface ConnectionViewSettings {
   visible: boolean;
   focusMode: ConnectionFocusMode;
   visualScaleMode: ConnectionVisualScaleMode;
+  /** Reusable Manager/Sheet/export Legend composition; never item coordinates. */
+  legend: RelationshipLegendConfig;
   defaultTypeId: ConnectionSemanticTypeId;
   stayInMode: boolean;
   selectNew: boolean;
@@ -594,6 +601,7 @@ export const createDefaultConnectionViewSettings = (): ConnectionViewSettings =>
   visible: true,
   focusMode: "all",
   visualScaleMode: "screen",
+  legend: createDefaultRelationshipLegendConfig(),
   defaultTypeId: "custom",
   stayInMode: true,
   selectNew: true,
@@ -617,6 +625,7 @@ export const normalizeConnectionViewSettings = (value: unknown): ConnectionViewS
     visible: typeof value.visible === "boolean" ? value.visible : true,
     focusMode: oneOf<ConnectionFocusMode>(value.focusMode, ["all", "selected-cell", "selected-connections"], "all"),
     visualScaleMode: oneOf<ConnectionVisualScaleMode>(value.visualScaleMode, ["screen", "canvas"], "screen"),
+    legend: normalizeRelationshipLegendConfig(value.legend),
     defaultTypeId: normalizeConnectionTypePreference(value.defaultTypeId),
     stayInMode: typeof value.stayInMode === "boolean" ? value.stayInMode : true,
     selectNew: typeof value.selectNew === "boolean" ? value.selectNew : true,
@@ -633,6 +642,7 @@ export const resetConnectionSettings = (value: ConnectionViewSettings): Connecti
   ...createDefaultConnectionViewSettings(),
   visible: value.visible,
   focusMode: value.focusMode,
+  legend: normalizeRelationshipLegendConfig(value.legend),
 });
 
 export const resolveConnectionFocusOpacity = (

@@ -10,7 +10,7 @@ const equal = (actual: unknown, expected: unknown, message: string) => {
 type LifecycleStore = ReturnType<typeof useLab.getState> & {
   minimizedWidgets?: string[];
   widgetLaunchRevisions?: Partial<Record<string, number>>;
-  setWidgetMinimized?: (id: "palette" | "export" | "inspector" | "label-studio" | "membrane-settings", minimized: boolean) => void;
+  setWidgetMinimized?: (id: "palette" | "export" | "inspector" | "label-studio" | "membrane-settings" | "relationship-legend", minimized: boolean) => void;
 };
 
 useLab.setState({
@@ -77,6 +77,39 @@ const restoredPalette = useLab.getState() as LifecycleStore;
 equal(restoredPalette.openWidgets[restoredPalette.openWidgets.length - 1], "palette", "generic lifecycle also focuses a non-Inspector widget");
 equal(restoredPalette.minimizedWidgets?.includes("palette"), false, "generic lifecycle expands a non-Inspector widget");
 
+const historyBeforeLegend = useLab.getState().transformUndoStack.length;
+useLab.getState().openWidget("connections");
+useLab.getState().openWidget("relationship-legend");
+equal(
+  useLab.getState().openWidgets.slice(-2).join(","),
+  "connections,relationship-legend",
+  "Relationship Manager launches one independent Legend frame",
+);
+useLab.getState().closeWidget("connections");
+equal(
+  useLab.getState().openWidgets.includes("relationship-legend"),
+  true,
+  "closing Relationship Manager leaves the detached Legend mounted",
+);
+(useLab.getState() as LifecycleStore).setWidgetMinimized?.("relationship-legend", true);
+useLab.getState().openWidget("relationship-legend");
+equal(
+  useLab.getState().openWidgets.filter((id) => id === "relationship-legend").length,
+  1,
+  "reopening the Legend focuses and expands its existing frame without duplication",
+);
+useLab.getState().closeWidget("relationship-legend");
+equal(
+  useLab.getState().openWidgets.includes("relationship-legend"),
+  false,
+  "the detached Legend closes independently",
+);
+equal(
+  useLab.getState().transformUndoStack.length,
+  historyBeforeLegend,
+  "Legend window lifecycle never enters canonical project history",
+);
+
 const clampWidgetOffset = (lifecycle as Record<string, unknown>).clampWidgetOffset as ((input: {
   x: number;
   y: number;
@@ -98,6 +131,55 @@ const recovered = clampWidgetOffset?.({
 });
 equal(recovered?.x, 908, "unreachable horizontal offset returns inside the viewport");
 equal(recovered?.y, 268, "unreachable vertical offset returns inside the viewport");
+
+const rememberWidgetFrameSize = (lifecycle as Record<string, unknown>).rememberWidgetFrameSize as
+  ((id: "relationship-legend", width: number, height: number) => void) | undefined;
+const getRememberedWidgetFrameSize = (lifecycle as Record<string, unknown>).getRememberedWidgetFrameSize as
+  ((id: "relationship-legend") => { width: number; height: number } | undefined) | undefined;
+equal(typeof rememberWidgetFrameSize, "function", "widget lifecycle exposes session-only frame size memory");
+equal(typeof getRememberedWidgetFrameSize, "function", "widget lifecycle reads session-only frame size memory");
+rememberWidgetFrameSize?.("relationship-legend", 736.4, 284.6);
+equal(
+  JSON.stringify(getRememberedWidgetFrameSize?.("relationship-legend")),
+  JSON.stringify({ width: 736, height: 285 }),
+  "detached Legend remembers both resized axes for the session",
+);
+equal(
+  useLab.getState().transformUndoStack.length,
+  historyBeforeLegend,
+  "session frame size memory remains outside canonical history",
+);
+
+const resolveWidgetGrowthSize = (lifecycle as Record<string, unknown>).resolveWidgetGrowthSize as
+  ((input: {
+    currentWidth: number;
+    currentHeight: number;
+    requiredWidth: number;
+    requiredHeight: number;
+    viewportWidth: number;
+    viewportHeight: number;
+    minimumWidth: number;
+    minimumHeight: number;
+    horizontalMargin: number;
+    verticalMargin: number;
+  }) => { width: number; height: number }) | undefined;
+equal(typeof resolveWidgetGrowthSize, "function", "widget lifecycle exposes deterministic bounded content growth");
+equal(
+  JSON.stringify(resolveWidgetGrowthSize?.({
+    currentWidth: 420,
+    currentHeight: 240,
+    requiredWidth: 1800,
+    requiredHeight: 1200,
+    viewportWidth: 1280,
+    viewportHeight: 800,
+    minimumWidth: 260,
+    minimumHeight: 180,
+    horizontalMargin: 24,
+    verticalMargin: 96,
+  })),
+  JSON.stringify({ width: 1256, height: 704 }),
+  "impossible Legend fit grows to, but never beyond, viewport bounds",
+);
 
 const dock = readFileSync(new URL("../Dock.tsx", import.meta.url), "utf8");
 assert.match(dock, /onClick=\{\(\) => openWidget\("label-studio"\)\}/, "Dock directly launches Label Studio");

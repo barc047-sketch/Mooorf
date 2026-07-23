@@ -44,6 +44,67 @@
   );
 }
 
+.wframe[data-widget="relationship-legend"] {
+  resize: both;
+  border-radius: 7px;
+  /* The generic workspace registry floor is for normal titled workspaces.
+     This frameless output computes its own current, reflow-aware floor. */
+  min-height: var(--relationship-legend-min-height, 0px);
+  overflow: hidden;
+}
+
+.wframe[data-widget="relationship-legend"] .wframe-body {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.wframe[data-widget="relationship-legend"][data-frameless="true"] {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 16%, transparent), transparent 34%),
+    var(--wframe-surface);
+  border-color: color-mix(in srgb, var(--glass-border) 76%, transparent);
+}
+
+.wframe[data-widget="relationship-legend"][data-min="true"] {
+  width: 28px !important;
+  height: 49px !important;
+  min-width: 28px !important;
+  min-height: 49px !important;
+  resize: none;
+}
+
+.wframe-frameless-drag-region {
+  position: absolute;
+  inset: 0 28px auto 0;
+  z-index: 2;
+  height: 11px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.wframe[data-dragging="true"] .wframe-frameless-drag-region { cursor: grabbing; }
+
+.wframe-frameless-controls {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.wframe-frameless-controls .wframe-btn {
+  width: 19px;
+  height: 19px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--glass-panel-strong) 68%, transparent);
+  border-color: color-mix(in srgb, var(--hairline) 42%, transparent);
+}
+
 .wframe[data-depth="back"] {
   --wframe-surface: var(--glass-panel-soft);
   border-color: color-mix(in srgb, var(--glass-border) 56%, transparent);
@@ -279,7 +340,11 @@
 .relationship-manager-tabs { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 8px; background: color-mix(in srgb, var(--glass-dark) 24%, transparent); }
 .relationship-manager-tabs button { min-width: 88px; height: 30px; padding: 0 13px; border: 0; border-radius: 6px; background: transparent; color: var(--fog); font: inherit; font-size: 8px; font-weight: 680; letter-spacing: .11em; cursor: pointer; }
 .relationship-manager-tabs button[data-active="true"] { color: var(--ink); background: color-mix(in srgb, var(--glass-light) 66%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--hairline) 48%, transparent); }
+.relationship-manager-actions { display: flex; align-items: center; gap: 5px; }
 .relationship-manager-settings { position: relative; }
+.relationship-manager-legend-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 5px; height: 29px; padding: 0 9px; border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 28%, transparent); color: var(--fog); font: inherit; font-size: 7.5px; font-weight: 680; letter-spacing: .09em; cursor: pointer; }
+.relationship-manager-legend-trigger:hover { color: var(--ink); background: color-mix(in srgb, var(--glass-light) 46%, transparent); }
+.relationship-manager-legend-trigger[aria-pressed="true"] { border-color: color-mix(in srgb, var(--chrome-accent) 38%, var(--hairline)); background: color-mix(in srgb, var(--chrome-accent) 9%, var(--glass-light)); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glass-highlight) 24%, transparent); }
 .relationship-manager-settings-trigger { display: grid; place-items: center; width: 29px; height: 29px; padding: 0; border: 1px solid color-mix(in srgb, var(--hairline) 52%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 32%, transparent); color: var(--fog); cursor: pointer; }
 .relationship-manager-settings-trigger[aria-expanded="true"] { color: var(--ink); background: color-mix(in srgb, var(--glass-light) 62%, transparent); }
 .relationship-manager-settings-menu { position: absolute; top: 35px; right: 0; z-index: 2; width: 258px; padding: 8px; border: 1px solid color-mix(in srgb, var(--glass-border) 70%, transparent); border-radius: 8px; background: var(--glass-panel-strong); }
@@ -287,7 +352,8 @@
 .relationship-manager-settings-menu button:hover { background: color-mix(in srgb, var(--glass-light) 52%, transparent); color: var(--ink); }
 .relationship-manager-settings-menu p { margin: 5px 8px 3px; color: var(--fog); font-size: 7.5px; line-height: 1.35; }
 .connection-settings-title { display: block; margin: 2px 4px 8px; color: var(--ink); font-size: 8px; font-weight: 700; letter-spacing: .1em; }
-.connection-visual-scale-setting { display: grid; gap: 5px; margin-bottom: 7px; padding: 7px; border: 1px solid color-mix(in srgb, var(--hairline) 46%, transparent); border-radius: 7px; background: color-mix(in srgb, var(--glass-light) 22%, transparent); }
+.connection-visual-scale-setting { display: grid; gap: 5px; margin-bottom: 7px; padding: 7px; border-radius: 7px; }
+.connection-visual-scale-setting:not(.glass) { border: 1px solid color-mix(in srgb, var(--hairline) 46%, transparent); background: color-mix(in srgb, var(--glass-light) 22%, transparent); }
 .connection-visual-scale-setting > span { color: var(--fog); font-size: 7px; font-weight: 680; letter-spacing: .1em; }
 .connection-visual-scale-options { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
 .relationship-manager-settings-menu .connection-visual-scale-options button { min-height: 43px; justify-content: center; flex-direction: column; gap: 3px; padding: 5px 4px; border: 1px solid transparent; text-align: center; line-height: 1.15; }
@@ -346,6 +412,75 @@
 .relationship-type-retirement > div { display: flex; justify-content: flex-end; gap: 5px; }
 .relationship-manager-error { margin: 0; color: var(--ink); font-size: 8px; line-height: 1.35; }
 .relationship-manager-empty { margin: auto; padding: 24px; color: var(--fog); font-size: 9px; text-align: center; }
+.relationship-legend-settings.glass { position: relative; isolation: isolate; overflow: hidden; gap: 7px; }
+.relationship-legend-settings.glass > * { position: relative; z-index: 1; }
+.relationship-legend-setting-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 8px; }
+.relationship-legend-setting-scope { order: 1; }
+.relationship-legend-setting-layout { order: 2; }
+.relationship-legend-setting-density { order: 3; }
+.relationship-legend-setting-length { order: 4; }
+.relationship-legend-setting-weight { order: 5; }
+.relationship-legend-setting-text-width { order: 6; }
+.relationship-legend-setting-text-align { order: 7; }
+.relationship-legend-setting-placement-x { order: 8; }
+.relationship-legend-setting-placement-y { order: 9; }
+.relationship-legend-setting-content { order: 10; grid-column: 1 / -1; }
+.relationship-legend-setting-rows { order: 11; grid-column: 1 / -1; }
+.relationship-legend-setting-grid fieldset { display: grid; gap: 4px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.relationship-legend-setting-grid legend { padding: 0; color: var(--fog); font-size: 7px; letter-spacing: .06em; }
+.relationship-legend-icon-segments,
+.relationship-legend-text-segments,
+.relationship-legend-density-segments,
+.relationship-legend-length-segments { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.relationship-manager-settings-menu .relationship-legend-setting-grid button { display: inline-flex; width: auto; min-width: 27px; min-height: 24px; align-items: center; justify-content: center; padding: 0 6px; border: 1px solid color-mix(in srgb, var(--hairline) 46%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--glass-dark) 16%, transparent); color: var(--fog); font-size: 7px; line-height: 1; text-align: center; }
+.relationship-manager-settings-menu .relationship-legend-setting-grid button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--ink-soft) 46%, var(--hairline)); background: color-mix(in srgb, var(--glass-light) 50%, transparent); color: var(--ink); }
+.relationship-manager-settings-menu .relationship-legend-setting-grid button[data-active="true"] { border-color: color-mix(in srgb, var(--chrome-accent) 44%, var(--hairline)); background: color-mix(in srgb, var(--glass-light) 68%, transparent); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--glass-highlight) 30%, transparent); }
+.relationship-manager-settings-menu .relationship-legend-setting-grid button:focus-visible { outline: 1px solid color-mix(in srgb, var(--chrome-accent) 72%, var(--hairline)); outline-offset: 1px; }
+.relationship-manager-settings-menu .relationship-legend-setting-grid button:disabled { cursor: default; opacity: .38; }
+.relationship-legend-density-icon { display: grid; width: 14px; gap: 2px; }
+.relationship-legend-density-icon i { display: block; height: 1px; border-radius: 1px; background: currentColor; }
+.relationship-legend-density-icon[data-density="compact"] { gap: 1px; }
+.relationship-legend-density-icon[data-density="large"] { gap: 3px; }
+.relationship-legend-length-sample { display: block; width: 11px; height: 1px; border-radius: 1px; background: currentColor; }
+.relationship-legend-length-sample[data-length="standard"] { width: 17px; }
+.relationship-legend-length-sample[data-length="long"] { width: 23px; }
+.relationship-legend-text-width-field { display: flex; align-items: center; gap: 4px; min-height: 24px; padding: 0 6px; border: 1px solid color-mix(in srgb, var(--hairline) 46%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--glass-dark) 16%, transparent); color: var(--fog); }
+.relationship-legend-text-width-field:focus-within { border-color: color-mix(in srgb, var(--chrome-accent) 56%, var(--hairline)); }
+.relationship-legend-text-width-field input { width: 36px; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; color: var(--ink); font: 600 8px/1 var(--font-mono); }
+.relationship-legend-text-width-field span { font: 7px/1 var(--font-mono); }
+.relationship-legend-output { display: flex; flex: 1; min-width: 0; min-height: 0; }
+.relationship-legend-canvas { flex: 1; min-width: 0; min-height: 0; overflow: hidden; padding: 8px 28px 8px 8px; background: transparent; }
+.relationship-legend-canvas[data-density="compact"] { padding-block: 6px; padding-left: 6px; }
+.relationship-legend-canvas[data-density="large"] { padding-block: 10px; padding-left: 10px; }
+.relationship-legend-grid { display: grid; align-content: start; justify-content: start; }
+.relationship-legend-item { --relationship-legend-item-gap: 7px; display: grid; grid-template-columns: minmax(70px, 1fr) minmax(80px, var(--relationship-legend-text-width)); align-items: center; gap: var(--relationship-legend-item-gap); min-width: 0; padding: 0; color: var(--ink); }
+.relationship-legend-item:not([data-style="true"]) { grid-template-columns: minmax(0, 1fr); }
+.relationship-legend-canvas[data-density="compact"] .relationship-legend-item { --relationship-legend-item-gap: 5px; }
+.relationship-legend-canvas[data-density="large"] .relationship-legend-item { --relationship-legend-item-gap: 9px; }
+.relationship-legend-canvas .relationship-legend-item:not([data-style="true"]) { grid-template-columns: minmax(0, 1fr); }
+.relationship-legend-canvas[data-text-placement-x="left"] .relationship-legend-item[data-style="true"] { grid-template-columns: minmax(80px, var(--relationship-legend-text-width)) minmax(70px, 1fr); }
+.relationship-legend-canvas[data-text-placement-x="left"] .relationship-legend-copy { order: 1; justify-self: start; }
+.relationship-legend-canvas[data-text-placement-x="left"] .relationship-legend-specimen { order: 2; }
+.relationship-legend-canvas[data-text-placement-x="center"] .relationship-legend-copy { justify-self: center; }
+.relationship-legend-canvas[data-text-placement-x="right"] .relationship-legend-copy { justify-self: end; }
+.relationship-legend-specimen { display: flex; min-width: 0; align-items: center; }
+.relationship-legend-specimen .relationship-type-preview { width: 100%; min-width: 0; max-width: none; height: 20px; overflow: visible; }
+.relationship-legend-copy { display: flex; width: min(var(--relationship-legend-text-width), 100%); min-width: 0; flex-direction: column; justify-content: center; gap: 1px; }
+.relationship-legend-canvas[data-text-align="left"] .relationship-legend-copy { align-items: flex-start; text-align: left; }
+.relationship-legend-canvas[data-text-align="center"] .relationship-legend-copy { align-items: center; text-align: center; }
+.relationship-legend-canvas[data-text-align="right"] .relationship-legend-copy { align-items: flex-end; text-align: right; }
+.relationship-legend-canvas[data-text-placement-y="top"] .relationship-legend-copy { align-self: start; }
+.relationship-legend-canvas[data-text-placement-y="middle"] .relationship-legend-copy { align-self: center; }
+.relationship-legend-canvas[data-text-placement-y="bottom"] .relationship-legend-copy { align-self: end; }
+.relationship-legend-copy strong { overflow: hidden; color: var(--ink); font-size: 9px; font-weight: 640; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+.relationship-legend-copy code { overflow: hidden; color: var(--fog); font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 6.8px; letter-spacing: .08em; text-overflow: ellipsis; white-space: nowrap; }
+.relationship-legend-copy p { display: -webkit-box; overflow: hidden; max-width: 100%; margin: 1px 0 0; color: var(--ink-soft); font-size: 7px; line-height: 1.22; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.relationship-legend-canvas[data-density="compact"] .relationship-legend-copy strong { font-size: 8.5px; }
+.relationship-legend-canvas[data-density="large"] .relationship-legend-copy strong { font-size: 10px; }
+.relationship-legend-canvas[data-density="large"] .relationship-legend-copy p { font-size: 7.5px; }
+.relationship-legend-empty { display: flex; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px; color: var(--fog); text-align: center; }
+.relationship-legend-empty strong { color: var(--ink-soft); font-size: 10px; font-weight: 620; }
+.relationship-legend-empty span { max-width: 320px; font-size: 8px; line-height: 1.4; }
 .relationship-manager-placeholder { display: grid; flex: 1; min-height: 0; place-items: center; border: 1px solid color-mix(in srgb, var(--hairline) 42%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--glass-panel) 32%, transparent); text-align: center; }
 .relationship-manager-placeholder > div { max-width: 280px; padding: 28px; }
 .relationship-manager-placeholder span { color: var(--fog); font-size: 7px; font-weight: 670; letter-spacing: .13em; }

@@ -26,6 +26,7 @@ import InstrumentLauncher from "./stats/InstrumentLauncher";
 import { getWidgetDefinition } from "../panels/widgetRegistry";
 import InspectorWidget from "./InspectorWidget";
 import ConnectionsWidget from "./ConnectionsWidget";
+import RelationshipLegendWidget from "./RelationshipLegendWidget";
 import ConnectionStudioWidget from "./ConnectionStudioWidget";
 import { isConnectionAuthoringActive } from "../../domain/connections/model";
 import { isConnectionShortcutEditingTarget } from "../../interaction/connectionShortcut";
@@ -48,6 +49,7 @@ const WIDGET_BODIES: Record<WidgetId, () => React.ReactNode> = {
   display: () => <DisplayWidget />,
   "label-studio": () => <LabelStudioWidget />,
   connections: () => <ConnectionsWidget />,
+  "relationship-legend": () => <RelationshipLegendWidget />,
   "connection-studio": () => <ConnectionStudioWidget />,
   advanced: () => <AdvancedWidget />,
   stats: () => <ProjectPulseWidget />,

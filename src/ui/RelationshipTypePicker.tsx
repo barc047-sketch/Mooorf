@@ -116,16 +116,18 @@ const subscribeToRelationshipTypeMRU = (listener: () => void) => {
 
 const useAdaptiveSpecimenLength = (
   compact: boolean,
+  lengthRange?: readonly [number, number],
 ): { length: number; ref: RefObject<SVGSVGElement | null> } => {
   const ref = useRef<SVGSVGElement>(null);
-  const [length, setLength] = useState(compact ? 132 : 180);
+  const minimum = lengthRange?.[0] ?? (compact ? 105 : 145);
+  const maximum = lengthRange?.[1] ?? (compact ? 165 : 240);
+  const [length, setLength] = useState(() => Math.round((minimum + maximum) / 2));
   useLayoutEffect(() => {
     const specimen = ref.current;
     if (!specimen) return;
-    const limits = compact ? [105, 165] : [145, 240];
     const measure = () => {
       const measured = Math.round(specimen.getBoundingClientRect().width);
-      const bounded = Math.max(limits[0]!, Math.min(limits[1]!, measured || length));
+      const bounded = Math.max(minimum, Math.min(maximum, measured || length));
       setLength((current) => current === bounded ? current : bounded);
     };
     measure();
@@ -133,39 +135,50 @@ const useAdaptiveSpecimenLength = (
     const observer = new ResizeObserver(measure);
     observer.observe(specimen);
     return () => observer.disconnect();
-  }, [compact, length]);
+  }, [length, maximum, minimum]);
   return { length, ref };
 };
 
-const previewCenterline = (geometryId: string, length: number): ConnectionStrokeCenterline => {
+const previewCenterline = (
+  geometryId: string,
+  length: number,
+  height = 30,
+): ConnectionStrokeCenterline => {
   const start = 7;
   const end = Math.max(start + 1, length - 7);
   const span = end - start;
+  const middle = height / 2;
+  const upper = Math.max(1, height * .08);
+  const lower = Math.max(upper + 1, height * .92);
   if (geometryId === "curved") return {
     kind: "bezier",
     points: [
-      { x: start, y: 15 },
-      { x: start + span * 0.26, y: 2 },
-      { x: start + span * 0.72, y: 28 },
-      { x: end, y: 15 },
+      { x: start, y: middle },
+      { x: start + span * 0.26, y: upper },
+      { x: start + span * 0.72, y: lower },
+      { x: end, y: middle },
     ],
   };
   if (geometryId === "orthogonal") return {
     kind: "polyline",
     points: [
-      { x: start, y: 15 },
-      { x: start + span * 0.36, y: 15 },
-      { x: start + span * 0.36, y: 7 },
-      { x: start + span * 0.66, y: 7 },
-      { x: start + span * 0.66, y: 15 },
-      { x: end, y: 15 },
+      { x: start, y: middle },
+      { x: start + span * 0.36, y: middle },
+      { x: start + span * 0.36, y: height * .24 },
+      { x: start + span * 0.66, y: height * .24 },
+      { x: start + span * 0.66, y: middle },
+      { x: end, y: middle },
     ],
   };
   if (geometryId === "elbow") return {
     kind: "polyline",
-    points: [{ x: start, y: 15 }, { x: start + span * 0.42, y: 7 }, { x: end, y: 15 }],
+    points: [
+      { x: start, y: middle },
+      { x: start + span * 0.42, y: height * .24 },
+      { x: end, y: middle },
+    ],
   };
-  return { kind: "line", points: [{ x: start, y: 15 }, { x: end, y: 15 }] };
+  return { kind: "line", points: [{ x: start, y: middle }, { x: end, y: middle }] };
 };
 
 const pointsPath = (points: readonly ConnectionStrokePoint[]): string => points.length
@@ -184,11 +197,13 @@ function ConnectionStrokePreviewPaths({
   centerline,
   markerEnd,
   markerStart,
+  previewMinimumStrokeWidth,
   style,
 }: {
   centerline: ConnectionStrokeCenterline;
   markerEnd?: string;
   markerStart?: string;
+  previewMinimumStrokeWidth?: number;
   style: ResolvedConnectionStyle;
 }) {
   const definition = resolveConnectionStrokePattern(style.strokePatternId);
@@ -197,7 +212,10 @@ function ConnectionStrokePreviewPaths({
     stroke: style.appearance.color,
     strokeLinecap: style.lineCap,
     strokeLinejoin: style.lineJoin,
-    strokeWidth: Math.max(0.5, Math.min(64, style.appearance.width)),
+    strokeWidth: Math.max(
+      previewMinimumStrokeWidth ?? 0.5,
+      Math.min(64, style.appearance.width),
+    ),
     opacity: style.appearance.opacity,
     vectorEffect: "non-scaling-stroke" as const,
   };
@@ -318,12 +336,18 @@ export function ConnectionMarkerSpecimen({
 
 export function RelationshipTypeStylePreview({
   compact = false,
+  lengthRange,
+  previewMinimumStrokeWidth,
+  specimenHeight = 30,
   type,
 }: {
   compact?: boolean;
+  lengthRange?: readonly [number, number];
+  previewMinimumStrokeWidth?: number;
+  specimenHeight?: number;
   type: RelationshipTypePickerOption;
 }) {
-  const { length, ref } = useAdaptiveSpecimenLength(compact);
+  const { length, ref } = useAdaptiveSpecimenLength(compact, lengthRange);
   const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, "-");
   const style = type.visualDefaults;
   const markerKey = `${type.id}-${instanceId}`.replace(/[^a-zA-Z0-9_-]/g, "-");
@@ -336,7 +360,7 @@ export function RelationshipTypeStylePreview({
     <svg
       ref={ref}
       className={`relationship-type-preview${compact ? " connection-quick-type-preview" : ""}`}
-      viewBox={`0 0 ${length} 30`}
+      viewBox={`0 0 ${length} ${specimenHeight}`}
       role={compact ? undefined : "img"}
       aria-hidden={compact || undefined}
       aria-label={compact ? undefined : `${type.name} resolved style preview`}
@@ -356,7 +380,8 @@ export function RelationshipTypeStylePreview({
         </marker>}
       </defs>
       <ConnectionStrokePreviewPaths
-        centerline={previewCenterline(style.geometryId, length)}
+        centerline={previewCenterline(style.geometryId, length, specimenHeight)}
+        previewMinimumStrokeWidth={previewMinimumStrokeWidth}
         style={style}
         markerStart={markerStart}
         markerEnd={markerEnd}

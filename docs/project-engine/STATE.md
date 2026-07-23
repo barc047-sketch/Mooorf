@@ -12,7 +12,7 @@
 | PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains pushed accepted R3B, local R4A checkpoint `19e9474`, R4B checkpoint `5cf601b`, and local-uncommitted revised R5 whole-Cell Connection authoring/settings work; no merge is authorized. |
+| ACTIVE FINALIZATION BRANCH | `work/next-feature` contains pushed accepted R3B, local R4A checkpoint `19e9474`, R4B checkpoint `5cf601b`, Owner-accepted R5 checkpoint `833ca10`, and local-uncommitted R5.5 Relationship Legend work; no merge is authorized. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
@@ -30,8 +30,9 @@
 | CONNECTIONS R3B STATUS | OWNER ACCEPTED / PUSHED at `e9f9219`; no merge is authorized. |
 | CONNECTIONS R4A STATUS | OWNER ACCEPTED / LOCAL CHECKPOINT `19e9474` / NOT PUSHED. |
 | CONNECTIONS R4B STATUS | LOCAL CHECKPOINT `5cf601b` / NOT PUSHED. |
-| CONNECTIONS R5 STATUS | LOCAL UNCOMMITTED / WHOLE-CELL CONNECTION AUTHORING COMPLETE / PREVIEW AVAILABLE / WAITING OWNER QA. |
-| NEXT AUTHORITY | Owner visual and interaction QA for R5 only. Commit, push, merge and branch cleanup each require separate explicit authority. |
+| CONNECTIONS R5 STATUS | OWNER ACCEPTED / LOCAL CHECKPOINT `833ca10` / NOT PUSHED. |
+| CONNECTIONS R5.5 STATUS | LOCAL UNCOMMITTED / FINAL EDITORIAL LEGEND SETTINGS UX PASS APPLIED / AUTOMATED CHECKS PASSED / WAITING OWNER QA. |
+| NEXT AUTHORITY | Owner visual and interaction QA for R5.5 only. Commit, push, merge and branch cleanup each require separate explicit authority. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -170,7 +171,7 @@
 - authored annotation values remain zoom-independent; live Style/Inspector drafts use the same renderer path and mode switching invalidates Canvas presentation immediately;
 - the visual Style clipboard includes annotation typography and plate appearance but excludes Title/Body content and per-Connection placement.
 
-### Connections R5 — LOCAL UNCOMMITTED / WAITING OWNER QA
+### Connections R5 — OWNER ACCEPTED / LOCAL CHECKPOINT
 
 - one compact Relationship Manager tune surface owns Visual Scale, dynamic Default Type, Stay in mode, Select new, Edge auto-pan, hit tolerance, unrelated fade, Connection motion and bounded reset; Port Layout no longer exists;
 - `settings.connectionView` is the sole normalized project/config/Saved View/recovery owner; missing values migrate to Fixed on Screen, Custom, Stay/Select/auto-pan on, `12px` corridor, `0.55` unrelated fade and Standard motion;
@@ -180,6 +181,22 @@
 - Default Type resolves from the dynamic active library with Custom fallback, while Stay/Select preferences reuse the existing one-transaction authoring/selection/Inspector path;
 - Custom now defaults to a gentle curved `3px` solid at authored opacity `0.82`; factory/project Type styles remain intentional and explicit `0.5–64px` styles remain valid;
 - edge auto-pan reuses the current camera/demand-frame owner only during active drag; hit tolerance changes only existing-line selection, unrelated fade clamps at `0.28`, focus defaults are selected `1.00`, related `0.82`, unrelated `0.55`, and Reduced motion still yields to OS reduced-motion policy.
+
+### Connections R5.5 — LOCAL UNCOMMITTED / WAITING OWNER QA
+
+- Relationship Manager exposes a `LEGEND` action beside Settings that opens or focuses one independent frameless window through the existing WidgetHost/WidgetFrame lifecycle; the Manager's `TYPES` and `CONNECTIONS` content remains uninterrupted and closing Manager leaves Legend open;
+- the Legend has no visible title/header, uses only tiny vertically stacked top-right minimize/close controls and remains movable through an invisible outer-shell drag region; it remains two-axis resizable and viewport bounded;
+- `src/domain/connections/relationshipLegend.ts` owns a React-free deterministic projection from the stable canonical active Type library, resolved live styles, canonical Connections, semantic Legend config and available dimensions into semantic items, grid placement, bounds and drawing-preview data;
+- `settings.connectionView.legend` is the one normalized project/config/Saved View/recovery owner for Auto/Horizontal/Vertical, horizontal rows `2–6`, Compact/Standard/Large density, Short/Standard/Long specimen length, Legible/True specimen weight, Text Width `80–320px`, text Align, semantic text X/Y placement, All Active/Used Only and Style/Name/Code/Description visibility; controls remain only in Manager Settings;
+- the Legend body is output-only, and its frame x/y/width/height are remembered as workspace UI-session state outside canonical data, Relationship Types and history;
+- Auto balances actual inner width and height, Horizontal fills down before opening columns and Vertical fills across before opening rows; no scrollbar exists, all items remain projected, and readable content grows the existing frame within viewport bounds when reflow/tightening is insufficient;
+- the editorial surface is specimen-first/name-second with no Type cards or default row separators; Style + Name is one compact line, while Code/Description alone add secondary height;
+- Legible raises only the Legend preview minimum for thin lines; True preserves authored relative width. Long Dash, Dash-Dot-Dot, Sparse Dot and Centerline add four parameter-driven registry families without loose/dense duplicates;
+- archived Types are excluded, Used Only derives from canonical Connections, Manager ordering is preserved independently of authoring MRU, and live Type/usage/style/settings changes reproject without reopening either window;
+- the same pure projection accepts arbitrary width, height and semantic config for future Sheet and authored export consumers; no actual export, Sheet placement, Matrix, manual item positioning or alternate Type owner was added.
+- the frameless Legend overrides only its old workspace minimum with a live current-width shallow projection plus actual border/control clearance; auto-growth never becomes a future resize floor, the empty state has no historical height reservation, and no-scroll bounded growth remains intact.
+- Manager `LEGEND SETTINGS` now uses the existing Morph-glass surface tokens and blur/border language; Hit tolerance and Unrelated fade reuse the shared `SliderRow`/`org-slider` primitive, eliminating native range styling without a Legend-specific slider path.
+- `LEGEND SETTINGS` now uses the shared `.glass` primitive itself, with compact icon-first layout/density/alignment/placement controls, visual specimen-length marks, bounded numeric Text Width and compact Content toggles. Text Width participates in the pure width/reflow calculation; alignment and placement remain separate semantic output values and Y placement reserves no additional height.
 
 ## Verification disposition
 
@@ -207,8 +224,16 @@ Connections R4B and its shared Visual Scale addendum passed 73/73 focused annota
 
 Connections R5 whole-Cell correction passed 144/144 affected settings, persistence/recovery, authoring, renderer/hit, focus, Inspector, Visual Scale, Relationship Type and history contracts. `npx --no-install tsc -b --pretty false`, tracked and untracked whitespace checks passed, and the current-worktree development preview returned HTTP 200 at `http://127.0.0.1:5173/`. Per task boundary, no browser automation, production build, commit or push occurred; visual and interaction judgement remains Owner QA.
 
+Connections R5.5 detached-window correction passed 57/57 affected Legend projection, WidgetHost/Frame lifecycle, canonical Type/order/usage, Manager, adaptive style-preview, settings, project/Saved View/import/recovery and advanced-stroke contracts. `npx --no-install tsc -b --pretty false`, tracked and untracked whitespace checks passed. The focused large-library projection covers 6, 20, 50 and 120 Types, and the current-worktree development preview returned HTTP 200 at `http://127.0.0.1:5173/`. Per task boundary, no browser automation, production build, actual export/Sheet placement, commit or push occurred; visual, move and resize judgement remains Owner QA.
+
+Connections R5.5 final editorial Legend and linetype refinement passed 36/36 affected frameless-chrome, no-scroll fitting/growth, semantic specimen, linetype-registry, Canvas-behavior, import and widget-lifecycle contracts. Exact `npx --no-install tsc -b --pretty false`, tracked and untracked whitespace checks passed, and the current-worktree development preview returned HTTP 200 at `http://127.0.0.1:5173/`. Per task boundary, no browser automation, production build, actual R6 export/Sheet placement, commit or push occurred; visual, move and resize judgement remains Owner QA.
+
+R5.5 Owner-QA Legend height and settings visual-consistency correction passed 22 focused Legend projection, Manager settings, widget lifecycle and registry contracts. The correction replaces the old `180px` workspace floor only for the frameless Legend with a current-width shallow projection plus measured control/border clearance, preserves bounded no-scroll growth, applies existing Morph-glass tokens to `LEGEND SETTINGS`, and routes the Manager range controls through the shared slider primitive. Exact TypeScript, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check passed. No browser automation, production build, commit or push occurred.
+
+R5.5 final editorial Legend Settings UX pass passed 23 focused Legend projection, Manager settings, widget lifecycle and registry contracts. The shared `.glass` primitive replaces the transparent local Legend surface; semantic Text Width, alignment and X/Y placement normalize through the one existing config, alter the pure width/reflow projection where applicable, and update the detached output live without item coordinates or history. Exact TypeScript, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check passed. No browser automation, production build, commit or push occurred.
+
 ## Current gate
 
-R5 WHOLE-CELL CONNECTION AUTHORING COMPLETE — WAITING OWNER QA
+R5.5 EDITORIAL LEGEND SETTINGS COMPLETE — WAITING OWNER QA
 
-`main` remains untouched. R5 commit, push, merge and branch cleanup are not authorized.
+`main` remains untouched. R5.5 commit, push, merge and branch cleanup are not authorized.

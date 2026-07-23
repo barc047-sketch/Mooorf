@@ -130,6 +130,7 @@ export type WidgetId =
   | "display"
   | "label-studio"
   | "connections"
+  | "relationship-legend"
   | "connection-studio"
   | "advanced"
   | "stats"

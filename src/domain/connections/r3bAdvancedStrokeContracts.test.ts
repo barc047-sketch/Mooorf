@@ -45,6 +45,7 @@ type StrokePatternModule = {
     patternAmplitude: number,
   ): StrokeMotif;
   resolveConnectionStrokePattern(id: string): { id: string; capabilities: { amplitude: boolean; scale: boolean } };
+  connectionStrokeDashArray(id: string, patternScale: number): number[];
 };
 
 const loadStrokePatternModule = async (): Promise<Partial<StrokePatternModule>> => {
@@ -80,12 +81,38 @@ test("stroke pattern registry preserves the core set and exposes the bounded adv
   const ids = definitions.map((definition) => definition.id);
   for (const id of [
     "solid", "dashed", "dotted", "dash-dot", "double", "segmented-bars",
-    "zigzag", "wave", "scallop", "vertical-hash", "lightning",
+    "long-dash", "dash-dot-dot", "sparse-dot", "centerline",
+    "zigzag", "wave", "scallop", "vertical-hash", "vertical-hatch", "lightning",
   ]) assert.ok(ids.includes(id), `${id} must be registry-backed`);
   assert.equal(new Set(ids).size, ids.length);
   assert.ok(definitions.every((definition) => definition.preview.strategy === definition.rendererStrategy));
   assert.equal(module.resolveConnectionStrokePattern?.("wave").capabilities.amplitude, true);
   assert.equal(module.resolveConnectionStrokePattern?.("dashed").capabilities.amplitude, false);
+});
+
+test("technical base dash families stay parameter-driven without loose/dense duplicates", async () => {
+  const module = await loadStrokePatternModule();
+  const definitions = module.CONNECTION_STROKE_PATTERNS!;
+  const ids = definitions.map((definition) => definition.id);
+  for (const id of ["long-dash", "dash-dot-dot", "sparse-dot", "centerline"]) {
+    const definition = definitions.find((candidate) => candidate.id === id);
+    assert.equal(definition?.family, "dash");
+    assert.equal(definition?.rendererStrategy, "dash");
+    assert.equal(definition?.capabilities.scale, true);
+  }
+  assert.equal(ids.some((id) => /loose|dense/i.test(id)), false);
+  const baseCenterline = module.connectionStrokeDashArray?.("centerline", 1) ?? [];
+  const scaledCenterline = module.connectionStrokeDashArray?.("centerline", 2) ?? [];
+  assert.deepEqual(
+    scaledCenterline,
+    baseCenterline.map((value) => value * 2),
+    "Pattern Scale changes spacing/repetition metrics without another named family",
+  );
+  const patternSource = source("./strokePatterns.ts");
+  assert.match(patternSource, /long-dash[\s\S]*dashUnits:\s*\[[^\]]+\]/);
+  assert.match(patternSource, /dash-dot-dot[\s\S]*dashUnits:\s*\[[^\]]+\]/);
+  assert.match(patternSource, /sparse-dot[\s\S]*dashUnits:\s*\[[^\]]+\]/);
+  assert.match(patternSource, /centerline[\s\S]*dashUnits:\s*\[[^\]]+\]/);
 });
 
 test("adaptive preview length adds motif repetitions without changing wavelength or amplitude", async () => {

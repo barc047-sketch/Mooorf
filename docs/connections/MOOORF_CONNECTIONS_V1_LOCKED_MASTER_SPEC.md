@@ -2395,3 +2395,47 @@ Annotation content and annotation presentation are distinct. Relationship Types 
 ### Horizontal Annotation and Shared Visual Scale Rule
 
 Annotations remain horizontal, but their complete visual unit follows the same project-global Connection Settings → Visual Scale owner as Connection graphics. In Fixed on Screen mode, typography, line height, plate dimensions, padding, corner radius, border width, wrapping width, internal spacing and path offset remain stable in final CSS pixels across camera zoom. In Scale with Canvas mode, text and plate metrics scale together with normalized Canvas zoom. LOD remains independently bounded by projected screen-space conditions, and canonical annotation presentation stores authored values only—never zoom-compensated values. No separate Annotation Scale setting exists.
+
+## Amendment 11 — 2026-07-23
+
+### Relationship Legend
+
+Relationship Legend is a projection of the canonical Relationship Type library. It owns no duplicate Type identity, display name, code, description, style or archive state. Entries derive live from canonical active Types in stable Relationship Manager order and use each Type's resolved visual style; archived Types are excluded by default, and authoring MRU never reorders the Legend.
+
+The same pure Legend composition must be reusable by Relationship Manager, future Sheet placement, PNG, SVG, PDF and presentation export. It accepts semantic Legend configuration plus available width and height and returns deterministic semantic items, layout placement and drawing-preview data without React state, DOM scraping or stored per-item pixel positions. R5.5 implements the Manager consumer and reuse seam only; actual export and Sheet placement remain separately gated.
+
+Legend presentation is editorial and space-efficient: compact outer margins, precise grid alignment, restrained typography, real adaptive style specimens and fine separators rather than one rounded card per Type. The default scope is All Active with optional Used Only derived from canonical Connections. Auto, Horizontal and Vertical are the only layout modes; Horizontal fills down first with four rows by default, Vertical fills across first, and resize recomposes without canonical project writes.
+
+Compact, Standard and Large density presets change presentation only. Content controls default to Style and Name on, Code and Description off, while preserving at least one text identifier. Preview bounds adapt to the available cell width; authored motif wavelength, dash/gap rhythm, hatch/hash distinction, markers, width, color and opacity are never non-uniformly stretched or coupled to Canvas camera zoom.
+
+## Amendment 12 — 2026-07-23
+
+### Detached Floating Relationship Legend
+
+Amendment 11's Relationship Manager consumer is corrected to an independent floating Legend window. The existing `LEGEND` action remains in the Relationship Manager header, but opens or focuses one registry-owned `RELATIONSHIPS` widget through the canonical WidgetHost and WidgetFrame lifecycle. It never replaces the Manager content area: `TYPES` and `CONNECTIONS` remain visible, selectable and usable. Closing the Manager does not close the Legend; the Legend can be minimized, moved, resized on both axes and closed independently.
+
+The detached Legend is output-only. It contains the editorial composition and shared resolved style specimens, with no large configuration toolbar or second settings owner. All semantic Legend controls live in one compact `LEGEND SETTINGS` section inside the existing Relationship Manager Settings menu: Layout (`Auto`, `Horizontal`, `Vertical`), Scope (`All Active`, `Used Only`), Content (`Style`, `Name`, `Code`, `Description`), Density (`Compact`, `Standard`, `Large`) and Horizontal rows (`2–6`) only while Horizontal layout is selected.
+
+Window x/y/width/height are ephemeral workspace UI-session state owned by the existing floating-widget lifecycle. They are not canonical project data, Relationship Type data, persistence, Saved View semantics or history. The frame remains viewport-clamped, and actual content width and height drive the same pure deterministic projection during resize. Canonical Type, Connection usage, settings and live style-preview changes update the detached Legend without reopening either window. The React-free future export/Sheet seam from Amendment 11 remains unchanged.
+
+## Amendment 13 — 2026-07-23
+
+### Final Editorial Legend and Technical Linetype Refinement
+
+The detached Relationship Legend is frameless: it has no visible `RELATIONSHIPS` heading, icon/title strip or reserved horizontal header. A restrained invisible outer-shell drag region preserves movement, while only tiny vertically stacked minimize and close controls remain at the top-right. The detached body contains no settings or scrollbar workflow. All projected Types remain present; actual content requirements first reflow and tighten the deterministic grid, then grow the existing viewport-bounded WidgetFrame when readable content still cannot fit.
+
+Normal Style + Name composition reads specimen first and name second, with no per-entry card or default separator. Compact, Standard and Large density own typography, row rhythm and gutters independently from new Short, Standard and Long specimen-length semantics. Code and Description allocate height only when enabled; Style + Name retains one compact line. `Legible` specimen weight is the default and applies a preview-only `1px` minimum to very thin authored lines; `True` preserves authored width. Neither mode changes canonical Relationship Type styles, Connection overrides, Canvas rendering, copied style values or export semantics.
+
+`settings.connectionView.legend` remains the sole semantic config owner and adds `specimenLength` and `specimenWeight`. Manager Settings remains the only control surface. The React-free projector continues accepting canonical Types, resolved styles, canonical usage, semantic config and arbitrary width/height for future Sheet and authored export consumers; window geometry, DOM measurements, rendered dash positions and per-item coordinates never become export or project data.
+
+The canonical stroke-pattern registry adds only four useful parameter-driven base families: Long Dash, Dash-Dot-Dot, Sparse Dot and Centerline. Pattern Scale changes their repetition and spacing; no loose/dense name variants are added. Existing Double, Zigzag, Wave, Scallop, Vertical Hash, Vertical Hatch, Lightning, markers, color, opacity and width remain registry-driven. Increased specimen length adds repetitions without horizontally stretching dash, dot, wavelength, amplitude, hatch/hash spacing or marker metrics, and Vertical Hatch retains its hidden centerline.
+
+## Amendment 14 — 2026-07-23
+
+### Editorial Legend Settings and Semantic Text Placement
+
+`LEGEND SETTINGS` is a compact Manager-only Morph-glass surface using the shared `.glass` primitive and existing border, blur, fill, highlight and light/dark behavior. It uses icon-first segmented controls where the visual concept is clear, keeps compact labels where semantic clarity requires them, and does not introduce raw browser range controls or a second settings owner.
+
+`settings.connectionView.legend` adds semantic, export-ready `textWidth` (`80–320px`), `textAlign` (`left|center|right`), `textPlacementX` (`left|center|right`) and `textPlacementY` (`top|middle|bottom`) values. Text Width is independent of specimen length and participates in pure grid minimum/ideal width, column selection, reflow and bounded no-scroll growth. Text alignment controls justification within the text block; X and Y control the block's semantic composition and vertical attachment independently. They never store DOM coordinates, measured text bounds, per-Type positions or history records.
+
+The default remains specimen first with the text block on the right, left-aligned and vertically middle. Y placement changes no row-height metric, so compact Style + Name retains its accepted dynamic height. Specimen-side is deliberately not added: X placement provides the required bounded semantic alternatives without a redundant layout owner.

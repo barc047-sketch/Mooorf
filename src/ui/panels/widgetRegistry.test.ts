@@ -111,6 +111,15 @@ if (WIDGET_DEFINITIONS.connections.geometry.variant === "workspace") {
   equal(WIDGET_DEFINITIONS.connections.geometry.workspace.maxHeight, "85vh", "Relationship Manager stays viewport bounded");
 }
 
+equal(WIDGET_DEFINITIONS["relationship-legend"].label, "RELATIONSHIPS", "detached Legend owns a minimal frame identity");
+equal(WIDGET_DEFINITIONS["relationship-legend"].launcher, "widget", "Legend opens from Relationship Manager rather than a duplicate launcher");
+equal(WIDGET_DEFINITIONS["relationship-legend"].geometry.variant, "workspace", "Legend reuses the canonical movable workspace frame");
+if (WIDGET_DEFINITIONS["relationship-legend"].geometry.variant === "workspace") {
+  equal(WIDGET_DEFINITIONS["relationship-legend"].geometry.minWidth, 260, "Legend supports a thin vertical composition");
+  equal(WIDGET_DEFINITIONS["relationship-legend"].geometry.workspace.maxWidth, "82vw", "Legend supports a wide shallow composition");
+  equal(WIDGET_DEFINITIONS["relationship-legend"].geometry.workspace.maxHeight, "82vh", "Legend remains viewport bounded");
+}
+
 const frameSource = readFileSync(new URL("../widgets/WidgetFrame.tsx", import.meta.url), "utf8");
 const widgetCss = readFileSync(new URL("../widgets/widgets.css", import.meta.url), "utf8");
 ok(frameSource.includes("resolveWidgetGeometryStyle(geometry, scale)"), "WidgetFrame consumes registry sizing metadata");
