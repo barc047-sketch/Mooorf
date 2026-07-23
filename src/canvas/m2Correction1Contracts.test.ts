@@ -82,16 +82,16 @@ test("current layout presets arrange only the selected subset and create one und
 });
 
 test("no-selection arrangement affects all renderer-visible entities and Random preserves their centroid", () => {
-  const before = Array.from({ length: 100 }, (_, index) => cell(`v${index}`, index * 110, index % 2 ? 40 : -40, 20));
+  const before = Array.from({ length: 520 }, (_, index) => cell(`v${index}`, index * 110, index % 2 ? 40 : -40, 20));
   resetStore(before);
-  const visibleBeforeCentroid = centroid(before.slice(0, 96));
+  const visibleBeforeCentroid = centroid(before.slice(0, 500));
 
   useLab.getState().applyLayoutPreset("random");
   const after = useLab.getState().spaces;
-  const visibleAfterCentroid = centroid(after.slice(0, 96));
+  const visibleAfterCentroid = centroid(after.slice(0, 500));
 
-  assert.ok(after.slice(0, 96).some((space, index) => space.x !== before[index].x || space.y !== before[index].y), "visible entities move");
-  assert.deepEqual(after.slice(96).map(({ x, y }) => ({ x, y })), before.slice(96).map(({ x, y }) => ({ x, y })), "entities outside the Organism render cap remain fixed");
+  assert.ok(after.slice(0, 500).some((space, index) => space.x !== before[index].x || space.y !== before[index].y), "visible entities move");
+  assert.deepEqual(after.slice(500).map(({ x, y }) => ({ x, y })), before.slice(500).map(({ x, y }) => ({ x, y })), "entities outside the Organism render cap remain fixed");
   assert.ok(Math.abs(visibleAfterCentroid.x - visibleBeforeCentroid.x) < 1e-9, "Random preserves the arranged subset x centroid");
   assert.ok(Math.abs(visibleAfterCentroid.y - visibleBeforeCentroid.y) < 1e-9, "Random preserves the arranged subset y centroid");
   assert.equal(useLab.getState().transformUndoStack.length, 1, "Random creates one history transaction");

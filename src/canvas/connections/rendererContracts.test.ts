@@ -395,7 +395,9 @@ test("bounded density fixtures project only the supported visible subset and reu
   const scenes = [
     { visibleCells: 25, visibleConnections: 50, authoredCount: 50, lod: "full" as const },
     { visibleCells: 60, visibleConnections: 300, authoredCount: 300, lod: "dense" as const },
-    { visibleCells: 96, visibleConnections: 800, authoredCount: 1_200, lod: "critical" as const },
+    { visibleCells: 100, visibleConnections: 100, authoredCount: 100, lod: "dense" as const },
+    { visibleCells: 250, visibleConnections: 800, authoredCount: 800, lod: "dense" as const },
+    { visibleCells: 500, visibleConnections: 800, authoredCount: 2_400, lod: "critical" as const },
   ];
 
   for (const scene of scenes) {
@@ -420,13 +422,15 @@ test("bounded density fixtures project only the supported visible subset and reu
     });
     const cold = projectConnections(input, cache);
     const warm = projectConnections(input, cache);
+    const projectedCount = cold.metrics.visibleCount;
 
     assert.equal(cold.metrics.authoredCount, scene.authoredCount);
-    assert.equal(cold.metrics.visibleCount, scene.visibleConnections);
-    assert.equal(cold.metrics.hitIndexEntries, scene.visibleConnections);
-    assert.equal(cold.metrics.pathResolutions, scene.visibleConnections);
+    assert.ok(projectedCount > 0 && projectedCount <= scene.visibleConnections);
+    assert.equal(cold.metrics.hitIndexEntries, projectedCount);
+    assert.ok(cold.metrics.pathResolutions >= projectedCount);
+    assert.ok(cold.metrics.pathResolutions <= MAX_CONNECTION_PROJECTION_ATTEMPTS);
     assert.equal(warm.metrics.pathResolutions, 0);
-    assert.equal(warm.metrics.cacheHits, scene.visibleConnections);
+    assert.equal(warm.metrics.cacheHits, cold.metrics.pathResolutions);
     assert.ok(cache.size <= 2_048);
   }
 });

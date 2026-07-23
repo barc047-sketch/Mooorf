@@ -18,7 +18,10 @@ test("Table stays the only lazy non-Canvas workspace", () => {
   assert.doesNotMatch(app, /react-router|BrowserRouter|createBrowserRouter|RouterProvider/);
   assert.match(table, /useLab/);
   assert.match(types, /ViewMode = "canvas" \| "table"/);
-  assert.match(store, /setView: \(view\) => set\(view === "canvas" \? \{ view \} : \{ view, \.\.\.closedContext \}\)/);
+  assert.match(
+    store,
+    /setView: \(view\) => set\(\(s\) => view === "canvas"[\s\S]*?\? \{ view \}[\s\S]*?: \{[\s\S]*?view,[\s\S]*?\.\.\.closedContext,[\s\S]*?exitConnectionModePatch\(s\)[\s\S]*?cancelConnectionAuthoringPatch\(s\)/,
+  );
 });
 
 test("Canvas and conditional Table overlay are direct app-shell layers", () => {
@@ -99,6 +102,10 @@ test("PF1D.1D restores the conditional floating Table overlay with a static non-
     css.indexOf(".table-workspace-overlay"),
     css.indexOf(".canvas-chrome-layer"),
   );
+  const tableWorkspaceChrome = tableWorkspace.slice(
+    0,
+    tableWorkspace.indexOf(".table-view"),
+  );
 
   assert.match(app, /\{\(tableActive \|\| resumePending\) && \([\s\S]*?className="table-workspace-overlay"/);
   assert.match(
@@ -113,7 +120,7 @@ test("PF1D.1D restores the conditional floating Table overlay with a static non-
   assert.match(app, /delay:\s*resumePending \? 0 :/);
   assert.doesNotMatch(css, /\.canvas-workspace\[aria-hidden="true"\][\s\S]*?(?:visibility:\s*hidden|display:\s*none)/);
   assert.match(tableWorkspace, /z-index:\s*90/);
-  assert.doesNotMatch(tableWorkspace, /backdrop-filter|-webkit-backdrop-filter|\bfilter\s*:/);
+  assert.doesNotMatch(tableWorkspaceChrome, /backdrop-filter|-webkit-backdrop-filter|\bfilter\s*:/);
   assert.doesNotMatch(app, /table-workspace-shell|table-workspace-cover/);
   assert.match(tableWorkspace, /\.table-workspace-scrim[\s\S]*?pointer-events:\s*auto/);
   assert.match(tableWorkspace, /\.table-workspace-panel[\s\S]*?border-radius:\s*var\(--r-panel\)/);

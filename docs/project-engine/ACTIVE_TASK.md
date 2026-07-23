@@ -1,26 +1,25 @@
 # Active Task
 
-## R6 EXPORT PARITY + TABLE/MATRIX PROJECTION HOOKS
+## R7 CONNECTIONS V1 FINAL HARDENING
 
-Status: LOCAL UNCOMMITTED / AUTOMATED CHECKS PASSED / PREVIEW AVAILABLE / WAITING OWNER QA
+Status: LOCAL UNCOMMITTED / AUTOMATED + CODEX BROWSER QA PASSED / WAITING FINAL OWNER QA
 
 - branch: `work/next-feature`;
-- starting remote-backed R5.5 checkpoint: `4154bd5dda986db7c8ec7d63c6df90b1ffd180d1`; local HEAD and `origin/work/next-feature` matched and the worktree was clean before R6;
-- `src/export/connectionExport.ts` owns one React/DOM-independent authored export projection from canonical Connections, current Relationship Types, resolved sparse styles, explicit output-space endpoints/bounds and document scale into paths, motifs, markers, annotations and bounds;
-- detached export reuses the existing geometry, lane, style, stroke-pattern and annotation projectors; export mode removes live LOD/focus/collision budgets while retaining canonical full Body text and bounds-aware wrapping;
-- detached Organism PNG capture draws Connections after the WebGL field and before Cell presentation/labels; PDF and presentation ZIP inherit that same capture; the existing raster PDF architecture was not rewritten and Organism SVG remains explicitly unavailable;
-- global `settings.connectionView.visible` omits normal visual export while per-Connection `enabled` and sparse `visual.visible` remain separate canonical gates;
-- `relationshipLegend` is an optional explicit capture target with caller-owned x/y/width/height; it recomputes `projectRelationshipLegend(...)` from canonical Types/config and renders through the shared Connection style/motif path without Widget geometry or DOM capture;
-- the same Legend render target is the bounded future Sheet object seam; no Sheet editor or stored per-item coordinates were added;
-- `projectRelationshipRows(...)` and `projectRelationshipMatrix(...)` resolve current dynamic Type metadata and annotations while retaining canonical Connection references/IDs, disabled records and multiple records per endpoint pair; no Table redesign or Matrix UI was added;
-- presentation packs include a separate `relationships.csv` with Connection ID, Source, Target, Type, Type Code, Enabled, Title and Body; JSON remains the existing canonical project snapshot without path samples, wrapped lines or Widget geometry;
-- the export projector has no live camera, WidgetHost, Manager, React-per-Connection or DOM-measurement dependency and projected 2,400 deterministic records without the live 1,024-command cap;
-- RED was recorded against the missing R6 module/wiring; 106/106 focused and affected contracts then passed, including export, annotation, renderer, advanced styles, Legend, selectors, JSON/import and 2,400-record coverage;
+- accepted starting local R6 checkpoint: `7be315ea692f45e9ee62eaa10b8a8c751dcae86d`;
+- `origin/work/next-feature` intentionally remains at `4154bd5dda986db7c8ec7d63c6df90b1ffd180d1`; `main` remains untouched;
+- the active production Organism cap is now 500 Cells through the existing `MAX_NUCLEI` owner;
+- the WebGL renderer keeps one field draw path and transports the bounded 500-Cell position/radius/strength/color payload through one persistent `RGBA32F` data texture instead of oversized fragment-uniform arrays;
+- shader work remains proportional to the current bounded Cell count, and the existing scheduler, Table inactivity gate, Connection viewport culling, 1,024 live command budget and detached export architecture remain intact;
+- focused RED proved the old 96 cap and missing bounded texture path before implementation;
+- 40/40 focused R7 cap/renderer contracts passed;
+- 254/254 full relevant Connection, history, persistence, renderer, export, project-transfer, Table lifecycle and widget-owner contracts passed;
+- 100/250/500-Cell projection contracts and 100/800/2,400-Connection density/export fixtures passed;
 - `npx --no-install tsc -b --pretty false` passed;
-- tracked/untracked whitespace and scope checks passed;
-- `http://127.0.0.1:4173/` serves the current worktree with HTTP 200 and title `ZONUERT Canvas Lab`;
-- no browser automation, production build, full Matrix UI, Table redesign, screenshot/DOM export, Classic/Organism SVG rewrite, commit, push or merge occurred.
+- the one authorized canonical `npm run build` passed, transforming 2,952 modules in 16.16s with only the accepted Vite chunk-size warning;
+- Codex browser Runs A/B/C cover normal load, whole-Cell authoring, typed multiple Connections, Manager range selection, Inspector Title/Body, Enter Apply, visual-scale modes, detached Legend/settings, Table→Canvas, Connections OFF→ON, PNG generation, export opening and console sanity;
+- `http://127.0.0.1:4173/` serves the current worktree with HTTP 200;
+- no feature redesign, new React-per-Connection path, Classic work, dependency install, commit, push, merge or `main` mutation occurred.
 
 Next safe action:
 
-Owner manual export/data inspection and Table/Matrix projection review for R6. Commit, push, R7 hardening, production build, browser QA and merge each require separate explicit authority.
+Owner final manual R7 QA only. Commit, push, merge and branch cleanup each require separate explicit authority.

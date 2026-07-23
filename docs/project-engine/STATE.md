@@ -12,7 +12,7 @@
 | PRODUCT INTEGRATION COMMIT | `a7ef4cce4ff0ca4def8e5f5dcb74c5077369ce2e` |
 | C0-M2 INCLUDED COMMIT | `a537102f9a9b71d0397266b7a22daef20e49282d` is an ancestor of the product integration commit; it was not merged separately. |
 | OWNER APPROVED | C0-M2 Correction 1 and PF1D.3 Owner QA passed. |
-| ACTIVE FINALIZATION BRANCH | `work/next-feature` is remote-backed at accepted R5.5 checkpoint `4154bd5` and carries local-uncommitted R6 export/projection work; no merge is authorized. |
+| ACTIVE FINALIZATION BRANCH | `work/next-feature` has accepted local R6 checkpoint `7be315e`, intentionally remains remote-backed at `4154bd5`, and carries local-uncommitted R7 final-hardening work; no push or merge is authorized. |
 | FABLE RUN 1 | Four preserved commits from `0fd5658fc498c890683298a6d073cd9e5f5d8ae8` through `52293c4dff1fc9be05561935337e9846da1d4ce6`. |
 | SOL PRODUCT COMMIT | `e18b2dd5b23a0610a570f9c5322630534cf379d6` |
 | CORRECTION 2 PRODUCT COMMITS | `199eda0afaa1f10cce43de57ebeca3466611f22a`, `96ac4e38303d79bd1e9e84b4f97c16a2729819b5`, `b4e7a3ec04c8a6e14625cd241cbba23dc32e5a67`, `61fcb9d313b91d486d2287156d77e84eb972658a` |
@@ -32,8 +32,9 @@
 | CONNECTIONS R4B STATUS | CHECKPOINT `5cf601b` / INCLUDED AS ANCESTOR OF REMOTE-BACKED `4154bd5`. |
 | CONNECTIONS R5 STATUS | OWNER ACCEPTED CHECKPOINT `833ca10` / INCLUDED AS ANCESTOR OF REMOTE-BACKED `4154bd5`. |
 | CONNECTIONS R5.5 STATUS | PUSHED / REMOTE-BACKED at `4154bd5`; no merge is authorized. |
-| CONNECTIONS R6 STATUS | LOCAL UNCOMMITTED / EXPORT PARITY + PROJECTION HOOKS APPLIED / AUTOMATED CHECKS PASSED / WAITING OWNER QA. |
-| NEXT AUTHORITY | Owner manual R6 export/data and projection QA only. Commit, push, R7, production build, browser QA, merge and branch cleanup each require separate explicit authority. |
+| CONNECTIONS R6 STATUS | OWNER QA PASSED / LOCAL CHECKPOINT `7be315e` / NOT PUSHED. |
+| CONNECTIONS R7 STATUS | LOCAL UNCOMMITTED / 500-CELL CAP + FINAL HARDENING APPLIED / AUTOMATED + CODEX BROWSER QA PASSED / WAITING FINAL OWNER QA. |
+| NEXT AUTHORITY | Owner final manual R7 QA only. Commit, push, merge and branch cleanup each require separate explicit authority. |
 | BACKUP BRANCHES | Existing feature branches remain historical backup refs and are not active work. |
 
 ## Integrated product state
@@ -199,7 +200,7 @@
 - Manager `LEGEND SETTINGS` now uses the existing Morph-glass surface tokens and blur/border language; Hit tolerance and Unrelated fade reuse the shared `SliderRow`/`org-slider` primitive, eliminating native range styling without a Legend-specific slider path.
 - `LEGEND SETTINGS` now uses the shared `.glass` primitive itself, with compact icon-first layout/density/alignment/placement controls, visual specimen-length marks, bounded numeric Text Width and compact Content toggles. Text Width participates in the pure width/reflow calculation; alignment and placement remain separate semantic output values and Y placement reserves no additional height.
 
-### Connections R6 — LOCAL UNCOMMITTED / WAITING OWNER QA
+### Connections R6 — OWNER ACCEPTED / LOCAL CHECKPOINT `7be315e`
 
 - one detached, React/DOM-independent Connection export projection consumes canonical Connections, current Relationship Types, resolved sparse styles, shared lanes/geometry/motifs, shared annotation content/presentation and explicit output bounds/document scale;
 - PNG, PDF and presentation ZIP now receive the same detached Organism Connection composition; the existing raster PDF sheet architecture remains unchanged and Organism SVG stays explicitly unavailable;
@@ -209,6 +210,16 @@
 - pure Table rows and sparse Matrix cells retain canonical Connection references/IDs, resolve current Type metadata, and preserve multiple records between a pair without a Table redesign or Matrix UI;
 - presentation packs add `relationships.csv`; canonical JSON remains free of sampled paths, wrapped text and window geometry;
 - 2,400-record export projection is deterministic and uncapped by live viewport limits; no React-per-Connection, camera-store, WidgetHost or DOM-measurement dependency was introduced.
+
+### Connections R7 — LOCAL UNCOMMITTED / WAITING FINAL OWNER QA
+
+- the one production Organism cap owner now permits 500 visible Cells;
+- one persistent `RGBA32F` texture carries the bounded Cell payload, replacing the non-portable 500-entry fragment-uniform array path while retaining the existing one-field renderer;
+- fragment loops stop at the current bounded Cell count; the scheduler, Table inactivity/sleep lifecycle and export architecture remain unchanged;
+- live Connections retain viewport culling, the 1,024-command/hit budget, 2,048 bounded exact-cull refill, one base layer and one editing overlay;
+- focused cap/renderer contracts passed 40/40; the full relevant Connection/history/persistence/renderer/export/Table/widget suite passed 254/254;
+- the one canonical production build passed after transforming 2,952 modules in 16.16s, retaining only the accepted Vite chunk-size warning;
+- three bounded Codex browser waves passed normal load, whole-Cell authoring, Manager/Inspector/style/annotation flows, detached Legend/settings, Table/Canvas sleep-resume, visibility OFF/ON, PNG generation/export opening and final console sanity.
 
 ## Verification disposition
 
@@ -244,10 +255,12 @@ R5.5 Owner-QA Legend height and settings visual-consistency correction passed 22
 
 R5.5 final editorial Legend Settings UX pass passed 23 focused Legend projection, Manager settings, widget lifecycle and registry contracts. The shared `.glass` primitive replaces the transparent local Legend surface; semantic Text Width, alignment and X/Y placement normalize through the one existing config, alter the pure width/reflow projection where applicable, and update the detached output live without item coordinates or history. Exact TypeScript, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check passed. No browser automation, production build, commit or push occurred.
 
-Connections R6 recorded RED against the missing export/projection seams, then passed 106/106 focused and affected export, annotation, renderer, advanced-stroke, Legend, selector, JSON/import and 2,400-record contracts. `npx --no-install tsc -b --pretty false`, tracked/untracked whitespace checks and the current-worktree HTTP 200 preview check passed at `http://127.0.0.1:4173/`. Per task boundary, no browser automation, production build, full Matrix UI, Table redesign, screenshot/DOM export, Classic/Organism SVG rewrite, commit, push or merge occurred; Owner manual artifact/data QA remains the gate.
+Connections R6 recorded RED against the missing export/projection seams, then passed 106/106 focused and affected export, annotation, renderer, advanced-stroke, Legend, selector, JSON/import and 2,400-record contracts. Owner QA passed and the accepted local checkpoint is `7be315ea692f45e9ee62eaa10b8a8c751dcae86d`; it was not pushed.
+
+Connections R7 recorded RED against the 96-Cell cap and missing texture-backed payload, then passed 40/40 focused cap/renderer contracts and 254/254 full relevant Connection, history, persistence, renderer, export, project-transfer, Table lifecycle and widget-owner contracts. Exact TypeScript, tracked/untracked whitespace checks, the one authorized canonical build and three bounded browser waves passed. The development preview returns HTTP 200 at `http://127.0.0.1:4173/`. No feature redesign, dependency install, Classic work, commit, push or merge occurred; Owner final visual/interaction QA remains the gate.
 
 ## Current gate
 
-R6 EXPORT PARITY + PROJECTION HOOKS COMPLETE — WAITING OWNER QA
+R7 CONNECTIONS V1 FINAL HARDENING COMPLETE — WAITING FINAL OWNER QA
 
-`main` remains untouched. R6 commit, push, R7, production build, browser QA, merge and branch cleanup are not authorized.
+`main` remains untouched. R7 commit, push, merge and branch cleanup are not authorized.

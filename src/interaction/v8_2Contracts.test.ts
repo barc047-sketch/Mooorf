@@ -74,9 +74,9 @@ assert.deepEqual(
   "legacy selectedId migrates into canonical selection"
 );
 
-const many = Array.from({ length: 100 }, (_, index) => cell(String(index), index));
-assert.equal(visibleSelectableIds(many, "organism").length, 96, "Organism select-all respects the render cap");
-assert.equal(visibleSelectableIds(many, "classic").length, 100, "Classic select-all includes every rendered cell");
+const many = Array.from({ length: 550 }, (_, index) => cell(String(index), index));
+assert.equal(visibleSelectableIds(many, "organism").length, 500, "Organism select-all respects the 500-Cell render cap");
+assert.equal(visibleSelectableIds(many, "classic").length, 550, "Classic select-all includes every rendered cell");
 
 useLab.setState({
   spaces: [cell("a"), cell("b", 60)],

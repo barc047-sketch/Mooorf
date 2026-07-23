@@ -21,7 +21,7 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 | 15 | Quick Materials | PLANNED | Reuses the one Material Registry and requires separate Owner GO. |
 | 16 | Material Browser | PLANNED | Follows target-safe Quick Materials. |
 | 17 | Relationship foundation | COMPLETE | R3A Owner QA passed and the Manager/Types library is protected by local checkpoint `5f5e178`; it is not pushed or merged. |
-| 18 | Visual Connections | HOLD | R5.5 is remote-backed at `4154bd5`; R6 export parity and Table/Matrix projection hooks are local-uncommitted with automated checks passed and await Owner QA. R7, production build, browser QA, commit, push and merge require separate authority. |
+| 18 | Visual Connections | HOLD | R6 is Owner-accepted at local checkpoint `7be315e`; R7 final hardening is local-uncommitted with the 500-Cell cap, automated checks, one build and bounded Codex browser QA passed. Final Owner QA is required before any commit, push or merge. |
 | 19 | Morph Bridge and Cell Behaviour | BLOCKED | Requires stable Relationship semantics and bounded performance architecture. |
 | 20 | Annotation Card / broader Markup | PLANNED | Later reviewed Markup stage; no active implementation. |
 
@@ -33,6 +33,6 @@ Allowed status vocabulary: **COMPLETE**, **HOLD**, **PLANNED**, **DEFERRED**, **
 
 ## Current gate
 
-R6 EXPORT PARITY + PROJECTION HOOKS COMPLETE — WAITING OWNER QA
+R7 CONNECTIONS V1 FINAL HARDENING COMPLETE — WAITING FINAL OWNER QA
 
-No R6 commit/push, R7, production build, browser automation, feature merge, branch deletion or AG3 modification is authorized.
+No R7 commit/push, feature merge, branch deletion or AG3 modification is authorized.

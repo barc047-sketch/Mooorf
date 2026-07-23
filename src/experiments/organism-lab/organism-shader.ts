@@ -1,6 +1,6 @@
 /* V6E Organism Lab — raw WebGL2 implicit-field renderer.
    One fullscreen triangle; the fragment shader evaluates a continuous scalar
-   field from a uniform array of nuclei every pixel, every frame. Topology
+   field from a bounded texture-backed nucleus payload every pixel, every frame. Topology
    (merge / split / internal voids) emerges from the field — never decided
    per-pair on the CPU.
 
@@ -28,9 +28,10 @@ uniform vec2 uResolution;
    membrane target is downscaled, raw fwidth() is too broad after upsampling. */
 uniform float uTargetToVisibleSamplingScale;
 uniform int uCount;
-/* xy = position (field units), z = radius, w = signed strength */
-uniform vec4 uNuclei[MAX_NUCLEI];
-uniform vec3 uNucleusColors[MAX_NUCLEI];
+/* Row 0: xy = field position, z = radius, w = signed strength.
+   Row 1: rgb = nucleus colour. Texture transport avoids fragment-uniform
+   exhaustion at the Owner-approved 500 visible-Cell budget. */
+uniform sampler2D uNucleusData;
 
 uniform float uMass;
 uniform float uIso;
@@ -80,11 +81,18 @@ float visibleSampleWidth(float rawDerivative) {
   return rawDerivative * clamp(uTargetToVisibleSamplingScale, 0.05, 1.0);
 }
 
+vec4 nucleusAt(int index) {
+  return texelFetch(uNucleusData, ivec2(index, 0), 0);
+}
+
+vec3 nucleusColorAt(int index) {
+  return texelFetch(uNucleusData, ivec2(index, 1), 0).rgb;
+}
+
 float fieldAt(vec2 p) {
   float f = 0.0;
-  for (int i = 0; i < MAX_NUCLEI; i++) {
-    if (i >= uCount) break;
-    vec4 n = uNuclei[i];
+  for (int i = 0; i < uCount; i++) {
+    vec4 n = nucleusAt(i);
     vec2 d = p - n.xy;
     float r2 = n.z * n.z;
     float d2 = dot(d, d) + KEPS * r2;
@@ -100,9 +108,8 @@ float fieldAt(vec2 p) {
 vec3 spatialColorAt(vec2 p, out float totalWeight) {
   vec3 accumulated = vec3(0.0);
   totalWeight = 0.0;
-  for (int i = 0; i < MAX_NUCLEI; i++) {
-    if (i >= uCount) break;
-    vec4 n = uNuclei[i];
+  for (int i = 0; i < uCount; i++) {
+    vec4 n = nucleusAt(i);
     if (n.w <= 0.0) continue;
     vec2 d = p - n.xy;
     float r2 = n.z * n.z;
@@ -111,7 +118,7 @@ vec3 spatialColorAt(vec2 p, out float totalWeight) {
     float tail = n.z * inversesqrt(d2);
     float weight = n.w * (pow(core, max(uTension * 0.78, 0.45)) + uBias * 0.18 * tail);
     weight = clamp(weight, 0.0, 18.0);
-    accumulated += uNucleusColors[i] * weight;
+    accumulated += nucleusColorAt(i) * weight;
     totalWeight += weight;
   }
   return totalWeight > 0.0001 ? accumulated / totalWeight : uBodyColor;
@@ -119,9 +126,8 @@ vec3 spatialColorAt(vec2 p, out float totalWeight) {
 
 float plainBodyAt(vec2 p, float spread, float softness) {
   float mask = 0.0;
-  for (int i = 0; i < MAX_NUCLEI; i++) {
-    if (i >= uCount) break;
-    vec4 n = uNuclei[i];
+  for (int i = 0; i < uCount; i++) {
+    vec4 n = nucleusAt(i);
     if (n.w <= 0.0) continue;
     float radius = max(n.z + spread, 0.001);
     float d = length(p - n.xy);
@@ -133,9 +139,8 @@ float plainBodyAt(vec2 p, float spread, float softness) {
 
 float plainVoidRingAt(vec2 p) {
   float ring = 0.0;
-  for (int i = 0; i < MAX_NUCLEI; i++) {
-    if (i >= uCount) break;
-    vec4 n = uNuclei[i];
+  for (int i = 0; i < uCount; i++) {
+    vec4 n = nucleusAt(i);
     if (n.w >= 0.0) continue;
     float d = length(p - n.xy);
     float edge = max(visibleSampleWidth(fwidth(d)) * 1.4, 0.003);
@@ -215,16 +220,15 @@ void main() {
 
   /* nuclei rendered as embedded reverse-tone dots (skipped for void nuclei) */
   if (uNucleusDots > 0.001) {
-    for (int i = 0; i < MAX_NUCLEI; i++) {
-      if (i >= uCount) break;
-      vec4 n = uNuclei[i];
+    for (int i = 0; i < uCount; i++) {
+      vec4 n = nucleusAt(i);
       if (n.w <= 0.0) continue;
       float dN = length(p - n.xy);
       float rr = n.z * 0.34;
       float w = max(visibleSampleWidth(fwidth(dN)) * 1.2, 0.0035);
       float dot = 1.0 - smoothstep(rr - w, rr + w, dN);
       float dotAlpha = dot * uNucleusDots * 0.92;
-      col = mix(col, uNucleusColors[i], dotAlpha);
+      col = mix(col, nucleusColorAt(i), dotAlpha);
       surfaceAlpha = max(surfaceAlpha, dotAlpha);
     }
   }
@@ -245,9 +249,8 @@ void main() {
   }
 
   if (uNucleiDebug > 0.5) {
-    for (int i = 0; i < MAX_NUCLEI; i++) {
-      if (i >= uCount) break;
-      vec4 n = uNuclei[i];
+    for (int i = 0; i < uCount; i++) {
+      vec4 n = nucleusAt(i);
       float dN = length(p - n.xy);
       float w = max(visibleSampleWidth(fwidth(dN)) * 1.6, 0.0035);
       float ring = 1.0 - smoothstep(w, w * 2.0, abs(dN - n.z));
@@ -324,8 +327,7 @@ const UNIFORM_NAMES = [
   "uResolution",
   "uTargetToVisibleSamplingScale",
   "uCount",
-  "uNuclei[0]",
-  "uNucleusColors[0]",
+  "uNucleusData",
   "uMass",
   "uIso",
   "uSoftness",
@@ -388,6 +390,8 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
   let visibleDpr = 1;
   let targetDpr = 1;
   let targetFilter: "smooth" | "pixel" = "smooth";
+  let nucleusDataTexture: WebGLTexture | null = null;
+  const nucleusData = new Float32Array(MAX_NUCLEI * 8);
 
   function compile(type: number, src: string): WebGLShader {
     const g = gl as WebGL2RenderingContext;
@@ -401,6 +405,32 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       throw new Error(`organism-lab shader compile failed: ${log}`);
     }
     return shader;
+  }
+
+  function allocateNucleusDataTexture(): void {
+    const g = gl as WebGL2RenderingContext;
+    if (nucleusDataTexture) g.deleteTexture(nucleusDataTexture);
+    const texture = g.createTexture();
+    if (!texture) throw new Error("organism-lab: nucleus data texture allocation failed");
+    nucleusDataTexture = texture;
+    g.activeTexture(g.TEXTURE0);
+    g.bindTexture(g.TEXTURE_2D, texture);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.NEAREST);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.NEAREST);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE);
+    g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE);
+    g.texImage2D(
+      g.TEXTURE_2D,
+      0,
+      g.RGBA32F,
+      MAX_NUCLEI,
+      2,
+      0,
+      g.RGBA,
+      g.FLOAT,
+      null,
+    );
+    g.bindTexture(g.TEXTURE_2D, null);
   }
 
   function init(): void {
@@ -425,6 +455,7 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
     /* some drivers require a bound VAO even for attribute-less draws */
     vao = g.createVertexArray();
     g.bindVertexArray(vao);
+    allocateNucleusDataTexture();
     membraneEdgeGate = false;
     shadowGate = false;
   }
@@ -533,9 +564,32 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
           targetHeight / Math.max(1, gl.drawingBufferHeight),
         ),
       );
-      gl.uniform1i(loc["uCount"] ?? null, Math.min(frame.count, MAX_NUCLEI));
-      gl.uniform4fv(loc["uNuclei[0]"] ?? null, frame.nuclei);
-      gl.uniform3fv(loc["uNucleusColors[0]"] ?? null, frame.nucleusColors);
+      const count = Math.min(frame.count, MAX_NUCLEI);
+      const colorRowOffset = MAX_NUCLEI * 4;
+      nucleusData.fill(0);
+      nucleusData.set(frame.nuclei.subarray(0, count * 4), 0);
+      for (let index = 0; index < count; index += 1) {
+        const source = index * 3;
+        const target = colorRowOffset + index * 4;
+        nucleusData[target] = frame.nucleusColors[source] ?? 0;
+        nucleusData[target + 1] = frame.nucleusColors[source + 1] ?? 0;
+        nucleusData[target + 2] = frame.nucleusColors[source + 2] ?? 0;
+      }
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, nucleusDataTexture);
+      gl.texSubImage2D(
+        gl.TEXTURE_2D,
+        0,
+        0,
+        0,
+        MAX_NUCLEI,
+        2,
+        gl.RGBA,
+        gl.FLOAT,
+        nucleusData,
+      );
+      gl.uniform1i(loc["uNucleusData"] ?? null, 0);
+      gl.uniform1i(loc["uCount"] ?? null, count);
       gl.uniform1f(loc["uMass"] ?? null, frame.mass);
       gl.uniform1f(loc["uIso"] ?? null, frame.iso);
       gl.uniform1f(loc["uSoftness"] ?? null, frame.softness);
@@ -638,9 +692,11 @@ export function createOrganismRenderer(canvas: HTMLCanvasElement): OrganismRende
       canvas.removeEventListener("webglcontextrestored", onRestored, false);
       if (program) gl.deleteProgram(program);
       if (vao) gl.deleteVertexArray(vao);
+      if (nucleusDataTexture) gl.deleteTexture(nucleusDataTexture);
       disposeTarget();
       program = null;
       vao = null;
+      nucleusDataTexture = null;
     },
   };
 }
